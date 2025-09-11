@@ -43,19 +43,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
-                  <Link href={item.href} passHref legacyBehavior>
-                    <SidebarMenuButton
-                      isActive={
-                        item.href === "/"
-                          ? pathname === "/"
-                          : pathname.startsWith(item.href)
-                      }
-                      tooltip={item.label}
-                    >
+                  <SidebarMenuButton
+                    asChild
+                    isActive={
+                      item.href === "/"
+                        ? pathname === "/"
+                        : pathname.startsWith(item.href)
+                    }
+                    tooltip={item.label}
+                  >
+                    <Link href={item.href}>
                       <item.icon />
                       <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </Link>
+                    </Link>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -63,23 +64,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <SidebarFooter>
             <SidebarMenu>
                <SidebarMenuItem>
-                <Link href="/settings" passHref legacyBehavior>
-                  <SidebarMenuButton tooltip="Settings">
+                <SidebarMenuButton tooltip="Settings" asChild>
+                  <Link href="/settings">
                     <Settings />
                     <span>Settings</span>
-                  </SidebarMenuButton>
-                </Link>
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                 <Link href="/profile" passHref legacyBehavior>
-                    <SidebarMenuButton tooltip={currentUser.name}>
-                       <Avatar className="h-7 w-7">
-                          <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} data-ai-hint="person portrait" />
-                          <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                      <span>{currentUser.name}</span>
-                    </SidebarMenuButton>
+                <SidebarMenuButton tooltip={currentUser.name} asChild>
+                   <Link href="/profile">
+                     <Avatar className="h-7 w-7">
+                        <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} data-ai-hint="person portrait" />
+                        <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    <span>{currentUser.name}</span>
                   </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
