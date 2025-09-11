@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import {
@@ -32,10 +32,47 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 export default function RoomPage({ params }: { params: { slug: string } }) {
   const room = getRoomBySlug(params.slug);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [isMicOn, setIsMicOn] = useState(true);
+  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [hasMicPermission, setHasMicPermission] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const getPermissions = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        setHasCameraPermission(true);
+        setHasMicPermission(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing media devices:', error);
+        if ((error as Error).name === 'NotAllowedError' || (error as Error).name === 'PermissionDeniedError') {
+            toast({
+              variant: 'destructive',
+              title: 'Permissions Denied',
+              description:
+                'Please enable camera and microphone permissions in your browser settings.',
+            });
+            setHasCameraPermission(false);
+            setHasMicPermission(false);
+        }
+      }
+    };
+    getPermissions();
+  }, [toast]);
 
   useEffect(() => {
     if (!room) return;
@@ -63,6 +100,10 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
     { icon: Crown, label: 'Crown' },
   ];
 
+  const toggleMic = () => setIsMicOn(prev => !prev);
+  const toggleCamera = () => setIsCameraOn(prev => !prev);
+
+
   return (
     <div className="grid h-[calc(100vh-10rem)] md:h-full gap-4 lg:grid-cols-3 xl:grid-cols-4">
       <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-4">
@@ -73,17 +114,40 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
               <Badge variant="secondary" className="mt-1">{room.topic}</Badge>
             </div>
             <div className="flex items-center gap-2">
-              <Button size="icon" variant="outline"><Mic className="h-5 w-5"/></Button>
-              <Button size="icon" variant="outline"><Video className="h-5 w-5"/></Button>
+              <Button size="icon" variant={isMicOn ? "outline" : "secondary"} onClick={toggleMic}>
+                {isMicOn ? <Mic className="h-5 w-5"/> : <MicOff className="h-5 w-5"/>}
+              </Button>
+              <Button size="icon" variant={isCameraOn ? "outline" : "secondary"} onClick={toggleCamera}>
+                {isCameraOn ? <Video className="h-5 w-5"/> : <VideoOff className="h-5 w-5"/>}
+              </Button>
               <Button size="icon" variant="destructive"><PhoneOff className="h-5 w-5"/></Button>
             </div>
           </CardHeader>
         </Card>
         <Card className="flex-1">
           <CardContent className="p-4 h-full">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="relative aspect-video bg-muted rounded-md flex items-center justify-center">
+                <video ref={videoRef} className={cn("w-full aspect-video rounded-md", isCameraOn ? "block" : "hidden")} autoPlay muted />
+                {!isCameraOn && (
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <VideoOff className="h-10 w-10"/>
+                    <span>Camera is off</span>
+                  </div>
+                )}
+                 {(!hasCameraPermission || !hasMicPermission) && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <Alert variant="destructive" className="w-4/5">
+                      <AlertTitle>Permissions Required</AlertTitle>
+                      <AlertDescription>
+                        Please grant camera and microphone access to join the room.
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
+              </div>
               {room.participants.map((p) => (
-                <div key={p.id} className="relative flex flex-col items-center gap-2">
+                <div key={p.id} className="relative aspect-video flex flex-col items-center justify-center gap-2 bg-muted rounded-md">
                   <Avatar className={cn(
                     "h-24 w-24 border-4 border-transparent transition-all",
                     speakingId === p.id && "border-primary shadow-lg"
