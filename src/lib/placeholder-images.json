@@ -1,3 +1,70 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "user-avatar-1",
+      "description": "User avatar 1",
+      "imageUrl": "https://picsum.photos/seed/user1/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "user-avatar-2",
+      "description": "User avatar 2",
+      "imageUrl": "https://picsum.photos/seed/user2/200/200",
+      "imageHint": "woman smiling"
+    },
+    {
+      "id": "user-avatar-3",
+      "description": "User avatar 3",
+      "imageUrl": "https://picsum.photos/seed/user3/200/200",
+      "imageHint": "man glasses"
+    },
+    {
+      "id": "user-avatar-4",
+      "description": "User avatar 4",
+      "imageUrl": "https://picsum.photos/seed/user4/200/200",
+      "imageHint": "person outdoors"
+    },
+    {
+      "id": "user-avatar-5",
+      "description": "User avatar 5",
+      "imageUrl": "https://picsum.photos/seed/user5/200/200",
+      "imageHint": "woman nature"
+    },
+    {
+      "id": "room-cover-1",
+      "description": "Chat room cover 1",
+      "imageUrl": "https://picsum.photos/seed/room1/400/225",
+      "imageHint": "abstract vibrant"
+    },
+    {
+      "id": "room-cover-2",
+      "description": "Chat room cover 2",
+      "imageUrl": "https://picsum.photos/seed/room2/400/225",
+      "imageHint": "cozy cafe"
+    },
+    {
+      "id": "room-cover-3",
+      "description": "Chat room cover 3",
+      "imageUrl": "https://picsum.photos/seed/room3/400/225",
+      "imageHint": "gaming setup"
+    },
+    {
+      "id": "room-cover-4",
+      "description": "Chat room cover 4",
+      "imageUrl": "https://picsum.photos/seed/room4/400/225",
+      "imageHint": "books library"
+    },
+    {
+      "id": "room-cover-5",
+      "description": "Chat room cover 5",
+      "imageUrl": "https://picsum.photos/seed/room5/400/225",
+      "imageHint": "mountain landscape"
+    },
+    {
+      "id": "profile-header",
+      "description": "Profile header background",
+      "imageUrl": "https://picsum.photos/seed/profilebg/1200/300",
+      "imageHint": "abstract gradient"
+    }
+  ]
 }
