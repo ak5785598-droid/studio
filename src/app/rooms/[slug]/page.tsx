@@ -77,10 +77,12 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
   useEffect(() => {
     if (!room) return;
     const interval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * room.participants.length);
-      const randomParticipant = room.participants[randomIndex];
-      setSpeakingId(randomParticipant.id);
-      setTimeout(() => setSpeakingId(null), 1500);
+      if (room.participants.length > 0) {
+        const randomIndex = Math.floor(Math.random() * room.participants.length);
+        const randomParticipant = room.participants[randomIndex];
+        setSpeakingId(randomParticipant.id);
+        setTimeout(() => setSpeakingId(null), 1500);
+      }
     }, 3000);
     return () => clearInterval(interval);
   }, [room]);
@@ -114,10 +116,10 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
               <Badge variant="secondary" className="mt-1">{room.topic}</Badge>
             </div>
             <div className="flex items-center gap-2">
-              <Button size="icon" variant={isMicOn ? "outline" : "secondary"} onClick={toggleMic}>
+              <Button size="icon" variant={isMicOn ? "outline" : "secondary"} onClick={toggleMic} disabled={!hasMicPermission}>
                 {isMicOn ? <Mic className="h-5 w-5"/> : <MicOff className="h-5 w-5"/>}
               </Button>
-              <Button size="icon" variant={isCameraOn ? "outline" : "secondary"} onClick={toggleCamera}>
+              <Button size="icon" variant={isCameraOn ? "outline" : "secondary"} onClick={toggleCamera} disabled={!hasCameraPermission}>
                 {isCameraOn ? <Video className="h-5 w-5"/> : <VideoOff className="h-5 w-5"/>}
               </Button>
               <Button size="icon" variant="destructive"><PhoneOff className="h-5 w-5"/></Button>
@@ -128,21 +130,11 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
           <CardContent className="p-4 h-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div className="relative aspect-video bg-muted rounded-md flex items-center justify-center">
-                <video ref={videoRef} className={cn("w-full aspect-video rounded-md", isCameraOn ? "block" : "hidden")} autoPlay muted />
-                {!isCameraOn && (
+                <video ref={videoRef} className={cn("w-full aspect-video rounded-md", isCameraOn && hasCameraPermission ? "block" : "hidden")} autoPlay muted />
+                {(!isCameraOn || !hasCameraPermission) && (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <VideoOff className="h-10 w-10"/>
-                    <span>Camera is off</span>
-                  </div>
-                )}
-                 {(!hasCameraPermission || !hasMicPermission) && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <Alert variant="destructive" className="w-4/5">
-                      <AlertTitle>Permissions Required</AlertTitle>
-                      <AlertDescription>
-                        Please grant camera and microphone access to join the room.
-                      </AlertDescription>
-                    </Alert>
+                    <span>{ !hasCameraPermission ? "Camera permission denied" : "Camera is off" }</span>
                   </div>
                 )}
               </div>
