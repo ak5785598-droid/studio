@@ -35,7 +35,7 @@ const users: User[] = [
     isOnline: false,
     stats: { sent: 5432, followers: 230, fans: 150 },
   },
-  { _id: 'u4', 
+  { id: 'u4', 
     name: 'David', 
     avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-4')?.imageUrl!, 
     isOnline: true,
@@ -136,12 +136,12 @@ const games: Game[] = [
 ];
 
 const coinPackages: CoinPackage[] = [
-  { id: 'cp1', amount: 100, price: 0.99, bonus: 10 },
-  { id: 'cp2', amount: 500, price: 4.99, bonus: 75 },
-  { id: 'cp3', amount: 1000, price: 9.99, bonus: 200 },
-  { id: 'cp4', amount: 2500, price: 24.99, bonus: 625 },
-  { id: 'cp5', amount: 5000, price: 49.99, bonus: 1500 },
-  { id: 'cp6', amount: 10000, price: 99.99, bonus: 3500 },
+  { id: 'cp1', amount: 100, price: 80, bonus: 10 },
+  { id: 'cp2', amount: 500, price: 400, bonus: 75 },
+  { id: 'cp3', amount: 1000, price: 800, bonus: 200 },
+  { id: 'cp4', amount: 2500, price: 2000, bonus: 625 },
+  { id: 'cp5', amount: 5000, price: 4000, bonus: 1500 },
+  { id: 'cp6', amount: 10000, price: 8000, bonus: 3500 },
 ];
 
 const contributions: Contribution[] = [

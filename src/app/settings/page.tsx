@@ -220,7 +220,7 @@ export default function SettingsPage() {
                                 <span>{pkg.amount.toLocaleString()}</span>
                             </div>
                             {pkg.bonus && <p className="text-xs text-green-500 font-semibold"> + {pkg.bonus.toLocaleString()} Bonus!</p>}
-                            <Button className="mt-4 w-full">${pkg.price.toFixed(2)}</Button>
+                            <Button className="mt-4 w-full">₹{pkg.price.toFixed(0)}</Button>
                         </Card>
                     ))}
                 </CardContent>
