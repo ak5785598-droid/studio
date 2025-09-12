@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -27,7 +28,7 @@ import {
   Car,
   Plane,
   Castle,
-  Ring,
+  HeartHandshake,
   HeartPulse,
   Ship,
 } from 'lucide-react';
@@ -142,7 +143,7 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
       { icon: Plane, name: 'Private Jet', cost: 20000 },
     ],
     couple: [
-      { icon: Ring, name: 'Wedding Ring', cost: 8888 },
+      { icon: HeartHandshake, name: 'Wedding Ring', cost: 8888 },
       { icon: HeartPulse, name: 'Heartbeat', cost: 520 },
       { icon: Castle, name: 'Castle', cost: 50000 },
       { icon: Ship, name: 'Love Boat', cost: 10000 },
