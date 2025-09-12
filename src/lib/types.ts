@@ -66,3 +66,15 @@ export type PkBattle = {
   score1: number;
   score2: number;
 };
+
+export type Task = {
+  id: string;
+  title: string;
+  description: string;
+  coinReward: number;
+  isCompleted: boolean;
+  cta: {
+      label: string;
+      href: string;
+  }
+};
