@@ -16,6 +16,7 @@ import {
   PartyPopper,
   Crown,
   Cake,
+  Swords,
 } from 'lucide-react';
 import { getRoomBySlug } from '@/lib/mock-data';
 import type { User } from '@/lib/types';
@@ -34,6 +35,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 
 export default function RoomPage({ params }: { params: { slug: string } }) {
   const room = getRoomBySlug(params.slug);
@@ -44,6 +46,9 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
+  const [isPkBattle, setIsPkBattle] = useState(false);
+  const [pkProgress1, setPkProgress1] = useState(30);
+  const [pkProgress2, setPkProgress2] = useState(70);
 
   useEffect(() => {
     const getPermissions = async () => {
@@ -86,10 +91,22 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
     }, 3000);
     return () => clearInterval(interval);
   }, [room]);
+  
+  useEffect(() => {
+    if (isPkBattle) {
+      const battleInterval = setInterval(() => {
+        setPkProgress1(Math.random() * 100);
+        setPkProgress2(Math.random() * 100);
+      }, 2000);
+      return () => clearInterval(battleInterval);
+    }
+  }, [isPkBattle]);
 
   if (!room) {
     notFound();
   }
+  
+  const [pkContestant1, pkContestant2] = room.participants.slice(0, 2);
 
   const reactions = [
     { icon: Heart, label: 'Love' },
@@ -116,6 +133,9 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
               <Badge variant="secondary" className="mt-1">{room.topic}</Badge>
             </div>
             <div className="flex items-center gap-2">
+              <Button size="icon" variant="outline" onClick={() => setIsPkBattle(p => !p)}>
+                <Swords className="h-5 w-5 text-destructive" />
+              </Button>
               <Button size="icon" variant={isMicOn ? "outline" : "secondary"} onClick={toggleMic} disabled={!hasMicPermission}>
                 {isMicOn ? <Mic className="h-5 w-5"/> : <MicOff className="h-5 w-5"/>}
               </Button>
@@ -126,33 +146,63 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
             </div>
           </CardHeader>
         </Card>
-        <Card className="flex-1">
-          <CardContent className="p-4 h-full">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <div className="relative aspect-video bg-muted rounded-md flex items-center justify-center">
-                <video ref={videoRef} className={cn("w-full aspect-video rounded-md", isCameraOn && hasCameraPermission ? "block" : "hidden")} autoPlay muted />
-                {(!isCameraOn || !hasCameraPermission) && (
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <VideoOff className="h-10 w-10"/>
-                    <span>{ !hasCameraPermission ? "Camera permission denied" : "Camera is off" }</span>
-                  </div>
-                )}
-              </div>
-              {room.participants.map((p) => (
-                <div key={p.id} className="relative aspect-video flex flex-col items-center justify-center gap-2 bg-muted rounded-md">
-                  <Avatar className={cn(
-                    "h-24 w-24 border-4 border-transparent transition-all",
-                    speakingId === p.id && "border-primary shadow-lg"
-                  )}>
-                    <AvatarImage src={p.avatarUrl} alt={p.name} data-ai-hint="person portrait" />
-                    <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span className="font-semibold text-center">{p.name}</span>
+
+        {isPkBattle && pkContestant1 && pkContestant2 ? (
+          <Card className="flex-1">
+             <CardContent className="p-4 h-full flex flex-col items-center justify-center gap-4 relative">
+                <Swords className="h-16 w-16 text-destructive absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform rotate-[-15deg]" />
+                <div className="flex w-full items-center justify-around">
+                    <div className="flex flex-col items-center gap-2">
+                        <Avatar className="h-28 w-28 border-4 border-blue-500">
+                             <AvatarImage src={pkContestant1.avatarUrl} alt={pkContestant1.name} data-ai-hint="person portrait" />
+                             <AvatarFallback>{pkContestant1.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span className="font-bold">{pkContestant1.name}</span>
+                    </div>
+                     <div className="flex flex-col items-center gap-2">
+                        <Avatar className="h-28 w-28 border-4 border-red-500">
+                             <AvatarImage src={pkContestant2.avatarUrl} alt={pkContestant2.name} data-ai-hint="person portrait" />
+                             <AvatarFallback>{pkContestant2.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span className="font-bold">{pkContestant2.name}</span>
+                    </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="w-full max-w-md flex items-center gap-2">
+                    <Progress value={pkProgress1} className="[&>div]:bg-blue-500" />
+                    <span className="font-bold text-lg">VS</span>
+                    <Progress value={pkProgress2} className="[&>div]:bg-red-500 transform -scale-x-100" />
+                </div>
+             </CardContent>
+          </Card>
+        ) : (
+          <Card className="flex-1">
+            <CardContent className="p-4 h-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="relative aspect-video bg-muted rounded-md flex items-center justify-center">
+                  <video ref={videoRef} className={cn("w-full aspect-video rounded-md", isCameraOn && hasCameraPermission ? "block" : "hidden")} autoPlay muted />
+                  {(!isCameraOn || !hasCameraPermission) && (
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <VideoOff className="h-10 w-10"/>
+                      <span>{ !hasCameraPermission ? "Camera permission denied" : "Camera is off" }</span>
+                    </div>
+                  )}
+                </div>
+                {room.participants.map((p) => (
+                  <div key={p.id} className="relative aspect-video flex flex-col items-center justify-center gap-2 bg-muted rounded-md">
+                    <Avatar className={cn(
+                      "h-24 w-24 border-4 border-transparent transition-all",
+                      speakingId === p.id && "border-primary shadow-lg"
+                    )}>
+                      <AvatarImage src={p.avatarUrl} alt={p.name} data-ai-hint="person portrait" />
+                      <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-semibold text-center">{p.name}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Card className="lg:col-span-1 xl:col-span-1 flex flex-col">
@@ -216,3 +266,5 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
     </div>
   );
 }
+
+    
