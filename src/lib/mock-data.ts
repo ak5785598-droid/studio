@@ -2,16 +2,55 @@ import type { User, Room, Message } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const users: User[] = [
-  { id: 'u1', name: 'Alina', avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-1')?.imageUrl!, isOnline: true, bio: 'Just vibing and connecting with new people! Music and art lover.' },
-  { id: 'u2', name: 'Ben', avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-2')?.imageUrl!, isOnline: true },
-  { id: 'u3', name: 'Chloe', avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-3')?.imageUrl!, isOnline: false },
-  { id: 'u4', name: 'David', avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-4')?.imageUrl!, isOnline: true },
-  { id: 'u5', name: 'Eva', avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-5')?.imageUrl!, isOnline: false },
-  { id: 'u6', name: 'Frank', avatarUrl: 'https://picsum.photos/seed/user6/200/200', isOnline: true },
-  { id: 'u7', name: 'Grace', avatarUrl: 'https://picsum.photos/seed/user7/200/200', isOnline: false },
-  { id: 'u8', name: 'Henry', avatarUrl: 'https://picsum.photos/seed/user8/200/200', isOnline: true },
-  { id: 'u9', name: 'Ivy', avatarUrl: 'https://picsum.photos/seed/user9/200/200', isOnline: true },
-  { id: 'u10', name: 'Jack', avatarUrl: 'https://picsum.photos/seed/user10/200/200', isOnline: false },
+  { 
+    id: 'u1', 
+    name: 'Alina', 
+    avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-1')?.imageUrl!, 
+    isOnline: true, 
+    bio: 'Just vibing and connecting with new people! Music and art lover.',
+    coverUrl: PlaceHolderImages.find(i => i.id === 'profile-header')?.imageUrl,
+    stats: { sent: 6450359, followers: 8, fans: 44 },
+    details: {
+      age: 25,
+      emotionalState: 'Keep secret',
+      occupation: 'Anchor',
+      hometown: 'Beijing',
+      personalitySignature: 'Happy every day'
+    }
+  },
+  { 
+    id: 'u2', 
+    name: 'Ben', 
+    avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-2')?.imageUrl!, 
+    isOnline: true,
+    stats: { sent: 12345, followers: 120, fans: 88 },
+  },
+  { 
+    id: 'u3', 
+    name: 'Chloe', 
+    avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-3')?.imageUrl!, 
+    isOnline: false,
+    stats: { sent: 5432, followers: 230, fans: 150 },
+  },
+  { 
+    id: 'u4', 
+    name: 'David', 
+    avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-4')?.imageUrl!, 
+    isOnline: true,
+    stats: { sent: 9876, followers: 50, fans: 25 },
+  },
+  { 
+    id: 'u5', 
+    name: 'Eva', 
+    avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-5')?.imageUrl!, 
+    isOnline: false,
+    stats: { sent: 100, followers: 10, fans: 5 },
+  },
+  { id: 'u6', name: 'Frank', avatarUrl: 'https://picsum.photos/seed/user6/200/200', isOnline: true, stats: { followers: 15, fans: 12 } },
+  { id: 'u7', name: 'Grace', avatarUrl: 'https://picsum.photos/seed/user7/200/200', isOnline: false, stats: { followers: 88, fans: 42 } },
+  { id: 'u8', name: 'Henry', avatarUrl: 'https://picsum.photos/seed/user8/200/200', isOnline: true, stats: { followers: 123, fans: 99 } },
+  { id: 'u9', name: 'Ivy', avatarUrl: 'https://picsum.photos/seed/user9/200/200', isOnline: true, stats: { followers: 45, fans: 30 } },
+  { id: 'u10', name: 'Jack', avatarUrl: 'https://picsum.photos/seed/user10/200/200', isOnline: false, stats: { followers: 78, fans: 60 } },
 ];
 
 const messages: Message[] = [
@@ -89,6 +128,10 @@ export const getCurrentUser = (): User => {
     return users[0];
 }
 
+export const getUserById = (id: string): User | undefined => {
+  return users.find(u => u.id === id);
+}
+
 export const getFriends = (): User[] => {
-    return users.slice(1, 4);
+    return users.slice(1, 7);
 }

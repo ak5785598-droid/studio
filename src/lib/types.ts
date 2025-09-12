@@ -4,6 +4,19 @@ export type User = {
   avatarUrl: string;
   bio?: string;
   isOnline?: boolean;
+  coverUrl?: string;
+  stats?: {
+    sent?: number;
+    followers?: number;
+    fans?: number;
+  };
+  details?: {
+    age?: number;
+    emotionalState?: string;
+    occupation?: string;
+    hometown?: string;
+    personalitySignature?: string;
+  };
 };
 
 export type Message = {
