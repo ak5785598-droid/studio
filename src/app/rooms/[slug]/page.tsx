@@ -31,6 +31,21 @@ import {
   HeartHandshake,
   HeartPulse,
   Ship,
+  IceCream,
+  Pizza,
+  Gamepad2,
+  Trophy,
+  Rocket,
+  Diamond,
+  Watch,
+  Palette,
+  Music,
+  Camera,
+  Film,
+  Sparkles,
+  Sun,
+  Moon,
+  Cat,
 } from 'lucide-react';
 import { getRoomBySlug } from '@/lib/mock-data';
 import type { User } from '@/lib/types';
@@ -135,20 +150,32 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
       { icon: Cake, name: 'Cake', cost: 50 },
       { icon: Star, name: 'Star', cost: 20 },
       { icon: PartyPopper, name: 'Confetti', cost: 30 },
+      { icon: IceCream, name: 'Ice Cream', cost: 25 },
+      { icon: Pizza, name: 'Pizza', cost: 40 },
+      { icon: Gamepad2, name: 'Game', cost: 60 },
+      { icon: Music, name: 'Music Note', cost: 35 },
     ],
     premium: [
       { icon: Crown, name: 'Crown', cost: 500 },
-      { icon: Gem, name: 'Diamond', cost: 1000 },
+      { icon: Gem, name: 'Gem', cost: 1000 },
       { icon: Car, name: 'Sports Car', cost: 5000 },
       { icon: Plane, name: 'Private Jet', cost: 20000 },
+      { icon: Trophy, name: 'Trophy', cost: 250 },
+      { icon: Rocket, name: 'Rocket', cost: 750 },
+      { icon: Diamond, name: 'Diamond', cost: 1500 },
+      { icon: Watch, name: 'Watch', cost: 3000 },
     ],
     couple: [
-      { icon: HeartHandshake, name: 'Wedding Ring', cost: 8888 },
+      { icon: HeartHandshake, name: 'Promise', cost: 8888 },
       { icon: HeartPulse, name: 'Heartbeat', cost: 520 },
       { icon: Castle, name: 'Castle', cost: 50000 },
       { icon: Ship, name: 'Love Boat', cost: 10000 },
+      { icon: Sparkles, name: 'Magic', cost: 1314 },
+      { icon: Sun, name: 'Sunshine', cost: 999 },
+      { icon: Moon, name: 'Moonlight', cost: 999 },
+      { icon: Cat, name: 'Kitten', cost: 666 },
     ],
-  }
+  };
 
 
   const toggleMic = () => setIsMicOn(prev => !prev);
@@ -361,3 +388,5 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
     </div>
   );
 }
+
+    
