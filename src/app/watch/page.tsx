@@ -29,7 +29,8 @@ export default function WatchPage() {
         alert('Invalid YouTube URL format.');
       }
     } else {
-      alert('Please enter a valid YouTube URL.');
+      // Placeholder for search functionality
+      alert('Search functionality is not implemented yet. Please enter a valid YouTube URL.');
     }
   };
 
@@ -51,12 +52,12 @@ export default function WatchPage() {
             <div className="flex gap-2">
               <Input
                 type="text"
-                placeholder="Enter YouTube video URL"
+                placeholder="Search for a YouTube video by name"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 className="flex-1"
               />
-              <Button onClick={handleWatchClick}>Watch</Button>
+              <Button onClick={handleWatchClick}>Search</Button>
             </div>
 
             {videoUrl ? (
@@ -75,7 +76,7 @@ export default function WatchPage() {
                   <Youtube className="h-4 w-4" />
                   <AlertTitle>No video loaded</AlertTitle>
                   <AlertDescription>
-                    Paste a YouTube video URL above and click "Watch" to start a watch party.
+                    Search for a YouTube video above and click "Search" to start a watch party.
                   </AlertDescription>
                 </Alert>
             )}
