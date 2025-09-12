@@ -1,4 +1,4 @@
-import type { User, Room, Message, Game, CoinPackage } from './types';
+import type { User, Room, Message, Game, CoinPackage, Contribution } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const users: User[] = [
@@ -131,6 +131,16 @@ const coinPackages: CoinPackage[] = [
   { id: 'cp6', amount: 10000, price: 99.99, bonus: 3500 },
 ];
 
+const contributions: Contribution[] = [
+    { user: users[1], amount: 10500 },
+    { user: users[3], amount: 8200 },
+    { user: users[2], amount: 15300 },
+    { user: users[4], amount: 500 },
+    { user: users[5], amount: 4800 },
+    { user: users[6], amount: 2300 },
+    { user: users[7], amount: 100 },
+]
+
 export const getPopularRooms = (): Room[] => {
     return rooms.slice(0, 4);
 }
@@ -169,4 +179,8 @@ export const getPremiumGames = (): Game[] => {
 
 export const getCoinPackages = (): CoinPackage[] => {
   return coinPackages;
+}
+
+export const getTopContributors = (): Contribution[] => {
+    return contributions.sort((a, b) => b.amount - a.amount);
 }

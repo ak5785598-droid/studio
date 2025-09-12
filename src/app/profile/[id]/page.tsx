@@ -3,14 +3,16 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getCurrentUser, getFriends, getUserById } from '@/lib/mock-data';
+import { getCurrentUser, getFriends, getUserById, getTopContributors } from '@/lib/mock-data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { notFound } from 'next/navigation';
 import { User, Cake, MapPin, Briefcase, Smile } from 'lucide-react';
+import { TopContributorsCard } from '@/components/top-contributors-card';
 
 export default function ProfilePage({ params }: { params: { id: string } }) {
   const user = getUserById(params.id);
   const friends = getFriends();
+  const topContributors = getTopContributors();
   const profileHeaderImage = PlaceHolderImages.find(
     (img) => img.id === 'profile-header'
   );
@@ -72,6 +74,8 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
         </div>
       </Card>
       
+      <TopContributorsCard contributors={topContributors} />
+
       <Card>
         <CardHeader>
           <CardTitle className="font-headline">Information</CardTitle>

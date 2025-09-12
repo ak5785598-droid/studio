@@ -53,3 +53,8 @@ export type CoinPackage = {
   price: number;
   bonus?: number;
 };
+
+export type Contribution = {
+    user: User;
+    amount: number;
+}
