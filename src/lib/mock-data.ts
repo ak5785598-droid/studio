@@ -137,12 +137,14 @@ const games: Game[] = [
 ];
 
 const coinPackages: CoinPackage[] = [
-  { id: 'cp1', amount: 50000, price: 100, bonus: 5000 },
-  { id: 'cp2', amount: 250000, price: 500, bonus: 30000 },
-  { id: 'cp3', amount: 500000, price: 1000, bonus: 75000 },
-  { id: 'cp4', amount: 1250000, price: 2500, bonus: 200000 },
-  { id: 'cp5', amount: 2500000, price: 5000, bonus: 500000 },
-  { id: 'cp6', amount: 5000000, price: 10000, bonus: 1200000 },
+  { id: 'cp01', amount: 20000, price: 25 },
+  { id: 'cp02', amount: 40000, price: 50, bonus: 2000 },
+  { id: 'cp1', amount: 80000, price: 100, bonus: 10000 },
+  { id: 'cp2', amount: 400000, price: 500, bonus: 60000 },
+  { id: 'cp3', amount: 800000, price: 1000, bonus: 150000 },
+  { id: 'cp4', amount: 2000000, price: 2500, bonus: 400000 },
+  { id: 'cp5', amount: 4000000, price: 5000, bonus: 1000000 },
+  { id: 'cp6', amount: 8000000, price: 10000, bonus: 2400000 },
 ];
 
 const contributions: Contribution[] = [
@@ -209,7 +211,7 @@ export const getPremiumGames = (): Game[] => {
 }
 
 export const getCoinPackages = (): CoinPackage[] => {
-  return coinPackages;
+  return coinPackages.sort((a,b) => a.price - b.price);
 }
 
 export const getTopContributors = (): Contribution[] => {
