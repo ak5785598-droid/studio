@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Compass, User, Settings } from "lucide-react";
+import { Home, Compass, User, Settings, Youtube } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -25,6 +25,7 @@ const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/rooms", label: "Rooms", icon: Compass },
   { href: "/games", label: "Games", icon: GameControllerIcon },
+  { href: "/watch", label: "Watch", icon: Youtube },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
