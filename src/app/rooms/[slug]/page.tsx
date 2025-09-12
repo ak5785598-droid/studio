@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -21,6 +22,14 @@ import {
   UserPlus,
   ShieldX,
   VolumeX,
+  Star,
+  Gem,
+  Car,
+  Plane,
+  Castle,
+  Ring,
+  HeartPulse,
+  Ship,
 } from 'lucide-react';
 import { getRoomBySlug } from '@/lib/mock-data';
 import type { User } from '@/lib/types';
@@ -40,6 +49,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function RoomPage({ params }: { params: { slug: string } }) {
   const room = getRoomBySlug(params.slug);
@@ -117,11 +127,28 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
     { icon: ThumbsUp, label: 'Like' },
     { icon: PartyPopper, label: 'Celebrate' },
   ];
-  const gifts = [
-    { icon: Gift, label: 'Gift' },
-    { icon: Cake, label: 'Cake' },
-    { icon: Crown, label: 'Crown' },
-  ];
+  
+  const gifts = {
+    common: [
+      { icon: Gift, name: 'Gift Box', cost: 10 },
+      { icon: Cake, name: 'Cake', cost: 50 },
+      { icon: Star, name: 'Star', cost: 20 },
+      { icon: PartyPopper, name: 'Confetti', cost: 30 },
+    ],
+    premium: [
+      { icon: Crown, name: 'Crown', cost: 500 },
+      { icon: Gem, name: 'Diamond', cost: 1000 },
+      { icon: Car, name: 'Sports Car', cost: 5000 },
+      { icon: Plane, name: 'Private Jet', cost: 20000 },
+    ],
+    couple: [
+      { icon: Ring, name: 'Wedding Ring', cost: 8888 },
+      { icon: HeartPulse, name: 'Heartbeat', cost: 520 },
+      { icon: Castle, name: 'Castle', cost: 50000 },
+      { icon: Ship, name: 'Love Boat', cost: 10000 },
+    ],
+  }
+
 
   const toggleMic = () => setIsMicOn(prev => !prev);
   const toggleCamera = () => setIsCameraOn(prev => !prev);
@@ -267,14 +294,58 @@ export default function RoomPage({ params }: { params: { slug: string } }) {
                             <Gift className="h-5 w-5 text-primary"/>
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-2">
-                        <div className="flex gap-2">
-                        {gifts.map(g => (
-                            <Button key={g.label} variant="ghost" size="icon">
-                                <g.icon className="h-6 w-6"/>
-                            </Button>
-                        ))}
-                        </div>
+                    <PopoverContent className="w-80 p-0" align="end">
+                       <Tabs defaultValue="common">
+                          <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="common">Common</TabsTrigger>
+                            <TabsTrigger value="premium">Premium</TabsTrigger>
+                            <TabsTrigger value="couple">Couple</TabsTrigger>
+                          </TabsList>
+                           <ScrollArea className="h-64">
+                            <TabsContent value="common" className="p-2">
+                                <div className="grid grid-cols-4 gap-2">
+                                    {gifts.common.map((g) => (
+                                        <div key={g.name} className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-secondary cursor-pointer">
+                                            <g.icon className="h-8 w-8 text-primary" />
+                                            <span className="text-xs text-center">{g.name}</span>
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <Gem className="h-3 w-3" />
+                                                <span>{g.cost}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </TabsContent>
+                             <TabsContent value="premium" className="p-2">
+                                <div className="grid grid-cols-4 gap-2">
+                                    {gifts.premium.map((g) => (
+                                        <div key={g.name} className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-secondary cursor-pointer">
+                                            <g.icon className="h-8 w-8 text-yellow-500" />
+                                            <span className="text-xs text-center">{g.name}</span>
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <Gem className="h-3 w-3" />
+                                                <span>{g.cost.toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </TabsContent>
+                             <TabsContent value="couple" className="p-2">
+                                <div className="grid grid-cols-4 gap-2">
+                                    {gifts.couple.map((g) => (
+                                        <div key={g.name} className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-secondary cursor-pointer">
+                                            <g.icon className="h-8 w-8 text-red-500" />
+                                            <span className="text-xs text-center">{g.name}</span>
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <Gem className="h-3 w-3" />
+                                                <span>{g.cost.toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </TabsContent>
+                          </ScrollArea>
+                        </Tabs>
                     </PopoverContent>
                 </Popover>
             </div>
