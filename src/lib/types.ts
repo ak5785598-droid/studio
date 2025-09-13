@@ -34,6 +34,7 @@ export type Room = {
   slug: string;
   title: string;
   topic: string;
+  category: 'Popular' | 'Game' | 'Chat' | 'Singing' | 'Battle';
   coverUrl: string;
   participants: User[];
   messages: Message[];

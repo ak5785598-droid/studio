@@ -77,6 +77,7 @@ const rooms: Room[] = [
     slug: 'mumbai-adda', 
     title: 'Mumbai Adda', 
     topic: 'Bollywood & Gup-Shup', 
+    category: 'Popular',
     coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-1')?.imageUrl!,
     participants: [users[0], users[1], users[3]],
     messages: messages,
@@ -86,6 +87,7 @@ const rooms: Room[] = [
     slug: 'delhi-darbar', 
     title: 'Delhi Darbar', 
     topic: 'Food & History', 
+    category: 'Popular',
     coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-2')?.imageUrl!,
     participants: users.slice(0, 4),
     messages: [],
@@ -95,6 +97,7 @@ const rooms: Room[] = [
     slug: 'bangalore-startup-cafe', 
     title: 'Bangalore Startup Cafe', 
     topic: 'Tech & Innovation', 
+    category: 'Popular',
     coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-3')?.imageUrl!,
     participants: users.slice(1, 5),
     messages: [],
@@ -104,6 +107,7 @@ const rooms: Room[] = [
     slug: 'chennai-super-chats', 
     title: 'Chennai Super Chats', 
     topic: 'Movies & Music', 
+    category: 'Popular',
     coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-4')?.imageUrl!,
     participants: [users[0], users[2], users[4]],
     messages: [],
@@ -113,6 +117,7 @@ const rooms: Room[] = [
     slug: 'kolkata-connect',
     title: 'Kolkata Connect',
     topic: 'Art & Culture',
+    category: 'Chat',
     coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-5')?.imageUrl!,
     participants: [users[1], users[3], users[4]],
     messages: [],
@@ -122,9 +127,50 @@ const rooms: Room[] = [
     slug: 'official-help-room',
     title: 'Official Help Room',
     topic: 'Support',
+    category: 'Chat',
     coverUrl: 'https://picsum.photos/seed/support-room/400/225',
     participants: [users[10], users[0]],
     messages: [{ id: 'm5', text: 'Welcome! How can I help you today?', user: users[10], timestamp: '11:00 AM' }],
+  },
+  {
+    id: 'r7',
+    slug: 'antakshari-night',
+    title: 'Antakshari Night',
+    topic: 'Singing',
+    category: 'Singing',
+    coverUrl: 'https://picsum.photos/seed/singing1/400/225',
+    participants: users.slice(2, 8),
+    messages: [],
+  },
+  {
+    id: 'r8',
+    slug: 'ludo-champs',
+    title: 'Ludo Champs',
+    topic: 'Gaming',
+    category: 'Game',
+    coverUrl: 'https://picsum.photos/seed/game1/400/225',
+    participants: users.slice(4, 9),
+    messages: [],
+  },
+  {
+    id: 'r9',
+    slug: 'pk-battle-arena',
+    title: 'PK Battle Arena',
+    topic: 'Battle',
+    category: 'Battle',
+    coverUrl: 'https://picsum.photos/seed/battle1/400/225',
+    participants: users.slice(0, 2),
+    messages: [],
+  },
+  {
+    id: 'r10',
+    slug: 'karaoke-club',
+    title: 'Karaoke Club',
+    topic: 'Singing',
+    category: 'Singing',
+    coverUrl: 'https://picsum.photos/seed/singing2/400/225',
+    participants: users.slice(5, 10),
+    messages: [],
   }
 ];
 
@@ -145,12 +191,12 @@ const games: Game[] = [
 const coinPackages: CoinPackage[] = [
   { id: 'cp01', amount: 2000, price: 25 },
   { id: 'cp02', amount: 4200, price: 50, bonus: 200 },
-  { id: 'cp1', amount: 10000, price: 100, bonus: 1000 },
-  { id: 'cp2', amount: 55000, price: 500, bonus: 5000 },
-  { id: 'cp3', amount: 115000, price: 1000, bonus: 15000 },
-  { id: 'cp4', amount: 300000, price: 2500, bonus: 50000 },
-  { id: 'cp5', amount: 650000, price: 5000, bonus: 150000 },
-  { id: 'cp6', amount: 1400000, price: 10000, bonus: 400000 },
+  { id: 'cp1', amount: 50000, price: 100, bonus: 5000 },
+  { id: 'cp2', amount: 275000, price: 500, bonus: 25000 },
+  { id: 'cp3', amount: 575000, price: 1000, bonus: 75000 },
+  { id: 'cp4', amount: 1500000, price: 2500, bonus: 250000 },
+  { id: 'cp5', amount: 3250000, price: 5000, bonus: 750000 },
+  { id: 'cp6', amount: 7000000, price: 10000, bonus: 2000000 },
 ];
 
 const contributions: Contribution[] = [
@@ -195,7 +241,7 @@ const achievementTasks: Task[] = [
 
 
 export const getPopularRooms = (): Room[] => {
-    return rooms.slice(0, 4);
+    return rooms.filter(r => r.category === 'Popular');
 }
 
 export const getPopularUsers = (): User[] => {
