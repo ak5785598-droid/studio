@@ -9,10 +9,25 @@ export default function RoomsPage() {
 
   const roomsByCategory = (category: string) => {
     if (category === 'Popular') {
-        // Special case for popular, maybe based on participant count
-        return [...allRooms].sort((a, b) => b.participants.length - a.participants.length).slice(0, 8);
+      // Special case for popular, maybe based on participant count
+      return [...allRooms]
+        .sort((a, b) => b.participants.length - a.participants.length)
+        .slice(0, 8);
     }
-    return allRooms.filter((room) => room.category === category);
+    const filteredRooms = allRooms.filter(room => room.category === category);
+
+    if (category === 'Chat') {
+      const helpRoom = filteredRooms.find(
+        room => room.slug === 'official-help-room'
+      );
+      if (helpRoom) {
+        return [
+          helpRoom,
+          ...filteredRooms.filter(room => room.slug !== 'official-help-room'),
+        ];
+      }
+    }
+    return filteredRooms;
   };
 
   return (
