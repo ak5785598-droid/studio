@@ -19,27 +19,33 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-16 w-full max-w-sm space-y-4">
-        <Button
-          variant="outline"
-          className="w-full justify-center gap-4 bg-white text-black hover:bg-gray-200"
-        >
-          <Phone className="h-5 w-5" />
-          sign in with phone
-        </Button>
-        <Button
-          variant="outline"
-          className="w-full justify-center gap-4 bg-white text-black hover:bg-gray-200"
-        >
-          <FcGoogle className="h-5 w-5" />
-          sign in with google
-        </Button>
-        <Button
-          variant="outline"
-          className="w-full justify-center gap-4 bg-[#1877F2] text-white hover:bg-[#166fe5]"
-        >
-          <FaFacebook className="h-5 w-5" />
-          Facebook sign in
-        </Button>
+        <Link href="/rooms" className="w-full">
+          <Button
+            variant="outline"
+            className="w-full justify-center gap-4 bg-white text-black hover:bg-gray-200"
+          >
+            <Phone className="h-5 w-5" />
+            sign in with phone
+          </Button>
+        </Link>
+        <Link href="/rooms" className="w-full">
+          <Button
+            variant="outline"
+            className="w-full justify-center gap-4 bg-white text-black hover:bg-gray-200"
+          >
+            <FcGoogle className="h-5 w-5" />
+            sign in with google
+          </Button>
+        </Link>
+        <Link href="/rooms" className="w-full">
+          <Button
+            variant="outline"
+            className="w-full justify-center gap-4 bg-[#1877F2] text-white hover:bg-[#166fe5]"
+          >
+            <FaFacebook className="h-5 w-5" />
+            Facebook sign in
+          </Button>
+        </Link>
       </div>
 
       <div className="absolute bottom-8 text-center text-xs text-muted-foreground">
