@@ -4,15 +4,18 @@ import { UmmyLogoIcon } from '@/components/icons';
 import { FcGoogle } from 'react-icons/fc';
 import { FaFacebook } from 'react-icons/fa';
 import { Phone } from 'lucide-react';
-import { Logo } from '@/components/logo';
 
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4 text-foreground">
       <div className="flex flex-col items-center text-center">
         <UmmyLogoIcon className="h-24 w-24" />
-        <h1 className="mt-4 font-headline text-6xl font-bold text-foreground">Ummy</h1>
-        <p className="mt-2 text-lg text-muted-foreground">connect with your vibe...</p>
+        <h1 className="mt-4 font-headline text-6xl font-bold text-foreground">
+          Ummy
+        </h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          connect raho dilsey....
+        </p>
       </div>
 
       <div className="mt-16 w-full max-w-sm space-y-4">
@@ -21,14 +24,14 @@ export default function LoginPage() {
           className="w-full justify-center gap-4 bg-white text-black hover:bg-gray-200"
         >
           <Phone className="h-5 w-5" />
-          Sign in with phone
+          sign in with phone
         </Button>
         <Button
           variant="outline"
           className="w-full justify-center gap-4 bg-white text-black hover:bg-gray-200"
         >
           <FcGoogle className="h-5 w-5" />
-          Sign in with Google
+          sign in with google
         </Button>
         <Button
           variant="outline"
