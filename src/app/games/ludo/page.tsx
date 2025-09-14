@@ -17,7 +17,7 @@ export default function LudoGamePage() {
           <CardContent className="p-2 md:p-4">
             <div className="aspect-[4/3] w-full">
               <iframe
-                src="https://ludogame.io/"
+                src="https://playpager.com/embed/ludo/index.html"
                 className="h-full w-full rounded-md border-0"
                 allowFullScreen
               ></iframe>
