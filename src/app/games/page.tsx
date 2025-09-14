@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import Link from "next/link";
 import { getFreeGames, getPremiumGames } from "@/lib/mock-data";
@@ -95,3 +96,5 @@ export default function GamesPage() {
     </AppLayout>
   );
 }
+
+    
