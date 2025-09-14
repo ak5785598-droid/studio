@@ -1,69 +1,44 @@
 export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg
-    width="32"
-    height="32"
-    viewBox="0 0 100 100"
-    xmlns="http://www.w3.org/2000/svg"
-    {...props}
-  >
-    <defs>
-      <radialGradient
-        id="heart-gradient"
-        cx="0.5"
-        cy="0.5"
-        r="0.5"
-        fx="0.3"
-        fy="0.3"
-      >
-        <stop offset="0%" stopColor="#FF89B5" />
-        <stop offset="100%" stopColor="#E85A90" />
-      </radialGradient>
-      <linearGradient id="mic-gradient" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="#E85A90" />
-        <stop offset="100%" stopColor="#D13B76" />
-      </linearGradient>
-    </defs>
+    <svg 
+        viewBox="0 0 100 100"
+        xmlns="http://www.w3.org/2000/svg"
+        {...props}
+    >
+        <defs>
+            <linearGradient id="teddyGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#FFC1CC" />
+                <stop offset="100%" stopColor="#FF89B5" />
+            </linearGradient>
+            <linearGradient id="earGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#FF89B5" />
+                <stop offset="100%" stopColor="#E85A90" />
+            </linearGradient>
+        </defs>
 
-    {/* Headphones */}
-    <path
-      d="M 20 55 A 30 30 0 0 1 80 55"
-      stroke="#5F3A70"
-      strokeWidth="10"
-      fill="none"
-      strokeLinecap="round"
-    />
-    <circle cx="15" cy="55" r="10" fill="#5F3A70" />
-    <circle cx="85" cy="55" r="10" fill="#5F3A70" />
+        {/* Head */}
+        <circle cx="50" cy="50" r="35" fill="url(#teddyGradient)" />
 
-    {/* Heart */}
-    <path
-      d="M50 30 C 35 15, 10 25, 10 45 C 10 65, 50 85, 50 85 C 50 85, 90 65, 90 45 C 90 25, 65 15, 50 30 Z"
-      fill="url(#heart-gradient)"
-    />
-
-    {/* Face */}
-    <circle cx="38" cy="48" r="3" fill="#333" />
-    <circle cx="62" cy="48" r="3" fill="#333" />
-    <path
-      d="M 45 60 Q 50 68 55 60"
-      stroke="#333"
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
-    />
-
-    {/* Soundwave */}
-    <rect x="42" y="68" width="4" height="12" rx="2" fill="white" />
-    <rect x="48" y="65" width="4" height="18" rx="2" fill="white" />
-    <rect x="54" y="68" width="4" height="12" rx="2" fill="white" />
-
-    {/* Microphone */}
-    <g transform="translate(65, 75) rotate(25)">
-      <rect x="-8" y="-12" width="16" height="24" rx="8" fill="#5F3A70" />
-      <circle cx="0" cy="5" r="3" fill="#FF89B5" />
-      <circle cx="-5" cy="0" r="2" fill="#E85A90" />
-    </g>
-  </svg>
+        {/* Ears */}
+        <circle cx="25" cy="25" r="15" fill="url(#earGradient)" />
+        <circle cx="75" cy="25" r="15" fill="url(#earGradient)" />
+        
+        {/* Inner Ears */}
+        <circle cx="28" cy="28" r="8" fill="url(#teddyGradient)" />
+        <circle cx="72" cy="28" r="8" fill="url(#teddyGradient)" />
+        
+        {/* Snout */}
+        <ellipse cx="50" cy="58" rx="20" ry="15" fill="#FFFFFF" fillOpacity="0.7" />
+        
+        {/* Nose */}
+        <path d="M 50 55 a 5 4 0 1 1 0.001 0" fill="#5F3A70"/>
+        
+        {/* Eyes */}
+        <circle cx="40" cy="45" r="4" fill="#5F3A70" />
+        <circle cx="60" cy="45" r="4" fill="#5F3A70" />
+        
+        {/* Smile */}
+        <path d="M 45 65 Q 50 70 55 65" stroke="#5F3A70" strokeWidth="2" fill="none" strokeLinecap="round"/>
+    </svg>
 );
 
 
