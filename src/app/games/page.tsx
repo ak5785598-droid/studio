@@ -22,6 +22,8 @@ export default function GamesPage() {
         return '/games/chess';
       case 'g4':
         return '/games/bubble-shooter';
+      case 'g11':
+        return '/games/monster-crush';
       default:
         return '#';
     }
