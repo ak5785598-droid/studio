@@ -49,7 +49,7 @@ export default function LoginPage() {
       router.push('/rooms');
       toast({
         title: 'Login Successful',
-        description: 'Welcome to Dilsey!',
+        description: 'Welcome to Ummy!',
       });
     } catch (error: any) {
       console.error(error);
@@ -100,7 +100,7 @@ export default function LoginPage() {
       router.push('/rooms');
       toast({
         title: 'Login Successful',
-        description: 'Welcome to Dilsey!',
+        description: 'Welcome to Ummy!',
       });
     } catch (error: any) {
         console.error(error);
@@ -129,7 +129,7 @@ export default function LoginPage() {
       <div className="flex flex-col items-center text-center">
         <UmmyLogoIcon className="h-24 w-24 text-primary" />
         <h1 className="mt-4 font-headline text-6xl font-bold text-primary">
-          Dilsey
+          Ummy
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
           Find your vibe, connect with your tribe.
