@@ -43,6 +43,7 @@ export type Room = {
 export type Game = {
   id: string;
   title: string;
+  slug: string;
   coverUrl: string;
   cost: number; // 0 for free games
   imageHint: string;

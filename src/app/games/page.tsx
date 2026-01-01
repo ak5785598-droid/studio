@@ -11,34 +11,7 @@ import { AppLayout } from "@/components/layout/app-layout";
 export default function GamesPage() {
   const freeGames = getFreeGames();
   const premiumGames = getPremiumGames();
-
-  const getGameLink = (gameId: string) => {
-    switch (gameId) {
-      case 'g1':
-        return '/games/ludo';
-      case 'g2':
-        return '/games/carrom';
-      case 'g3':
-        return '/games/chess';
-      case 'g4':
-        return '/games/bubble-shooter';
-      case 'g5':
-        return '/games/rummy';
-      case 'g6':
-        return '/games/poker';
-      case 'g8':
-        return '/games/8-ball-pool';
-      case 'g9':
-        return '/games/crazy-alpaca';
-      case 'g11':
-        return '/games/monster-crush';
-      case 'g12':
-        return '/games/fruit-greedy';
-      default:
-        return '#';
-    }
-  }
-
+  
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -55,7 +28,7 @@ export default function GamesPage() {
             {freeGames.map((game) => (
               <div key={game.id} className="group block">
                 <Card className="overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1">
-                  <Link href={getGameLink(game.id)} className="block">
+                  <Link href={`/games/${game.slug}`} className="block">
                     <CardHeader className="p-0">
                       <div className="relative aspect-video w-full">
                         <Image
@@ -74,7 +47,7 @@ export default function GamesPage() {
                   </Link>
                   <CardFooter className="p-4 pt-0">
                      <Button asChild className="w-full">
-                        <Link href={getGameLink(game.id)}>Play</Link>
+                        <Link href={`/games/${game.slug}`}>Play</Link>
                      </Button>
                   </CardFooter>
                 </Card>
@@ -89,7 +62,7 @@ export default function GamesPage() {
             {premiumGames.map((game) => (
               <div key={game.id} className="group block">
                 <Card className="overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1">
-                   <Link href={getGameLink(game.id)} className="block">
+                   <Link href={`/games/${game.slug}`} className="block">
                     <CardHeader className="p-0">
                       <div className="relative aspect-video w-full">
                         <Image
@@ -112,7 +85,7 @@ export default function GamesPage() {
                   </Link>
                   <CardFooter className="p-4 pt-0">
                     <Button asChild className="w-full">
-                      <Link href={getGameLink(game.id)}>Play Now</Link>
+                      <Link href={`/games/${game.slug}`}>Play Now</Link>
                     </Button>
                   </CardFooter>
                 </Card>
