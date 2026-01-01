@@ -18,7 +18,7 @@ export default function BubbleShooterGamePage() {
             <div className="aspect-video w-full">
               <iframe
                 src="https://playpager.com/embed/bubbleshooter/index.html"
-                className="h-full w-full rounded-md border-.0"
+                className="h-full w-full rounded-md border-0"
                 allowFullScreen
               ></iframe>
             </div>
