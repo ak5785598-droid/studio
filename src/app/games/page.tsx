@@ -22,6 +22,14 @@ export default function GamesPage() {
         return '/games/chess';
       case 'g4':
         return '/games/bubble-shooter';
+      case 'g5':
+        return '/games/rummy';
+      case 'g6':
+        return '/games/poker';
+      case 'g8':
+        return '/games/8-ball-pool';
+      case 'g9':
+        return '/games/crazy-alpaca';
       case 'g11':
         return '/games/monster-crush';
       case 'g12':
