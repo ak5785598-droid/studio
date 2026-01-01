@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -11,15 +13,48 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, User, Shield, CreditCard, Gem, Star, LifeBuoy } from 'lucide-react';
+import {
+  Bell,
+  User,
+  Shield,
+  CreditCard,
+  Gem,
+  Star,
+  LifeBuoy,
+} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getCurrentUser, getCoinPackages } from '@/lib/mock-data';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useAuth } from '@/firebase';
+import { useRouter } from 'next/navigation';
+import { signOut } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SettingsPage() {
   const currentUser = getCurrentUser();
   const coinPackages = getCoinPackages();
+  const auth = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Logout Failed',
+        description: (error as Error).message,
+      });
+    }
+  };
 
   return (
     <AppLayout>
@@ -30,12 +65,16 @@ export default function SettingsPage() {
             <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold font-headline">{currentUser.name}</h1>
+            <h1 className="text-2xl font-bold font-headline">
+              {currentUser.name}
+            </h1>
             <p className="text-sm text-muted-foreground">ID: {currentUser.id}</p>
           </div>
           <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2">
-              <Gem className="h-5 w-5 text-primary" />
-              <span className="font-bold text-lg">{currentUser.wallet?.coins.toLocaleString() || 0}</span>
+            <Gem className="h-5 w-5 text-primary" />
+            <span className="font-bold text-lg">
+              {currentUser.wallet?.coins.toLocaleString() || 0}
+            </span>
           </div>
         </header>
         <Separator />
@@ -61,7 +100,9 @@ export default function SettingsPage() {
           <TabsContent value="account">
             <Card>
               <CardHeader>
-                <CardTitle className="font-headline">Account Information</CardTitle>
+                <CardTitle className="font-headline">
+                  Account Information
+                </CardTitle>
                 <CardDescription>
                   Update your public profile and account details.
                 </CardDescription>
@@ -73,59 +114,68 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="alina@example.com" />
+                  <Input
+                    id="email"
+                    type="email"
+                    defaultValue="alina@example.com"
+                  />
                 </div>
-                 <div className="space-y-2">
+                <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
                   <Input id="bio" defaultValue={currentUser.bio} />
                 </div>
                 <Button>Save Changes</Button>
               </CardContent>
             </Card>
-             <Card className="mt-6">
+            <Card className="mt-6">
               <CardHeader>
                 <CardTitle className="font-headline">Support</CardTitle>
               </CardHeader>
               <CardContent>
-                  <Link href="/help-center" className="flex items-center justify-between rounded-lg border p-4 hover:bg-secondary transition-colors">
-                      <div className="flex items-center gap-3">
-                          <LifeBuoy className="h-6 w-6 text-primary" />
-                          <div>
-                              <h3 className="font-semibold">Help Center</h3>
-                              <p className="text-sm text-muted-foreground">
-                                  Find answers to common questions.
-                              </p>
-                          </div>
-                      </div>
-                       <Button variant="outline">Visit</Button>
-                  </Link>
+                <Link
+                  href="/help-center"
+                  className="flex items-center justify-between rounded-lg border p-4 hover:bg-secondary transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <LifeBuoy className="h-6 w-6 text-primary" />
+                    <div>
+                      <h3 className="font-semibold">Help Center</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Find answers to common questions.
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="outline">Visit</Button>
+                </Link>
               </CardContent>
-             </Card>
-             <Card className="mt-6">
+            </Card>
+            <Card className="mt-6">
               <CardHeader>
-                <CardTitle className="font-headline text-destructive">Danger Zone</CardTitle>
+                <CardTitle className="font-headline text-destructive">
+                  Danger Zone
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between rounded-lg border border-destructive/50 p-4">
-                      <div>
-                          <h3 className="font-semibold">Delete Account</h3>
-                          <p className="text-sm text-muted-foreground">
-                              Permanently delete your account and all associated data.
-                          </p>
-                      </div>
-                      <Button variant="destructive">Delete</Button>
+                <div className="flex items-center justify-between rounded-lg border border-destructive/50 p-4">
+                  <div>
+                    <h3 className="font-semibold">Delete Account</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Permanently delete your account and all associated data.
+                    </p>
                   </div>
-                   <div className="flex items-center justify-between rounded-lg border p-4">
-                      <div>
-                          <h3 className="font-semibold">Log Out</h3>
-                          <p className="text-sm text-muted-foreground">
-                              You will be returned to the login screen.
-                          </p>
-                      </div>
-                      <Button variant="outline">Log Out</Button>
+                  <Button variant="destructive">Delete</Button>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <h3 className="font-semibold">Log Out</h3>
+                    <p className="text-sm text-muted-foreground">
+                      You will be returned to the login screen.
+                    </p>
                   </div>
+                  <Button variant="outline" onClick={handleLogout}>Log Out</Button>
+                </div>
               </CardContent>
-             </Card>
+            </Card>
           </TabsContent>
           <TabsContent value="notifications">
             <Card>
@@ -175,58 +225,70 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
           </TabsContent>
-           <TabsContent value="privacy">
-              <Card>
-                  <CardHeader>
-                      <CardTitle className="font-headline">Privacy Settings</CardTitle>
-                      <CardDescription>Manage who can see your information and contact you.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                       <div className="flex items-center justify-between rounded-lg border p-4">
-                          <div>
-                          <Label htmlFor="show-online">Show Online Status</Label>
-                          <p className="text-sm text-muted-foreground">
-                              Let others see when you are active on the app.
-                          </p>
-                          </div>
-                          <Switch id="show-online" defaultChecked />
-                      </div>
-                       <div className="flex items-center justify-between rounded-lg border p-4">
-                          <div>
-                          <Label htmlFor="private-profile">Private Profile</Label>
-                          <p className="text-sm text-muted-foreground">
-                              If enabled, only your friends can see your full profile.
-                          </p>
-                          </div>
-                          <Switch id="private-profile" />
-                      </div>
-                  </CardContent>
-              </Card>
+          <TabsContent value="privacy">
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline">Privacy Settings</CardTitle>
+                <CardDescription>
+                  Manage who can see your information and contact you.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <Label htmlFor="show-online">Show Online Status</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Let others see when you are active on the app.
+                    </p>
+                  </div>
+                  <Switch id="show-online" defaultChecked />
+                </div>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <Label htmlFor="private-profile">Private Profile</Label>
+                    <p className="text-sm text-muted-foreground">
+                      If enabled, only your friends can see your full profile.
+                    </p>
+                  </div>
+                  <Switch id="private-profile" />
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
-           <TabsContent value="billing">
-              <Card>
-                  <CardHeader>
-                      <CardTitle className="font-headline">Buy Coins</CardTitle>
-                      <CardDescription>Purchase coins to send gifts and play premium games.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                      {coinPackages.map((pkg, index) => (
-                          <Card key={pkg.id} className="relative flex flex-col items-center justify-center p-4 text-center transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer">
-                              {index === coinPackages.length - 1 && (
-                                 <div className="absolute -top-3 inline-flex items-center gap-1 rounded-full bg-destructive px-3 py-1 text-xs font-semibold text-destructive-foreground">
-                                     <Star className="h-3 w-3" /> Best Value
-                                 </div>
-                              )}
-                              <div className="flex items-center gap-2 text-2xl font-bold text-primary">
-                                  <Gem />
-                                  <span>{pkg.amount.toLocaleString()}</span>
-                              </div>
-                              {pkg.bonus && <p className="text-xs text-green-500 font-semibold"> + {pkg.bonus.toLocaleString()} Bonus!</p>}
-                              <Button className="mt-4 w-full">₹{pkg.price.toFixed(0)}</Button>
-                          </Card>
-                      ))}
-                  </CardContent>
-              </Card>
+          <TabsContent value="billing">
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline">Buy Coins</CardTitle>
+                <CardDescription>
+                  Purchase coins to send gifts and play premium games.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {coinPackages.map((pkg, index) => (
+                  <Card
+                    key={pkg.id}
+                    className="relative flex flex-col items-center justify-center p-4 text-center transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer"
+                  >
+                    {index === coinPackages.length - 1 && (
+                      <div className="absolute -top-3 inline-flex items-center gap-1 rounded-full bg-destructive px-3 py-1 text-xs font-semibold text-destructive-foreground">
+                        <Star className="h-3 w-3" /> Best Value
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-2xl font-bold text-primary">
+                      <Gem />
+                      <span>{pkg.amount.toLocaleString()}</span>
+                    </div>
+                    {pkg.bonus && (
+                      <p className="text-xs text-green-500 font-semibold">
+                        {' '}
+                        + {pkg.bonus.toLocaleString()} Bonus!
+                      </p>
+                    )}
+                    <Button className="mt-4 w-full">₹{pkg.price.toFixed(0)}</Button>
+                  </Card>
+                ))}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
