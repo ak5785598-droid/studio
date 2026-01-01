@@ -46,20 +46,8 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  useEffect(() => {
-    if (auth && !window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        'recaptcha-container',
-        {
-          size: 'invisible',
-          callback: () => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-          },
-        },
-        auth
-      );
-    }
-  }, [auth]);
+  // We need to move the recaptcha verifier setup into the phone sign in handler
+  // to ensure the auth object is available and the DOM element is mounted.
 
   const handleGoogleSignIn = async () => {
     if (!auth) return;
@@ -95,7 +83,7 @@ export default function LoginPage() {
 
   const handlePhoneSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth || !window.recaptchaVerifier) {
+    if (!auth) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -106,10 +94,25 @@ export default function LoginPage() {
     }
     setIsSendingCode(true);
     try {
+      // Initialize reCAPTCHA here, where we know the container exists
+      // and auth is available.
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(
+          'recaptcha-container',
+          {
+            size: 'invisible',
+            callback: () => {
+              // reCAPTCHA solved, allow signInWithPhoneNumber.
+            },
+          },
+          auth
+        );
+      }
+      const verifier = window.recaptchaVerifier;
       const confirmationResult = await signInWithPhoneNumber(
         auth,
         `+${phoneNumber}`,
-        window.recaptchaVerifier
+        verifier
       );
       window.confirmationResult = confirmationResult;
       toast({
@@ -222,7 +225,7 @@ export default function LoginPage() {
                   required
                 />
                 <Button type="submit" className="w-full" disabled={isSendingCode}>
-                  {isSendingCode ? 'Sending...' : 'Send Verification Code'}
+                  {isSendingCode ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</> : 'Send Verification Code'}
                 </Button>
               </form>
             ) : (
@@ -243,7 +246,7 @@ export default function LoginPage() {
                   className="w-full"
                   disabled={isVerifyingCode}
                 >
-                  {isVerifyingCode ? 'Verifying...' : 'Verify and Sign In'}
+                  {isVerifyingCode ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...</> : 'Verify and Sign In'}
                 </Button>
               </form>
             )}
