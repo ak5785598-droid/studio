@@ -6,19 +6,19 @@ import { Alegreya, Belleza } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { Providers } from './providers';
 
-const fontSans = Belleza({
+const fontHeadline = Belleza({
   subsets: ['latin'],
   weight: ['400'],
-  variable: '--font-sans',
+  variable: '--font-headline',
 });
 
-const fontSerif = Alegreya({
+const fontBody = Alegreya({
   subsets: ['latin'],
-  variable: '--font-serif',
+  variable: '--font-body',
 });
 
 export const metadata: Metadata = {
-  title: 'Ummy - Find Your Vibe',
+  title: 'Dilsey - Find Your Vibe',
   description: 'A voice chat app to connect with people and build communities.',
 };
 
@@ -31,9 +31,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          'min-h-screen bg-background font-sans antialiased',
-          fontSans.variable,
-          fontSerif.variable
+          'min-h-screen bg-background antialiased',
+          fontHeadline.variable,
+          fontBody.variable
         )}
       >
         <Providers>{children}</Providers>

@@ -278,7 +278,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getCurrentUser } from '@/lib/mock-data';
+import { useUser } from '@/firebase';
 
 export function RoomClient({ room }: { room: Room }) {
   const [speakingId, setSpeakingId] = useState<string | null>(null);
@@ -291,7 +291,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isPkBattle, setIsPkBattle] = useState(false);
   const [pkProgress1, setPkProgress1] = useState(30);
   const [pkProgress2, setPkProgress2] = useState(70);
-  const currentUser = getCurrentUser();
+  const { user: currentUser } = useUser();
 
   useEffect(() => {
     const getPermissions = async () => {
@@ -345,7 +345,7 @@ export function RoomClient({ room }: { room: Room }) {
     }
   }, [isPkBattle]);
 
-  if (!room) {
+  if (!room || !currentUser) {
     return null;
   }
   
@@ -440,8 +440,7 @@ export function RoomClient({ room }: { room: Room }) {
   const toggleMic = () => setIsMicOn(prev => !prev);
   const toggleCamera = () => setIsCameraOn(prev => !prev);
 
-  const otherParticipants = room.participants.filter(p => p.id !== currentUser.id);
-  const allParticipantsInOrder = [currentUser, ...otherParticipants];
+  const otherParticipants = room.participants.filter(p => p.id !== currentUser.uid);
 
   return (
     <div className="grid h-[calc(100vh-10rem)] md:h-full gap-4 lg:grid-cols-3 xl:grid-cols-4">
@@ -508,48 +507,38 @@ export function RoomClient({ room }: { room: Room }) {
             <CardContent className="p-4 h-full">
               <ScrollArea className="h-full">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {allParticipantsInOrder.map((p) => {
-                  const isCurrentUser = p.id === currentUser.id;
-                  return (
-                    <div key={p.id} className="relative group aspect-square flex flex-col items-center justify-center gap-2 bg-muted rounded-md">
-                      {isCurrentUser ? (
-                        <>
-                          <video ref={videoRef} className={cn("w-full h-full object-cover rounded-md", isCameraOn && hasCameraPermission ? "block" : "hidden")} autoPlay muted />
-                          {(!isCameraOn || !hasCameraPermission) && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted rounded-md">
-                              <VideoOff className="h-10 w-10"/>
-                              <span>{ !hasCameraPermission ? "No Camera" : "Camera off" }</span>
-                            </div>
-                          )}
-                           <div className="absolute bottom-2 left-2 right-2 p-1 bg-black/50 rounded-md text-center">
-                              <span className="font-semibold text-white text-sm truncate w-full">{p.name} (You)</span>
-                            </div>
-                        </>
-                      ) : (
-                        <>
-                          <Avatar className={cn(
-                            "h-20 w-20 border-4 border-transparent transition-all",
-                            speakingId === p.id && "border-primary shadow-lg"
-                          )}>
-                            <AvatarImage src={p.avatarUrl} alt={p.name} data-ai-hint="person portrait" />
-                            <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-semibold text-center text-sm truncate w-full px-2">{p.name}</span>
-                          {!isCurrentUser && (
-                            <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button size="icon" variant="destructive" className="h-7 w-7">
-                                <ShieldX className="h-4 w-4" />
-                              </Button>
-                              <Button size="icon" variant="secondary" className="h-7 w-7">
-                                <VolumeX className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </>
-                      )}
+                <div className="relative group aspect-square flex flex-col items-center justify-center gap-2 bg-muted rounded-md">
+                  <video ref={videoRef} className={cn("w-full h-full object-cover rounded-md", isCameraOn && hasCameraPermission ? "block" : "hidden")} autoPlay muted />
+                  {(!isCameraOn || !hasCameraPermission) && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted rounded-md">
+                      <VideoOff className="h-10 w-10"/>
+                      <span>{ !hasCameraPermission ? "No Camera" : "Camera off" }</span>
                     </div>
-                  );
-                })}
+                  )}
+                   <div className="absolute bottom-2 left-2 right-2 p-1 bg-black/50 rounded-md text-center">
+                      <span className="font-semibold text-white text-sm truncate w-full">{currentUser.displayName} (You)</span>
+                    </div>
+                </div>
+                {otherParticipants.map((p) => (
+                    <div key={p.id} className="relative group aspect-square flex flex-col items-center justify-center gap-2 bg-secondary/30 rounded-md">
+                      <Avatar className={cn(
+                        "h-20 w-20 border-4 border-transparent transition-all",
+                        speakingId === p.id && "border-primary shadow-lg"
+                      )}>
+                        <AvatarImage src={p.avatarUrl} alt={p.name} data-ai-hint="person portrait" />
+                        <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span className="font-semibold text-center text-sm truncate w-full px-2">{p.name}</span>
+                      <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button size="icon" variant="destructive" className="h-7 w-7">
+                          <ShieldX className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="secondary" className="h-7 w-7">
+                          <VolumeX className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
               </div>
               </ScrollArea>
             </CardContent>
@@ -662,4 +651,3 @@ export function RoomClient({ room }: { room: Room }) {
     </div>
   );
 }
-

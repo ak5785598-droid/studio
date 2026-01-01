@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Compass, User, Settings, Youtube, ClipboardList } from "lucide-react";
+import { Home, Compass, User, Settings, Youtube, ClipboardList, Loader } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -18,11 +18,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Logo } from "@/components/logo";
-import { getCurrentUser } from "@/lib/mock-data";
+import { useUser } from "@/firebase";
 import { GameControllerIcon } from "../icons";
 
 const navItems = [
-  { href: "/", label: "Home", icon: Home },
   { href: "/rooms", label: "Rooms", icon: Compass },
   { href: "/tasks", label: "Tasks", icon: ClipboardList },
   { href: "/games", label: "Games", icon: GameControllerIcon },
@@ -32,7 +31,7 @@ const navItems = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const currentUser = getCurrentUser();
+  const { user, isLoading } = useUser();
 
   return (
     <SidebarProvider>
@@ -74,15 +73,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip={currentUser.name} asChild>
-                   <Link href="/profile">
-                     <Avatar className="h-7 w-7">
-                        <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} data-ai-hint="person portrait" />
-                        <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    <span>{currentUser.name}</span>
-                  </Link>
-                </SidebarMenuButton>
+                 {isLoading ? (
+                  <div className="flex items-center gap-2 p-2">
+                    <Loader className="h-7 w-7 animate-spin" />
+                    <span className="text-sm">Loading...</span>
+                  </div>
+                 ): user ? (
+                    <SidebarMenuButton tooltip={user.displayName || 'Profile'} asChild>
+                       <Link href="/profile">
+                         <Avatar className="h-7 w-7">
+                            <AvatarImage src={user.photoURL || ''} alt={user.displayName || ''} data-ai-hint="person portrait" />
+                            <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                          </Avatar>
+                        <span>{user.displayName}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                 ) : null}
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
@@ -93,12 +99,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex-1">
               <Logo />
             </div>
-            <Link href="/profile">
-               <Avatar className="h-8 w-8">
-                  <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-                  <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-            </Link>
+             {user && (
+                <Link href="/profile">
+                 <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.photoURL || ''} alt={user.displayName || ''} />
+                    <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                  </Avatar>
+              </Link>
+             )}
           </header>
           <SidebarInset>
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">{children}</main>

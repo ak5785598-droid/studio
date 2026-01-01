@@ -6,12 +6,12 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
     >
         <defs>
             <linearGradient id="teddyGradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#FFC1CC" />
-                <stop offset="100%" stopColor="#FF89B5" />
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="hsl(var(--primary))" />
             </linearGradient>
             <linearGradient id="earGradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#FF89B5" />
-                <stop offset="100%" stopColor="#E85A90" />
+                <stop offset="0%" stopColor="hsl(var(--accent))" />
+                <stop offset="100%" stopColor="hsl(var(--primary))" />
             </linearGradient>
         </defs>
 
@@ -30,14 +30,14 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <ellipse cx="50" cy="58" rx="20" ry="15" fill="#FFFFFF" fillOpacity="0.7" />
         
         {/* Nose */}
-        <path d="M 50 55 a 5 4 0 1 1 0.001 0" fill="#5F3A70"/>
+        <path d="M 50 55 a 5 4 0 1 1 0.001 0" fill="hsl(var(--foreground))" opacity="0.8"/>
         
         {/* Eyes */}
-        <circle cx="40" cy="45" r="4" fill="#5F3A70" />
-        <circle cx="60" cy="45" r="4" fill="#5F3A70" />
+        <circle cx="40" cy="45" r="4" fill="hsl(var(--foreground))" opacity="0.9" />
+        <circle cx="60" cy="45" r="4" fill="hsl(var(--foreground))" opacity="0.9" />
         
         {/* Smile */}
-        <path d="M 45 65 Q 50 70 55 65" stroke="#5F3A70" strokeWidth="2" fill="none" strokeLinecap="round"/>
+        <path d="M 45 65 Q 50 70 55 65" stroke="hsl(var(--foreground))" strokeOpacity="0.8" strokeWidth="2" fill="none" strokeLinecap="round"/>
     </svg>
 );
 

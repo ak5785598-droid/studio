@@ -1,16 +1,19 @@
+'use client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getCurrentUser, getFriends, getUserById, getTopContributors, getProfileVisitors } from '@/lib/mock-data';
+import { getFriends, getUserById, getTopContributors, getProfileVisitors } from '@/lib/mock-data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { notFound } from 'next/navigation';
-import { User, Cake, MapPin, Briefcase, Smile, Eye } from 'lucide-react';
+import { User, Cake, MapPin, Briefcase, Smile, Eye, Loader } from 'lucide-react';
 import { TopContributorsCard } from '@/components/top-contributors-card';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useUser } from '@/firebase';
 
 export default function ProfilePage({ params }: { params: { id: string } }) {
+  const { user: currentUser, isLoading } = useUser();
   const user = getUserById(params.id);
   const friends = getFriends();
   const topContributors = getTopContributors();
@@ -19,10 +22,21 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     (img) => img.id === 'profile-header'
   );
 
-  if (!user) {
+  if (!user && !isLoading) {
     notFound();
   }
-  const currentUser = getCurrentUser();
+
+  if (isLoading || !currentUser || !user) {
+     return (
+       <AppLayout>
+          <div className="flex h-full w-full items-center justify-center">
+            <Loader className="h-8 w-8 animate-spin text-primary" />
+          </div>
+       </AppLayout>
+    )
+  }
+  
+  const isOwnProfile = currentUser.uid === user.id;
 
   return (
     <AppLayout>
@@ -31,7 +45,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
           <div className="relative h-48 w-full bg-muted">
             {profileHeaderImage && (
               <Image
-                src={user.coverUrl || profileHeaderImage.imageUrl}
+                src={isOwnProfile ? (currentUser.photoURL || profileHeaderImage.imageUrl) : (user.coverUrl || profileHeaderImage.imageUrl)}
                 alt="Profile header"
                 fill
                 className="object-cover"
@@ -43,16 +57,16 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
           <div className="p-6">
             <div className="relative flex -mt-20">
                <Avatar className="h-28 w-28 border-4 border-background">
-                <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="person portrait" />
+                <AvatarImage src={isOwnProfile ? currentUser.photoURL! : user.avatarUrl} alt={isOwnProfile ? currentUser.displayName! : user.name} data-ai-hint="person portrait" />
                 <AvatarFallback className="text-4xl">
-                  {user.name.charAt(0)}
+                  {isOwnProfile ? currentUser.displayName?.charAt(0) : user.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="ml-4 mt-16 flex-1">
-                   <h1 className="font-headline text-3xl font-bold">{user.name}</h1>
-                   <p className="mt-1 text-sm text-muted-foreground">ID: {user.id}</p>
+                   <h1 className="font-headline text-3xl font-bold">{isOwnProfile ? currentUser.displayName : user.name}</h1>
+                   <p className="mt-1 text-sm text-muted-foreground">ID: {isOwnProfile ? currentUser.uid : user.id}</p>
               </div>
-              { user.id === currentUser.id ? (
+              { isOwnProfile ? (
                   <Button className="mt-16">Edit Profile</Button>
               ): (
                   <Button className="mt-16">Follow</Button>

@@ -21,46 +21,71 @@ import {
   Gem,
   Star,
   LifeBuoy,
+  Loader,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getCurrentUser, getCoinPackages } from '@/lib/mock-data';
+import { getCoinPackages } from '@/lib/mock-data';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
 
 export default function SettingsPage() {
-  const currentUser = getCurrentUser();
+  const auth = useAuth();
+  const { user, isLoading } = useUser();
   const coinPackages = getCoinPackages();
   const router = useRouter();
   const { toast } = useToast();
 
   const handleLogout = async () => {
-    router.push('/login');
-    toast({
-      title: 'Logged Out',
-      description: 'You have been successfully logged out.',
-    });
+    if (!auth) return;
+    try {
+        await signOut(auth);
+        router.push('/login');
+        toast({
+          title: 'Logged Out',
+          description: 'You have been successfully logged out.',
+        });
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Logout Failed',
+            description: error.message,
+        });
+    }
   };
+
+  if (isLoading || !user) {
+    return (
+       <AppLayout>
+          <div className="flex h-full w-full items-center justify-center">
+            <Loader className="h-8 w-8 animate-spin text-primary" />
+          </div>
+       </AppLayout>
+    )
+  }
 
   return (
     <AppLayout>
       <div className="space-y-6">
         <header className="flex items-center space-x-4">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-            <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || ''} />
+            <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <h1 className="text-2xl font-bold font-headline">
-              {currentUser.name}
+              {user.displayName}
             </h1>
-            <p className="text-sm text-muted-foreground">ID: {currentUser.id}</p>
+            <p className="text-sm text-muted-foreground">ID: {user.uid}</p>
           </div>
           <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2">
             <Gem className="h-5 w-5 text-primary" />
             <span className="font-bold text-lg">
-              {currentUser.wallet?.coins.toLocaleString() || 0}
+              {/* Replace with real data when wallet is implemented */}
+              1,250
             </span>
           </div>
         </header>
@@ -97,19 +122,16 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
-                  <Input id="name" defaultValue={currentUser.name} />
+                  <Input id="name" defaultValue={user.displayName || ''} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
-                    defaultValue="alina@example.com"
+                    defaultValue={user.email || ''}
+                    readOnly
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Input id="bio" defaultValue={currentUser.bio} />
                 </div>
                 <Button>Save Changes</Button>
               </CardContent>
@@ -171,7 +193,7 @@ export default function SettingsPage() {
                 <CardDescription>
                   Choose what you want to be notified about.
                 </CardDescription>
-              </CardHeader>
+              </Header>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between rounded-lg border p-4">
                   <div>
@@ -219,7 +241,7 @@ export default function SettingsPage() {
                 <CardDescription>
                   Manage who can see your information and contact you.
                 </CardDescription>
-              </CardHeader>
+              </Header>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between rounded-lg border p-4">
                   <div>
@@ -249,7 +271,7 @@ export default function SettingsPage() {
                 <CardDescription>
                   Purchase coins to send gifts and play premium games.
                 </CardDescription>
-              </CardHeader>
+              </Header>
               <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {coinPackages.map((pkg, index) => (
                   <Card
