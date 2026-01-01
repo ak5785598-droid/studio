@@ -35,6 +35,10 @@
           "items": {
             "type": "string"
           }
+        },
+        "coins": {
+            "type": "number",
+            "description": "The number of coins the user has."
         }
       },
       "required": [
@@ -265,7 +269,7 @@
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}/profile",
+        "path": "/users/{userId}/profile/{profileId}",
         "definition": {
           "entityName": "UserProfile",
           "schema": {

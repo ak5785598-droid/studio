@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -30,14 +31,22 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useUser } from '@/firebase';
-import { signOut } from 'firebase/auth';
+import { signOut, updateProfile } from 'firebase/auth';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
 export default function SettingsPage() {
   const auth = useAuth();
-  const { user, isLoading } = useUser();
+  const firestore = useFirestore();
+  const { user, isLoading: isUserLoading } = useUser();
+  const { userProfile, isLoading: isProfileLoading } = useUserProfile(user?.uid);
   const coinPackages = getCoinPackages();
   const router = useRouter();
   const { toast } = useToast();
+  
+  const [displayName, setDisplayName] = useState(user?.displayName || '');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleLogout = async () => {
     if (!auth) return;
@@ -56,8 +65,35 @@ export default function SettingsPage() {
         });
     }
   };
+  
+  const handleSaveChanges = async () => {
+    if (!user || !firestore) return;
+    setIsSaving(true);
+    try {
+        // Update Firebase Auth display name
+        await updateProfile(user, { displayName: displayName });
 
-  if (isLoading || !user) {
+        // Update Firestore user profile
+        const userProfileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+        await updateDoc(userProfileRef, { username: displayName });
+
+        toast({
+            title: 'Profile Updated',
+            description: 'Your changes have been saved successfully.',
+        });
+    } catch (error: any) {
+         toast({
+            variant: 'destructive',
+            title: 'Update Failed',
+            description: error.message || 'Could not save your changes.',
+        });
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
+
+  if (isUserLoading || isProfileLoading || !user) {
     return (
        <AppLayout>
           <div className="flex h-full w-full items-center justify-center">
@@ -84,8 +120,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2">
             <Gem className="h-5 w-5 text-primary" />
             <span className="font-bold text-lg">
-              {/* Replace with real data when wallet is implemented */}
-              1,250
+              {userProfile?.coins?.toLocaleString() || 0}
             </span>
           </div>
         </header>
@@ -122,7 +157,11 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
-                  <Input id="name" defaultValue={user.displayName || ''} />
+                  <Input 
+                    id="name" 
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -131,9 +170,13 @@ export default function SettingsPage() {
                     type="email"
                     defaultValue={user.email || ''}
                     readOnly
+                    disabled
                   />
                 </div>
-                <Button>Save Changes</Button>
+                <Button onClick={handleSaveChanges} disabled={isSaving}>
+                  {isSaving ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Save Changes
+                </Button>
               </CardContent>
             </Card>
             <Card className="mt-6">
