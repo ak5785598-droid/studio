@@ -1,9 +1,10 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Alegreya, Belleza } from 'next/font/google';
 import { cn } from '@/lib/utils';
-import { FirebaseClientProvider } from '@/firebase';
+import { Providers } from './providers';
 
 const fontSans = Belleza({
   subsets: ['latin'],
@@ -15,7 +16,6 @@ const fontSerif = Alegreya({
   subsets: ['latin'],
   variable: '--font-serif',
 });
-
 
 export const metadata: Metadata = {
   title: 'Ummy - Find Your Vibe',
@@ -29,14 +29,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+      <body
+        className={cn(
+          'min-h-screen bg-background font-sans antialiased',
           fontSans.variable,
           fontSerif.variable
-        )}>
-        <FirebaseClientProvider>
-          {children}
-        </FirebaseClientProvider>
+        )}
+      >
+        <Providers>{children}</Providers>
         <Toaster />
       </body>
     </html>
