@@ -186,6 +186,7 @@ const games: Game[] = [
   { id: 'g6', title: 'Poker Pro', coverUrl: 'https://picsum.photos/seed/poker-chips/300/200', cost: 500, imageHint: 'poker chips' },
   { id: 'g7', title: 'Teen Patti Gold', coverUrl: 'https://picsum.photos/seed/card-game/300/200', cost: 200, imageHint: 'card game' },
   { id: 'g8', title: '8 Ball Pool', coverUrl: 'https://picsum.photos/seed/billiards-table/300/200', cost: 50, imageHint: 'billiards table' },
+  { id: 'g12', title: 'Fruit Greedy', coverUrl: 'https://picsum.photos/seed/fruit-game/300/200', cost: 150, imageHint: 'fruit apple' },
 ];
 
 const coinPackages: CoinPackage[] = [

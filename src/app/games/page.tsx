@@ -24,6 +24,8 @@ export default function GamesPage() {
         return '/games/bubble-shooter';
       case 'g11':
         return '/games/monster-crush';
+      case 'g12':
+        return '/games/fruit-greedy';
       default:
         return '#';
     }
@@ -79,7 +81,7 @@ export default function GamesPage() {
             {premiumGames.map((game) => (
               <div key={game.id} className="group block">
                 <Card className="overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1">
-                   <Link href="#" className="block">
+                   <Link href={getGameLink(game.id)} className="block">
                     <CardHeader className="p-0">
                       <div className="relative aspect-video w-full">
                         <Image
@@ -101,7 +103,9 @@ export default function GamesPage() {
                     </CardContent>
                   </Link>
                   <CardFooter className="p-4 pt-0">
-                    <Button className="w-full">Play Now</Button>
+                    <Button asChild className="w-full">
+                      <Link href={getGameLink(game.id)}>Play Now</Link>
+                    </Button>
                   </CardFooter>
                 </Card>
               </div>
