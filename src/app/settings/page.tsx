@@ -193,7 +193,7 @@ export default function SettingsPage() {
                 <CardDescription>
                   Choose what you want to be notified about.
                 </CardDescription>
-              </Header>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between rounded-lg border p-4">
                   <div>
@@ -241,7 +241,7 @@ export default function SettingsPage() {
                 <CardDescription>
                   Manage who can see your information and contact you.
                 </CardDescription>
-              </Header>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between rounded-lg border p-4">
                   <div>
@@ -271,7 +271,7 @@ export default function SettingsPage() {
                 <CardDescription>
                   Purchase coins to send gifts and play premium games.
                 </CardDescription>
-              </Header>
+              </CardHeader>
               <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {coinPackages.map((pkg, index) => (
                   <Card
