@@ -5,7 +5,7 @@ import { getRoomBySlug } from '@/lib/mock-data';
 import { notFound } from 'next/navigation';
 import { RoomClient } from './room-client';
 import { AppLayout } from '@/components/layout/app-layout';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Loader } from 'lucide-react';
 import type { Room } from '@/lib/types';
@@ -13,6 +13,7 @@ import type { Room } from '@/lib/types';
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const firestore = useFirestore();
+  const { user: currentUser, isLoading: isUserLoading } = useUser();
 
   // 1. Try mock data first
   const mockRoom = getRoomBySlug(slug);
@@ -23,7 +24,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     return doc(firestore, 'chatRooms', slug);
   }, [firestore, slug, mockRoom]);
 
-  const { data: firestoreRoom, isLoading } = useDoc(roomDocRef);
+  const { data: firestoreRoom, isLoading: isDocLoading } = useDoc(roomDocRef);
 
   // Transform Firestore data into Room type
   const activeRoom: Room | null = useMemo(() => {
@@ -36,12 +37,15 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
         topic: firestoreRoom.description || 'No topic set',
         category: (firestoreRoom.category as any) || 'Chat',
         coverUrl: `https://picsum.photos/seed/${firestoreRoom.id}/1200/400`,
-        participants: [], // Real participants would be fetched from a subcollection or presence system
+        participants: [], // New rooms start empty
         messages: [],
       };
     }
     return null;
   }, [mockRoom, firestoreRoom]);
+
+  // Combined loading state
+  const isLoading = isUserLoading || (isDocLoading && !mockRoom);
 
   if (isLoading) {
     return (
@@ -53,10 +57,12 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     );
   }
 
+  // If loading is done and we still have no room
   if (!activeRoom && !isLoading) {
     notFound();
   }
 
+  // Final render
   return (
     <AppLayout>
       <RoomClient room={activeRoom!} />

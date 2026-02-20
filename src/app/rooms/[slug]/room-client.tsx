@@ -57,11 +57,12 @@ export function RoomClient({ room }: { room: Room }) {
   const [isPkBattle, setIsPkBattle] = useState(false);
   const [pkProgress1, setPkProgress1] = useState(50);
   const [pkProgress2, setPkProgress2] = useState(50);
-  const { user: currentUser } = useUser();
+  const { user: currentUser, isLoading: isUserLoading } = useUser();
   
   const [pkContestant1, setPkContestant1] = useState<RoomUser | null>(null);
   const [pkContestant2, setPkContestant2] = useState<RoomUser | null>(null);
 
+  // Initialize camera and mic
   useEffect(() => {
     const getPermissions = async () => {
       try {
@@ -83,10 +84,10 @@ export function RoomClient({ room }: { room: Room }) {
     getPermissions();
   }, []);
 
+  // Simulate room activity
   useEffect(() => {
-    if (!room || room.participants.length < 1) return;
+    if (!room || !room.participants) return;
     
-    // Pick contestants for simulated PK Battle
     if (room.participants.length >= 2) {
         setPkContestant1(room.participants[0]);
         setPkContestant2(room.participants[1]);
@@ -103,6 +104,7 @@ export function RoomClient({ room }: { room: Room }) {
     return () => clearInterval(interval);
   }, [room]);
 
+  // Simulate PK Battle progress
   useEffect(() => {
     if (isPkBattle) {
       setPkProgress1(30 + Math.random() * 40);
@@ -118,7 +120,17 @@ export function RoomClient({ room }: { room: Room }) {
   const toggleMic = () => setIsMicOn(prev => !prev);
   const toggleCamera = () => setIsCameraOn(prev => !prev);
 
-  if (!room || !currentUser) return null;
+  // Fallback UI while loading user
+  if (isUserLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Loader className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // If user is not logged in, redirect handled by parent usually, but fallback here
+  if (!currentUser) return null;
 
   const reactions = [
     { icon: Heart, label: 'Love' },
@@ -139,31 +151,27 @@ export function RoomClient({ room }: { room: Room }) {
       { icon: Rocket, name: 'Rocket', cost: 750 },
       { icon: Gem, name: 'Gem', cost: 1000 },
     ],
-    couple: [
-      { icon: HeartPulse, name: 'Heartbeat', cost: 520 },
-      { icon: Sparkles, name: 'Magic', cost: 1314 },
-      { icon: HeartHandshake, name: 'Promise', cost: 8888 },
-      { icon: Castle, name: 'Castle', cost: 50000 },
-    ],
   };
 
-  // Logic to fill exactly 10 seats
-  // Seat 0: Me
-  // Seat 1-9: Other participants, then empty seats
-  const otherParticipants = room.participants.filter(p => p.id !== currentUser.uid);
+  // --- Seat (Seta) Management ---
+  // Seat 1: Always the current user
+  // Seats 2-10: Participants then placeholders
+  const otherParticipants = (room.participants || []).filter(p => p.id !== currentUser.uid);
   const totalSeats = 10;
-  const emptySeatsCount = Math.max(0, totalSeats - 1 - otherParticipants.length);
+  const filledSeatsCount = otherParticipants.length;
+  const emptySeatsCount = Math.max(0, totalSeats - 1 - filledSeatsCount);
 
   return (
     <div className="grid h-[calc(100vh-10rem)] md:h-full gap-4 lg:grid-cols-3 xl:grid-cols-4">
       <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-4">
+        {/* Room Header */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between p-4">
             <div>
               <CardTitle className="font-headline text-2xl truncate max-w-[200px] sm:max-w-md">{room.title}</CardTitle>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="secondary">{room.topic}</Badge>
-                <Badge variant="outline">Online: {room.participants.length + 1}</Badge>
+                <Badge variant="outline">Online: {(room.participants?.length || 0) + 1}</Badge>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -183,6 +191,7 @@ export function RoomClient({ room }: { room: Room }) {
           </CardHeader>
         </Card>
 
+        {/* PK Battle or Main Seats View */}
         {isPkBattle && pkContestant1 && pkContestant2 ? (
           <Card className="flex-1 bg-gradient-to-br from-blue-500/10 to-red-500/10">
             <CardContent className="p-4 h-full flex flex-col items-center justify-center gap-8 relative">
@@ -222,7 +231,7 @@ export function RoomClient({ room }: { room: Room }) {
               <ScrollArea className="h-full">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   
-                  {/* Seat 1: Current User */}
+                  {/* Seat 1: Me (Current User) */}
                   <div className="relative aspect-square flex flex-col items-center justify-center gap-2 bg-muted rounded-xl overflow-hidden ring-4 ring-primary/40 shadow-inner">
                     <video ref={videoRef} className={cn("w-full h-full object-cover", (isCameraOn && hasCameraPermission) ? "block" : "hidden")} autoPlay muted />
                     {(!isCameraOn || !hasCameraPermission) && (
@@ -231,7 +240,7 @@ export function RoomClient({ room }: { room: Room }) {
                             <AvatarImage src={currentUser.photoURL || ''} />
                             <AvatarFallback>{currentUser.displayName?.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <span className="text-[10px] uppercase tracking-wider font-bold">{ !hasCameraPermission ? "Camera Permission" : "Camera Off" }</span>
+                        <span className="text-[8px] uppercase tracking-widest font-bold text-primary">Me</span>
                       </div>
                     )}
                     <div className="absolute bottom-2 left-2 right-2 p-1 bg-black/60 rounded-md text-center backdrop-blur-md">
@@ -239,7 +248,7 @@ export function RoomClient({ room }: { room: Room }) {
                     </div>
                   </div>
 
-                  {/* Other filled seats */}
+                  {/* Seat 2-10: Filled Seats */}
                   {otherParticipants.map((p) => (
                     <div key={p.id} className="relative aspect-square flex flex-col items-center justify-center gap-2 bg-card border rounded-xl shadow-sm hover:shadow-md transition-shadow">
                       <Avatar className={cn(
@@ -260,7 +269,7 @@ export function RoomClient({ room }: { room: Room }) {
                     </div>
                   ))}
 
-                  {/* Empty Seats (Seta) */}
+                  {/* Seat X-10: Empty Seats (Placeholders) */}
                   {Array.from({ length: emptySeatsCount }).map((_, i) => (
                     <div key={`empty-${i}`} className="aspect-square border-2 border-dashed border-muted/50 bg-muted/5 flex flex-col items-center justify-center rounded-xl text-muted-foreground/20 hover:bg-muted/10 transition-colors">
                       <UserPlus className="h-8 w-8 mb-1" />
@@ -274,6 +283,7 @@ export function RoomClient({ room }: { room: Room }) {
         )}
       </div>
 
+      {/* Right Sidebar: Chat and Gifts */}
       <Card className="lg:col-span-1 xl:col-span-1 flex flex-col h-full">
         <CardHeader className="p-4 border-b">
           <CardTitle className="font-headline text-lg flex items-center gap-2">
@@ -284,7 +294,7 @@ export function RoomClient({ room }: { room: Room }) {
         <CardContent className="flex-1 min-h-0 p-4">
           <ScrollArea className="h-full pr-4">
             <div className="space-y-4">
-              {room.messages.length > 0 ? (
+              {(room.messages || []).length > 0 ? (
                 room.messages.map((msg) => (
                   <div key={msg.id} className="flex items-start gap-2">
                     <Avatar className="h-7 w-7 border">
@@ -327,10 +337,9 @@ export function RoomClient({ room }: { room: Room }) {
               </PopoverTrigger>
               <PopoverContent className="w-80 p-0 rounded-xl overflow-hidden shadow-2xl" align="end">
                 <Tabs defaultValue="common">
-                  <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1">
+                  <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1">
                     <TabsTrigger value="common">Common</TabsTrigger>
                     <TabsTrigger value="premium">Premium</TabsTrigger>
-                    <TabsTrigger value="couple">Couple</TabsTrigger>
                   </TabsList>
                   <ScrollArea className="h-72">
                     <TabsContent value="common" className="p-3 grid grid-cols-4 gap-2">
