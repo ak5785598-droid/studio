@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import type { Room } from '@/lib/types';
 
 export default function RoomsPage() {
@@ -28,12 +28,12 @@ export default function RoomsPage() {
   );
 
   // Real Firestore data for "My Rooms"
+  // Simplified query: removed orderBy to avoid the need for a composite index
   const myRoomsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, 'chatRooms'),
-      where('ownerId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('ownerId', '==', user.uid)
     );
   }, [firestore, user]);
 
@@ -52,14 +52,22 @@ export default function RoomsPage() {
 
   const myRooms: Room[] = useMemo(() => {
     if (!myRealRooms) return [];
-    return myRealRooms.map((r: any) => ({
+    
+    // Sort manually in memory since we removed it from the query
+    const sorted = [...myRealRooms].sort((a: any, b: any) => {
+      const dateA = a.createdAt?.seconds || 0;
+      const dateB = b.createdAt?.seconds || 0;
+      return dateB - dateA;
+    });
+
+    return sorted.map((r: any) => ({
       id: r.id,
-      slug: r.id, // Use ID as slug for real rooms
+      slug: r.id,
       title: r.name,
       topic: r.description,
       category: r.category as any,
       coverUrl: `https://picsum.photos/seed/${r.id}/400/225`,
-      participants: [], // Real participants would be handled in the room client
+      participants: [],
       messages: [],
     }));
   }, [myRealRooms]);
@@ -80,14 +88,20 @@ export default function RoomsPage() {
           <CreateRoomDialog />
         </header>
 
-        {myRooms.length > 0 && (
+        {(myRooms.length > 0 || isLoadingMyRooms) && (
           <section className="space-y-4">
             <h2 className="font-headline text-2xl font-semibold">My Rooms</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {myRooms.map((room) => (
-                <ChatRoomCard key={room.id} room={room} />
-              ))}
-            </div>
+            {isLoadingMyRooms ? (
+              <div className="flex justify-center py-8">
+                <Loader className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {myRooms.map((room) => (
+                  <ChatRoomCard key={room.id} room={room} />
+                ))}
+              </div>
+            )}
           </section>
         )}
 

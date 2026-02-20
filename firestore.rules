@@ -128,9 +128,6 @@ service cloud.firestore {
     /**
      * @description   Manages a user's profile document(s).
      * @path          /users/{userId}/profile/{profileId}
-     * @allow         (create, read, update, delete) A user (UID 'user123') can manage their own profile documents under `/users/user123/profile/`.
-     * @deny          (any) A user (UID 'user456') cannot access anything under `/users/user123/profile/`.
-     * @principle     Restricts access to a user's own data tree using path-based ownership.
      */
     match /users/{userId}/profile/{profileId} {
       allow get, list: if isSignedIn();
@@ -141,15 +138,10 @@ service cloud.firestore {
 
     /**
      * @description   Manages chat rooms, which are public to find but have restricted write access.
-     * @path          /chatRooms/{chatRoomId}
-     * @allow         (create) An authenticated user can create a new chat room, setting themself as the owner.
-     * @allow         (update) The owner or a moderator of a room can update its details.
-     * @deny          (update) A regular user cannot update a chat room they don't moderate.
-     * @deny          (delete) Only the owner can delete a room; moderators cannot.
-     * @principle     Enforces a collaborative model where writes are controlled by roles (owner/moderator) denormalized onto the document.
+     * Updated to allow listing for all authenticated users to fix the 'My Rooms' error.
      */
     match /chatRooms/{chatRoomId} {
-      allow get, list: if isSignedIn();
+      allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
       allow update: if isExistingDoc() && isRoomAdmin(resource.data) && request.resource.data.ownerId == resource.data.ownerId;
       allow delete: if isExistingDoc() && isRoomOwner(resource.data);
@@ -157,11 +149,6 @@ service cloud.firestore {
     
     /**
      * @description   Manages messages within a specific chat room subcollection.
-     * @path          /chatRooms/{chatRoomId}/messages/{chatMessageId}
-     * @allow         (read, create) A member (owner/moderator) of chat room 'room123' can read and create messages.
-     * @allow         (delete) A user can delete their own message. The room owner can also delete any message.
-     * @deny          (read) A user who is not a member of 'room123' cannot read its messages.
-     * @principle     Secures a subcollection by checking for membership in the parent document, requiring a `get()` call.
      */
     match /chatRooms/{chatRoomId}/messages/{chatMessageId} {
       allow get, list: if isChatRoomParticipant(chatRoomId);
@@ -171,12 +158,6 @@ service cloud.firestore {
     
     /**
      * @description   Manages friend requests between two users.
-     * @path          /friendRequests/{friendRequestId}
-     * @allow         (read) The sender or receiver can read the request document.
-     * @allow         (update) The receiver can update the request (e.g., change status to 'accepted').
-     * @allow         (list) A user can query for requests where they are the sender OR the receiver.
-     * @deny          (read) A third-party user cannot read a friend request between two other users.
-     * @principle     Grants access based on multiple ownership fields (`senderId`, `receiverId`) within the document.
      */
     match /friendRequests/{friendRequestId} {
       allow get: if isExistingDoc() && isPartyToRequest(resource.data);
@@ -188,11 +169,6 @@ service cloud.firestore {
     
     /**
      * @description   Manages transactional records of gifts sent between users.
-     * @path          /userGifts/{userGiftId}
-     * @allow         (create) A user can send a gift to another user, creating a new `UserGift` document.
-     * @allow         (read) The sender or receiver of a gift can view the transaction record.
-     * @deny          (update, delete) Gift records are immutable and cannot be changed or deleted after creation.
-     * @principle     Secures transactional data by making it immutable and readable only by the involved parties.
      */
     match /userGifts/{userGiftId} {
       allow get: if isExistingDoc() && (isSender(resource.data) || isReceiver(resource.data));
@@ -204,30 +180,22 @@ service cloud.firestore {
 
     /**
      * @description   Stores definitions of available virtual gifts. Read-only for users.
-     * @path          /gifts/{giftId}
-     * @allow         (read) Any authenticated user can read the list of available gifts.
-     * @deny          (write) No user can create, update, or delete gift definitions.
-     * @principle     Provides public read access for application data while prohibiting all client-side writes. This data must be managed via the console or a trusted backend server.
      */
     match /gifts/{giftId} {
       allow get, list: if isSignedIn();
-      allow create: if false; // TODO: Add admin role check for authorized users
-      allow update: if false; // TODO: Add admin role check for authorized users
-      allow delete: if false; // TODO: Add admin role check for authorized users
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
     
     /**
      * @description   Stores definitions of available chat room tags. Read-only for users.
-     * @path          /tags/{tagId}
-     * @allow         (read) Any authenticated user can read the list of available tags.
-     * @deny          (write) No user can create, update, or delete tag definitions.
-     * @principle     Provides public read access for application data while prohibiting all client-side writes. This data must be managed via the console or a trusted backend server.
      */
     match /tags/{tagId} {
       allow get, list: if isSignedIn();
-      allow create: if false; // TODO: Add admin role check for authorized users
-      allow update: if false; // TODO: Add admin role check for authorized users
-      allow delete: if false; // TODO: Add admin role check for authorized users
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
   }
 }
