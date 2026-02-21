@@ -27,6 +27,7 @@ import {
   ShieldAlert,
   UserX,
   Trash2,
+  UserPlus,
   Smile,
 } from 'lucide-react';
 import type { Room, Message } from '@/lib/types';
@@ -54,7 +55,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, limit, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, doc, writeBatch } from 'firebase/firestore';
 
 export function RoomClient({ room }: { room: Room }) {
   const [isMicOn, setIsMicOn] = useState(true);
@@ -73,11 +74,8 @@ export function RoomClient({ room }: { room: Room }) {
   const { user: currentUser, isLoading: isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  // Determine if the user is the owner
-  // We check against the ownerId from Firestore or the hardcoded mock owner 'u1'
   const isOwner = currentUser?.uid === room.ownerId || (room.ownerId === 'u1' && currentUser?.uid === '901piBzTQ0VzCtAvlyyobwvAaTs1');
 
-  // Listen to real-time messages
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !room.id) return null;
     return query(
@@ -98,7 +96,7 @@ export function RoomClient({ room }: { room: Room }) {
       name: m.senderName || 'User',
       avatarUrl: m.senderAvatar || '',
     }
-  })) || room.messages || [];
+  })) || [];
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -152,20 +150,20 @@ export function RoomClient({ room }: { room: Room }) {
   };
 
   const toggleSeatLock = (index: number) => {
-    setLockedSeats(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
-    const isLocked = !lockedSeats.includes(index);
+    const isCurrentlyLocked = lockedSeats.includes(index);
+    setLockedSeats(prev => isCurrentlyLocked ? prev.filter(i => i !== index) : [...prev, index]);
     toast({
-      title: isLocked ? 'Seat Unlocked' : 'Seat Locked',
-      description: `Seat ${index} status changed.`,
+      title: !isCurrentlyLocked ? 'Seat Locked' : 'Seat Unlocked',
+      description: `Seat ${index} is now ${!isCurrentlyLocked ? 'closed' : 'open'}.`,
     });
   };
 
   const toggleSeatMute = (index: number) => {
-    setMutedSeats(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
-    const isMuted = !mutedSeats.includes(index);
+    const isCurrentlyMuted = mutedSeats.includes(index);
+    setMutedSeats(prev => isCurrentlyMuted ? prev.filter(i => i !== index) : [...prev, index]);
     toast({
-      title: isMuted ? 'Unmuted' : 'Muted',
-      description: `Participant in seat ${index} has been ${isMuted ? 'unmuted' : 'muted'}.`,
+      title: !isCurrentlyMuted ? 'Muted' : 'Unmuted',
+      description: `Participant in seat ${index} has been ${!isCurrentlyMuted ? 'muted' : 'unmuted'}.`,
     });
   };
 
@@ -177,12 +175,18 @@ export function RoomClient({ room }: { room: Room }) {
     });
   };
 
+  const handleInvite = () => {
+    toast({
+      title: 'Invitation Sent',
+      description: 'Your friends have been invited to join this room.',
+    });
+  };
+
   const handleClearChat = async () => {
     if (!firestore || !room.id || isClearing) return;
     
     setIsClearing(true);
     try {
-      // For permanent deletion that "no one can see", we must delete the actual docs from Firestore
       if (firestoreMessages && firestoreMessages.length > 0) {
         const batch = writeBatch(firestore);
         firestoreMessages.forEach((msg) => {
@@ -194,14 +198,14 @@ export function RoomClient({ room }: { room: Room }) {
       
       toast({
         title: 'Chat History Cleared',
-        description: 'All messages have been permanently deleted from this room.',
+        description: 'All messages have been permanently deleted for everyone.',
       });
     } catch (error: any) {
       console.error('Clear chat error:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to clear chat history. Check your permissions.',
+        description: 'Failed to clear chat history.',
       });
     } finally {
       setIsClearing(false);
@@ -270,7 +274,7 @@ export function RoomClient({ room }: { room: Room }) {
                 {isCameraOn ? <Video className="h-5 w-5"/> : <VideoOff className="h-5 w-5"/>}
               </Button>
               
-              {/* GLOBAL ADMIN MENU (THREE DOTS) */}
+              {/* GLOBAL ROOM MENU */}
               {isOwner && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -283,14 +287,14 @@ export function RoomClient({ room }: { room: Room }) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleClearChat} className="text-destructive font-bold focus:bg-destructive focus:text-destructive-foreground">
                       {isClearing ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
-                      Clear Chat History (Permanent)
+                      Clear Chat History (Forever)
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => toast({ title: "Privacy", description: "Room locked." })}>
-                      <Lock className="mr-2 h-4 w-4" /> Lock Room (Private)
+                    <DropdownMenuItem onClick={handleInvite}>
+                      <UserPlus className="mr-2 h-4 w-4" /> Invite Friends
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toast({ title: "Privacy", description: "Room opened." })}>
-                      <Unlock className="mr-2 h-4 w-4" /> Open Room (Public)
+                    <DropdownMenuItem onClick={() => toast({ title: "Privacy", description: "Room updated." })}>
+                      <Lock className="mr-2 h-4 w-4" /> Change Room Privacy
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -308,7 +312,7 @@ export function RoomClient({ room }: { room: Room }) {
           <CardContent className="p-4 h-full bg-secondary/10">
             <ScrollArea className="h-full">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {/* Seat 1: Current User */}
+                {/* Seat 1: Me */}
                 <div className="relative aspect-square flex flex-col items-center justify-center gap-2 bg-muted rounded-2xl overflow-hidden ring-4 ring-primary/40 shadow-xl">
                   <video ref={videoRef} className={cn("w-full h-full object-cover", isCameraOn ? "block" : "hidden")} autoPlay muted />
                   {!isCameraOn && (
@@ -325,7 +329,7 @@ export function RoomClient({ room }: { room: Room }) {
                   </div>
                 </div>
 
-                {/* Other Seats */}
+                {/* Seats 2-10 */}
                 {Array.from({ length: totalSeats - 1 }).map((_, i) => {
                   const participant = otherParticipants[i];
                   const seatIndex = i + 2;
@@ -347,18 +351,43 @@ export function RoomClient({ room }: { room: Room }) {
                           <div className="absolute top-2 left-2 flex gap-1">
                             {isMuted && <VolumeX className="h-4 w-4 text-red-500 bg-black/60 p-1 rounded-md" />}
                           </div>
-                          
-                          {/* SEAT ADMIN MENU (THREE DOTS) - FOR OCCUPIED SEATS */}
-                          {isOwner && (
-                            <div className="absolute top-2 right-2">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background shadow-md">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48">
-                                  <DropdownMenuLabel>Manage Participant</DropdownMenuLabel>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 opacity-50">
+                          {isLocked ? <Lock className="h-8 w-8 text-primary" /> : <Unlock className="h-8 w-8 text-muted-foreground/20" />}
+                          <span className="text-[9px] font-bold uppercase tracking-widest">
+                            {isLocked ? 'Closed' : 'Open'}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* THREE DOTS MENU FOR ALL SEATS (OWNER ONLY) */}
+                      {isOwner && (
+                        <div className="absolute top-2 right-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background/80 shadow-md backdrop-blur-sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuLabel>Seat {seatIndex} Controls</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              
+                              {/* LOCK/UNLOCK (FOR ALL SEATS) */}
+                              <DropdownMenuItem onClick={() => toggleSeatLock(seatIndex)}>
+                                {isLocked ? <Unlock className="mr-2 h-4 w-4 text-green-500" /> : <Lock className="mr-2 h-4 w-4 text-primary" />}
+                                {isLocked ? 'Unlock Seat' : 'Lock Seat'}
+                              </DropdownMenuItem>
+                              
+                              {/* INVITE (FOR ALL SEATS) */}
+                              <DropdownMenuItem onClick={handleInvite}>
+                                <UserPlus className="mr-2 h-4 w-4" /> Invite to Seat
+                              </DropdownMenuItem>
+
+                              {/* PARTICIPANT ONLY ACTIONS */}
+                              {participant && (
+                                <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem onClick={() => toggleSeatMute(seatIndex)}>
                                     {isMuted ? <Volume2 className="mr-2 h-4 w-4 text-green-500" /> : <VolumeX className="mr-2 h-4 w-4 text-orange-500" />}
@@ -367,41 +396,11 @@ export function RoomClient({ room }: { room: Room }) {
                                   <DropdownMenuItem onClick={() => handleKickout(participant.name)} className="text-destructive font-bold focus:bg-destructive focus:text-destructive-foreground">
                                     <UserX className="mr-2 h-4 w-4" /> Kick Out User
                                   </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex flex-col items-center gap-2 opacity-50">
-                            {isLocked ? <Lock className="h-8 w-8 text-primary" /> : <Unlock className="h-8 w-8 text-muted-foreground/20" />}
-                            <span className="text-[9px] font-bold uppercase tracking-widest">
-                              {isLocked ? 'Closed' : 'Open'}
-                            </span>
-                          </div>
-                          
-                          {/* SEAT ADMIN MENU (THREE DOTS) - FOR EMPTY SEATS */}
-                          {isOwner && (
-                            <div className="absolute top-2 right-2">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background shadow-md">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Seat Control</DropdownMenuLabel>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => toggleSeatLock(seatIndex)}>
-                                    {isLocked ? <Unlock className="mr-2 h-4 w-4 text-green-500" /> : <Lock className="mr-2 h-4 w-4 text-primary" />}
-                                    {isLocked ? 'Open Seat' : 'Lock Seat'}
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          )}
-                        </>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       )}
                     </div>
                   );
@@ -445,7 +444,7 @@ export function RoomClient({ room }: { room: Room }) {
                   <div className="p-5 rounded-full bg-primary/10">
                     <Sparkles className="h-12 w-12 text-primary" />
                   </div>
-                  <p className="text-sm font-bold uppercase tracking-widest">No messages yet</p>
+                  <p className="text-sm font-bold uppercase tracking-widest">Chat cleared</p>
                 </div>
               )}
             </div>
