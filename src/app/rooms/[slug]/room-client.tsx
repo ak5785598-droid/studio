@@ -26,6 +26,8 @@ import {
   MoreVertical,
   ShieldAlert,
   XCircle,
+  UserX,
+  Trash2,
 } from 'lucide-react';
 import type { Room, Message } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -43,6 +45,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -121,12 +125,13 @@ export function RoomClient({ room }: { room: Room }) {
     if (!messageText.trim() || !currentUser || !firestore || isSending) return;
     setIsSending(true);
     
+    // ENSURE ALL FIELDS ARE PRESENT FOR SECURITY RULES
     const payload = {
       content: messageText,
       senderId: currentUser.uid,
       senderName: currentUser.displayName || 'Anonymous',
       senderAvatar: currentUser.photoURL || '',
-      chatRoomId: room.id, // CRITICAL: Required by security rules
+      chatRoomId: room.id, 
       timestamp: serverTimestamp(),
     };
 
@@ -138,7 +143,7 @@ export function RoomClient({ room }: { room: Room }) {
       toast({ 
         variant: 'destructive', 
         title: 'Error', 
-        description: 'Failed to send message. Please try again.' 
+        description: 'Permission denied. Please check your account.' 
       });
     } finally {
       setIsSending(false);
@@ -150,7 +155,7 @@ export function RoomClient({ room }: { room: Room }) {
     const isLocked = !lockedSeats.includes(index);
     toast({
       title: isLocked ? 'Seat Locked' : 'Seat Unlocked',
-      description: `Seat ${index} is now ${isLocked ? 'restricted' : 'open'}.`,
+      description: `Seat ${index} status changed successfully.`,
     });
   };
 
@@ -159,7 +164,7 @@ export function RoomClient({ room }: { room: Room }) {
     const isMuted = !mutedSeats.includes(index);
     toast({
       title: isMuted ? 'User Muted' : 'User Unmuted',
-      description: `Seat ${index} has been ${isMuted ? 'muted' : 'unmuted'}.`,
+      description: `User in seat ${index} updated.`,
     });
   };
 
@@ -168,6 +173,13 @@ export function RoomClient({ room }: { room: Room }) {
       variant: 'destructive',
       title: 'User Kicked Out',
       description: `${name} has been removed from the room.`,
+    });
+  };
+
+  const handleClearChat = () => {
+    toast({
+      title: 'Chat History Cleared',
+      description: 'The conversation has been cleaned for all users.',
     });
   };
 
@@ -216,7 +228,6 @@ export function RoomClient({ room }: { room: Room }) {
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="secondary" className="px-2 py-0.5">{room.topic}</Badge>
-                <Badge variant="outline" className="font-mono text-[10px]">ID: {room.id.substring(0, 8)}</Badge>
                 {isOwner && (
                     <Badge variant="default" className="bg-primary/80 flex items-center gap-1 shadow-sm border-2 border-white">
                         <ShieldAlert className="h-3 w-3" /> Admin Mode Active
@@ -225,30 +236,36 @@ export function RoomClient({ room }: { room: Room }) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button size="icon" variant={isMicOn ? "outline" : "secondary"} onClick={() => setIsMicOn(!isMicOn)} className="rounded-full">
+              <Button size="icon" variant={isMicOn ? "outline" : "secondary"} onClick={() => setIsMicOn(!isMicOn)} className="rounded-full shadow-sm">
                 {isMicOn ? <Mic className="h-5 w-5"/> : <MicOff className="h-5 w-5"/>}
               </Button>
-              <Button size="icon" variant={isCameraOn ? "outline" : "secondary"} onClick={() => setIsCameraOn(!isCameraOn)} className="rounded-full">
+              <Button size="icon" variant={isCameraOn ? "outline" : "secondary"} onClick={() => setIsCameraOn(!isCameraOn)} className="rounded-full shadow-sm">
                 {isCameraOn ? <Video className="h-5 w-5"/> : <VideoOff className="h-5 w-5"/>}
               </Button>
               
+              {/* MAIN ROOM ADMIN MENU (THREE DOTS) */}
               {isOwner && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="primary" size="icon" className="rounded-full bg-primary text-primary-foreground shadow-lg border-2 border-background">
+                    <Button variant="default" size="icon" className="rounded-full bg-primary text-primary-foreground shadow-lg border-2 border-background">
                       <MoreVertical className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem onClick={() => toast({ title: "Room Settings", description: "Announcement updated." })}>
-                      <Megaphone className="mr-2 h-4 w-4" /> Update Announcement
+                  <DropdownMenuContent align="end" className="w-64">
+                    <DropdownMenuLabel>Room Administration</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleClearChat} className="text-destructive font-bold">
+                      <Trash2 className="mr-2 h-4 w-4" /> Clear Chat History (Clean)
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toast({ title: "Chat Cleared", description: "History cleared for all users." })}>
-                      <Sparkles className="mr-2 h-4 w-4" /> Clear Chat History
+                    <DropdownMenuItem onClick={() => toast({ title: "Update", description: "Edit Announcement open." })}>
+                      <Megaphone className="mr-2 h-4 w-4" /> Edit Room Announcement
                     </DropdownMenuItem>
-                    <Separator className="my-1" />
-                    <DropdownMenuItem onClick={() => toast({ title: "Privacy", description: "Room is now private." })}>
-                      <Lock className="mr-2 h-4 w-4" /> Make Room Private
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => toast({ title: "Privacy", description: "Locked for everyone." })}>
+                      <Lock className="mr-2 h-4 w-4" /> Lock Room (Admin only)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => toast({ title: "Privacy", description: "Opened for everyone." })}>
+                      <Unlock className="mr-2 h-4 w-4" /> Unlock Room (Open)
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -261,12 +278,12 @@ export function RoomClient({ room }: { room: Room }) {
           </CardHeader>
         </Card>
 
-        <Card className="flex-1 overflow-hidden">
-          <CardContent className="p-4 h-full bg-secondary/5">
+        <Card className="flex-1 overflow-hidden border-none shadow-inner">
+          <CardContent className="p-4 h-full bg-secondary/10">
             <ScrollArea className="h-full">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {/* User's Seat */}
-                <div className="relative aspect-square flex flex-col items-center justify-center gap-2 bg-muted rounded-xl overflow-hidden ring-4 ring-primary/40 shadow-2xl">
+                {/* User's Seat (Owner/Me) */}
+                <div className="relative aspect-square flex flex-col items-center justify-center gap-2 bg-muted rounded-2xl overflow-hidden ring-4 ring-primary/40 shadow-2xl">
                   <video ref={videoRef} className={cn("w-full h-full object-cover", isCameraOn ? "block" : "hidden")} autoPlay muted />
                   {!isCameraOn && (
                     <Avatar className="h-20 w-20 shadow-inner">
@@ -275,14 +292,14 @@ export function RoomClient({ room }: { room: Room }) {
                     </Avatar>
                   )}
                   <div className="absolute top-2 left-2 flex gap-1">
-                    {!isMicOn && <MicOff className="h-4 w-4 text-red-500 bg-black/60 p-1 rounded-md" />}
+                    {!isMicOn && <MicOff className="h-4 w-4 text-red-500 bg-black/60 p-1 rounded-md shadow-lg" />}
                   </div>
-                  <div className="absolute bottom-2 left-2 right-2 p-1.5 bg-black/70 rounded-lg text-center backdrop-blur-md">
+                  <div className="absolute bottom-2 left-2 right-2 p-2 bg-black/70 rounded-xl text-center backdrop-blur-md">
                     <span className="font-bold text-white text-[10px] truncate block uppercase tracking-tight">{currentUser.displayName}</span>
                   </div>
                 </div>
 
-                {/* Other Participant Seats */}
+                {/* Other Participant Seats (Admin Options inside Three Dots) */}
                 {Array.from({ length: totalSeats - 1 }).map((_, i) => {
                   const participant = otherParticipants[i];
                   const seatIndex = i + 2;
@@ -291,64 +308,69 @@ export function RoomClient({ room }: { room: Room }) {
 
                   return (
                     <div key={seatIndex} className={cn(
-                      "relative aspect-square flex flex-col items-center justify-center gap-2 border rounded-xl shadow-sm transition-all",
-                      isLocked ? "bg-muted/50 border-dashed border-primary/40" : "bg-card hover:shadow-lg"
+                      "relative aspect-square flex flex-col items-center justify-center gap-2 border-2 rounded-2xl shadow-sm transition-all",
+                      isLocked ? "bg-muted/50 border-dashed border-primary/20" : "bg-card hover:border-primary/40"
                     )}>
                       {participant ? (
                         <>
-                          <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 border-transparent">
+                          <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 border-primary/10">
                             <AvatarImage src={participant.avatarUrl} alt={participant.name} />
                             <AvatarFallback>{participant.name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <span className="font-bold text-center text-[10px] truncate w-full px-2 uppercase tracking-tight">{participant.name}</span>
+                          <span className="font-bold text-center text-[10px] truncate w-full px-2 uppercase tracking-tight text-foreground/80">{participant.name}</span>
                           <div className="absolute top-2 left-2 flex gap-1">
                             {isMuted && <VolumeX className="h-4 w-4 text-red-500 bg-black/60 p-1 rounded-md" />}
                           </div>
                           
-                          {/* ADMIN CONTROLS PERMANENTLY VISIBLE FOR OWNER */}
+                          {/* SEAT ADMIN MENU (THREE DOTS) */}
                           {isOwner && (
-                            <div className="absolute top-2 right-2 flex flex-col gap-1 z-20">
-                              <Button 
-                                variant="destructive" 
-                                size="icon" 
-                                className="h-7 w-7 rounded-full shadow-lg bg-red-600 hover:bg-red-700 border-2 border-white"
-                                onClick={() => handleKickout(participant.name)}
-                                title="KICK OUT"
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="secondary" 
-                                size="icon" 
-                                className={cn("h-7 w-7 rounded-full shadow-lg border-2 border-white", isMuted ? "bg-green-500 text-white" : "bg-primary text-white")}
-                                onClick={() => toggleSeatMute(seatIndex)}
-                                title={isMuted ? "Unmute" : "Mute"}
-                              >
-                                {isMuted ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                              </Button>
+                            <div className="absolute top-2 right-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background/80 shadow-md hover:bg-background">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-48">
+                                  <DropdownMenuLabel>Seat {seatIndex} Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => toggleSeatMute(seatIndex)}>
+                                    {isMuted ? <Volume2 className="mr-2 h-4 w-4 text-green-500" /> : <VolumeX className="mr-2 h-4 w-4 text-orange-500" />}
+                                    {isMuted ? 'Unmute User' : 'Mute User'}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleKickout(participant.name)} className="text-destructive font-bold">
+                                    <UserX className="mr-2 h-4 w-4" /> Kick Out User
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           )}
                         </>
                       ) : (
                         <>
-                          <div className="flex flex-col items-center gap-2">
-                            {isLocked ? <Lock className="h-8 w-8 text-primary/60" /> : <Unlock className="h-8 w-8 text-muted-foreground/20" />}
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                          <div className="flex flex-col items-center gap-2 opacity-50">
+                            {isLocked ? <Lock className="h-8 w-8 text-primary" /> : <Unlock className="h-8 w-8 text-muted-foreground/20" />}
+                            <span className="text-[9px] font-bold uppercase tracking-widest">
                               {isLocked ? 'Closed' : 'Open'}
                             </span>
                           </div>
                           
-                          {/* ADMIN LOCK CONTROLS PERMANENTLY VISIBLE */}
+                          {/* EMPTY SEAT LOCK MENU (THREE DOTS) */}
                           {isOwner && (
-                            <div className="absolute top-2 right-2 z-20">
-                              <Button 
-                                variant="primary" 
-                                size="icon" 
-                                className="h-7 w-7 rounded-full shadow-xl bg-primary text-white border-2 border-white"
-                                onClick={() => toggleSeatLock(seatIndex)}
-                              >
-                                {isLocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                              </Button>
+                            <div className="absolute top-2 right-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background/80 shadow-md">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem onClick={() => toggleSeatLock(seatIndex)}>
+                                    {isLocked ? <Unlock className="mr-2 h-4 w-4 text-green-500" /> : <Lock className="mr-2 h-4 w-4 text-primary" />}
+                                    {isLocked ? 'Open Seat' : 'Lock Seat'}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           )}
                         </>
@@ -362,79 +384,82 @@ export function RoomClient({ room }: { room: Room }) {
         </Card>
       </div>
 
-      <Card className="lg:col-span-1 xl:col-span-1 flex flex-col h-full shadow-2xl border-none bg-card">
-        <CardHeader className="p-4 border-b flex flex-row items-center justify-between rounded-t-xl bg-secondary/10">
+      {/* RIGHT SIDEBAR (CHAT & GIFTS) */}
+      <Card className="lg:col-span-1 xl:col-span-1 flex flex-col h-full shadow-2xl border-none bg-card/80 backdrop-blur-md">
+        <CardHeader className="p-4 border-b flex flex-row items-center justify-between rounded-t-xl bg-secondary/20">
           <CardTitle className="font-headline text-lg flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" /> Global Vibe
           </CardTitle>
-          <Badge variant="outline" className="text-[10px] font-bold">LIVE</Badge>
+          <Badge variant="outline" className="text-[10px] font-bold border-primary/20">LIVE</Badge>
         </CardHeader>
         <CardContent className="flex-1 min-h-0 p-4">
           <ScrollArea className="h-full pr-4" ref={scrollRef}>
             <div className="space-y-4">
               {activeMessages.map((msg) => (
                 <div key={msg.id} className="flex items-start gap-2 group">
-                  <Avatar className="h-8 w-8 border shadow-sm flex-shrink-0">
+                  <Avatar className="h-8 w-8 border-2 border-background shadow-sm flex-shrink-0">
                     <AvatarImage src={msg.user.avatarUrl} alt={msg.user.name} />
                     <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-xs hover:underline cursor-pointer truncate max-w-[100px]">{msg.user.name}</span>
+                      <span className="font-bold text-xs hover:text-primary transition-colors cursor-pointer truncate max-w-[100px]">{msg.user.name}</span>
                       <span className="text-[9px] text-muted-foreground whitespace-nowrap">{msg.timestamp}</span>
                     </div>
-                    <p className="text-xs bg-muted/60 p-2.5 rounded-2xl rounded-tl-none mt-1 leading-relaxed border border-transparent group-hover:border-primary/20 transition-all shadow-sm break-words">
+                    <p className="text-xs bg-muted/80 p-3 rounded-2xl rounded-tl-none mt-1 leading-relaxed border border-transparent group-hover:border-primary/20 transition-all shadow-sm break-words">
                       {msg.text}
                     </p>
                   </div>
                 </div>
               ))}
               {activeMessages.length === 0 && (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3 opacity-30">
-                  <div className="p-4 rounded-full bg-primary/10">
-                    <Sparkles className="h-10 w-10 text-primary" />
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4 opacity-40">
+                  <div className="p-5 rounded-full bg-primary/10 animate-pulse">
+                    <Sparkles className="h-12 w-12 text-primary" />
                   </div>
-                  <p className="text-sm font-bold uppercase tracking-tight">No messages yet</p>
-                  <p className="text-[10px] max-w-[150px]">Be the first to say hi!</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold uppercase tracking-widest">Quiet in here</p>
+                    <p className="text-[10px] max-w-[150px]">Break the ice with a cool message!</p>
+                  </div>
                 </div>
               )}
             </div>
           </ScrollArea>
         </CardContent>
-        <Separator />
-        <div className="p-4 space-y-4 bg-secondary/5 rounded-b-xl">
+        <Separator className="opacity-50" />
+        <div className="p-4 space-y-4 bg-secondary/10 rounded-b-xl">
           <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="h-10 w-10 text-primary border-primary/20 rounded-full hover:bg-primary/5 bg-background shadow-sm">
-                  <Gift className="h-5 w-5"/>
+                <Button variant="outline" size="icon" className="h-11 w-11 text-primary border-primary/20 rounded-2xl hover:bg-primary/5 bg-background shadow-lg transition-all active:scale-95">
+                  <Gift className="h-6 w-6"/>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-0 shadow-2xl border-primary/20" align="end">
                 <Tabs defaultValue="common">
-                  <TabsList className="grid w-full grid-cols-2 rounded-none border-b">
-                    <TabsTrigger value="common" className="rounded-none">Normal</TabsTrigger>
-                    <TabsTrigger value="premium" className="rounded-none">Premium</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 rounded-none border-b h-12">
+                    <TabsTrigger value="common" className="rounded-none font-bold">Normal</TabsTrigger>
+                    <TabsTrigger value="premium" className="rounded-none font-bold">Premium</TabsTrigger>
                   </TabsList>
                   <ScrollArea className="h-80">
                     <TabsContent value="common" className="p-3 m-0 grid grid-cols-4 gap-2">
                       {gifts.common.map((g) => (
-                        <div key={g.name} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-all active:scale-95 group">
+                        <div key={g.name} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-all active:scale-90 group border border-transparent hover:border-primary/20">
                           <g.icon className="h-10 w-10 text-primary group-hover:scale-110 transition-transform" />
                           <span className="text-[9px] font-bold text-center truncate w-full uppercase">{g.name}</span>
-                          <div className="flex items-center gap-0.5 text-[8px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
-                            <Gem className="h-2 w-2" /> <span>{g.cost}</span>
+                          <div className="flex items-center gap-0.5 text-[8px] font-bold text-primary bg-primary/20 px-2 py-0.5 rounded-full">
+                            <Gem className="h-2.5 w-2.5" /> <span>{g.cost}</span>
                           </div>
                         </div>
                       ))}
                     </TabsContent>
                     <TabsContent value="premium" className="p-3 m-0 grid grid-cols-4 gap-2">
                       {gifts.premium.map((g) => (
-                        <div key={g.name} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-all active:scale-95 group">
+                        <div key={g.name} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-all active:scale-90 group border border-transparent hover:border-primary/20">
                           <g.icon className="h-10 w-10 text-accent group-hover:scale-110 transition-transform" />
                           <span className="text-[9px] font-bold text-center truncate w-full uppercase">{g.name}</span>
-                          <div className="flex items-center gap-0.5 text-[8px] font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded-full">
-                            <Gem className="h-2 w-2" /> <span>{g.cost}</span>
+                          <div className="flex items-center gap-0.5 text-[8px] font-bold text-accent bg-accent/20 px-2 py-0.5 rounded-full">
+                            <Gem className="h-2.5 w-2.5" /> <span>{g.cost}</span>
                           </div>
                         </div>
                       ))}
@@ -444,8 +469,8 @@ export function RoomClient({ room }: { room: Room }) {
               </PopoverContent>
             </Popover>
             <div className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide py-1">
-               {['👋', '❤️', '🔥', '😂', '💯'].map(emoji => (
-                  <button key={emoji} className="text-xl hover:scale-125 transition-transform" onClick={() => setMessageText(prev => prev + emoji)}>
+               {['👋', '❤️', '🔥', '😂', '💯', '✨'].map(emoji => (
+                  <button key={emoji} className="text-2xl hover:scale-150 transition-transform active:scale-90" onClick={() => setMessageText(prev => prev + emoji)}>
                     {emoji}
                   </button>
                ))}
@@ -454,13 +479,13 @@ export function RoomClient({ room }: { room: Room }) {
           <form className="flex items-center gap-3" onSubmit={handleSendMessage}>
             <Input 
               placeholder="Type your vibe..." 
-              className="h-11 text-sm rounded-2xl border-muted-foreground/20 focus-visible:ring-primary/40 bg-background shadow-inner" 
+              className="h-12 text-sm rounded-2xl border-primary/10 focus-visible:ring-primary/40 bg-background shadow-md pr-10" 
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               disabled={isSending}
             />
-            <Button type="submit" size="icon" className="h-11 w-11 rounded-2xl shadow-xl bg-primary hover:bg-primary/90 transition-all active:scale-90" disabled={isSending || !messageText.trim()}>
-              <Send className="h-5 w-5" />
+            <Button type="submit" size="icon" className="h-12 w-12 rounded-2xl shadow-xl bg-primary hover:bg-primary/90 transition-all active:scale-90 -ml-14" disabled={isSending || !messageText.trim()}>
+              {isSending ? <Loader className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </form>
         </div>
