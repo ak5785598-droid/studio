@@ -56,7 +56,7 @@ export function RoomClient({ room }: { room: Room }) {
   // Role Detection
   const isOwner = useMemo(() => {
     if (!currentUser) return false;
-    // Allow any logged in user to be the owner of the mock 'mumbai-adda' room for testing
+    // For testing/mock purposes, we allow the user to be owner of the mumbai-adda room
     return currentUser.uid === room.ownerId || room.slug === 'mumbai-adda' || room.id === 'mumbai-adda';
   }, [currentUser, room]);
 
@@ -65,7 +65,7 @@ export function RoomClient({ room }: { room: Room }) {
     return room.moderatorIds?.includes(currentUser.uid) || isOwner;
   }, [currentUser, room, isOwner]);
 
-  // Real-time Chat Logic
+  // Real-time Chat Logic - Wait for Auth to prevent Permission Error
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !room.id || !currentUser) return null;
     return query(
@@ -143,7 +143,7 @@ export function RoomClient({ room }: { room: Room }) {
     toast({ title: lockedSeats.includes(index) ? 'Seat Opened' : 'Seat Closed' });
   };
 
-  if (isUserLoading) return <div className="flex h-screen items-center justify-center bg-black"><Loader className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (isUserLoading) return <div className="flex h-screen items-center justify-center bg-[#1a1a2e]"><Loader className="h-8 w-8 animate-spin text-primary" /></div>;
 
   const otherParticipants = (room.participants || []).filter(p => !kickedUserIds.includes(p.id) && p.id !== currentUser?.uid);
 
@@ -166,7 +166,7 @@ export function RoomClient({ room }: { room: Room }) {
            </div>
         </div>
         <div className="flex items-center gap-2">
-          {isAdmin && (
+          {isOwner && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full bg-white/5 hover:bg-white/20 h-12 w-12 border border-white/10">
@@ -176,11 +176,9 @@ export function RoomClient({ room }: { room: Room }) {
               <DropdownMenuContent align="end" className="w-64 bg-[#1a1a2e] border-white/10 text-white shadow-2xl">
                 <DropdownMenuLabel className="text-white/40 uppercase text-[10px] tracking-widest px-4 py-2">Room Administration</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-white/10" />
-                {isOwner && (
-                  <DropdownMenuItem onClick={handleClearChat} className="text-destructive focus:bg-destructive/10 cursor-pointer h-14">
-                    <Trash2 className="mr-3 h-6 w-6" /> <span className="font-bold">Clear Chat History</span>
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem onClick={handleClearChat} className="text-destructive focus:bg-destructive/10 cursor-pointer h-14">
+                  <Trash2 className="mr-3 h-6 w-6" /> <span className="font-bold">Clear Chat History</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem className="focus:bg-white/10 cursor-pointer h-14">
                    <Info className="mr-3 h-6 w-6" /> Edit Room Rules
                 </DropdownMenuItem>
