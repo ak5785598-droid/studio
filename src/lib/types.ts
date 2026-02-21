@@ -5,6 +5,13 @@ export type User = {
   bio?: string;
   isOnline?: boolean;
   coverUrl?: string;
+  level?: {
+    rich: number;
+    charm: number;
+  };
+  frame?: 'CG' | 'Official' | 'Leader' | 'Seller' | 'None';
+  tags?: string[];
+  specialId?: string;
   stats?: {
     sent?: number;
     followers?: number;
@@ -19,6 +26,7 @@ export type User = {
   };
   wallet?: {
     coins: number;
+    diamonds: number;
   };
 };
 
@@ -36,6 +44,10 @@ export type Room = {
   topic: string;
   category: 'Popular' | 'Game' | 'Chat' | 'Singing' | 'Battle';
   coverUrl: string;
+  announcement?: string;
+  background?: string;
+  isLocked?: boolean;
+  ownerId?: string;
   participants: User[];
   messages: Message[];
 };
@@ -45,7 +57,7 @@ export type Game = {
   title: string;
   slug: string;
   coverUrl: string;
-  cost: number; // 0 for free games
+  cost: number;
   imageHint: string;
 };
 

@@ -9,20 +9,23 @@ import {
   PhoneOff,
   Send,
   Gift,
-  Heart,
-  ThumbsUp,
-  PartyPopper,
-  Crown,
-  Swords,
-  UserPlus,
+  Lock,
+  Unlock,
+  Volume2,
+  VolumeX,
+  UserX,
+  Megaphone,
+  Settings2,
   Gem,
   Star,
   Flower,
   Lollipop,
   Trophy,
+  Crown,
   Rocket,
   Sparkles,
   Loader,
+  MoreVertical,
 } from 'lucide-react';
 import type { Room, Message } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -36,32 +39,38 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
 
 export function RoomClient({ room }: { room: Room }) {
-  const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [hasMicPermission, setHasMicPermission] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [lockedSeats, setLockedSeats] = useState<number[]>([]);
+  const [mutedSeats, setMutedSeats] = useState<number[]>([]);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const [isPkBattle, setIsPkBattle] = useState(false);
-  const [pkProgress1, setPkProgress1] = useState(50);
-  const [pkProgress2, setPkProgress2] = useState(50);
   const { user: currentUser, isLoading: isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  // Listen to real-time messages for this specific room
+  const isOwner = currentUser?.uid === room.ownerId;
+
+  // Listen to real-time messages
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !room.id) return null;
     return query(
@@ -71,9 +80,8 @@ export function RoomClient({ room }: { room: Room }) {
     );
   }, [firestore, room.id]);
 
-  const { data: firestoreMessages, isLoading: isMessagesLoading } = useCollection(messagesQuery);
+  const { data: firestoreMessages } = useCollection(messagesQuery);
 
-  // Map Firestore messages to our UI Message type
   const activeMessages: Message[] = firestoreMessages?.map((m: any) => ({
     id: m.id,
     text: m.content,
@@ -85,31 +93,21 @@ export function RoomClient({ room }: { room: Room }) {
     }
   })) || room.messages || [];
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
+      if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
     }
   }, [activeMessages]);
 
-  // Initialize camera and mic
   useEffect(() => {
     const getPermissions = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setHasCameraPermission(true);
         setHasMicPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
+        if (videoRef.current) videoRef.current.srcObject = stream;
       } catch (error) {
-        console.error('Error accessing media devices:', error);
         setHasCameraPermission(false);
         setHasMicPermission(false);
       }
@@ -120,7 +118,6 @@ export function RoomClient({ room }: { room: Room }) {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageText.trim() || !currentUser || !firestore || isSending) return;
-
     setIsSending(true);
     try {
       await addDoc(collection(firestore, 'chatRooms', room.id, 'messages'), {
@@ -132,35 +129,22 @@ export function RoomClient({ room }: { room: Room }) {
       });
       setMessageText('');
     } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to send message. Please try again.',
-      });
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to send message.' });
     } finally {
       setIsSending(false);
     }
   };
 
-  const toggleMic = () => setIsMicOn(prev => !prev);
-  const toggleCamera = () => setIsCameraOn(prev => !prev);
+  const toggleSeatLock = (index: number) => {
+    setLockedSeats(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
+  };
 
-  if (isUserLoading) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const toggleSeatMute = (index: number) => {
+    setMutedSeats(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
+  };
 
+  if (isUserLoading) return <div className="flex h-full w-full items-center justify-center"><Loader className="h-8 w-8 animate-spin" /></div>;
   if (!currentUser) return null;
-
-  const reactions = [
-    { icon: Heart, label: 'Love' },
-    { icon: ThumbsUp, label: 'Like' },
-    { icon: PartyPopper, label: 'Celebrate' },
-  ];
 
   const gifts = {
     common: [
@@ -179,29 +163,41 @@ export function RoomClient({ room }: { room: Room }) {
 
   const otherParticipants = (room.participants || []).filter(p => p.id !== currentUser.uid);
   const totalSeats = 10;
-  const filledSeatsCount = otherParticipants.length;
-  const emptySeatsCount = Math.max(0, totalSeats - 1 - filledSeatsCount);
 
   return (
     <div className="grid h-[calc(100vh-10rem)] md:h-full gap-4 lg:grid-cols-3 xl:grid-cols-4">
       <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-4">
-        <Card>
+        <Card className="bg-gradient-to-br from-primary/10 to-secondary/10">
           <CardHeader className="flex flex-row items-center justify-between p-4">
-            <div>
-              <CardTitle className="font-headline text-2xl truncate max-w-[200px] sm:max-w-md">{room.title}</CardTitle>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <CardTitle className="font-headline text-2xl truncate">{room.title}</CardTitle>
+                {room.announcement && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary animate-pulse">
+                        <Megaphone className="h-5 w-5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                      <div className="space-y-2">
+                        <h4 className="font-bold flex items-center gap-2"><Megaphone className="h-4 w-4" /> Announcement</h4>
+                        <p className="text-sm text-muted-foreground">{room.announcement}</p>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </div>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="secondary">{room.topic}</Badge>
-                <Badge variant="outline">Online: {(room.participants?.length || 0) + 1}</Badge>
+                <Badge variant="outline">ID: {room.id.substring(0, 8)}</Badge>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button size="icon" variant="outline" onClick={() => setIsPkBattle(p => !p)} className="hidden sm:flex">
-                <Swords className="h-5 w-5 text-destructive" />
-              </Button>
-              <Button size="icon" variant={isMicOn ? "outline" : "secondary"} onClick={toggleMic} disabled={!hasMicPermission}>
+              <Button size="icon" variant={isMicOn ? "outline" : "secondary"} onClick={() => setIsMicOn(!isMicOn)}>
                 {isMicOn ? <Mic className="h-5 w-5"/> : <MicOff className="h-5 w-5"/>}
               </Button>
-              <Button size="icon" variant={isCameraOn ? "outline" : "secondary"} onClick={toggleCamera} disabled={!hasCameraPermission}>
+              <Button size="icon" variant={isCameraOn ? "outline" : "secondary"} onClick={() => setIsCameraOn(!isCameraOn)}>
                 {isCameraOn ? <Video className="h-5 w-5"/> : <VideoOff className="h-5 w-5"/>}
               </Button>
               <Button size="icon" variant="destructive" asChild>
@@ -215,125 +211,155 @@ export function RoomClient({ room }: { room: Room }) {
           <CardContent className="p-4 h-full bg-secondary/5">
             <ScrollArea className="h-full">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                <div className="relative aspect-square flex flex-col items-center justify-center gap-2 bg-muted rounded-xl overflow-hidden ring-4 ring-primary/40 shadow-inner">
-                  <video ref={videoRef} className={cn("w-full h-full object-cover", (isCameraOn && hasCameraPermission) ? "block" : "hidden")} autoPlay muted />
-                  {(!isCameraOn || !hasCameraPermission) && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground bg-secondary/20">
-                      <Avatar className="h-16 w-16">
-                          <AvatarImage src={currentUser.photoURL || ''} />
-                          <AvatarFallback>{currentUser.displayName?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span className="text-[8px] uppercase tracking-widest font-bold text-primary">Me</span>
-                    </div>
+                {/* User's Seat */}
+                <div className="relative aspect-square flex flex-col items-center justify-center gap-2 bg-muted rounded-xl overflow-hidden ring-4 ring-primary/40 shadow-xl">
+                  <video ref={videoRef} className={cn("w-full h-full object-cover", isCameraOn ? "block" : "hidden")} autoPlay muted />
+                  {!isCameraOn && (
+                    <Avatar className="h-16 w-16 shadow-inner">
+                      <AvatarImage src={currentUser.photoURL || ''} />
+                      <AvatarFallback>{currentUser.displayName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
                   )}
+                  <div className="absolute top-2 left-2 flex gap-1">
+                    {!isMicOn && <MicOff className="h-3 w-3 text-red-500 bg-black/50 p-0.5 rounded" />}
+                  </div>
                   <div className="absolute bottom-2 left-2 right-2 p-1 bg-black/60 rounded-md text-center backdrop-blur-md">
                     <span className="font-semibold text-white text-[10px] truncate block">{currentUser.displayName}</span>
                   </div>
                 </div>
 
-                {otherParticipants.map((p) => (
-                  <div key={p.id} className="relative aspect-square flex flex-col items-center justify-center gap-2 bg-card border rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                    <Avatar className={cn(
-                      "h-16 w-16 sm:h-20 sm:w-20 border-4 border-transparent transition-all",
-                      speakingId === p.id && "border-primary shadow-lg scale-105"
-                    )}>
-                      <AvatarImage src={p.avatarUrl} alt={p.name} />
-                      <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-semibold text-center text-[10px] truncate w-full px-2">{p.name}</span>
-                  </div>
-                ))}
+                {/* Other Participants and Empty Seats */}
+                {Array.from({ length: totalSeats - 1 }).map((_, i) => {
+                  const participant = otherParticipants[i];
+                  const seatIndex = i + 2;
+                  const isLocked = lockedSeats.includes(seatIndex);
+                  const isMuted = mutedSeats.includes(seatIndex);
 
-                {Array.from({ length: emptySeatsCount }).map((_, i) => (
-                  <div key={`empty-${i}`} className="aspect-square border-2 border-dashed border-muted/50 bg-muted/5 flex flex-col items-center justify-center rounded-xl text-muted-foreground/20 hover:bg-muted/10 transition-colors">
-                    <UserPlus className="h-8 w-8 mb-1" />
-                    <span className="text-[8px] font-bold uppercase tracking-widest">Available</span>
-                  </div>
-                ))}
+                  return (
+                    <div key={seatIndex} className={cn(
+                      "relative aspect-square flex flex-col items-center justify-center gap-2 border rounded-xl shadow-sm transition-all group",
+                      isLocked ? "bg-muted/50 border-dashed" : "bg-card hover:shadow-md"
+                    )}>
+                      {participant ? (
+                        <>
+                          <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 border-transparent">
+                            <AvatarImage src={participant.avatarUrl} alt={participant.name} />
+                            <AvatarFallback>{participant.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-semibold text-center text-[10px] truncate w-full px-2">{participant.name}</span>
+                          <div className="absolute top-2 left-2 flex gap-1">
+                            {isMuted && <VolumeX className="h-3 w-3 text-red-500 bg-black/50 p-0.5 rounded" />}
+                          </div>
+                          {isOwner && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => toggleSeatMute(seatIndex)}>
+                                  {isMuted ? <Volume2 className="mr-2 h-4 w-4" /> : <VolumeX className="mr-2 h-4 w-4" />}
+                                  {isMuted ? 'Unmute Seat' : 'Mute Seat'}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive" onClick={() => toast({ title: "User Kicked", description: "This is a mock action." })}>
+                                  <UserX className="mr-2 h-4 w-4" /> Kickout
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {isLocked ? <Lock className="h-6 w-6 text-muted-foreground/30" /> : <Unlock className="h-6 w-6 text-muted-foreground/10" />}
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/20">
+                            {isLocked ? 'Locked' : 'Available'}
+                          </span>
+                          {isOwner && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="absolute inset-0 w-full h-full opacity-0 hover:opacity-100"
+                              onClick={() => toggleSeatLock(seatIndex)}
+                            >
+                              <Settings2 className="h-4 w-4 text-primary" />
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </ScrollArea>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="lg:col-span-1 xl:col-span-1 flex flex-col h-full">
-        <CardHeader className="p-4 border-b">
+      <Card className="lg:col-span-1 xl:col-span-1 flex flex-col h-full shadow-2xl">
+        <CardHeader className="p-4 border-b flex flex-row items-center justify-between">
           <CardTitle className="font-headline text-lg flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" />
-            Room Chat
+            <Sparkles className="h-4 w-4 text-primary" /> Room Chat
           </CardTitle>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast({ title: "Chat Cleared", description: "Chat is clean now." })}>
+             <Settings2 className="h-4 w-4" />
+          </Button>
         </CardHeader>
         <CardContent className="flex-1 min-h-0 p-4">
           <ScrollArea className="h-full pr-4" ref={scrollRef}>
             <div className="space-y-4">
-              {activeMessages.length > 0 ? (
-                activeMessages.map((msg) => (
-                  <div key={msg.id} className="flex items-start gap-2 animate-in fade-in slide-in-from-bottom-1">
-                    <Avatar className="h-7 w-7 border">
-                      <AvatarImage src={msg.user.avatarUrl} alt={msg.user.name} />
-                      <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-bold text-xs">{msg.user.name}</span>
-                        <span className="text-[10px] text-muted-foreground">{msg.timestamp}</span>
-                      </div>
-                      <p className="text-xs bg-muted/40 p-2 rounded-lg mt-1 leading-relaxed shadow-sm">{msg.text}</p>
+              {activeMessages.map((msg) => (
+                <div key={msg.id} className="flex items-start gap-2">
+                  <Avatar className="h-7 w-7 border">
+                    <AvatarImage src={msg.user.avatarUrl} alt={msg.user.name} />
+                    <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-bold text-xs">{msg.user.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{msg.timestamp}</span>
                     </div>
+                    <p className="text-xs bg-muted/40 p-2 rounded-lg mt-1 leading-relaxed">{msg.text}</p>
                   </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground/50 space-y-2">
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                    <Send className="h-5 w-5" />
-                  </div>
-                  <p className="text-xs italic">No messages yet. Say hi!</p>
                 </div>
-              )}
+              ))}
             </div>
           </ScrollArea>
         </CardContent>
         <Separator />
-        <div className="p-4 space-y-3 bg-secondary/5">
+        <div className="p-4 space-y-3">
           <div className="flex items-center gap-2">
-            {reactions.map(r => (
-              <Button key={r.label} variant="ghost" size="icon" className="h-8 w-8 hover:scale-125 transition-transform">
-                <r.icon className="h-4 w-4 text-muted-foreground hover:text-primary"/>
-              </Button>
-            ))}
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="h-9 w-9 text-primary border-primary/20 hover:bg-primary/10 ml-auto rounded-full shadow-sm">
+                <Button variant="outline" size="icon" className="h-9 w-9 text-primary border-primary/20 rounded-full">
                   <Gift className="h-4 w-4"/>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-0 rounded-xl overflow-hidden shadow-2xl" align="end">
+              <PopoverContent className="w-80 p-0" align="end">
                 <Tabs defaultValue="common">
-                  <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1">
-                    <TabsTrigger value="common">Common</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="common">Normal</TabsTrigger>
                     <TabsTrigger value="premium">Premium</TabsTrigger>
                   </TabsList>
                   <ScrollArea className="h-72">
                     <TabsContent value="common" className="p-3 grid grid-cols-4 gap-2">
                       {gifts.common.map((g) => (
-                        <div key={g.name} className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-colors border border-transparent hover:border-primary/20">
+                        <div key={g.name} className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-colors">
                           <g.icon className="h-8 w-8 text-primary" />
-                          <span className="text-[9px] font-semibold text-center truncate w-full">{g.name}</span>
+                          <span className="text-[9px] font-semibold text-center">{g.name}</span>
                           <div className="flex items-center gap-0.5 text-[8px] font-bold text-muted-foreground bg-muted px-1 rounded">
-                            <Gem className="h-2 w-2" />
-                            <span>{g.cost}</span>
+                            <Gem className="h-2 w-2" /> <span>{g.cost}</span>
                           </div>
                         </div>
                       ))}
                     </TabsContent>
                     <TabsContent value="premium" className="p-3 grid grid-cols-4 gap-2">
                       {gifts.premium.map((g) => (
-                        <div key={g.name} className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-colors border border-transparent hover:border-primary/20">
+                        <div key={g.name} className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-colors">
                           <g.icon className="h-8 w-8 text-primary" />
-                          <span className="text-[9px] font-semibold text-center truncate w-full">{g.name}</span>
+                          <span className="text-[9px] font-semibold text-center">{g.name}</span>
                           <div className="flex items-center gap-0.5 text-[8px] font-bold text-muted-foreground bg-muted px-1 rounded">
-                            <Gem className="h-2 w-2" />
-                            <span>{g.cost}</span>
+                            <Gem className="h-2 w-2" /> <span>{g.cost}</span>
                           </div>
                         </div>
                       ))}
@@ -346,13 +372,13 @@ export function RoomClient({ room }: { room: Room }) {
           <form className="flex items-center gap-2" onSubmit={handleSendMessage}>
             <Input 
               placeholder="Type a message..." 
-              className="h-9 text-xs rounded-full border-muted-foreground/20" 
+              className="h-9 text-xs rounded-full" 
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               disabled={isSending}
             />
-            <Button type="submit" size="icon" className="h-9 w-9 rounded-full shrink-0" disabled={isSending || !messageText.trim()}>
-              {isSending ? <Loader className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            <Button type="submit" size="icon" className="h-9 w-9 rounded-full" disabled={isSending || !messageText.trim()}>
+              <Send className="h-4 w-4" />
             </Button>
           </form>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Compass, User, Settings, Youtube, ClipboardList, Loader } from "lucide-react";
+import { Home, Compass, User, Settings, Youtube, ClipboardList, Loader, Trophy } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -23,6 +23,7 @@ import { GameControllerIcon } from "../icons";
 
 const navItems = [
   { href: "/rooms", label: "Rooms", icon: Compass },
+  { href: "/leaderboard", label: "Rankings", icon: Trophy },
   { href: "/tasks", label: "Tasks", icon: ClipboardList },
   { href: "/games", label: "Games", icon: GameControllerIcon },
   { href: "/watch", label: "Watch", icon: Youtube },
@@ -82,7 +83,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <SidebarMenuButton tooltip={user.displayName || 'Profile'} asChild>
                        <Link href="/profile">
                          <Avatar className="h-7 w-7">
-                            <AvatarImage src={user.photoURL || ''} alt={user.displayName || ''} data-ai-hint="person portrait" />
+                            <AvatarImage src={user.photoURL || ''} alt={user.displayName || ''} />
                             <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                           </Avatar>
                         <span>{user.displayName}</span>

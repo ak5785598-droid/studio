@@ -1,4 +1,3 @@
-
 import type { User, Room, Message, Game, CoinPackage, Contribution, PkBattle, Task } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -10,6 +9,10 @@ const users: User[] = [
     isOnline: true, 
     bio: 'Just vibing and connecting with new people! Music and art lover.',
     coverUrl: PlaceHolderImages.find(i => i.id === 'profile-header')?.imageUrl,
+    level: { rich: 45, charm: 32 },
+    frame: 'Official',
+    tags: ['Admin', 'Official'],
+    specialId: '10001',
     stats: { sent: 6450359, followers: 8, fans: 44 },
     details: {
       age: 24,
@@ -19,7 +22,8 @@ const users: User[] = [
       personalitySignature: 'Happy every day'
     },
     wallet: {
-      coins: 1250
+      coins: 1250,
+      diamonds: 450
     }
   },
   { 
@@ -27,6 +31,9 @@ const users: User[] = [
     name: 'Rohan', 
     avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-2')?.imageUrl!, 
     isOnline: true,
+    level: { rich: 12, charm: 8 },
+    frame: 'CG',
+    tags: ['VIP'],
     stats: { sent: 12345, followers: 120, fans: 88 },
      details: { hometown: 'Delhi' },
   },
@@ -35,6 +42,7 @@ const users: User[] = [
     name: 'Anjali', 
     avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-3')?.imageUrl!, 
     isOnline: false,
+    level: { rich: 5, charm: 15 },
     stats: { sent: 5432, followers: 230, fans: 150 },
      details: { hometown: 'Bangalore' },
   },
@@ -42,6 +50,8 @@ const users: User[] = [
     name: 'Vikram', 
     avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-4')?.imageUrl!, 
     isOnline: true,
+    level: { rich: 30, charm: 22 },
+    frame: 'Leader',
     stats: { sent: 9876, followers: 50, fans: 25 },
      details: { hometown: 'Chennai' },
   },
@@ -50,18 +60,13 @@ const users: User[] = [
     name: 'Sneha', 
     avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-5')?.imageUrl!, 
     isOnline: false,
+    level: { rich: 1, charm: 2 },
     stats: { sent: 100, followers: 10, fans: 5 },
      details: { hometown: 'Kolkata' },
   },
-  { id: 'u6', name: 'Arjun', avatarUrl: 'https://picsum.photos/seed/user6/200/200', isOnline: true, stats: { followers: 15, fans: 12 }, details: { hometown: 'Hyderabad' } },
-  { id: 'u7', name: 'Neha', avatarUrl: 'https://picsum.photos/seed/user7/200/200', isOnline: false, stats: { followers: 88, fans: 42 }, details: { hometown: 'Pune' } },
-  { id: 'u8', name: 'Karan', avatarUrl: 'https://picsum.photos/seed/user8/200/200', isOnline: true, stats: { followers: 123, fans: 99 }, details: { hometown: 'Ahmedabad' } },
-  { id: 'u9', name: 'Pooja', avatarUrl: 'https://picsum.photos/seed/user9/200/200', isOnline: true, stats: { followers: 45, fans: 30 }, details: { hometown: 'Jaipur' } },
-  { id: 'u10', name: 'Sameer', avatarUrl: 'https://picsum.photos/seed/user10/200/200', isOnline: false, stats: { followers: 78, fans: 60 }, details: { hometown: 'Lucknow' } },
-  { id: 'u11', name: 'Support Bot', avatarUrl: 'https://picsum.photos/seed/support/200/200', isOnline: true, stats: { followers: 999, fans: 999 } },
-  { id: 'u12', name: 'Deepika', avatarUrl: 'https://picsum.photos/seed/user12/200/200', isOnline: false, stats: { followers: 23, fans: 11 }, details: { hometown: 'Chandigarh' } },
-  { id: 'u13', name: 'Rahul', avatarUrl: 'https://picsum.photos/seed/user13/200/200', isOnline: true, stats: { followers: 89, fans: 54 }, details: { hometown: 'Bhopal' } },
-  { id: 'u14', name: 'Isha', avatarUrl: 'https://picsum.photos/seed/user14/200/200', isOnline: true, stats: { followers: 150, fans: 110 }, details: { hometown: 'Indore' } },
+  { id: 'u6', name: 'Arjun', avatarUrl: 'https://picsum.photos/seed/user6/200/200', isOnline: true, stats: { followers: 15, fans: 12 }, level: { rich: 2, charm: 5 } },
+  { id: 'u7', name: 'Neha', avatarUrl: 'https://picsum.photos/seed/user7/200/200', isOnline: false, stats: { followers: 88, fans: 42 }, level: { rich: 10, charm: 12 } },
+  { id: 'u8', name: 'Karan', avatarUrl: 'https://picsum.photos/seed/user8/200/200', isOnline: true, stats: { followers: 123, fans: 99 }, level: { rich: 15, charm: 10 } },
 ];
 
 const messages: Message[] = [
@@ -81,6 +86,7 @@ const rooms: Room[] = [
     coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-1')?.imageUrl!,
     participants: [users[0], users[1], users[3]],
     messages: messages,
+    announcement: 'Welcome to the biggest Mumbai Adda! No toxicity allowed.',
   },
   { 
     id: 'r2', 
@@ -102,36 +108,6 @@ const rooms: Room[] = [
     participants: users.slice(1, 5),
     messages: [],
   },
-  { 
-    id: 'r4', 
-    slug: 'chennai-super-chats', 
-    title: 'Chennai Super Chats', 
-    topic: 'Movies & Music', 
-    category: 'Popular',
-    coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-4')?.imageUrl!,
-    participants: [users[0], users[2], users[4]],
-    messages: [],
-  },
-  {
-    id: 'r5',
-    slug: 'kolkata-connect',
-    title: 'Kolkata Connect',
-    topic: 'Art & Culture',
-    category: 'Chat',
-    coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-5')?.imageUrl!,
-    participants: [users[1], users[3], users[4]],
-    messages: [],
-  },
-  {
-    id: 'r6',
-    slug: 'official-help-room',
-    title: 'Official Help Room',
-    topic: 'Support',
-    category: 'Chat',
-    coverUrl: 'https://picsum.photos/seed/support-room/400/225',
-    participants: [users[10], users[0]],
-    messages: [{ id: 'm5', text: 'Welcome! How can I help you today?', user: users[10], timestamp: '11:00 AM' }],
-  },
   {
     id: 'r7',
     slug: 'antakshari-night',
@@ -151,26 +127,6 @@ const rooms: Room[] = [
     coverUrl: 'https://picsum.photos/seed/game1/400/225',
     participants: users.slice(4, 9),
     messages: [],
-  },
-  {
-    id: 'r9',
-    slug: 'pk-battle-arena',
-    title: 'PK Battle Arena',
-    topic: 'Battle',
-    category: 'Battle',
-    coverUrl: 'https://picsum.photos/seed/battle1/400/225',
-    participants: users.slice(0, 2),
-    messages: [],
-  },
-  {
-    id: 'r10',
-    slug: 'karaoke-club',
-    title: 'Karaoke Club',
-    topic: 'Singing',
-    category: 'Singing',
-    coverUrl: 'https://picsum.photos/seed/singing2/400/225',
-    participants: users.slice(5, 10),
-    messages: [],
   }
 ];
 
@@ -178,123 +134,32 @@ const games: Game[] = [
   { id: 'g1', title: 'Ludo Party', slug: 'ludo', coverUrl: 'https://images.unsplash.com/photo-1591696205602-2f950c417cb9?q=80&w=2940&auto=format&fit=crop', cost: 0, imageHint: 'ludo board' },
   { id: 'g2', title: 'Carrom Clash', slug: 'carrom', coverUrl: 'https://images.unsplash.com/photo-1610839563032-353316138715?q=80&w=2832&auto=format&fit=crop', cost: 0, imageHint: 'carrom board' },
   { id: 'g3', title: 'Chess Masters', slug: 'chess', coverUrl: 'https://picsum.photos/seed/chess-set/300/200', cost: 0, imageHint: 'chess set' },
+  { id: 'g15', title: '777 Lucky Slot', slug: 'lucky-slot', coverUrl: 'https://picsum.photos/seed/slot-machine/300/200', cost: 100, imageHint: 'slot machine' },
   { id: 'g4', title: 'Bubble Shooter', slug: 'bubble-shooter', coverUrl: 'https://picsum.photos/seed/arcade-game/300/200', cost: 0, imageHint: 'arcade game' },
-  { id: 'g9', title: 'Crazy Alpaca', slug: 'crazy-alpaca', coverUrl: 'https://picsum.photos/seed/funny-alpaca/300/200', cost: 0, imageHint: 'funny alpaca' },
-  { id: 'g11', title: 'Monster Crush', slug: 'monster-crush', coverUrl: 'https://picsum.photos/seed/cute-monster/300/200', cost: 0, imageHint: 'cute monster' },
-  { id: 'g5', title: 'Rummy Riches', slug: 'rummy', coverUrl: 'https://picsum.photos/seed/playing-cards/300/200', cost: 100, imageHint: 'playing cards' },
-  { id: 'g6', title: 'Poker Pro', slug: 'poker', coverUrl: 'https://picsum.photos/seed/poker-chips/300/200', cost: 500, imageHint: 'poker chips' },
-  { id: 'g8', title: '8 Ball Pool', slug: '8-ball-pool', coverUrl: 'https://picsum.photos/seed/billiards-table/300/200', cost: 50, imageHint: 'billiards table' },
   { id: 'g12', title: 'Fruit Greedy', slug: 'fruit-greedy', coverUrl: 'https://picsum.photos/seed/fruit-game/300/200', cost: 150, imageHint: 'fruit apple' },
 ];
 
 const coinPackages: CoinPackage[] = [
   { id: 'cp01', amount: 2000, price: 25 },
   { id: 'cp02', amount: 4200, price: 50, bonus: 200 },
-  { id: 'cp1', amount: 50000, price: 100, bonus: 5000 },
-  { id: 'cp2', amount: 275000, price: 500, bonus: 25000 },
-  { id: 'cp3', amount: 575000, price: 1000, bonus: 75000 },
-  { id: 'cp4', amount: 1500000, price: 2500, bonus: 250000 },
-  { id: 'cp5', amount: 3250000, price: 5000, bonus: 750000 },
-  { id: 'cp6', amount: 7000000, price: 10000, bonus: 2000000 },
 ];
 
 const contributions: Contribution[] = [
     { user: users[1], amount: 10500 },
     { user: users[3], amount: 8200 },
     { user: users[2], amount: 15300 },
-    { user: users[4], amount: 500 },
-    { user: users[5], amount: 4800 },
-    { user: users[6], amount: 2300 },
-    { user: users[7], amount: 100 },
 ]
 
-const pkBattles: PkBattle[] = [
-  {
-    id: 'pk1',
-    room1: rooms[0],
-    room2: rooms[2],
-    score1: 12500,
-    score2: 11200,
-  },
-   {
-    id: 'pk2',
-    room1: rooms[1],
-    room2: rooms[3],
-    score1: 8900,
-    score2: 9500,
-  },
-]
-
-const dailyTasks: Task[] = [
-    { id: 'dt1', title: 'Join a room', description: 'Spend at least 10 minutes in any public chat room.', coinReward: 3000, isCompleted: true, cta: { label: 'Go', href: '/rooms'} },
-    { id: 'dt2', title: 'Send a gift', description: 'Send a virtual gift to any user in a room.', coinReward: 3500, isCompleted: false, cta: { label: 'Go', href: '/rooms'} },
-    { id: 'dt3', title: 'Play a game', description: 'Play any game in the Game Center.', coinReward: 3200, isCompleted: false, cta: { label: 'Go', href: '/games'} },
-];
-
-const achievementTasks: Task[] = [
-    { id: 'at1', title: 'Follow 3 users', description: 'Expand your social circle by following three other users.', coinReward: 5000, isCompleted: true, cta: { label: 'Explore', href: '/' } },
-    { id: 'at2', title: 'Become a room host', description: 'Create and host your own chat room.', coinReward: 10000, isCompleted: false, cta: { label: 'Create', href: '/rooms' } },
-    { id: 'at3', title: 'Top Contributor', description: 'Become one of the top 3 contributors in any room.', coinReward: 20000, isCompleted: false, cta: { label: 'Explore', href: '/rooms'} },
-    { id: 'at4', title: 'Win a PK Battle', description: 'Be the host of a winning room in a PK Battle.', coinReward: 25000, isCompleted: false, cta: { label: 'Battle', href: '/' } },
-];
-
-
-export const getPopularRooms = (): Room[] => {
-    return rooms.filter(r => r.category === 'Popular');
-}
-
-export const getPopularUsers = (): User[] => {
-    return users.slice(0, 10);
-}
-
-export const getRoomBySlug = (slug: string): Room | undefined => {
-    return rooms.find(r => r.slug === slug);
-}
-
-export const getAllRooms = (): Room[] => {
-    return rooms;
-}
-
-export const getCurrentUser = (): User => {
-    return users[0];
-}
-
-export const getUserById = (id: string): User | undefined => {
-  return users.find(u => u.id === id);
-}
-
-export const getFriends = (): User[] => {
-    return users.slice(1, 7);
-}
-
-export const getFreeGames = (): Game[] => {
-  return games.filter(g => g.cost === 0);
-}
-
-export const getPremiumGames = (): Game[] => {
-  return games.filter(g => g.cost > 0);
-}
-
-export const getCoinPackages = (): CoinPackage[] => {
-  return coinPackages.sort((a,b) => a.price - b.price);
-}
-
-export const getTopContributors = (): Contribution[] => {
-    return contributions.sort((a, b) => b.amount - a.amount);
-}
-
-export const getPkBattles = (): PkBattle[] => {
-  return pkBattles;
-}
-
-export const getDailyTasks = (): Task[] => {
-    return dailyTasks;
-}
-
-export const getAchievementTasks = (): Task[] => {
-    return achievementTasks;
-}
-
-export const getProfileVisitors = (): User[] => {
-    return users.slice(7, 14);
-}
+export const getPopularRooms = (): Room[] => rooms;
+export const getPopularUsers = (): User[] => users;
+export const getRoomBySlug = (slug: string): Room | undefined => rooms.find(r => r.slug === slug);
+export const getAllRooms = (): Room[] => rooms;
+export const getUserById = (id: string): User | undefined => users.find(u => u.id === id);
+export const getFriends = (): User[] => users.slice(1, 7);
+export const getFreeGames = (): Game[] => games.filter(g => g.cost === 0);
+export const getPremiumGames = (): Game[] => games.filter(g => g.cost > 0);
+export const getCoinPackages = (): CoinPackage[] => coinPackages;
+export const getTopContributors = (): Contribution[] => contributions.sort((a, b) => b.amount - a.amount);
+export const getDailyTasks = (): Task[] => [];
+export const getAchievementTasks = (): Task[] => [];
+export const getProfileVisitors = (): User[] => users.slice(4, 8);
