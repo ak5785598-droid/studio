@@ -1,21 +1,25 @@
+
 {
-  "name": "Ummy",
+  "name": "Ummy Voice Chat",
   "short_name": "Ummy",
-  "description": "Find your vibe, connect with your tribe.",
+  "description": "Connect with people through real-time voice chat rooms.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#fff",
-  "theme_color": "#ff7e5f",
+  "background_color": "#FAF0E6",
+  "theme_color": "#FF7F50",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "https://picsum.photos/seed/ummy-icon/192/192",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "https://picsum.photos/seed/ummy-icon/512/512",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
