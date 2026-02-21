@@ -150,6 +150,38 @@ const contributions: Contribution[] = [
     { user: users[2], amount: 15300 },
 ]
 
+const pkBattles: PkBattle[] = [
+  {
+    id: 'pk1',
+    room1: rooms[0],
+    room2: rooms[1],
+    score1: 45000,
+    score2: 32000,
+  },
+  {
+    id: 'pk2',
+    room1: rooms[2],
+    room2: rooms[3] || rooms[0],
+    score1: 12000,
+    score2: 15000,
+  }
+];
+
+const dailyTasks: Task[] = [
+  { id: 'dt1', title: 'Morning Check-in', description: 'Open the app today.', coinReward: 10, isCompleted: true, cta: { label: 'Go', href: '/tasks' } },
+  { id: 'dt2', title: 'Gift Spreader', description: 'Send 3 gifts in any room.', coinReward: 50, isCompleted: false, cta: { label: 'Go', href: '/rooms' } },
+  { id: 'dt3', title: 'Talkative', description: 'Send 10 messages in chat.', coinReward: 30, isCompleted: false, cta: { label: 'Go', href: '/rooms' } },
+  { id: 'dt4', title: 'Watch Party', description: 'Watch a video for 5 mins.', coinReward: 100, isCompleted: false, cta: { label: 'Go', href: '/watch' } },
+  { id: 'dt5', title: 'Game On', description: 'Play any free game.', coinReward: 40, isCompleted: true, cta: { label: 'Go', href: '/games' } },
+];
+
+const achievementTasks: Task[] = [
+  { id: 'at1', title: 'First Room', description: 'Create your very first chat room.', coinReward: 500, isCompleted: false, cta: { label: 'Create', href: '/rooms' } },
+  { id: 'at2', title: 'Influencer', description: 'Reach 100 followers.', coinReward: 1000, isCompleted: false, cta: { label: 'Profile', href: '/profile' } },
+  { id: 'at3', title: 'High Roller', description: 'Reach Rich Level 10.', coinReward: 2000, isCompleted: false, cta: { label: 'Level Up', href: '/settings' } },
+  { id: 'at4', title: 'Veteran', description: 'Stay active for 30 consecutive days.', coinReward: 5000, isCompleted: false, cta: { label: 'Check', href: '/tasks' } },
+];
+
 export const getPopularRooms = (): Room[] => rooms;
 export const getPopularUsers = (): User[] => users;
 export const getRoomBySlug = (slug: string): Room | undefined => rooms.find(r => r.slug === slug);
@@ -160,6 +192,7 @@ export const getFreeGames = (): Game[] => games.filter(g => g.cost === 0);
 export const getPremiumGames = (): Game[] => games.filter(g => g.cost > 0);
 export const getCoinPackages = (): CoinPackage[] => coinPackages;
 export const getTopContributors = (): Contribution[] => contributions.sort((a, b) => b.amount - a.amount);
-export const getDailyTasks = (): Task[] => [];
-export const getAchievementTasks = (): Task[] => [];
+export const getPkBattles = (): PkBattle[] => pkBattles;
+export const getDailyTasks = (): Task[] => dailyTasks;
+export const getAchievementTasks = (): Task[] => achievementTasks;
 export const getProfileVisitors = (): User[] => users.slice(4, 8);

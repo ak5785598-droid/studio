@@ -3,15 +3,17 @@
 import { useMemo } from 'react';
 import { ChatRoomCard } from '@/components/chat-room-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getAllRooms } from '@/lib/mock-data';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getAllRooms, getPkBattles } from '@/lib/mock-data';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
-import { LifeBuoy, Loader, Compass } from 'lucide-react';
+import { LifeBuoy, Loader, Compass, Zap, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
+import { RecommendationsForm } from '@/components/recommendations-form';
+import { PkBattleCard } from '@/components/pk-battle-card';
 import type { Room } from '@/lib/types';
 
 export default function RoomsPage() {
@@ -20,6 +22,7 @@ export default function RoomsPage() {
 
   // Mock data setup
   const allMockRooms = getAllRooms();
+  const pkBattles = getPkBattles();
   const officialHelpRoom = allMockRooms.find(
     (room) => room.slug === 'official-help-room'
   );
@@ -28,7 +31,6 @@ export default function RoomsPage() {
   );
 
   // Real Firestore data for "My Rooms"
-  // Simplified query: removed orderBy to avoid the need for a composite index
   const myRoomsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(
@@ -53,7 +55,6 @@ export default function RoomsPage() {
   const myRooms: Room[] = useMemo(() => {
     if (!myRealRooms) return [];
     
-    // Sort manually in memory since we removed it from the query
     const sorted = [...myRealRooms].sort((a: any, b: any) => {
       const dateA = a.createdAt?.seconds || 0;
       const dateB = b.createdAt?.seconds || 0;
@@ -74,7 +75,7 @@ export default function RoomsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
+      <div className="space-y-10">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <h1 className="font-headline text-3xl font-bold tracking-tight flex items-center gap-2">
@@ -88,6 +89,37 @@ export default function RoomsPage() {
           <CreateRoomDialog />
         </header>
 
+        {/* AI Recommendations Section */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-primary" />
+            <h2 className="font-headline text-2xl font-semibold">AI Recommendations</h2>
+          </div>
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Find Your Tribe</CardTitle>
+              <CardDescription>Tell us what you like, and our AI will suggest the perfect rooms for you.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RecommendationsForm />
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Live PK Battles Section */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Zap className="h-6 w-6 text-destructive" />
+            <h2 className="font-headline text-2xl font-semibold">Live PK Battles</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {pkBattles.map((battle) => (
+              <PkBattleCard key={battle.id} battle={battle} />
+            ))}
+          </div>
+        </section>
+
+        {/* My Rooms Section */}
         {(myRooms.length > 0 || isLoadingMyRooms) && (
           <section className="space-y-4">
             <h2 className="font-headline text-2xl font-semibold">My Rooms</h2>
@@ -105,8 +137,9 @@ export default function RoomsPage() {
           </section>
         )}
 
+        {/* Help Room Section */}
         {officialHelpRoom && (
-          <Card className="bg-secondary/50">
+          <Card className="bg-secondary/50 border-none">
             <CardHeader>
               <CardTitle className="font-headline">Need Help?</CardTitle>
             </CardHeader>
@@ -129,11 +162,12 @@ export default function RoomsPage() {
           </Card>
         )}
 
+        {/* Categorized Rooms Section */}
         <Tabs defaultValue="Popular" className="w-full">
           <div className="overflow-x-auto">
-            <TabsList className="border-none">
+            <TabsList className="border-none h-12 bg-muted/50 p-1 rounded-full mb-6">
               {categories.map((category) => (
-                <TabsTrigger key={category} value={category} className="px-6">
+                <TabsTrigger key={category} value={category} className="px-8 rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   {category}
                 </TabsTrigger>
               ))}
@@ -141,13 +175,13 @@ export default function RoomsPage() {
           </div>
           {categories.map((category) => (
             <TabsContent key={category} value={category}>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {roomsByCategory(category).map((room) => (
                   <ChatRoomCard key={room.id} room={room} />
                 ))}
               </div>
               {roomsByCategory(category).length === 0 && (
-                <div className="py-16 text-center text-muted-foreground">
+                <div className="py-16 text-center text-muted-foreground bg-muted/20 rounded-xl">
                   <p>No rooms available in this category yet.</p>
                 </div>
               )}
