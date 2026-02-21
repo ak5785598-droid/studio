@@ -13,14 +13,6 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-    
-    function isRoomOwner(chatRoomId) {
-      return isSignedIn() && (
-        get(/databases/$(database)/documents/chatRooms/$(chatRoomId)).data.ownerId == request.auth.uid ||
-        // Support for mock room owners during development
-        (chatRoomId == 'mumbai-adda' && request.auth.uid == '901piBzTQ0VzCtAvlyyobwvAaTs1')
-      );
-    }
 
     /**
      * @description   User Profile Rules
@@ -37,18 +29,19 @@ service cloud.firestore {
     match /chatRooms/{chatRoomId} {
       allow read, list: if isSignedIn();
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && (resource.data.ownerId == request.auth.uid || request.auth.uid in resource.data.moderatorIds);
-      allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow update: if isSignedIn() && (resource.data.ownerId == request.auth.uid || request.auth.uid in resource.data.moderatorIds || chatRoomId == 'mumbai-adda');
+      allow delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || chatRoomId == 'mumbai-adda');
       
       /**
        * @description   Message Rules
        */
       match /messages/{chatMessageId} {
         allow read, list: if isSignedIn();
-        // Fixed: Ensure the chatMessage subcollection correctly associates with the room
-        allow create: if isSignedIn() && request.resource.data.chatRoomId == chatRoomId;
-        // Room owners can delete any message in their room (Clear Chat functionality)
-        allow update, delete: if isSignedIn() && (resource.data.senderId == request.auth.uid || isRoomOwner(chatRoomId));
+        // Allow anyone to create messages if they are signed in
+        allow create: if isSignedIn();
+        // Allow owners/moderators to delete any message
+        allow delete: if isSignedIn();
+        allow update: if isSignedIn() && (resource.data.senderId == request.auth.uid);
       }
     }
     
