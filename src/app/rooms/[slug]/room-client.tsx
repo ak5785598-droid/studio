@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Mic,
   MicOff,
@@ -14,11 +14,10 @@ import {
   UserX,
   Trash2,
   UserPlus,
-  AlertCircle,
   ShieldCheck,
   ShieldAlert,
 } from 'lucide-react';
-import type { Room, Message, User as RoomUser } from '@/lib/types';
+import type { Room, Message } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,12 +35,10 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, limit, doc, writeBatch, getDocs } from 'firebase/firestore';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs, writeBatch } from 'firebase/firestore';
 
 export function RoomClient({ room }: { room: Room }) {
   const [isMicOn, setIsMicOn] = useState(false);
-  const [micPermissionStatus, setMicPermissionStatus] = useState<'prompt' | 'granted' | 'denied'>('prompt');
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -50,7 +47,6 @@ export function RoomClient({ room }: { room: Room }) {
   const [kickedUserIds, setKickedUserIds] = useState<string[]>([]);
   
   const scrollRef = useRef<HTMLDivElement>(null);
-  
   const { toast } = useToast();
   const { user: currentUser, isLoading: isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -178,7 +174,7 @@ export function RoomClient({ room }: { room: Room }) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel>Room Admin Tools</DropdownMenuLabel>
+                      <DropdownMenuLabel>Room Management</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       {isOwner && (
                         <DropdownMenuItem onClick={handleClearChat} className="text-destructive font-bold">
@@ -188,9 +184,6 @@ export function RoomClient({ room }: { room: Room }) {
                       )}
                       <DropdownMenuItem onClick={() => toast({ title: 'Announcement Updated' })}>
                         Edit Announcement
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => toast({ title: 'Privacy Settings Updated' })}>
-                        Privacy Settings
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -252,7 +245,7 @@ export function RoomClient({ room }: { room: Room }) {
                           <div className="absolute top-1 right-1">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full hover:bg-black/5">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-white/50 shadow-sm">
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -293,6 +286,7 @@ export function RoomClient({ room }: { room: Room }) {
           </Card>
         </div>
 
+        {/* Live Chat Section */}
         <Card className="lg:col-span-1 flex flex-col h-full shadow-lg border-none overflow-hidden shrink-0">
           <CardHeader className="p-3 border-b bg-secondary/10 shrink-0">
             <CardTitle className="text-lg flex items-center justify-between">
