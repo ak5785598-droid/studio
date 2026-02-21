@@ -1,4 +1,3 @@
-
 import type { User, Room, Message, Game, CoinPackage, Contribution, PkBattle, Task } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -88,7 +87,7 @@ const rooms: Room[] = [
     participants: [users[0], users[1], users[3]],
     messages: messages,
     announcement: 'Welcome to the biggest Mumbai Adda! No toxicity allowed.',
-    ownerId: 'u1'
+    ownerId: 'u1' // Assigned to mock user u1
   },
   { 
     id: 'r2', 

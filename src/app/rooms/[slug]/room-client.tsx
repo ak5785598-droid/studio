@@ -67,7 +67,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isClearing, setIsClearing] = useState(false);
   const [lockedSeats, setLockedSeats] = useState<number[]>([]);
   const [mutedSeats, setMutedSeats] = useState<number[]>([]);
-  // Use local state for participants to handle "Kick Out" visibility immediately
+  // Local state for participants to handle "Kick Out" visibility immediately
   const [activeParticipants, setActiveParticipants] = useState<RoomUser[]>(room.participants || []);
   
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -76,7 +76,8 @@ export function RoomClient({ room }: { room: Room }) {
   const { user: currentUser, isLoading: isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  const isOwner = currentUser?.uid === room.ownerId || (room.ownerId === 'u1' && currentUser?.uid === '901piBzTQ0VzCtAvlyyobwvAaTs1');
+  // Admin Detection: Checks Firestore ownerId or special dev owner UID for Mumbai Adda
+  const isOwner = currentUser?.uid === room.ownerId || (room.slug === 'mumbai-adda' && currentUser?.uid === '901piBzTQ0VzCtAvlyyobwvAaTs1');
 
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !room.id) return null;
@@ -174,14 +175,14 @@ export function RoomClient({ room }: { room: Room }) {
     toast({
       variant: 'destructive',
       title: 'User Kicked Out',
-      description: `${name} has been removed from the room.`,
+      description: `${name} has been removed and is now invisible from the room.`,
     });
   };
 
   const handleInvite = () => {
     toast({
       title: 'Invitation Sent',
-      description: 'Your friends have been invited to join this room.',
+      description: 'Your friends have been invited to join this seat.',
     });
   };
 
@@ -234,7 +235,6 @@ export function RoomClient({ room }: { room: Room }) {
   };
 
   const totalSeats = 10;
-  // Participants for seats 2-10
   const otherParticipantsToDisplay = activeParticipants.filter(p => p.id !== currentUser.uid);
 
   return (
@@ -278,7 +278,7 @@ export function RoomClient({ room }: { room: Room }) {
                 {isCameraOn ? <Video className="h-5 w-5"/> : <VideoOff className="h-5 w-5"/>}
               </Button>
               
-              {/* GLOBAL ROOM MENU */}
+              {/* GLOBAL ROOM MENU (Owner Only) */}
               {isOwner && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -291,7 +291,7 @@ export function RoomClient({ room }: { room: Room }) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleClearChat} className="text-destructive font-bold focus:bg-destructive focus:text-destructive-foreground">
                       {isClearing ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
-                      Clear Chat History (Forever)
+                      Clear Chat History (Forever for all)
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleInvite}>
@@ -345,7 +345,7 @@ export function RoomClient({ room }: { room: Room }) {
                       "relative aspect-square flex flex-col items-center justify-center gap-2 border-2 rounded-2xl shadow-sm transition-all",
                       isLocked ? "bg-muted/50 border-dashed border-primary/20" : "bg-card hover:border-primary/40"
                     )}>
-                      {/* User's requirement: LOCK SEAT MEAN THERE IS NO DP AND NSME SEEN AT THAT SEAT */}
+                      {/* Requirements: NO DP AND NAME SEEN IF LOCKED */}
                       {isLocked ? (
                         <div className="flex flex-col items-center gap-2 opacity-50">
                            <Lock className="h-8 w-8 text-primary" />
@@ -369,31 +369,31 @@ export function RoomClient({ room }: { room: Room }) {
                         </div>
                       )}
 
-                      {/* ADMIN MENU (THREE DOTS) FOR ALL SEATS (OWNER ONLY) */}
+                      {/* Unified Seat Admin Menu (Three Dots) - Owner Only */}
                       {isOwner && (
                         <div className="absolute top-2 right-2">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background/80 shadow-md backdrop-blur-sm">
+                              <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background/80 shadow-md backdrop-blur-sm hover:bg-primary hover:text-white transition-colors">
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuLabel>Seat {seatIndex} Controls</DropdownMenuLabel>
+                            <DropdownMenuContent align="end" className="w-52">
+                              <DropdownMenuLabel>Seat {seatIndex} Admin</DropdownMenuLabel>
                               <DropdownMenuSeparator />
                               
-                              {/* LOCK/UNLOCK (FOR EVERY SEAT) */}
+                              {/* Lock / Unlock Options */}
                               <DropdownMenuItem onClick={() => toggleSeatLock(seatIndex)}>
                                 {isLocked ? <Unlock className="mr-2 h-4 w-4 text-green-500" /> : <Lock className="mr-2 h-4 w-4 text-primary" />}
                                 {isLocked ? 'Unlock Seat' : 'Lock Seat'}
                               </DropdownMenuItem>
                               
-                              {/* INVITE (FOR EVERY SEAT) */}
+                              {/* Invite Option */}
                               <DropdownMenuItem onClick={handleInvite}>
-                                <UserPlus className="mr-2 h-4 w-4" /> Invite to Seat
+                                <UserPlus className="mr-2 h-4 w-4 text-blue-500" /> Invite to Seat
                               </DropdownMenuItem>
 
-                              {/* PARTICIPANT ONLY ACTIONS */}
+                              {/* Participant Specific Options */}
                               {participant && !isLocked && (
                                 <>
                                   <DropdownMenuSeparator />
@@ -401,7 +401,6 @@ export function RoomClient({ room }: { room: Room }) {
                                     {isMuted ? <Volume2 className="mr-2 h-4 w-4 text-green-500" /> : <VolumeX className="mr-2 h-4 w-4 text-orange-500" />}
                                     {isMuted ? 'Unmute' : 'Mute'}
                                   </DropdownMenuItem>
-                                  {/* KICK OUT: User requirement: Completely invisible from the room */}
                                   <DropdownMenuItem 
                                     onClick={() => handleKickout(participant.id, participant.name)} 
                                     className="text-destructive font-bold focus:bg-destructive focus:text-destructive-foreground"
