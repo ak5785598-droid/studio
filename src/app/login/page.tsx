@@ -86,6 +86,7 @@ export default function LoginPage() {
         description: 'Check your phone for the verification code.',
       });
     } catch (error: any) {
+      // Avoid intrusive console.error triggering the debug overlay
       if ((window as any).recaptchaVerifier) {
         (window as any).recaptchaVerifier.render().then((widgetId: any) => {
            if((window as any).grecaptcha){

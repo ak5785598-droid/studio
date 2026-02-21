@@ -57,22 +57,24 @@ export function RoomClient({ room }: { room: Room }) {
 
   // Role Detection
   const isOwner = useMemo(() => {
-    return currentUser?.uid === room.ownerId || room.slug === 'mumbai-adda';
+    if (!currentUser) return false;
+    return currentUser.uid === room.ownerId || room.slug === 'mumbai-adda';
   }, [currentUser, room]);
 
   const isAdmin = useMemo(() => {
-    return room.moderatorIds?.includes(currentUser?.uid || '') || isOwner;
+    if (!currentUser) return false;
+    return room.moderatorIds?.includes(currentUser.uid) || isOwner;
   }, [currentUser, room, isOwner]);
 
-  // Real-time Chat Logic
+  // Real-time Chat Logic - Guarded by currentUser to prevent permission errors
   const messagesQuery = useMemoFirebase(() => {
-    if (!firestore || !room.id) return null;
+    if (!firestore || !room.id || !currentUser) return null;
     return query(
       collection(firestore, 'chatRooms', room.id, 'messages'),
       orderBy('timestamp', 'asc'),
       limit(100)
     );
-  }, [firestore, room.id]);
+  }, [firestore, room.id, currentUser]);
 
   const { data: firestoreMessages } = useCollection(messagesQuery);
 
@@ -168,20 +170,20 @@ export function RoomClient({ room }: { room: Room }) {
           {isAdmin && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10 h-10 w-10">
-                  <MoreVertical className="h-6 w-6" />
+                <Button variant="ghost" size="icon" className="rounded-full bg-white/5 hover:bg-white/20 h-12 w-12 border border-white/10">
+                  <MoreVertical className="h-8 w-8 text-primary" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64 bg-[#1a1a2e] border-white/10 text-white shadow-2xl">
                 <DropdownMenuLabel className="text-white/40 uppercase text-[10px] tracking-widest px-4 py-2">Room Administration</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-white/10" />
                 {isOwner && (
-                  <DropdownMenuItem onClick={handleClearChat} className="text-destructive focus:bg-destructive/10 cursor-pointer h-12">
-                    <Trash2 className="mr-3 h-5 w-5" /> <span className="font-bold">Clear Chat History</span>
+                  <DropdownMenuItem onClick={handleClearChat} className="text-destructive focus:bg-destructive/10 cursor-pointer h-14">
+                    <Trash2 className="mr-3 h-6 w-6" /> <span className="font-bold">Clear Chat History</span>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem className="focus:bg-white/10 cursor-pointer h-12">
-                   <Info className="mr-3 h-5 w-5" /> Edit Room Rules
+                <DropdownMenuItem className="focus:bg-white/10 cursor-pointer h-14">
+                   <Info className="mr-3 h-6 w-6" /> Edit Room Rules
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -203,7 +205,7 @@ export function RoomClient({ room }: { room: Room }) {
       <ScrollArea className="flex-1 px-4" ref={scrollRef}>
         {/* Seats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 py-8">
-          {/* Seat 1 (Always User/Host) */}
+          {/* Seat 1 (Host/Owner) */}
           <div className="flex flex-col items-center gap-3 group">
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-full blur opacity-40 animate-pulse group-hover:opacity-100 transition-opacity"></div>
@@ -255,31 +257,31 @@ export function RoomClient({ room }: { room: Room }) {
                       <div className="absolute -top-1 -right-1 z-10">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-black/70 hover:bg-primary border border-white/20 shadow-xl transition-all">
-                              <MoreVertical className="h-5 w-5" />
+                            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-black/80 hover:bg-primary border border-white/20 shadow-xl transition-all">
+                              <MoreVertical className="h-6 w-6 text-white" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="bg-[#1a1a2e] border-white/10 text-white w-56 shadow-2xl">
                             <DropdownMenuLabel className="px-4 py-2 text-[10px] text-white/40 uppercase tracking-widest">Seat {seatIndex} Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator className="bg-white/10" />
-                            <DropdownMenuItem onClick={() => toggleSeatLock(seatIndex)} className="h-12 focus:bg-white/10 cursor-pointer">
-                              {isLocked ? <Unlock className="mr-3 h-5 w-5 text-green-400" /> : <Lock className="mr-3 h-5 w-5 text-yellow-400" />}
+                            <DropdownMenuItem onClick={() => toggleSeatLock(seatIndex)} className="h-14 focus:bg-white/10 cursor-pointer">
+                              {isLocked ? <Unlock className="mr-3 h-6 w-6 text-green-400" /> : <Lock className="mr-3 h-6 w-6 text-yellow-400" />}
                               <span className="font-bold">{isLocked ? 'Open Seat' : 'Close Seat'}</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => toast({ title: 'Invite Sent' })} className="h-12 focus:bg-white/10 cursor-pointer">
-                              <UserPlus className="mr-3 h-5 w-5 text-blue-400" /> <span className="font-bold">Invite User</span>
+                            <DropdownMenuItem onClick={() => toast({ title: 'Invite Sent' })} className="h-14 focus:bg-white/10 cursor-pointer">
+                              <UserPlus className="mr-3 h-6 w-6 text-blue-400" /> <span className="font-bold">Invite User</span>
                             </DropdownMenuItem>
-                            {participant && (
+                            {participant && !isLocked && (
                               <>
-                                <DropdownMenuItem onClick={() => setMutedSeats(prev => isMuted ? prev.filter(s => s !== seatIndex) : [...prev, seatIndex])} className="h-12 focus:bg-white/10 cursor-pointer">
-                                  {isMuted ? <Mic className="mr-3 h-5 w-5 text-green-400" /> : <MicOff className="mr-3 h-5 w-5 text-yellow-400" />}
-                                  <span className="font-bold">{isMuted ? 'Unmute User' : 'Mute User'}</span>
+                                <DropdownMenuItem onClick={() => setMutedSeats(prev => isMuted ? prev.filter(s => s !== seatIndex) : [...prev, seatIndex])} className="h-14 focus:bg-white/10 cursor-pointer">
+                                  {isMuted ? <Mic className="mr-3 h-6 w-6 text-green-400" /> : <MicOff className="mr-3 h-6 w-6 text-yellow-400" />}
+                                  <span className="font-bold">{isMuted ? 'Unmute' : 'Mute User'}</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => {
                                   setKickedUserIds(prev => [...prev, participant.id]);
                                   toast({ variant: 'destructive', title: 'User Kicked', description: `${participant.name} is now invisible.` });
-                                }} className="h-12 text-destructive focus:bg-destructive/10 cursor-pointer font-bold">
-                                  <UserX className="mr-3 h-5 w-5" /> Kick Out
+                                }} className="h-14 text-destructive focus:bg-destructive/10 cursor-pointer font-bold">
+                                  <UserX className="mr-3 h-6 w-6" /> Kick Out
                                 </DropdownMenuItem>
                               </>
                             )}
@@ -290,10 +292,10 @@ export function RoomClient({ room }: { room: Room }) {
                   </div>
                 </div>
                 <span className={cn(
-                  "text-xs font-black truncate max-w-[100px] transition-all",
+                  "text-xs font-black truncate max-w-[100px] transition-all uppercase",
                   isLocked ? "text-white/20" : participant ? "text-white/100" : "text-white/40"
                 )}>
-                  {isLocked ? "CLOSED" : participant ? participant.name : "AVAILABLE"}
+                  {isLocked ? "CLOSED" : participant ? participant.name : "SOFA"}
                 </span>
               </div>
             );
