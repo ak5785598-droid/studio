@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -71,7 +70,9 @@ export function RoomClient({ room }: { room: Room }) {
   const { user: currentUser, isLoading: isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  const isOwner = currentUser?.uid === room.ownerId;
+  // Determine if the user is the owner (from Firestore or Mock Data)
+  // For testing, u1 (Priya) is treated as the generic mock owner.
+  const isOwner = currentUser?.uid === room.ownerId || (room.ownerId === 'u1' && currentUser?.uid);
 
   // Listen to real-time messages
   const messagesQuery = useMemoFirebase(() => {
@@ -211,8 +212,8 @@ export function RoomClient({ room }: { room: Room }) {
                 <Badge variant="secondary" className="px-2 py-0.5">{room.topic}</Badge>
                 <Badge variant="outline" className="font-mono text-[10px]">ID: {room.id.substring(0, 8)}</Badge>
                 {isOwner && (
-                    <Badge variant="default" className="bg-primary/80 flex items-center gap-1 shadow-sm">
-                        <ShieldAlert className="h-3 w-3" /> Admin Mode
+                    <Badge variant="default" className="bg-primary/80 flex items-center gap-1 shadow-sm border-2 border-white animate-in fade-in slide-in-from-top-1">
+                        <ShieldAlert className="h-3 w-3" /> Admin Mode Active
                     </Badge>
                 )}
               </div>
@@ -228,7 +229,7 @@ export function RoomClient({ room }: { room: Room }) {
               {isOwner && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="primary" size="icon" className="rounded-full bg-primary text-primary-foreground shadow-md">
+                    <Button variant="primary" size="icon" className="rounded-full bg-primary text-primary-foreground shadow-lg border-2 border-background scale-110">
                       <MoreVertical className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -278,13 +279,13 @@ export function RoomClient({ room }: { room: Room }) {
                     <div className="absolute top-2 right-2">
                        <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="secondary" size="icon" className="h-7 w-7 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md">
+                          <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-primary/90 hover:bg-primary text-white backdrop-blur-md shadow-lg border border-white/50">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                            <DropdownMenuItem onClick={() => setIsMicOn(!isMicOn)}>
-                              {isMicOn ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                              {isMicOn ? <MicOff className="mr-2 h-4 w-4 text-red-500" /> : <Mic className="mr-2 h-4 w-4 text-green-500" />}
                               {isMicOn ? 'Mute Myself' : 'Unmute Myself'}
                            </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -316,25 +317,26 @@ export function RoomClient({ room }: { room: Room }) {
                             {isMuted && <VolumeX className="h-4 w-4 text-red-500 bg-black/60 p-1 rounded-md" />}
                           </div>
                           
-                          {/* Admin Controls for Occupied Seats - ALWAYS VISIBLE */}
+                          {/* Admin Controls for Occupied Seats - ALWAYS VISIBLE TO OWNER */}
                           {isOwner && (
-                            <div className="absolute top-2 right-2">
+                            <div className="absolute top-2 right-2 z-20">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="primary" size="icon" className="h-8 w-8 rounded-full shadow-md bg-primary text-white border-2 border-background">
+                                  <Button variant="primary" size="icon" className="h-8 w-8 rounded-full shadow-lg bg-primary text-white border-2 border-background hover:scale-110 transition-transform">
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-52">
-                                  <DropdownMenuItem onClick={() => toggleSeatMute(seatIndex)}>
+                                <DropdownMenuContent align="end" className="w-56">
+                                  <DropdownMenuItem onClick={() => toggleSeatMute(seatIndex)} className="cursor-pointer">
                                     {isMuted ? <Volume2 className="mr-2 h-4 w-4 text-green-500" /> : <VolumeX className="mr-2 h-4 w-4 text-red-500" />}
                                     {isMuted ? 'Unmute Participant' : 'Mute Participant'}
                                   </DropdownMenuItem>
+                                  <Separator className="my-1" />
                                   <DropdownMenuItem 
-                                    className="text-destructive font-bold focus:bg-destructive focus:text-destructive-foreground" 
+                                    className="text-white bg-destructive font-bold focus:bg-destructive/90 focus:text-white cursor-pointer" 
                                     onClick={() => handleKickout(participant.name)}
                                   >
-                                    <UserX className="mr-2 h-4 w-4" /> Kick Out User
+                                    <UserX className="mr-2 h-4 w-4" /> KICK OUT USER
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -350,15 +352,15 @@ export function RoomClient({ room }: { room: Room }) {
                             </span>
                           </div>
                           
-                          {/* Admin Controls for Empty Seats - ALWAYS VISIBLE */}
+                          {/* Admin Controls for Empty Seats - ALWAYS VISIBLE TO OWNER */}
                           {isOwner && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-background/10 backdrop-blur-[1px] rounded-xl">
+                            <div className="absolute inset-0 flex items-center justify-center bg-background/10 backdrop-blur-[1px] rounded-xl z-20">
                               <div className="flex gap-2">
                                 <Button 
                                   variant="secondary" 
                                   size="icon" 
                                   className={cn(
-                                    "h-10 w-10 rounded-full shadow-lg border-2 border-background transition-colors",
+                                    "h-10 w-10 rounded-full shadow-lg border-2 border-background transition-all hover:scale-110",
                                     isLocked ? "bg-primary text-white" : "bg-white text-primary"
                                   )}
                                   onClick={() => toggleSeatLock(seatIndex)}
@@ -370,7 +372,7 @@ export function RoomClient({ room }: { room: Room }) {
                                    <Button 
                                    variant="primary" 
                                    size="icon" 
-                                   className="h-10 w-10 rounded-full shadow-lg bg-green-500 text-white border-2 border-background hover:bg-green-600"
+                                   className="h-10 w-10 rounded-full shadow-lg bg-green-500 text-white border-2 border-background hover:bg-green-600 hover:scale-110 transition-all"
                                    onClick={() => toast({ title: "Invite Link", description: "Room invite link copied to clipboard!" })}
                                  >
                                    <UserPlus className="h-5 w-5" />

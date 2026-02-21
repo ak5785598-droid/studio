@@ -87,6 +87,7 @@ const rooms: Room[] = [
     participants: [users[0], users[1], users[3]],
     messages: messages,
     announcement: 'Welcome to the biggest Mumbai Adda! No toxicity allowed.',
+    ownerId: 'u1' // Assigned owner
   },
   { 
     id: 'r2', 
@@ -97,6 +98,7 @@ const rooms: Room[] = [
     coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-2')?.imageUrl!,
     participants: users.slice(0, 4),
     messages: [],
+    ownerId: 'u2'
   },
   { 
     id: 'r3', 
@@ -107,6 +109,7 @@ const rooms: Room[] = [
     coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-3')?.imageUrl!,
     participants: users.slice(1, 5),
     messages: [],
+    ownerId: 'u3'
   },
   {
     id: 'r7',
@@ -117,6 +120,7 @@ const rooms: Room[] = [
     coverUrl: 'https://picsum.photos/seed/singing1/400/225',
     participants: users.slice(2, 8),
     messages: [],
+    ownerId: 'u1'
   },
   {
     id: 'r8',
@@ -127,6 +131,7 @@ const rooms: Room[] = [
     coverUrl: 'https://picsum.photos/seed/game1/400/225',
     participants: users.slice(4, 9),
     messages: [],
+    ownerId: 'u4'
   }
 ];
 
