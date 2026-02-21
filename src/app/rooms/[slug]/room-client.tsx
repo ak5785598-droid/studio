@@ -25,9 +25,9 @@ import {
   Loader,
   MoreVertical,
   ShieldAlert,
-  XCircle,
   UserX,
   Trash2,
+  Smile,
 } from 'lucide-react';
 import type { Room, Message } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -73,7 +73,7 @@ export function RoomClient({ room }: { room: Room }) {
   const firestore = useFirestore();
 
   // Determine if the user is the owner
-  const isOwner = currentUser?.uid === room.ownerId || (room.ownerId === 'u1' && currentUser?.uid);
+  const isOwner = currentUser?.uid === room.ownerId || (room.ownerId === 'u1' && currentUser?.uid === '901piBzTQ0VzCtAvlyyobwvAaTs1');
 
   // Listen to real-time messages
   const messagesQuery = useMemoFirebase(() => {
@@ -125,7 +125,6 @@ export function RoomClient({ room }: { room: Room }) {
     if (!messageText.trim() || !currentUser || !firestore || isSending) return;
     setIsSending(true);
     
-    // ENSURE ALL FIELDS ARE PRESENT FOR SECURITY RULES
     const payload = {
       content: messageText,
       senderId: currentUser.uid,
@@ -143,7 +142,7 @@ export function RoomClient({ room }: { room: Room }) {
       toast({ 
         variant: 'destructive', 
         title: 'Error', 
-        description: 'Permission denied. Please check your account.' 
+        description: 'Failed to send message.' 
       });
     } finally {
       setIsSending(false);
@@ -154,8 +153,8 @@ export function RoomClient({ room }: { room: Room }) {
     setLockedSeats(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
     const isLocked = !lockedSeats.includes(index);
     toast({
-      title: isLocked ? 'Seat Locked' : 'Seat Unlocked',
-      description: `Seat ${index} status changed successfully.`,
+      title: isLocked ? 'Seat Unlocked' : 'Seat Locked',
+      description: `Seat ${index} status changed.`,
     });
   };
 
@@ -163,8 +162,8 @@ export function RoomClient({ room }: { room: Room }) {
     setMutedSeats(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
     const isMuted = !mutedSeats.includes(index);
     toast({
-      title: isMuted ? 'User Muted' : 'User Unmuted',
-      description: `User in seat ${index} updated.`,
+      title: isMuted ? 'Unmuted' : 'Muted',
+      description: `Participant in seat ${index} has been ${isMuted ? 'unmuted' : 'muted'}.`,
     });
   };
 
@@ -178,8 +177,8 @@ export function RoomClient({ room }: { room: Room }) {
 
   const handleClearChat = () => {
     toast({
-      title: 'Chat History Cleared',
-      description: 'The conversation has been cleaned for all users.',
+      title: 'Success',
+      description: 'Chat history has been cleared for everyone.',
     });
   };
 
@@ -207,6 +206,7 @@ export function RoomClient({ room }: { room: Room }) {
   return (
     <div className="grid h-[calc(100vh-10rem)] md:h-full gap-4 lg:grid-cols-3 xl:grid-cols-4">
       <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-4">
+        {/* ROOM HEADER CARD */}
         <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 relative overflow-hidden shadow-md">
           <CardHeader className="flex flex-row items-center justify-between p-4 relative z-10">
             <div className="flex-1">
@@ -229,12 +229,13 @@ export function RoomClient({ room }: { room: Room }) {
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="secondary" className="px-2 py-0.5">{room.topic}</Badge>
                 {isOwner && (
-                    <Badge variant="default" className="bg-primary/80 flex items-center gap-1 shadow-sm border-2 border-white">
-                        <ShieldAlert className="h-3 w-3" /> Admin Mode Active
+                    <Badge variant="default" className="bg-primary/80 flex items-center gap-1 shadow-sm">
+                        <ShieldAlert className="h-3 w-3" /> Admin Mode
                     </Badge>
                 )}
               </div>
             </div>
+            
             <div className="flex items-center gap-2">
               <Button size="icon" variant={isMicOn ? "outline" : "secondary"} onClick={() => setIsMicOn(!isMicOn)} className="rounded-full shadow-sm">
                 {isMicOn ? <Mic className="h-5 w-5"/> : <MicOff className="h-5 w-5"/>}
@@ -243,29 +244,25 @@ export function RoomClient({ room }: { room: Room }) {
                 {isCameraOn ? <Video className="h-5 w-5"/> : <VideoOff className="h-5 w-5"/>}
               </Button>
               
-              {/* MAIN ROOM ADMIN MENU (THREE DOTS) */}
+              {/* GLOBAL ADMIN MENU (THREE DOTS) */}
               {isOwner && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="default" size="icon" className="rounded-full bg-primary text-primary-foreground shadow-lg border-2 border-background">
+                    <Button variant="default" size="icon" className="rounded-full bg-primary text-primary-foreground shadow-lg">
                       <MoreVertical className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64">
-                    <DropdownMenuLabel>Room Administration</DropdownMenuLabel>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Room Management</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleClearChat} className="text-destructive font-bold">
-                      <Trash2 className="mr-2 h-4 w-4" /> Clear Chat History (Clean)
+                      <Trash2 className="mr-2 h-4 w-4" /> Clear Chat History
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toast({ title: "Update", description: "Edit Announcement open." })}>
-                      <Megaphone className="mr-2 h-4 w-4" /> Edit Room Announcement
+                    <DropdownMenuItem onClick={() => toast({ title: "Privacy", description: "Room locked." })}>
+                      <Lock className="mr-2 h-4 w-4" /> Lock Room (Private)
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => toast({ title: "Privacy", description: "Locked for everyone." })}>
-                      <Lock className="mr-2 h-4 w-4" /> Lock Room (Admin only)
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toast({ title: "Privacy", description: "Opened for everyone." })}>
-                      <Unlock className="mr-2 h-4 w-4" /> Unlock Room (Open)
+                    <DropdownMenuItem onClick={() => toast({ title: "Privacy", description: "Room opened." })}>
+                      <Unlock className="mr-2 h-4 w-4" /> Open Room (Public)
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -278,12 +275,13 @@ export function RoomClient({ room }: { room: Room }) {
           </CardHeader>
         </Card>
 
+        {/* SEATS GRID */}
         <Card className="flex-1 overflow-hidden border-none shadow-inner">
           <CardContent className="p-4 h-full bg-secondary/10">
             <ScrollArea className="h-full">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {/* User's Seat (Owner/Me) */}
-                <div className="relative aspect-square flex flex-col items-center justify-center gap-2 bg-muted rounded-2xl overflow-hidden ring-4 ring-primary/40 shadow-2xl">
+                {/* Seat 1: Current User */}
+                <div className="relative aspect-square flex flex-col items-center justify-center gap-2 bg-muted rounded-2xl overflow-hidden ring-4 ring-primary/40 shadow-xl">
                   <video ref={videoRef} className={cn("w-full h-full object-cover", isCameraOn ? "block" : "hidden")} autoPlay muted />
                   {!isCameraOn && (
                     <Avatar className="h-20 w-20 shadow-inner">
@@ -295,11 +293,11 @@ export function RoomClient({ room }: { room: Room }) {
                     {!isMicOn && <MicOff className="h-4 w-4 text-red-500 bg-black/60 p-1 rounded-md shadow-lg" />}
                   </div>
                   <div className="absolute bottom-2 left-2 right-2 p-2 bg-black/70 rounded-xl text-center backdrop-blur-md">
-                    <span className="font-bold text-white text-[10px] truncate block uppercase tracking-tight">{currentUser.displayName}</span>
+                    <span className="font-bold text-white text-[10px] truncate block uppercase tracking-tight">{currentUser.displayName} (Me)</span>
                   </div>
                 </div>
 
-                {/* Other Participant Seats (Admin Options inside Three Dots) */}
+                {/* Other Seats */}
                 {Array.from({ length: totalSeats - 1 }).map((_, i) => {
                   const participant = otherParticipants[i];
                   const seatIndex = i + 2;
@@ -322,17 +320,17 @@ export function RoomClient({ room }: { room: Room }) {
                             {isMuted && <VolumeX className="h-4 w-4 text-red-500 bg-black/60 p-1 rounded-md" />}
                           </div>
                           
-                          {/* SEAT ADMIN MENU (THREE DOTS) */}
+                          {/* SEAT ADMIN MENU (THREE DOTS) - FOR PARTICIPANTS */}
                           {isOwner && (
                             <div className="absolute top-2 right-2">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background/80 shadow-md hover:bg-background">
+                                  <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background/90 shadow-md">
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-48">
-                                  <DropdownMenuLabel>Seat {seatIndex} Actions</DropdownMenuLabel>
+                                  <DropdownMenuLabel>Participant Actions</DropdownMenuLabel>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem onClick={() => toggleSeatMute(seatIndex)}>
                                     {isMuted ? <Volume2 className="mr-2 h-4 w-4 text-green-500" /> : <VolumeX className="mr-2 h-4 w-4 text-orange-500" />}
@@ -355,12 +353,12 @@ export function RoomClient({ room }: { room: Room }) {
                             </span>
                           </div>
                           
-                          {/* EMPTY SEAT LOCK MENU (THREE DOTS) */}
+                          {/* SEAT ADMIN MENU (THREE DOTS) - FOR EMPTY SEATS */}
                           {isOwner && (
                             <div className="absolute top-2 right-2">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background/80 shadow-md">
+                                  <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background/90 shadow-md">
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -384,7 +382,7 @@ export function RoomClient({ room }: { room: Room }) {
         </Card>
       </div>
 
-      {/* RIGHT SIDEBAR (CHAT & GIFTS) */}
+      {/* CHAT & GIFTS SIDEBAR */}
       <Card className="lg:col-span-1 xl:col-span-1 flex flex-col h-full shadow-2xl border-none bg-card/80 backdrop-blur-md">
         <CardHeader className="p-4 border-b flex flex-row items-center justify-between rounded-t-xl bg-secondary/20">
           <CardTitle className="font-headline text-lg flex items-center gap-2">
@@ -406,7 +404,7 @@ export function RoomClient({ room }: { room: Room }) {
                       <span className="font-bold text-xs hover:text-primary transition-colors cursor-pointer truncate max-w-[100px]">{msg.user.name}</span>
                       <span className="text-[9px] text-muted-foreground whitespace-nowrap">{msg.timestamp}</span>
                     </div>
-                    <p className="text-xs bg-muted/80 p-3 rounded-2xl rounded-tl-none mt-1 leading-relaxed border border-transparent group-hover:border-primary/20 transition-all shadow-sm break-words">
+                    <p className="text-xs bg-muted/80 p-3 rounded-2xl rounded-tl-none mt-1 border border-transparent group-hover:border-primary/20 transition-all shadow-sm break-words">
                       {msg.text}
                     </p>
                   </div>
@@ -414,13 +412,10 @@ export function RoomClient({ room }: { room: Room }) {
               ))}
               {activeMessages.length === 0 && (
                 <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4 opacity-40">
-                  <div className="p-5 rounded-full bg-primary/10 animate-pulse">
+                  <div className="p-5 rounded-full bg-primary/10">
                     <Sparkles className="h-12 w-12 text-primary" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold uppercase tracking-widest">Quiet in here</p>
-                    <p className="text-[10px] max-w-[150px]">Break the ice with a cool message!</p>
-                  </div>
+                  <p className="text-sm font-bold uppercase tracking-widest">No messages yet</p>
                 </div>
               )}
             </div>
@@ -431,20 +426,20 @@ export function RoomClient({ room }: { room: Room }) {
           <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="h-11 w-11 text-primary border-primary/20 rounded-2xl hover:bg-primary/5 bg-background shadow-lg transition-all active:scale-95">
+                <Button variant="outline" size="icon" className="h-11 w-11 text-primary border-primary/20 rounded-2xl bg-background shadow-lg">
                   <Gift className="h-6 w-6"/>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-0 shadow-2xl border-primary/20" align="end">
                 <Tabs defaultValue="common">
-                  <TabsList className="grid w-full grid-cols-2 rounded-none border-b h-12">
-                    <TabsTrigger value="common" className="rounded-none font-bold">Normal</TabsTrigger>
-                    <TabsTrigger value="premium" className="rounded-none font-bold">Premium</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 h-12">
+                    <TabsTrigger value="common" className="font-bold">Normal</TabsTrigger>
+                    <TabsTrigger value="premium" className="font-bold">Premium</TabsTrigger>
                   </TabsList>
                   <ScrollArea className="h-80">
                     <TabsContent value="common" className="p-3 m-0 grid grid-cols-4 gap-2">
                       {gifts.common.map((g) => (
-                        <div key={g.name} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-all active:scale-90 group border border-transparent hover:border-primary/20">
+                        <div key={g.name} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-all active:scale-90 group">
                           <g.icon className="h-10 w-10 text-primary group-hover:scale-110 transition-transform" />
                           <span className="text-[9px] font-bold text-center truncate w-full uppercase">{g.name}</span>
                           <div className="flex items-center gap-0.5 text-[8px] font-bold text-primary bg-primary/20 px-2 py-0.5 rounded-full">
@@ -455,7 +450,7 @@ export function RoomClient({ room }: { room: Room }) {
                     </TabsContent>
                     <TabsContent value="premium" className="p-3 m-0 grid grid-cols-4 gap-2">
                       {gifts.premium.map((g) => (
-                        <div key={g.name} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-all active:scale-90 group border border-transparent hover:border-primary/20">
+                        <div key={g.name} className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-primary/10 cursor-pointer transition-all active:scale-90 group">
                           <g.icon className="h-10 w-10 text-accent group-hover:scale-110 transition-transform" />
                           <span className="text-[9px] font-bold text-center truncate w-full uppercase">{g.name}</span>
                           <div className="flex items-center gap-0.5 text-[8px] font-bold text-accent bg-accent/20 px-2 py-0.5 rounded-full">
@@ -493,3 +488,4 @@ export function RoomClient({ room }: { room: Room }) {
     </div>
   );
 }
+

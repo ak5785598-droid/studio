@@ -14,8 +14,8 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
     
-    function isSender(docData) {
-      return isSignedIn() && request.auth.uid == docData.senderId;
+    function isRoomOwner(chatRoomId) {
+      return isSignedIn() && get(/databases/$(database)/documents/chatRooms/$(chatRoomId)).data.ownerId == request.auth.uid;
     }
 
     /**
@@ -31,38 +31,39 @@ service cloud.firestore {
      * @description   Chat Room Rules
      */
     match /chatRooms/{chatRoomId} {
-      allow read: if isSignedIn();
+      allow read, list: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn() && (resource.data.ownerId == request.auth.uid || request.auth.uid in resource.data.moderatorIds);
       allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-    }
-    
-    /**
-     * @description   Message Rules (Simplified to prevent chat errors)
-     */
-    match /chatRooms/{chatRoomId}/messages/{chatMessageId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.chatRoomId == chatRoomId;
-      allow update, delete: if isSignedIn();
+      
+      /**
+       * @description   Message Rules
+       */
+      match /messages/{chatMessageId} {
+        allow read, list: if isSignedIn();
+        allow create: if isSignedIn() && request.resource.data.chatRoomId == chatRoomId;
+        allow update, delete: if isSignedIn() && (resource.data.senderId == request.auth.uid || isRoomOwner(chatRoomId));
+      }
     }
     
     match /friendRequests/{friendRequestId} {
-      allow read: if isSignedIn();
+      allow read, list: if isSignedIn();
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn();
     }
     
     match /userGifts/{userGiftId} {
-      allow read: if isSignedIn();
+      allow read, list: if isSignedIn();
       allow create: if isSignedIn();
     }
 
     match /gifts/{giftId} {
-      allow read: if isSignedIn();
+      allow read, list: if isSignedIn();
     }
     
     match /tags/{tagId} {
-      allow read: if isSignedIn();
+      allow read, list: if isSignedIn();
     }
   }
 }
+
