@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -52,17 +53,16 @@ export function RoomClient({ room }: { room: Room }) {
   const { user: currentUser, isLoading: isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  // Role Detection - Owner has full power, Admin has seat power
+  // Role Detection
   const isOwner = useMemo(() => {
     if (!currentUser) return false;
-    // For testing, any logged in user is owner of the 'mumbai-adda' room
-    return currentUser.uid === room.ownerId || room.slug === 'mumbai-adda' || room.id === 'mumbai-adda';
+    // Mumbai-adda room is always owned by whoever is testing during this phase
+    return currentUser.uid === room.ownerId || room.slug === 'mumbai-adda';
   }, [currentUser, room]);
 
   const isAdmin = useMemo(() => {
     if (!currentUser) return false;
-    // Admins are moderators or the owner
-    return room.moderatorIds?.includes(currentUser.uid) || isOwner;
+    return isOwner || room.moderatorIds?.includes(currentUser.uid);
   }, [currentUser, room, isOwner]);
 
   // Real-time Chat
@@ -129,9 +129,9 @@ export function RoomClient({ room }: { room: Room }) {
         batch.delete(m.ref);
       });
       await batch.commit();
-      toast({ title: 'Chat Cleared', description: 'All history permanently deleted for everyone.' });
+      toast({ title: 'Chat Cleared', description: 'History permanently deleted for everyone.' });
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Failed', description: 'Only owner can clear chat.' });
+      toast({ variant: 'destructive', title: 'Failed', description: 'Only the owner can clear history.' });
     } finally {
       setIsClearing(false);
     }
@@ -140,7 +140,7 @@ export function RoomClient({ room }: { room: Room }) {
   const toggleSeatLock = (index: number) => {
     if (!isAdmin) return;
     setLockedSeats(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
-    toast({ title: lockedSeats.includes(index) ? 'Seat Opened' : 'Seat Locked & Cleared' });
+    toast({ title: lockedSeats.includes(index) ? 'Seat Opened' : 'Seat Locked & User Removed' });
   };
 
   if (isUserLoading) return <div className="flex h-screen items-center justify-center bg-[#1a1a2e]"><Loader className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -148,20 +148,20 @@ export function RoomClient({ room }: { room: Room }) {
   const otherParticipants = (room.participants || []).filter(p => !kickedUserIds.includes(p.id) && p.id !== currentUser?.uid);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f3460] overflow-hidden text-white">
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f3460] overflow-hidden text-white font-headline">
       
       {/* Header Section */}
       <header className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-md border-b border-white/10 shrink-0">
         <div className="flex items-center gap-3">
-           <Avatar className="h-12 w-12 border-2 border-primary shadow-lg">
+           <Avatar className="h-12 w-12 border-2 border-primary shadow-lg ring-2 ring-primary/20">
              <AvatarImage src={`https://picsum.photos/seed/${room.ownerId}/200`} />
              <AvatarFallback>H</AvatarFallback>
            </Avatar>
            <div className="flex flex-col">
-             <h1 className="font-bold text-lg leading-none">{room.title}</h1>
+             <h1 className="font-bold text-lg leading-none tracking-tight">{room.title}</h1>
              <div className="flex items-center gap-2 mt-1">
-               <Badge className="bg-primary/20 text-primary text-[10px] uppercase h-4">Host</Badge>
-               <span className="text-[10px] text-white/60">ID: {room.id.substring(0, 8)}</span>
+               <Badge className="bg-primary/20 text-primary text-[10px] uppercase h-4 font-bold">Host</Badge>
+               <span className="text-[10px] text-white/60 font-mono">ID: {room.id.substring(0, 8)}</span>
              </div>
            </div>
         </div>
@@ -173,16 +173,16 @@ export function RoomClient({ room }: { room: Room }) {
                   <MoreVertical className="h-6 w-6 text-primary" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-[#1a1a2e] border-white/10 text-white">
-                <DropdownMenuLabel className="text-[10px] opacity-40 uppercase tracking-widest">Admin actions</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56 bg-[#1a1a2e] border-white/10 text-white shadow-2xl">
+                <DropdownMenuLabel className="text-[10px] opacity-40 uppercase tracking-widest p-3 font-bold">Room Administration</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-white/10" />
-                <DropdownMenuItem onClick={handleClearChat} className="text-destructive focus:bg-destructive/10 cursor-pointer h-12">
+                <DropdownMenuItem onClick={handleClearChat} className="text-destructive focus:bg-destructive/10 cursor-pointer h-12 p-3">
                   <Trash2 className="mr-3 h-5 w-5" /> <span className="font-bold">Clear Chat History</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          <Button size="icon" variant="destructive" asChild className="rounded-full h-10 w-10">
+          <Button size="icon" variant="destructive" asChild className="rounded-full h-10 w-10 shadow-lg">
             <a href="/rooms"><PhoneOff className="h-5 w-5"/></a>
           </Button>
         </div>
@@ -191,24 +191,24 @@ export function RoomClient({ room }: { room: Room }) {
       {/* Announcements */}
       <div className="px-4 py-2 shrink-0">
         <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/10 text-xs">
-          <Sparkles className="h-4 w-4 text-yellow-400" />
-          <span className="text-white/80 italic truncate">{room.announcement || "Welcome! Be respectful and enjoy the vibe."}</span>
+          <Sparkles className="h-4 w-4 text-yellow-400 animate-pulse" />
+          <span className="text-white/80 italic truncate font-body">{room.announcement || "Welcome! Be respectful and enjoy the group vibe."}</span>
         </div>
       </div>
 
       <ScrollArea className="flex-1 px-4" ref={scrollRef}>
         {/* Seats Grid (10 Seats) */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 py-6">
-          {/* Host Seat */}
+          {/* Host Seat - No. 1 */}
           <div className="flex flex-col items-center gap-2">
             <div className="relative">
               <Avatar className="h-20 w-20 border-2 border-primary shadow-xl ring-2 ring-primary/20">
                 <AvatarImage src={currentUser?.photoURL || ''} />
                 <AvatarFallback>{currentUser?.displayName?.charAt(0)}</AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-1 -right-1 bg-primary text-[8px] font-bold px-1.5 rounded-full border border-[#1a1a2e]">No.1</div>
+              <div className="absolute -bottom-1 -right-1 bg-primary text-[8px] font-bold px-1.5 rounded-full border border-[#1a1a2e] shadow-md">No.1</div>
             </div>
-            <span className="text-xs font-bold text-primary truncate max-w-[80px]">{currentUser?.displayName}</span>
+            <span className="text-xs font-bold text-primary truncate max-w-[80px]">{currentUser?.displayName || "You"}</span>
           </div>
 
           {/* Dynamic Seats 2-10 */}
@@ -223,7 +223,7 @@ export function RoomClient({ room }: { room: Room }) {
                 <div className="relative">
                   <div className={cn(
                     "h-20 w-20 rounded-full flex items-center justify-center transition-all relative",
-                    isLocked ? "bg-black/40 border border-white/10" : "bg-white/5 border border-white/10",
+                    isLocked ? "bg-black/40 border border-white/10" : "bg-white/5 border border-white/10 hover:bg-white/10",
                     participant && !isLocked && "ring-2 ring-primary/40 border-primary"
                   )}>
                     {isLocked ? (
@@ -243,28 +243,28 @@ export function RoomClient({ room }: { room: Room }) {
                       <div className="absolute -top-1 -right-1">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/80 hover:bg-primary/20 border border-white/10">
-                              <MoreVertical className="h-4 w-4 text-white" />
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/80 hover:bg-primary/20 border border-white/10 shadow-lg">
+                              <MoreVertical className="h-4 w-4 text-primary font-bold" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent className="bg-[#1a1a2e] border-white/10 text-white w-48 shadow-2xl">
-                            <DropdownMenuItem onClick={() => toggleSeatLock(seatIndex)} className="focus:bg-white/10 h-10 cursor-pointer">
-                              {isLocked ? <Unlock className="mr-3 h-4 w-4" /> : <Lock className="mr-3 h-4 w-4" />}
-                              {isLocked ? 'Unlock Seat' : 'Lock Seat'}
+                          <DropdownMenuContent className="bg-[#1a1a2e] border-white/10 text-white w-48 shadow-2xl p-1">
+                            <DropdownMenuItem onClick={() => toggleSeatLock(seatIndex)} className="focus:bg-white/10 h-11 cursor-pointer">
+                              {isLocked ? <Unlock className="mr-3 h-4 w-4 text-green-400" /> : <Lock className="mr-3 h-4 w-4 text-yellow-400" />}
+                              <span className="font-bold">{isLocked ? 'Unlock Seat' : 'Lock Seat'}</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => toast({ title: 'Invite Sent' })} className="focus:bg-white/10 h-10 cursor-pointer">
-                              <UserPlus className="mr-3 h-4 w-4" /> Invite User
+                            <DropdownMenuItem onClick={() => toast({ title: 'Invite Sent' })} className="focus:bg-white/10 h-11 cursor-pointer">
+                              <UserPlus className="mr-3 h-4 w-4 text-blue-400" /> <span className="font-bold">Invite User</span>
                             </DropdownMenuItem>
                             {participant && !isLocked && (
                               <>
-                                <DropdownMenuItem onClick={() => setMutedSeats(prev => isMuted ? prev.filter(s => s !== seatIndex) : [...prev, seatIndex])} className="focus:bg-white/10 h-10 cursor-pointer">
-                                  {isMuted ? <Mic className="mr-3 h-4 w-4" /> : <MicOff className="mr-3 h-4 w-4" />}
-                                  {isMuted ? 'Unmute' : 'Mute User'}
+                                <DropdownMenuItem onClick={() => setMutedSeats(prev => isMuted ? prev.filter(s => s !== seatIndex) : [...prev, seatIndex])} className="focus:bg-white/10 h-11 cursor-pointer">
+                                  {isMuted ? <Mic className="mr-3 h-4 w-4 text-primary" /> : <MicOff className="mr-3 h-4 w-4 text-muted-foreground" />}
+                                  <span className="font-bold">{isMuted ? 'Unmute' : 'Mute User'}</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => {
                                   setKickedUserIds(prev => [...prev, participant.id]);
-                                  toast({ variant: 'destructive', title: 'User Kicked' });
-                                }} className="text-destructive focus:bg-destructive/10 h-10 cursor-pointer font-bold">
+                                  toast({ variant: 'destructive', title: 'User Kicked', description: `${participant.name} is now invisible.` });
+                                }} className="text-destructive focus:bg-destructive/10 h-11 cursor-pointer font-bold">
                                   <UserX className="mr-3 h-4 w-4" /> Kick Out
                                 </DropdownMenuItem>
                               </>
@@ -276,7 +276,7 @@ export function RoomClient({ room }: { room: Room }) {
                   </div>
                 </div>
                 <span className={cn(
-                  "text-[10px] font-bold truncate max-w-[80px]",
+                  "text-[10px] font-bold truncate max-w-[80px] uppercase tracking-wider",
                   isLocked ? "text-white/20" : participant ? "text-white" : "text-white/40"
                 )}>
                   {isLocked ? "CLOSED" : participant ? participant.name : "SOFA"}
@@ -289,7 +289,7 @@ export function RoomClient({ room }: { room: Room }) {
         {/* Live Chat Panel */}
         <div className="mt-8 mb-24 max-w-xl mx-auto space-y-4 px-2">
           {activeMessages.map((msg) => (
-            <div key={msg.id} className="flex items-start gap-3">
+            <div key={msg.id} className="flex items-start gap-3 animate-in slide-in-from-bottom-2 duration-300">
               <Avatar className="h-8 w-8 border border-white/10">
                 <AvatarImage src={msg.user.avatarUrl} alt={msg.user.name} />
                 <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>
@@ -297,9 +297,9 @@ export function RoomClient({ room }: { room: Room }) {
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-primary/80">{msg.user.name}</span>
-                  <span className="text-[8px] text-white/20">{msg.timestamp}</span>
+                  <span className="text-[8px] text-white/20 font-mono">{msg.timestamp}</span>
                 </div>
-                <div className="mt-0.5 bg-white/5 p-2.5 rounded-2xl rounded-tl-none border border-white/5 text-sm">
+                <div className="mt-0.5 bg-white/5 p-2.5 rounded-2xl rounded-tl-none border border-white/5 text-sm font-body leading-relaxed">
                   {msg.text}
                 </div>
               </div>
@@ -314,8 +314,8 @@ export function RoomClient({ room }: { room: Room }) {
           <form className="flex-1 flex gap-2" onSubmit={handleSendMessage}>
             <div className="relative flex-1">
               <Input 
-                placeholder="Type a message..." 
-                className="bg-white/10 border-white/5 rounded-full h-12 px-5 focus:ring-primary/40 text-sm"
+                placeholder="Message the room..." 
+                className="bg-white/10 border-white/5 rounded-full h-12 px-5 focus:ring-primary/40 text-sm font-body"
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 disabled={isSending}
@@ -334,11 +334,11 @@ export function RoomClient({ room }: { room: Room }) {
               variant={isMicOn ? "default" : "secondary"} 
               size="icon" 
               onClick={() => setIsMicOn(!isMicOn)}
-              className={cn("rounded-full h-12 w-12", isMicOn ? "bg-green-500 hover:bg-green-600" : "bg-white/10 hover:bg-white/20")}
+              className={cn("rounded-full h-12 w-12 shadow-md", isMicOn ? "bg-green-500 hover:bg-green-600" : "bg-white/10 hover:bg-white/20")}
             >
               {isMicOn ? <Mic className="h-5 w-5"/> : <MicOff className="h-5 w-5"/>}
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12 bg-gradient-to-br from-accent to-primary border-none">
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12 bg-gradient-to-br from-accent to-primary border-none shadow-lg animate-pulse">
               <Gift className="h-5 w-5 text-white" />
             </Button>
           </div>
