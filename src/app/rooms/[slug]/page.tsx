@@ -20,9 +20,9 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
 
   // Guard: Only fetch document if we have an authenticated user context
   const roomDocRef = useMemoFirebase(() => {
-    if (!firestore || !slug || isUserLoading) return null;
+    if (!firestore || !slug || isUserLoading || !currentUser) return null;
     return doc(firestore, 'chatRooms', slug);
-  }, [firestore, slug, isUserLoading]);
+  }, [firestore, slug, isUserLoading, currentUser]);
 
   const { data: firestoreRoom, isLoading: isDocLoading } = useDoc(roomDocRef);
 
@@ -63,37 +63,36 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   }, [firestoreRoom]);
 
   // Comprehensive loading state
-  if (isUserLoading || (isDocLoading && !firestoreRoom)) {
+  // Only show notFound() if we have an auth context, a ref, and the doc definitely doesn't exist.
+  if (isUserLoading || (isDocLoading && !firestoreRoom) || (currentUser && !roomDocRef)) {
     return (
       <AppLayout>
         <div className="flex h-[50vh] w-full flex-col items-center justify-center space-y-4">
           <Loader className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground animate-pulse font-mono uppercase tracking-widest">Entering Room...</p>
+          <p className="text-sm text-muted-foreground animate-pulse font-mono uppercase tracking-widest">Synchronizing Vibe...</p>
         </div>
       </AppLayout>
     );
   }
 
-  // Fallback for official room while it's being initialized
-  if (!activeRoom && slug === 'official-help-room') {
-     return (
-      <AppLayout>
-        <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
-          <Loader className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground animate-pulse">Initializing Official Hub...</p>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  // If loading finished and no room found
-  if (!isDocLoading && !activeRoom && !isUserLoading) {
+  // Final check for existence
+  if (!activeRoom && !isDocLoading && roomDocRef) {
     notFound();
+  }
+
+  if (!activeRoom) {
+     return (
+        <AppLayout>
+            <div className="flex h-[50vh] w-full flex-col items-center justify-center">
+                <Loader className="h-10 w-10 animate-spin text-primary" />
+            </div>
+        </AppLayout>
+     );
   }
 
   return (
     <AppLayout>
-       <RoomClient room={activeRoom!} />
+       <RoomClient room={activeRoom} />
     </AppLayout>
   );
 }

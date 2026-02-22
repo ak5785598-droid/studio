@@ -1,4 +1,3 @@
-
 'use client';
 import { useRef, useMemo } from 'react';
 import Image from 'next/image';
@@ -9,7 +8,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { notFound, useParams } from 'next/navigation';
 import { User, Loader, Camera, Gem, Award, ShieldCheck, BadgeCheck, Sparkles, Globe2, HeartHandshake } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useUserProfile } from '@/firebase';
 import { useProfilePictureUpload } from '@/hooks/use-profile-picture-upload';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -28,11 +27,10 @@ export default function ProfilePage() {
   const { user: currentUser, isLoading: isAuthLoading } = useUser();
   const firestore = useFirestore();
 
-  // Reference the specific Firestore profile path defined in backend.json
   const profileRef = useMemoFirebase(() => {
-    if (!firestore || !profileId) return null;
+    if (!firestore || !profileId || !currentUser) return null;
     return doc(firestore, 'users', profileId, 'profile', profileId);
-  }, [firestore, profileId]);
+  }, [firestore, profileId, currentUser]);
 
   const { data: profile, isLoading: isProfileLoading } = useDoc<any>(profileRef);
   const { isUploading, uploadProfilePicture } = useProfilePictureUpload();
@@ -51,9 +49,11 @@ export default function ProfilePage() {
     );
   }
 
-  if (!profile) {
+  if (!profile && !isProfileLoading && profileRef) {
     notFound();
   }
+
+  if (!profile) return null;
 
   const isOwnProfile = currentUser?.uid === profileId;
   const profileHeaderImage = PlaceHolderImages.find(img => img.id === 'profile-header');
@@ -101,7 +101,7 @@ export default function ProfilePage() {
                     (!profile.frame || profile.frame === 'None') && "from-transparent to-transparent"
                   )}>
                     <Avatar className="h-28 w-28 border-4 border-background shadow-xl">
-                      <AvatarImage src={profile.avatarUrl} alt={profile.username || profile.name || 'User Profile Photo'} />
+                      <AvatarImage src={profile.avatarUrl} alt={`${profile.username || 'User'} Profile Photo`} />
                       <AvatarFallback className="text-4xl">{(profile.username || profile.name || 'U').charAt(0)}</AvatarFallback>
                     </Avatar>
                   </div>

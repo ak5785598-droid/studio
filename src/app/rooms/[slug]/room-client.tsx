@@ -15,12 +15,9 @@ import {
   Camera,
   Smile,
   Gift,
-  Armchair,
   Users,
   Swords,
-  Volume2,
   Crown,
-  Zap,
 } from 'lucide-react';
 import type { Room, RoomParticipant } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -36,8 +33,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useUserProfile } from '@/firebase';
 import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
 import { 
   collection, 
@@ -87,9 +83,9 @@ export function RoomClient({ room }: { room: Room }) {
     const unsub = onSnapshot(collection(firestore, 'chatRooms', room.id, 'participants'), (snap) => {
       snap.docChanges().forEach((change) => {
         if (change.type === 'added') {
-          const p = change.doc.data();
+          const p = change.doc.data() as RoomParticipant;
           if (p.uid !== currentUser.uid) {
-            setEntryMessage(`${p.name} entered the room!`);
+            setEntryMessage(`${p.name} joined the frequency!`);
             setTimeout(() => setEntryMessage(null), 3000);
           }
         }
@@ -105,9 +101,9 @@ export function RoomClient({ room }: { room: Room }) {
     
     setDoc(participantRef, {
       uid: currentUser.uid,
-      name: userProfile.username || currentUser.displayName || 'Guest',
-      avatarUrl: userProfile.avatarUrl || currentUser.photoURL || '',
-      activeFrame: userProfile.inventory?.activeFrame || 'None',
+      name: userProfile.username || 'Guest',
+      avatarUrl: userProfile.avatarUrl || '',
+      activeFrame: userProfile.frame || 'None',
       joinedAt: serverTimestamp(),
       isMuted: true,
       seatIndex: 0,
@@ -150,8 +146,8 @@ export function RoomClient({ room }: { room: Room }) {
       await addDoc(collection(firestore, 'chatRooms', room.id, 'messages'), {
         content: messageText,
         senderId: currentUser.uid,
-        senderName: userProfile.username || currentUser.displayName || 'User',
-        senderAvatar: userProfile.avatarUrl || currentUser.photoURL || '',
+        senderName: userProfile.username || 'User',
+        senderAvatar: userProfile.avatarUrl || '',
         chatRoomId: room.id, 
         timestamp: serverTimestamp(),
       });
@@ -168,7 +164,7 @@ export function RoomClient({ room }: { room: Room }) {
     }
     const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
     updateDoc(participantRef, { seatIndex: index });
-    toast({ title: `You are now on Seat ${index}` });
+    toast({ title: `Joined Seat ${index}` });
   };
 
   const toggleSeatLock = async (index: number) => {
@@ -178,12 +174,11 @@ export function RoomClient({ room }: { room: Room }) {
     updateDoc(roomRef, { lockedSeats: isLocked ? arrayRemove(index) : arrayUnion(index) });
   };
 
-  if (isUserLoading) return <div className="flex h-[50vh] items-center justify-center"><Loader className="animate-spin text-primary" /></div>;
+  if (isUserLoading || !currentUser) return <div className="flex h-[50vh] items-center justify-center"><Loader className="animate-spin text-primary" /></div>;
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0f] overflow-hidden text-white font-headline rounded-3xl border border-white/5 relative">
       
-      {/* ENTRY NOTIFICATION OVERLAY */}
       {entryMessage && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top duration-500">
            <div className="bg-primary/90 backdrop-blur-md px-6 py-2 rounded-full border border-white/20 shadow-2xl flex items-center gap-2">
@@ -193,7 +188,6 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       )}
 
-      {/* PROFESSIONAL ROOM HEADER */}
       <header className="flex items-center justify-between p-4 bg-black/40 backdrop-blur-xl border-b border-white/5 shrink-0 z-50">
         <div className="flex items-center gap-4">
            <div className="relative group">
@@ -231,23 +225,23 @@ export function RoomClient({ room }: { room: Room }) {
             <Swords className="h-5 w-5" />
           </Button>
           <Button size="icon" variant="destructive" asChild className="rounded-2xl h-11 w-11 shadow-2xl hover:scale-105 transition-transform">
-            <a href="/rooms"><PhoneOff className="h-5 w-5"/></a>
+            <a href="/rooms"><PhoneOff className="h-5 w-5" alt="Leave room" /></a>
           </Button>
         </div>
       </header>
 
-      {/* ANNOUNCEMENT TICKER */}
       <div className="px-4 py-1.5 bg-primary/5 border-b border-primary/5 shrink-0 overflow-hidden">
         <div className="flex items-center gap-3 text-[10px] font-bold tracking-widest uppercase">
           <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 h-5 px-2">NOTICE</Badge>
-          <marquee className="text-white/60 italic font-medium">{room.announcement || "Welcome to the Ummy Experience! Be respectful and vibe hard."}</marquee>
+          <div className="relative flex-1 overflow-hidden whitespace-nowrap">
+            <span className="inline-block animate-marquee pl-full">{room.announcement || "Welcome to the Ummy Experience! Be respectful and vibe hard."}</span>
+          </div>
         </div>
       </div>
 
       <ScrollArea className="flex-1 px-4" ref={scrollRef}>
         <div className="max-w-4xl mx-auto py-10 space-y-12">
           
-          {/* HOST SEAT (YARI STYLE) */}
           <div className="flex justify-center">
              <div className="flex flex-col items-center gap-3 group">
                 <div className="relative">
@@ -261,7 +255,7 @@ export function RoomClient({ room }: { room: Room }) {
                       {participants?.find(p => p.seatIndex === 1) ? (
                          <div className="relative h-full w-full">
                             <Avatar className="h-full w-full rounded-full border-2 border-black">
-                               <AvatarImage src={participants.find(p => p.seatIndex === 1)?.avatarUrl} alt="Host" />
+                               <AvatarImage src={participants.find(p => p.seatIndex === 1)?.avatarUrl} alt="Host Profile" />
                                <AvatarFallback>H</AvatarFallback>
                             </Avatar>
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-black text-[8px] font-black px-2 py-0.5 rounded-full shadow-lg border border-black/10">HOST</div>
@@ -278,10 +272,9 @@ export function RoomClient({ room }: { room: Room }) {
              </div>
           </div>
 
-          {/* PARTICIPANT MIC GRID (8 SEATS) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
             {Array.from({ length: 8 }).map((_, i) => {
-              const seatIndex = i + 2; // Seats 2-9
+              const seatIndex = i + 2; 
               const occupant = participants?.find(p => p.seatIndex === seatIndex);
               const isLocked = room.lockedSeats?.includes(seatIndex);
 
@@ -300,7 +293,7 @@ export function RoomClient({ room }: { room: Room }) {
                       ) : occupant ? (
                         <div className="relative h-full w-full p-1">
                           <Avatar className="h-full w-full rounded-full">
-                            <AvatarImage src={occupant.avatarUrl} alt={occupant.name} />
+                            <AvatarImage src={occupant.avatarUrl} alt={`${occupant.name} Profile`} />
                             <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           {isMicOn && occupant.uid === currentUser?.uid && (
@@ -352,12 +345,11 @@ export function RoomClient({ room }: { room: Room }) {
             })}
           </div>
 
-          {/* CHAT LOG */}
           <div className="mt-12 mb-32 max-w-2xl mx-auto space-y-6 px-4">
             {activeMessages.map((msg) => (
               <div key={msg.id} className="flex items-start gap-3 group/msg animate-in slide-in-from-bottom-2">
                 <Avatar className="h-9 w-9 border border-white/5">
-                  <AvatarImage src={msg.user.avatarUrl} alt={msg.user.name} />
+                  <AvatarImage src={msg.user.avatarUrl} alt={`${msg.user.name} Avatar`} />
                   <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 flex flex-col items-start">
@@ -372,7 +364,6 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </ScrollArea>
 
-      {/* ACTION FOOTER */}
       <footer className="shrink-0 bg-black/60 backdrop-blur-3xl border-t border-white/5 p-6 pb-10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] z-50">
         <div className="max-w-4xl mx-auto flex items-center gap-5">
           <form className="flex-1 flex gap-3" onSubmit={handleSendMessage}>
