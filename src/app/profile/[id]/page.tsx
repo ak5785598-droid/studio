@@ -1,3 +1,4 @@
+
 'use client';
 import { useRef, useMemo } from 'react';
 import Image from 'next/image';
@@ -76,7 +77,7 @@ export default function ProfilePage() {
             {profileHeaderImage && (
               <Image
                 src={profile.coverUrl || profileHeaderImage.imageUrl}
-                alt="Profile header"
+                alt="Profile header background"
                 fill
                 className="object-cover"
                 priority
@@ -100,7 +101,7 @@ export default function ProfilePage() {
                     (!profile.frame || profile.frame === 'None') && "from-transparent to-transparent"
                   )}>
                     <Avatar className="h-28 w-28 border-4 border-background shadow-xl">
-                      <AvatarImage src={profile.avatarUrl} />
+                      <AvatarImage src={profile.avatarUrl} alt={profile.username || profile.name || 'User Profile Photo'} />
                       <AvatarFallback className="text-4xl">{(profile.username || profile.name || 'U').charAt(0)}</AvatarFallback>
                     </Avatar>
                   </div>

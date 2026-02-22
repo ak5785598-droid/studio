@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -111,7 +112,7 @@ export function EditProfileDialog({ profile }: EditProfileDialogProps) {
             <div className="flex flex-col items-center gap-2">
               <div className="relative group">
                 <Avatar className="h-24 w-24 border-4 border-primary/20 shadow-xl">
-                  <AvatarImage src={profile?.avatarUrl} />
+                  <AvatarImage src={profile?.avatarUrl} alt={name || 'User Avatar Preview'} />
                   <AvatarFallback className="text-3xl">{(name || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div 

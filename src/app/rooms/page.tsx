@@ -20,17 +20,18 @@ export default function RoomsPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const firestore = useFirestore();
 
+  // Guard: Only query if we have a user to prevent auth:null permission errors
   const allRoomsQuery = useMemoFirebase(() => {
-    if (!firestore || isUserLoading) return null;
+    if (!firestore || isUserLoading || !user) return null;
     return query(collection(firestore, 'chatRooms'), orderBy('createdAt', 'desc'), limit(50));
-  }, [firestore, isUserLoading]);
+  }, [firestore, isUserLoading, user]);
 
   const { data: roomsData, isLoading: isRoomsLoading } = useCollection(allRoomsQuery);
 
   const configRef = useMemoFirebase(() => {
-    if (!firestore || isUserLoading) return null;
+    if (!firestore || isUserLoading || !user) return null;
     return doc(firestore, 'appConfig', 'global');
-  }, [firestore, isUserLoading]);
+  }, [firestore, isUserLoading, user]);
   
   const { data: config } = useDoc(configRef);
 
@@ -200,8 +201,8 @@ function Avatar({ children, className }: { children: React.ReactNode, className?
   return <div className={`relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full ${className}`}>{children}</div>;
 }
 
-function AvatarImage({ src, alt }: { src: string, alt?: string }) {
-  return <img className="aspect-square h-full w-full" src={src} alt={alt || "Avatar"} />;
+function AvatarImage({ src, alt }: { src: string, alt: string }) {
+  return <img className="aspect-square h-full w-full" src={src} alt={alt} />;
 }
 
 function AvatarFallback({ children }: { children: React.ReactNode }) {
