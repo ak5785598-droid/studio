@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
@@ -35,8 +35,16 @@ export function EditProfileDialog({ profile }: EditProfileDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isUploading, uploadProfilePicture } = useProfilePictureUpload();
 
-  const [name, setName] = useState(profile?.username || profile?.name || '');
-  const [bio, setBio] = useState(profile?.bio || '');
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
+
+  // Sync state when profile data or dialog opens
+  useEffect(() => {
+    if (profile) {
+      setName(profile.username || profile.name || '');
+      setBio(profile.bio || '');
+    }
+  }, [profile, open]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,8 +52,10 @@ export function EditProfileDialog({ profile }: EditProfileDialogProps) {
 
     setIsSubmitting(true);
     try {
+      // Update Firebase Auth display name for consistency
       await updateProfile(user, { displayName: name });
 
+      // Update Firestore Profile document
       const userProfileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
       await setDoc(userProfileRef, {
         username: name,
@@ -119,6 +129,7 @@ export function EditProfileDialog({ profile }: EditProfileDialogProps) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -129,17 +140,22 @@ export function EditProfileDialog({ profile }: EditProfileDialogProps) {
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Tell the world about yourself..."
                 className="resize-none h-24"
+                disabled={isSubmitting}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2 opacity-50">
-                <Label className="flex items-center gap-1.5"><Globe className="h-3 w-3" /> Country (Fixed)</Label>
-                <Input value={profile?.details?.hometown || 'India'} disabled className="bg-muted cursor-not-allowed" />
+              <div className="grid gap-2 opacity-60">
+                <Label className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-muted-foreground">
+                  <Globe className="h-3 w-3" /> Country
+                </Label>
+                <Input value={profile?.details?.hometown || 'India'} disabled className="bg-muted cursor-not-allowed h-9 text-xs" />
               </div>
-              <div className="grid gap-2 opacity-50">
-                <Label className="flex items-center gap-1.5"><User2 className="h-3 w-3" /> Gender (Fixed)</Label>
-                <Input value={profile?.details?.gender || 'Secret'} disabled className="bg-muted cursor-not-allowed" />
+              <div className="grid gap-2 opacity-60">
+                <Label className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-muted-foreground">
+                  <User2 className="h-3 w-3" /> Gender
+                </Label>
+                <Input value={profile?.details?.gender || 'Secret'} disabled className="bg-muted cursor-not-allowed h-9 text-xs" />
               </div>
             </div>
           </div>

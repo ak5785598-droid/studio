@@ -1,13 +1,12 @@
 'use client';
 import { useRef, useMemo } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { notFound, useParams } from 'next/navigation';
-import { User, MapPin, Briefcase, Loader, Edit, Camera, Gem, Award, ShieldCheck, BadgeCheck, Sparkles, Eye, Globe2, HeartHandshake } from 'lucide-react';
+import { User, Loader, Camera, Gem, Award, ShieldCheck, BadgeCheck, Sparkles, Globe2, HeartHandshake } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { useProfilePictureUpload } from '@/hooks/use-profile-picture-upload';
@@ -24,14 +23,12 @@ export default function ProfilePage() {
   const { user: currentUser, isLoading: isAuthLoading } = useUser();
   const firestore = useFirestore();
 
-  // Fetch real profile data from Firestore
   const profileRef = useMemoFirebase(() => {
     if (!firestore || !profileId) return null;
     return doc(firestore, 'users', profileId, 'profile', profileId);
   }, [firestore, profileId]);
 
   const { data: profile, isLoading: isProfileLoading } = useDoc<any>(profileRef);
-
   const { isUploading, uploadProfilePicture } = useProfilePictureUpload();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,7 +36,13 @@ export default function ProfilePage() {
   const isLoading = isAuthLoading || isProfileLoading;
 
   if (isLoading) {
-    return <AppLayout><div className="flex h-full w-full items-center justify-center py-20"><Loader className="h-10 w-10 animate-spin text-primary" /></div></AppLayout>;
+    return (
+      <AppLayout>
+        <div className="flex h-full w-full items-center justify-center py-20">
+          <Loader className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
   }
 
   if (!profile) {
@@ -49,16 +52,14 @@ export default function ProfilePage() {
   const isOwnProfile = currentUser?.uid === profileId;
   const profileHeaderImage = PlaceHolderImages.find(img => img.id === 'profile-header');
 
-  const handleEditClick = () => fileInputRef.current?.click();
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-        if(file.size > 5 * 1024 * 1024){
-            toast({ variant: "destructive", title: "File too large", description: "Limit is 5MB." });
-            return;
-        }
-        uploadProfilePicture(file);
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ variant: "destructive", title: "File too large", description: "Limit is 5MB." });
+        return;
+      }
+      uploadProfilePicture(file);
     }
   };
 
@@ -73,11 +74,11 @@ export default function ProfilePage() {
                 alt="Profile header"
                 fill
                 className="object-cover"
+                priority
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
             
-            {/* Top Right Edit Pencil for Own Profile */}
             {isOwnProfile && (
               <div className="absolute top-4 right-4 z-10">
                 <EditProfileDialog profile={profile} />
@@ -99,7 +100,10 @@ export default function ProfilePage() {
                     </Avatar>
                   </div>
                   {isOwnProfile && (
-                     <div className="absolute inset-2 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                     <div 
+                        className="absolute inset-2 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" 
+                        onClick={() => fileInputRef.current?.click()}
+                      >
                         {isUploading ? <Loader className="h-8 w-8 animate-spin text-white" /> : <Camera className="h-8 w-8 text-white" />}
                      </div>
                   )}
@@ -207,7 +211,13 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-      <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        className="hidden" 
+        accept="image/*" 
+      />
     </AppLayout>
   );
 }
