@@ -1,12 +1,12 @@
-
 'use client';
 
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Gem, ShoppingBag, Sparkles, MessageSquare, Mic2, Star } from 'lucide-react';
-import { useUserProfile, useUser, useFirestore } from '@/firebase';
+import { Gem, ShoppingBag, Sparkles, MessageSquare, Mic2, Star, Loader } from 'lucide-react';
+import { useUser, useFirestore } from '@/firebase';
+import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, updateDoc, arrayUnion, increment } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -26,14 +26,14 @@ export default function StorePage() {
   const { toast } = useToast();
 
   const handlePurchase = async (item: any) => {
-    if (!userProfile) return;
-    if (userProfile.wallet?.coins < item.price) {
+    if (!userProfile || !user) return;
+    if ((userProfile.wallet?.coins || 0) < item.price) {
       toast({ variant: 'destructive', title: 'Insufficient Coins', description: `You need ${item.price - (userProfile.wallet?.coins || 0)} more coins.` });
       return;
     }
 
     try {
-      const profileRef = doc(firestore!, 'users', user!.uid, 'profile', user!.uid);
+      const profileRef = doc(firestore!, 'users', user.uid, 'profile', user.uid);
       await updateDoc(profileRef, {
         'wallet.coins': increment(-item.price),
         'inventory.ownedItems': arrayUnion(item.id)
@@ -43,6 +43,8 @@ export default function StorePage() {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to process purchase.' });
     }
   };
+
+  if (isLoading) return <AppLayout><div className="flex h-[50vh] items-center justify-center"><Loader className="animate-spin text-primary" /></div></AppLayout>;
 
   const types = ['All', 'Frame', 'Bubble', 'Wave', 'Entry'];
 

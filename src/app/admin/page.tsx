@@ -1,15 +1,15 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useFirestore, useDoc, useUser, useUserProfile } from '@/firebase';
-import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { useFirestore, useDoc, useUser } from '@/firebase';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import { doc, setDoc } from 'firebase/firestore';
 import { Settings, Shield, Zap, Gem, Globe, Layout, Loader } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -24,9 +24,20 @@ export default function AdminPage() {
   const configRef = doc(firestore!, 'appConfig', 'global');
   const { data: config, isLoading: isConfigLoading } = useDoc(configRef);
 
-  const [economyEnabled, setEconomyEnabled] = useState(config?.economyEnabled ?? true);
-  const [maintenanceMode, setMaintenanceMode] = useState(config?.maintenanceMode ?? false);
+  const [economyEnabled, setEconomyEnabled] = useState(true);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [bannerUrl, setBannerUrl] = useState('');
+  const [bannerLink, setBannerLink] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (config) {
+      setEconomyEnabled(config.economyEnabled ?? true);
+      setMaintenanceMode(config.maintenanceMode ?? false);
+      setBannerUrl(config.activeBanners?.[0]?.imageUrl ?? '');
+      setBannerLink(config.activeBanners?.[0]?.link ?? '');
+    }
+  }, [config]);
 
   if (isProfileLoading || isConfigLoading) return <AppLayout><div className="flex h-[50vh] items-center justify-center"><Loader className="animate-spin" /></div></AppLayout>;
 
@@ -45,7 +56,13 @@ export default function AdminPage() {
   const handleSaveConfig = async () => {
     setIsSaving(true);
     try {
-      await setDoc(configRef, { economyEnabled, maintenanceMode }, { merge: true });
+      await setDoc(configRef, { 
+        economyEnabled, 
+        maintenanceMode,
+        activeBanners: [
+          { imageUrl: bannerUrl, link: bannerLink, title: 'Official Event' }
+        ]
+      }, { merge: true });
       toast({ title: 'Config Updated', description: 'Application settings have been updated.' });
     } catch (e) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to update config.' });
@@ -98,9 +115,15 @@ export default function AdminPage() {
               <CardDescription>Control the 1536x681 explore banner.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Input placeholder="Banner Image URL" />
-              <Input placeholder="Link Target" />
-              <Button className="w-full">Update Official Banner</Button>
+              <div className="space-y-2">
+                <Label>Banner Image URL</Label>
+                <Input placeholder="https://..." value={bannerUrl} onChange={(e) => setBannerUrl(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Link Target</Label>
+                <Input placeholder="/rooms" value={bannerLink} onChange={(e) => setBannerLink(e.target.value)} />
+              </div>
+              <Button className="w-full" onClick={handleSaveConfig} disabled={isSaving}>Update Official Banner</Button>
             </CardContent>
           </Card>
 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -8,10 +7,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Compass, Loader, Sparkles, LayoutPanelTop, Crown } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { RecommendationsForm } from '@/components/recommendations-form';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function RoomsPage() {
   const { user } = useUser();
@@ -23,6 +23,11 @@ export default function RoomsPage() {
   }, [firestore]);
 
   const { data: roomsData, isLoading } = useCollection(allRoomsQuery);
+
+  const configRef = doc(firestore!, 'appConfig', 'global');
+  const { data: config } = useDoc(configRef);
+
+  const activeBanner = config?.activeBanners?.[0];
 
   const categories = ['Popular', 'Game', 'Chat', 'Singing', 'Battle'];
 
@@ -43,28 +48,30 @@ export default function RoomsPage() {
         
         {/* OFFICIAL BANNER SECTION (1536x681 Aspect) */}
         <section className="relative overflow-hidden rounded-[2rem] shadow-2xl border border-white/10 group">
-          <div className="relative aspect-[1536/681] w-full">
-            <Image
-              src="https://picsum.photos/seed/ummy-banner/1536/681"
-              alt="Official Ummy Event"
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-              priority
-              data-ai-hint="vibrant party"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute bottom-6 left-8 md:bottom-12 md:left-12 space-y-4">
-               <div className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white shadow-lg shadow-primary/20">
-                  <Crown className="h-4 w-4" /> Official Event
-               </div>
-               <h2 className="text-3xl md:text-5xl font-black font-headline text-white drop-shadow-lg">
-                 Grand Opening: <br/><span className="text-primary">Ummy Music Fest</span>
-               </h2>
-               <p className="text-white/60 text-sm md:text-lg max-w-xl font-body">
-                 Join 10,000+ users in the main stage. Send special gifts to win a unique entry wave!
-               </p>
+          <Link href={activeBanner?.link || '#'}>
+            <div className="relative aspect-[1536/681] w-full">
+              <Image
+                src={activeBanner?.imageUrl || "https://picsum.photos/seed/ummy-banner/1536/681"}
+                alt="Official Ummy Event"
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                priority
+                data-ai-hint="vibrant party"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute bottom-6 left-8 md:bottom-12 md:left-12 space-y-4">
+                 <div className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white shadow-lg shadow-primary/20">
+                    <Crown className="h-4 w-4" /> Official Event
+                 </div>
+                 <h2 className="text-3xl md:text-5xl font-black font-headline text-white drop-shadow-lg">
+                   {activeBanner?.title || 'Grand Opening:'} <br/><span className="text-primary">Ummy Music Fest</span>
+                 </h2>
+                 <p className="text-white/60 text-sm md:text-lg max-w-xl font-body">
+                   Join 10,000+ users in the main stage. Send special gifts to win a unique entry wave!
+                 </p>
+              </div>
             </div>
-          </div>
+          </Link>
         </section>
 
         <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -39,6 +38,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUserProfile } from '@/hooks/use-user-profile';
 import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
 import { 
   collection, 
@@ -47,8 +47,6 @@ import {
   query, 
   orderBy, 
   limit, 
-  getDocs, 
-  writeBatch, 
   doc, 
   setDoc, 
   deleteDoc,
@@ -61,12 +59,12 @@ export function RoomClient({ room }: { room: Room }) {
   const [isMicOn, setIsMicOn] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [isClearing, setIsClearing] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user: currentUser, isLoading: isUserLoading } = useUser();
+  const { userProfile } = useUserProfile(currentUser?.uid);
   const firestore = useFirestore();
   const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(room.id);
 
@@ -82,19 +80,21 @@ export function RoomClient({ room }: { room: Room }) {
   const onlineCount = participants?.length || 0;
 
   useEffect(() => {
-    if (!firestore || !room.id || !currentUser) return;
+    if (!firestore || !room.id || !currentUser || !userProfile) return;
     const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
+    
+    // JOIN WITH REAL APP PROFILE DATA
     setDoc(participantRef, {
       uid: currentUser.uid,
-      name: currentUser.displayName || 'Guest',
-      avatarUrl: currentUser.photoURL || '',
+      name: userProfile.username || currentUser.displayName || 'Guest',
+      avatarUrl: userProfile.avatarUrl || currentUser.photoURL || '',
       joinedAt: serverTimestamp(),
       isMuted: true,
       seatIndex: 0,
     }, { merge: true });
 
     return () => { deleteDoc(participantRef); };
-  }, [firestore, room.id, currentUser]);
+  }, [firestore, room.id, currentUser, userProfile]);
 
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !room.id) return null;
@@ -121,14 +121,14 @@ export function RoomClient({ room }: { room: Room }) {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageText.trim() || !currentUser || !firestore || isSending) return;
+    if (!messageText.trim() || !currentUser || !firestore || isSending || !userProfile) return;
     setIsSending(true);
     try {
       await addDoc(collection(firestore, 'chatRooms', room.id, 'messages'), {
         content: messageText,
         senderId: currentUser.uid,
-        senderName: currentUser.displayName || 'User',
-        senderAvatar: currentUser.photoURL || '',
+        senderName: userProfile.username || currentUser.displayName || 'User',
+        senderAvatar: userProfile.avatarUrl || currentUser.photoURL || '',
         chatRoomId: room.id, 
         timestamp: serverTimestamp(),
       });
@@ -208,7 +208,6 @@ export function RoomClient({ room }: { room: Room }) {
       </div>
 
       <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-        {/* NEW 10-SEAT GRID DESIGN */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-y-10 gap-x-6 py-12 max-w-5xl mx-auto">
           {Array.from({ length: 10 }).map((_, i) => {
             const seatIndex = i + 1;
@@ -236,7 +235,6 @@ export function RoomClient({ room }: { room: Room }) {
                           <AvatarImage src={occupant.avatarUrl} alt={occupant.name} />
                           <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        {/* VOICE WAVE OVERLAY */}
                         {isMicOn && occupant.uid === currentUser?.uid && (
                           <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                             <Volume2 className="h-8 w-8 animate-ping text-white/50" />
@@ -251,7 +249,6 @@ export function RoomClient({ room }: { room: Room }) {
                     )}
                   </div>
                   
-                  {/* ADMIN CONTROL BUTTONS PER SEAT */}
                   {isAdmin && (
                     <div className="absolute -top-1 -right-1 z-30 opacity-0 group-hover/seat:opacity-100 transition-opacity">
                       <DropdownMenu>
@@ -268,7 +265,7 @@ export function RoomClient({ room }: { room: Room }) {
                           {occupant && (
                               <DropdownMenuItem onClick={() => {
                                   const pRef = doc(firestore!, 'chatRooms', room.id, 'participants', occupant.uid);
-                                  updateDoc(pRef, { seatIndex: 0 }); // Kick to sofa
+                                  updateDoc(pRef, { seatIndex: 0 });
                               }} className="text-destructive focus:bg-destructive/10 h-12 cursor-pointer rounded-xl px-4">
                                   <UserX className="mr-3 h-5 w-5" /> <span className="font-bold tracking-tight">Move to Sofa</span>
                               </DropdownMenuItem>
@@ -289,7 +286,6 @@ export function RoomClient({ room }: { room: Room }) {
           })}
         </div>
 
-        {/* REFINED CHAT PANEL */}
         <div className="mt-12 mb-32 max-w-xl mx-auto space-y-6 px-4">
           {activeMessages.map((msg) => (
             <div key={msg.id} className="flex items-start gap-4 group/msg animate-in slide-in-from-bottom-2">
@@ -311,7 +307,6 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </ScrollArea>
 
-      {/* REFINED BOTTOM NAVIGATION BAR */}
       <footer className="shrink-0 bg-black/60 backdrop-blur-3xl border-t border-white/5 p-6 pb-10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] z-50">
         <div className="max-w-4xl mx-auto flex items-center gap-5">
           <form className="flex-1 flex gap-3" onSubmit={handleSendMessage}>
