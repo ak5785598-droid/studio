@@ -13,7 +13,7 @@ import {
   MoreVertical,
   UserX,
   Trash2,
-  UserPlus,
+  Camera,
   Smile,
   Gift,
   Armchair,
@@ -36,6 +36,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
 import { 
   collection, 
   addDoc, 
@@ -60,9 +61,11 @@ export function RoomClient({ room }: { room: Room }) {
   const [isClearing, setIsClearing] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user: currentUser, isLoading: isUserLoading } = useUser();
   const firestore = useFirestore();
+  const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(room.id);
 
   // Role Detection
   const isOwner = currentUser?.uid === room.ownerId;
@@ -99,13 +102,13 @@ export function RoomClient({ room }: { room: Room }) {
 
   // Real-time Chat
   const messagesQuery = useMemoFirebase(() => {
-    if (!firestore || !room.id) return null;
+    if (!firestore || !room.id || !currentUser) return null;
     return query(
       collection(firestore, 'chatRooms', room.id, 'messages'),
       orderBy('timestamp', 'asc'),
       limit(100)
     );
-  }, [firestore, room.id]);
+  }, [firestore, room.id, currentUser]);
 
   const { data: firestoreMessages } = useCollection(messagesQuery);
 
@@ -186,6 +189,17 @@ export function RoomClient({ room }: { room: Room }) {
     });
   };
 
+  const handleRoomImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ variant: "destructive", title: "File too large", description: "Limit is 5MB." });
+        return;
+      }
+      uploadRoomImage(file);
+    }
+  };
+
   if (isUserLoading) return <div className="flex h-screen items-center justify-center bg-[#1a1a2e]"><Loader className="h-10 w-10 animate-spin text-primary" /></div>;
 
   return (
@@ -194,10 +208,20 @@ export function RoomClient({ room }: { room: Room }) {
       {/* Header Section */}
       <header className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-md border-b border-white/10 shrink-0">
         <div className="flex items-center gap-3">
-           <Avatar className="h-12 w-12 border-2 border-primary shadow-lg ring-2 ring-primary/20">
-             <AvatarImage src={`https://picsum.photos/seed/${room.ownerId}/200`} />
-             <AvatarFallback>H</AvatarFallback>
-           </Avatar>
+           <div className="relative group">
+              <Avatar className="h-12 w-12 border-2 border-primary shadow-lg ring-2 ring-primary/20">
+                <AvatarImage src={room.coverUrl || `https://picsum.photos/seed/${room.ownerId}/200`} />
+                <AvatarFallback>H</AvatarFallback>
+              </Avatar>
+              {isOwner && (
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  {isRoomImageUploading ? <Loader className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                </div>
+              )}
+           </div>
            <div className="flex flex-col">
              <div className="flex items-center gap-2">
                 <h1 className="font-bold text-lg leading-none tracking-tight">{room.title}</h1>
@@ -370,6 +394,13 @@ export function RoomClient({ room }: { room: Room }) {
           </div>
         </div>
       </footer>
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleRoomImageChange} 
+        className="hidden" 
+        accept="image/*" 
+      />
     </div>
   );
 }

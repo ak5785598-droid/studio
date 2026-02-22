@@ -1,0 +1,60 @@
+'use client';
+
+import { useState } from 'react';
+import { useStorage, useFirestore, useUser } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useToast } from './use-toast';
+
+export function useRoomImageUpload(roomId: string) {
+  const storage = useStorage();
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
+
+  const uploadRoomImage = async (file: File) => {
+    if (!user || !storage || !firestore || !roomId) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must be the owner to upload a room picture.',
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      // 1. Create a storage reference
+      const storagePath = `chatRooms/${roomId}/cover.jpg`;
+      const storageRef = ref(storage, storagePath);
+
+      // 2. Upload the file
+      const uploadResult = await uploadBytes(storageRef, file);
+
+      // 3. Get the download URL
+      const downloadURL = await getDownloadURL(uploadResult.ref);
+
+      // 4. Update Firestore room document
+      const roomRef = doc(firestore, 'chatRooms', roomId);
+      await updateDoc(roomRef, { coverUrl: downloadURL });
+
+      toast({
+        title: 'Room Updated!',
+        description: 'The room image has been changed successfully.',
+      });
+    } catch (error: any) {
+      console.error('Error uploading room image:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed',
+        description: error.message || 'Could not upload the new image.',
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return { isUploading, uploadRoomImage };
+}

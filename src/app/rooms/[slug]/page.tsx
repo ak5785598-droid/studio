@@ -31,7 +31,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
       title: firestoreRoom.name || 'Untitled Room',
       topic: firestoreRoom.description || 'No topic set',
       category: (firestoreRoom.category as any) || 'Chat',
-      coverUrl: `https://picsum.photos/seed/${firestoreRoom.id}/1200/400`,
+      coverUrl: firestoreRoom.coverUrl || `https://picsum.photos/seed/${firestoreRoom.id}/1200/400`,
       ownerId: firestoreRoom.ownerId,
       moderatorIds: firestoreRoom.moderatorIds || [],
       lockedSeats: firestoreRoom.lockedSeats || [],
