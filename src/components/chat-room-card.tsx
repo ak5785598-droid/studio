@@ -54,8 +54,8 @@ export function ChatRoomCard({ room }: ChatRoomCardProps) {
         </CardContent>
         <CardFooter className="p-4 pt-0 text-sm text-muted-foreground flex justify-between items-center">
             <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>{onlineCount} online</span>
+                <Users className="h-4 w-4 text-green-500" />
+                <span className="font-bold text-green-500">{onlineCount} online</span>
             </div>
         </CardFooter>
       </Card>

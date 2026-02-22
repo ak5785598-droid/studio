@@ -17,6 +17,7 @@ import {
   Smile,
   Gift,
   Armchair,
+  Users,
 } from 'lucide-react';
 import type { Room, Message, RoomParticipant } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -74,6 +75,7 @@ export function RoomClient({ room }: { room: Room }) {
   }, [firestore, room.id]);
 
   const { data: participants } = useCollection<RoomParticipant>(participantsQuery);
+  const onlineCount = participants?.length || 0;
 
   // Manage Local Presence
   useEffect(() => {
@@ -197,7 +199,13 @@ export function RoomClient({ room }: { room: Room }) {
              <AvatarFallback>H</AvatarFallback>
            </Avatar>
            <div className="flex flex-col">
-             <h1 className="font-bold text-lg leading-none tracking-tight">{room.title}</h1>
+             <div className="flex items-center gap-2">
+                <h1 className="font-bold text-lg leading-none tracking-tight">{room.title}</h1>
+                <Badge variant="outline" className="h-5 px-2 bg-green-500/10 text-green-400 border-green-500/20 text-[10px] animate-pulse">
+                  <Users className="h-3 w-3 mr-1" />
+                  {onlineCount} Live
+                </Badge>
+             </div>
              <div className="flex items-center gap-2 mt-1">
                <Badge className="bg-primary/20 text-primary text-[10px] uppercase h-4 font-bold">Host</Badge>
                <span className="text-[10px] text-white/60 font-mono">ID: {room.id.substring(0, 8)}</span>
