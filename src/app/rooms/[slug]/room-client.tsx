@@ -61,7 +61,7 @@ export function RoomClient({ room }: { room: Room }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user: currentUser, isLoading: isUserLoading } = useUser();
-  const { userProfile } = useUserProfile(currentUser?.uid);
+  const { userProfile, isLoading: isProfileLoading } = useUserProfile(currentUser?.uid);
   const firestore = useFirestore();
   const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(room.id);
 
@@ -94,7 +94,7 @@ export function RoomClient({ room }: { room: Room }) {
     return () => unsub();
   }, [firestore, room.id, currentUser]);
 
-  // Presence Synchronization
+  // Presence Synchronization - Wait for userProfile to be fully loaded
   useEffect(() => {
     if (!firestore || !room.id || !currentUser || !userProfile) return;
     const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
@@ -174,7 +174,9 @@ export function RoomClient({ room }: { room: Room }) {
     updateDoc(roomRef, { lockedSeats: isLocked ? arrayRemove(index) : arrayUnion(index) });
   };
 
-  if (isUserLoading || !currentUser) return <div className="flex h-[50vh] items-center justify-center"><Loader className="animate-spin text-primary" /></div>;
+  if (isUserLoading || !currentUser || isProfileLoading) {
+    return <div className="flex h-[50vh] items-center justify-center"><Loader className="animate-spin text-primary" /></div>;
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0f] overflow-hidden text-white font-headline rounded-3xl border border-white/5 relative">

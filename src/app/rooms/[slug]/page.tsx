@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useMemo, useEffect } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { RoomClient } from './room-client';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
@@ -15,8 +15,16 @@ import type { Room } from '@/lib/types';
  */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
+  const router = useRouter();
   const firestore = useFirestore();
   const { user: currentUser, isLoading: isUserLoading } = useUser();
+
+  // Redirect to login if auth check finishes and no user is found
+  useEffect(() => {
+    if (!isUserLoading && !currentUser) {
+      router.replace('/login');
+    }
+  }, [isUserLoading, currentUser, router]);
 
   // Guard: Only fetch document if we have an authenticated user context
   const roomDocRef = useMemoFirebase(() => {
@@ -62,9 +70,8 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     } as any;
   }, [firestoreRoom]);
 
-  // Comprehensive loading state
-  // Only show notFound() if we have an auth context, a ref, and the doc definitely doesn't exist.
-  if (isUserLoading || (isDocLoading && !firestoreRoom) || (currentUser && !roomDocRef)) {
+  // Loading screen for auth or doc loading
+  if (isUserLoading || (isDocLoading && !firestoreRoom)) {
     return (
       <AppLayout>
         <div className="flex h-[50vh] w-full flex-col items-center justify-center space-y-4">
@@ -75,12 +82,13 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     );
   }
 
-  // Final check for existence
-  if (!activeRoom && !isDocLoading && roomDocRef) {
+  // Final check for existence - only trigger if we definitely have a user and ref
+  if (currentUser && roomDocRef && !isDocLoading && !firestoreRoom && slug !== 'official-help-room') {
     notFound();
   }
 
-  if (!activeRoom) {
+  // Ensure we have a user and a room before rendering client
+  if (!currentUser || !activeRoom) {
      return (
         <AppLayout>
             <div className="flex h-[50vh] w-full flex-col items-center justify-center">
