@@ -2,28 +2,25 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() { return request.auth != null; }
-    function isAdmin() { return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/$(request.auth.uid)).data.tags.hasAny(['Admin', 'Official']); }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
 
     match /appConfig/{configId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if isSignedIn(); 
     }
     
     match /storeItems/{itemId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     match /users/{userId}/profile/{profileId} {
       allow read: if isSignedIn();
-      allow write: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId);
     }
 
     match /chatRooms/{chatRoomId} {
-      allow read, list: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
+      allow read, list, create, update: if isSignedIn();
       allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
       
       match /participants/{participantId} {

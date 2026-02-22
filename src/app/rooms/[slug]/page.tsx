@@ -14,11 +14,11 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   const firestore = useFirestore();
   const { user: currentUser, isLoading: isUserLoading } = useUser();
 
-  // Fetch real room data from Firestore using slug as ID
+  // Guard: Only fetch document if we have an authenticated user to avoid permission errors
   const roomDocRef = useMemoFirebase(() => {
-    if (!firestore || !slug) return null;
+    if (!firestore || !slug || !currentUser) return null;
     return doc(firestore, 'chatRooms', slug);
-  }, [firestore, slug]);
+  }, [firestore, slug, currentUser]);
 
   const { data: firestoreRoom, isLoading: isDocLoading } = useDoc(roomDocRef);
 

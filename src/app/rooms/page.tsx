@@ -18,13 +18,17 @@ export default function RoomsPage() {
   const firestore = useFirestore();
 
   const allRoomsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !user) return null;
     return query(collection(firestore, 'chatRooms'), orderBy('createdAt', 'desc'), limit(50));
-  }, [firestore]);
+  }, [firestore, user]);
 
   const { data: roomsData, isLoading } = useCollection(allRoomsQuery);
 
-  const configRef = doc(firestore!, 'appConfig', 'global');
+  const configRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'appConfig', 'global');
+  }, [firestore, user]);
+  
   const { data: config } = useDoc(configRef);
 
   const activeBanner = config?.activeBanners?.[0];

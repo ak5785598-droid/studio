@@ -12,7 +12,6 @@ import {
   Loader,
   MoreVertical,
   UserX,
-  Trash2,
   Camera,
   Smile,
   Gift,
@@ -30,8 +29,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -71,10 +68,11 @@ export function RoomClient({ room }: { room: Room }) {
   const isOwner = currentUser?.uid === room.ownerId;
   const isAdmin = isOwner || room.moderatorIds?.includes(currentUser?.uid || '');
 
+  // Guard: Ensure we only list participants if we have an authenticated user
   const participantsQuery = useMemoFirebase(() => {
-    if (!firestore || !room.id) return null;
+    if (!firestore || !room.id || !currentUser) return null;
     return query(collection(firestore, 'chatRooms', room.id, 'participants'));
-  }, [firestore, room.id]);
+  }, [firestore, room.id, currentUser]);
 
   const { data: participants } = useCollection<RoomParticipant>(participantsQuery);
   const onlineCount = participants?.length || 0;
@@ -96,10 +94,11 @@ export function RoomClient({ room }: { room: Room }) {
     return () => { deleteDoc(participantRef); };
   }, [firestore, room.id, currentUser, userProfile]);
 
+  // Guard: Ensure we only list messages if we have an authenticated user
   const messagesQuery = useMemoFirebase(() => {
-    if (!firestore || !room.id) return null;
+    if (!firestore || !room.id || !currentUser) return null;
     return query(collection(firestore, 'chatRooms', room.id, 'messages'), orderBy('timestamp', 'asc'), limit(100));
-  }, [firestore, room.id]);
+  }, [firestore, room.id, currentUser]);
 
   const { data: firestoreMessages } = useCollection(messagesQuery);
 
