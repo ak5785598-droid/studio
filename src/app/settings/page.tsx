@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -23,10 +23,10 @@ import {
   Star,
   LifeBuoy,
   Loader,
+  Camera,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getCoinPackages } from '@/lib/mock-data';
-import Link from 'next/link';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +36,7 @@ import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { Textarea } from '@/components/ui/textarea';
+import { useProfilePictureUpload } from '@/hooks/use-profile-picture-upload';
 
 export default function SettingsPage() {
   const auth = useAuth();
@@ -45,6 +46,8 @@ export default function SettingsPage() {
   const coinPackages = getCoinPackages();
   const router = useRouter();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isUploading, uploadProfilePicture } = useProfilePictureUpload();
   
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [bio, setBio] = useState(userProfile?.bio || '');
@@ -72,11 +75,8 @@ export default function SettingsPage() {
     if (!user || !firestore) return;
     setIsSaving(true);
     try {
-        // Update Firebase Auth display name
         await updateProfile(user, { displayName: displayName });
 
-        // Update Firestore user profile using setDoc with merge: true 
-        // to handle cases where the document might not exist yet.
         const userProfileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
         await setDoc(userProfileRef, { 
           id: user.uid,
@@ -101,6 +101,16 @@ export default function SettingsPage() {
     }
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ variant: "destructive", title: "File too large", description: "Limit is 5MB." });
+        return;
+      }
+      uploadProfilePicture(file);
+    }
+  };
 
   if (isUserLoading || isProfileLoading || !user) {
     return (
@@ -116,20 +126,38 @@ export default function SettingsPage() {
     <AppLayout>
       <div className="space-y-6">
         <header className="flex items-center space-x-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || ''} />
-            <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-          </Avatar>
+          <div className="relative group">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={user.photoURL || undefined} alt={user.displayName || ''} />
+              <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+            </Avatar>
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              disabled={isUploading}
+            >
+              {isUploading ? <Loader className="h-4 w-4 animate-spin text-white" /> : <Camera className="h-4 w-4 text-white" />}
+            </button>
+          </div>
           <div className="flex-1">
             <h1 className="text-2xl font-bold font-headline">
               {user.displayName}
             </h1>
-            <p className="text-sm text-muted-foreground">ID: {user.uid}</p>
+            <p className="text-sm text-muted-foreground">ID: {user.uid.substring(0, 8)}</p>
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="p-0 h-auto text-xs" 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              Change Photo
+            </Button>
           </div>
           <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2">
             <Gem className="h-5 w-5 text-primary" />
             <span className="font-bold text-lg">
-              {userProfile?.coins?.toLocaleString() || 0}
+              {(userProfile?.coins || 0).toLocaleString()}
             </span>
           </div>
         </header>
@@ -202,9 +230,9 @@ export default function SettingsPage() {
                 <CardTitle className="font-headline">Support</CardTitle>
               </CardHeader>
               <CardContent>
-                <Link
-                  href="/help-center"
-                  className="flex items-center justify-between rounded-lg border p-4 hover:bg-secondary transition-colors"
+                <div
+                  className="flex items-center justify-between rounded-lg border p-4 hover:bg-secondary transition-colors cursor-pointer"
+                  onClick={() => router.push('/help-center')}
                 >
                   <div className="flex items-center gap-3">
                     <LifeBuoy className="h-6 w-6 text-primary" />
@@ -216,7 +244,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <Button variant="outline">Visit</Button>
-                </Link>
+                </div>
               </CardContent>
             </Card>
             <Card className="mt-6">
@@ -362,6 +390,13 @@ export default function SettingsPage() {
           </TabsContent>
         </Tabs>
       </div>
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        className="hidden" 
+        accept="image/*" 
+      />
     </AppLayout>
   );
 }
