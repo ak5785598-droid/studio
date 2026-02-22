@@ -1,6 +1,7 @@
+
 "use client";
 
-import { Compass, User, Settings, Youtube, ClipboardList, Loader, Trophy, LogOut } from "lucide-react";
+import { Compass, User, Settings, Youtube, ClipboardList, Loader, Trophy, LogOut, ShoppingBag, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -25,12 +26,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/hooks/use-user-profile";
 
 const navItems = [
-  { href: "/rooms", label: "Rooms", icon: Compass },
+  { href: "/rooms", label: "Explore", icon: Compass },
+  { href: "/store", label: "Boutique", icon: ShoppingBag },
   { href: "/leaderboard", label: "Rankings", icon: Trophy },
-  { href: "/tasks", label: "Tasks", icon: ClipboardList },
-  { href: "/games", label: "Games", icon: GameControllerIcon },
-  { href: "/watch", label: "Watch", icon: Youtube },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/tasks", label: "Task Center", icon: ClipboardList },
+  { href: "/games", label: "Game Zone", icon: GameControllerIcon },
+  { href: "/watch", label: "Watch Party", icon: Youtube },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -51,13 +52,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Source identity strictly from Firestore to isolate from external Auth (Google/Phone)
   const displayName = userProfile?.username || user?.displayName || 'User';
   const avatarUrl = userProfile?.avatarUrl || user?.photoURL || '';
+  const isAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full bg-background font-headline">
         <Sidebar>
           <SidebarHeader>
             <Logo />
@@ -68,12 +69,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton
                     asChild
-                    isActive={
-                      item.href === "/"
-                        ? pathname === "/"
-                        : pathname.startsWith(item.href)
-                    }
+                    isActive={pathname.startsWith(item.href)}
                     tooltip={item.label}
+                    size="lg"
                   >
                     <Link href={item.href}>
                       <item.icon />
@@ -86,8 +84,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarContent>
           <SidebarFooter>
             <SidebarMenu>
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Official Panel" size="lg" className="bg-primary/5 text-primary">
+                    <Link href="/admin">
+                      <ShieldCheck className="h-5 w-5" />
+                      <span>Admin Control</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
                <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Settings" asChild isActive={pathname.startsWith('/settings')}>
+                <SidebarMenuButton tooltip="Settings" asChild isActive={pathname.startsWith('/settings')} size="lg">
                   <Link href="/settings">
                     <Settings />
                     <span>Settings</span>
@@ -97,27 +105,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               
               {user && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="Sign Out" onClick={handleLogout} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                  <SidebarMenuButton tooltip="Sign Out" onClick={handleLogout} className="text-destructive hover:bg-destructive/10" size="lg">
                     <LogOut />
                     <span>Sign Out</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
 
-              <SidebarMenuItem className="pt-4 border-t border-white/5">
+              <SidebarMenuItem className="pt-4 mt-4 border-t border-white/5">
                  {isUserLoading || isProfileLoading ? (
-                  <div className="flex items-center gap-2 p-2">
-                    <Loader className="h-7 w-7 animate-spin text-primary" />
-                    <span className="text-xs font-bold uppercase tracking-widest opacity-40">Syncing...</span>
-                  </div>
+                    <div className="flex items-center justify-center py-4"><Loader className="animate-spin text-primary" /></div>
                  ): user ? (
-                    <SidebarMenuButton tooltip={displayName} asChild className="h-12">
+                    <SidebarMenuButton asChild className="h-16 rounded-2xl bg-secondary/20">
                        <Link href="/profile">
-                         <Avatar className="h-8 w-8 border border-primary/20">
-                            <AvatarImage src={avatarUrl} alt={displayName} />
+                         <Avatar className="h-10 w-10 border-2 border-primary/20">
+                            <AvatarImage src={avatarUrl} />
                             <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
                           </Avatar>
-                        <span className="font-bold truncate">{displayName}</span>
+                        <div className="flex flex-col ml-2 overflow-hidden">
+                          <span className="font-bold truncate text-sm">{displayName}</span>
+                          <span className="text-[10px] opacity-40 uppercase tracking-widest truncate">Profile View</span>
+                        </div>
                       </Link>
                     </SidebarMenuButton>
                  ) : null}
@@ -125,23 +133,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col overflow-hidden">
            <header className="flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-md px-6 md:hidden sticky top-0 z-40">
             <SidebarTrigger />
-            <div className="flex-1">
-              <Logo />
-            </div>
+            <Logo />
              {user && (
-                <Link href="/profile">
-                 <Avatar className="h-9 w-9 border-2 border-primary/20 shadow-md">
-                    <AvatarImage src={avatarUrl} alt={displayName} />
+                <Link href="/profile" className="ml-auto">
+                 <Avatar className="h-9 w-9 border-2 border-primary/20">
+                    <AvatarImage src={avatarUrl} />
                     <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
                   </Avatar>
               </Link>
              )}
           </header>
           <SidebarInset>
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12">{children}</main>
+            <main className="flex-1 overflow-y-auto bg-gradient-to-b from-background to-secondary/10 px-4 py-8 md:px-12 md:py-16">
+              {children}
+            </main>
           </SidebarInset>
         </div>
       </div>
