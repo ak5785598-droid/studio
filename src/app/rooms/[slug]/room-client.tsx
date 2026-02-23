@@ -56,6 +56,10 @@ import {
   getDocs,
 } from 'firebase/firestore';
 
+/**
+ * Chat Room Client View.
+ * Optimized for high-performance real-time interaction.
+ */
 export function RoomClient({ room }: { room: Room }) {
   const [isMicOn, setIsMicOn] = useState(false);
   const [messageText, setMessageText] = useState('');
@@ -128,10 +132,18 @@ export function RoomClient({ room }: { room: Room }) {
     })) || [];
   }, [firestoreMessages]);
 
+  // Smoother scroll transition
   useEffect(() => {
     if (scrollRef.current) {
       const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      if (scrollContainer) {
+        setTimeout(() => {
+          scrollContainer.scrollTo({
+            top: scrollContainer.scrollHeight,
+            behavior: 'smooth'
+          });
+        }, 100);
+      }
     }
   }, [activeMessages]);
 
@@ -246,7 +258,7 @@ export function RoomClient({ room }: { room: Room }) {
   const hostParticipant = participants?.find(p => p.seatIndex === 1);
 
   return (
-    <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl border border-white/5">
+    <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl border border-white/5 animate-in fade-in duration-700">
       
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0">

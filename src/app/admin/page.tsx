@@ -17,6 +17,10 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 
+/**
+ * Enterprise Admin Control Panel.
+ * Secured via tag-based permissions.
+ */
 export default function AdminPage() {
   const firestore = useFirestore();
   const { user } = useUser();
@@ -30,7 +34,10 @@ export default function AdminPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Global Config
-  const configRef = useMemoFirebase(() => doc(firestore!, 'appConfig', 'global'), [firestore]);
+  const configRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'appConfig', 'global');
+  }, [firestore]);
   const { data: config, isLoading: isConfigLoading } = useDoc(configRef);
 
   // Logs
@@ -44,14 +51,18 @@ export default function AdminPage() {
 
   const logAdminAction = async (action: string, targetId: string, details: any) => {
     if (!firestore || !user) return;
-    await addDoc(collection(firestore, 'adminLogs'), {
-      adminId: user.uid,
-      adminName: userProfile?.username || 'Admin',
-      targetId,
-      action,
-      details,
-      createdAt: serverTimestamp()
-    });
+    try {
+      await addDoc(collection(firestore, 'adminLogs'), {
+        adminId: user.uid,
+        adminName: userProfile?.username || 'Admin',
+        targetId,
+        action,
+        details,
+        createdAt: serverTimestamp()
+      });
+    } catch (e) {
+      console.warn("Audit logging failed:", e);
+    }
   };
 
   const handleSearchUsers = async () => {
@@ -132,7 +143,7 @@ export default function AdminPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-8 max-w-6xl mx-auto">
+      <div className="space-y-8 max-w-6xl mx-auto animate-in fade-in duration-700">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
           <div className="flex items-center gap-4">
              <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20">
@@ -215,7 +226,7 @@ export default function AdminPage() {
 
                    <div className="space-y-4">
                       {foundUsers.map((u) => (
-                        <div key={u.id} className="p-6 bg-secondary/20 rounded-3xl border border-white/50 flex flex-col md:flex-row items-center gap-6">
+                        <div key={u.id} className="p-6 bg-secondary/20 rounded-3xl border border-white/5 flex flex-col md:flex-row items-center gap-6">
                            <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
                               <AvatarImage src={u.avatarUrl} />
                               <AvatarFallback>{u.username?.charAt(0)}</AvatarFallback>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
@@ -18,7 +19,7 @@ import { doc } from 'firebase/firestore';
 import { EditProfileDialog } from '@/components/edit-profile-dialog';
 
 /**
- * Social Profile Page
+ * Social Profile Page.
  * Matches the high-energy, community aesthetic of Ummy.
  */
 export default function ProfilePage() {
@@ -90,7 +91,7 @@ export default function ProfilePage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-4xl mx-auto pb-24">
+      <div className="space-y-6 max-w-4xl mx-auto pb-24 animate-in fade-in duration-700">
         <Card className="overflow-hidden border-none shadow-2xl bg-gradient-to-b from-background to-secondary/10 rounded-[2rem]">
           <div className="relative h-56 w-full bg-muted">
             {profileHeaderImage && (
