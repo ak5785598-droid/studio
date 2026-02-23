@@ -26,7 +26,7 @@ import { FloatingRoomBar } from "../floating-room-bar";
 
 const navItems = [
   { href: "/rooms", label: "Home", icon: Home },
-  { href: "/messages", label: "Message", icon: MessageSquare, badge: 19 },
+  { href: "/messages", label: "Message", icon: MessageSquare },
   { href: "/profile", label: "Me", icon: User },
 ];
 
@@ -173,11 +173,7 @@ export function AppLayout({
                       ) : (
                         <div className="relative">
                            <item.icon className={cn("h-7 w-7", active ? "stroke-[3px]" : "stroke-2")} />
-                           {item.badge && (
-                             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] font-black h-4 w-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                               {item.badge}
-                             </span>
-                           )}
+                           {/* Badge removed as requested */}
                         </div>
                       )}
                     </div>
