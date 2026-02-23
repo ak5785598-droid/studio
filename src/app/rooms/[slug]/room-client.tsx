@@ -89,7 +89,7 @@ import { GiftAnimationOverlay } from '@/components/gift-animation-overlay';
 
 /**
  * High-Tier Gift Definitions.
- * Prices and animations scaled for the "Elite" version.
+ * Return Policy: Recipient receives 40% of Coin value in Blue Diamonds.
  */
 const AVAILABLE_GIFTS: Gift[] = [
   { id: 'rose', name: 'Rose', emoji: '🌹', price: 10, animationType: 'pulse' },
@@ -127,7 +127,6 @@ export function RoomClient({ room }: { room: Room }) {
   const isModerator = room.moderatorIds?.includes(currentUser?.uid || '');
   const canManageRoom = isGlobalAdmin || isOwner || isModerator;
 
-  // Real-time Participants
   const participantsQuery = useMemoFirebase(() => {
     if (!firestore || !room.id || !currentUser) return null;
     return query(collection(firestore, 'chatRooms', room.id, 'participants'));
@@ -140,7 +139,6 @@ export function RoomClient({ room }: { room: Room }) {
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
   const isMicOn = isInSeat && !currentUserParticipant?.isMuted;
 
-  // Messages Sync
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !room.id || !currentUser) return null;
     return query(
@@ -162,11 +160,9 @@ export function RoomClient({ room }: { room: Room }) {
     })) || [];
   }, [firestoreMessages]);
 
-  // Animation Trigger with Force Reset logic
   useEffect(() => {
     const lastMsg = firestoreMessages?.[firestoreMessages.length - 1];
     if (lastMsg?.type === 'gift' && lastMsg.giftId) {
-      // Small timeout to allow same-gift consecutive triggers
       setActiveGiftAnimation(null);
       setTimeout(() => setActiveGiftAnimation(lastMsg.giftId), 50);
     }
@@ -207,6 +203,7 @@ export function RoomClient({ room }: { room: Room }) {
     const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
     const roomDocRef = doc(firestore, 'chatRooms', room.id);
     
+    // 1. Update Sender Balance
     const walletUpdates = {
       wallet: {
         coins: increment(-gift.price),
@@ -218,6 +215,7 @@ export function RoomClient({ room }: { room: Room }) {
     setDocumentNonBlocking(userRef, walletUpdates, { merge: true });
     setDocumentNonBlocking(profileRef, walletUpdates, { merge: true });
 
+    // 2. Update Room Stats
     updateDocumentNonBlocking(roomDocRef, { 
       'stats.totalGifts': increment(gift.price), 
       updatedAt: serverTimestamp() 
@@ -229,14 +227,24 @@ export function RoomClient({ room }: { room: Room }) {
       if (host) finalRecipient = { uid: host.uid, name: host.name, avatarUrl: host.avatarUrl };
     }
 
+    // 3. Update Recipient Stats & DIAMOND RETURN (40%)
     if (finalRecipient) {
       const rRef = doc(firestore, 'users', finalRecipient.uid);
       const rpRef = doc(firestore, 'users', finalRecipient.uid, 'profile', finalRecipient.uid);
-      const updates = { 'stats.fans': increment(gift.price), updatedAt: serverTimestamp() };
-      setDocumentNonBlocking(rRef, updates, { merge: true });
-      setDocumentNonBlocking(rpRef, updates, { merge: true });
+      
+      const diamondReturn = Math.floor(gift.price * 0.4); // 40% Diamond Commission
+      
+      const recipientUpdates = { 
+        'stats.fans': increment(gift.price), 
+        'wallet.diamonds': increment(diamondReturn), // RECIPIENT GETS DIAMONDS
+        updatedAt: serverTimestamp() 
+      };
+      
+      setDocumentNonBlocking(rRef, recipientUpdates, { merge: true });
+      setDocumentNonBlocking(rpRef, recipientUpdates, { merge: true });
     }
 
+    // 4. Post Gift Message
     addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
       content: `sent a ${gift.name} ${gift.emoji}!`,
       senderId: currentUser.uid,
@@ -310,7 +318,7 @@ export function RoomClient({ room }: { room: Room }) {
     if (!canManageRoom || !firestore || !room.id) return;
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid), {
       isSilenced: !currentState,
-      isMuted: true // Force mute them too
+      isMuted: true
     });
     toast({ title: currentState ? 'Tribe Unsilenced' : 'Tribe Silenced' });
   };
@@ -414,7 +422,7 @@ export function RoomClient({ room }: { room: Room }) {
                 <div>
                   <h1 className="font-black text-xl tracking-tight uppercase italic">{room.title}</h1>
                   <div className="flex items-center gap-2 text-[10px] font-bold text-white/60 uppercase">
-                    <span>No: {room.roomNumber || '0000'}</span>
+                    <span>No: {room.roomNumber || '000000'}</span>
                     <div className="flex items-center gap-1 text-pink-400">
                       <Users className="h-3 w-3" />
                       <span>{onlineCount} Tribe</span>

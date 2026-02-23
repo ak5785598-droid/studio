@@ -55,9 +55,6 @@ const MenuItem = ({ icon: Icon, label, href, extra, iconColor, onClick, router }
   </div>
 );
 
-/**
- * Me Center / Profile Page - Final Production Edition.
- */
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
@@ -104,12 +101,24 @@ export default function ProfilePage() {
     }
   };
 
-  if (isAuthLoading || (isProfileLoading && !profile)) {
+  if (isAuthLoading || isProfileLoading) {
     return (
       <AppLayout>
         <div className="flex h-[60vh] w-full flex-col items-center justify-center space-y-4">
           <Loader className="animate-spin text-primary h-10 w-10" />
           <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Synchronizing Identity...</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Handle the case where the profile doc doesn't exist yet (newly logged in user)
+  if (!profile && isOwnProfile) {
+    return (
+      <AppLayout>
+        <div className="flex h-[60vh] w-full flex-col items-center justify-center space-y-4">
+          <Loader className="animate-spin text-primary h-10 w-10" />
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Initializing Tribe Identity...</p>
         </div>
       </AppLayout>
     );
@@ -160,7 +169,7 @@ export default function ProfilePage() {
                         <h1 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">{profile.username}</h1>
                         {profile.tags?.includes('Official') && <Sparkles className="h-4 w-4 text-primary" />}
                     </div>
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-secondary/50 px-2 py-0.5 rounded">ID: {profile.specialId || '----'}</span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-secondary/50 px-2 py-0.5 rounded">ID: {profile.specialId || '100000'}</span>
                   </div>
                   {!isOwnProfile && (
                     <Button 

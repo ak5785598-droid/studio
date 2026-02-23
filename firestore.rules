@@ -14,7 +14,8 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create, update: if isSignedIn() && request.auth.uid == userId;
       
-      // SPECIAL: Allow anyone to update 'stats' and 'updatedAt' for gifting/follow system
+      // SPECIAL: Allow anyone to update 'stats', 'updatedAt', and 'wallet' for gifting/follow system
+      // This enables the 40% Diamond Return system.
       allow update: if isSignedIn() && (
         request.resource.data.diff(resource.data).affectedKeys().hasAny(['stats', 'updatedAt', 'wallet'])
       );
@@ -45,13 +46,13 @@ service cloud.firestore {
     
     match /adminLogs/{logId} {
       allow read: if isAdmin();
-      allow create: if isAdmin();
+      allow create: if isSignedIn(); // Allow logging actions during processing
       allow update, delete: if false;
     }
 
     match /chatRooms/{chatRoomId} {
       function isRoomAdmin() {
-        let roomData = get(/databases/$(database)/documents/chatRooms/$(chatRoomId)).data;
+        let roomData = resource.data;
         return isAdmin() || roomData.ownerId == request.auth.uid || roomData.get('moderatorIds', []).hasAny([request.auth.uid]);
       }
 

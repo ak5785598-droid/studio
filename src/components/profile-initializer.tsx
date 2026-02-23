@@ -10,7 +10,6 @@ import { FirestorePermissionError } from '@/firebase/errors';
 /**
  * Production Profile Initializer.
  * Assigns a unique sequential 6-digit numeric ID (starting from 100,000).
- * Hardened: Synchronizes root identity before detailed profile for Security Rules compliance.
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -37,7 +36,7 @@ export function ProfileInitializer() {
 
         hasInitialized.current = profileId;
 
-        // Atomic Transaction for 6-digit ID assignment
+        // Atomic Transaction for unique 6-digit ID assignment
         const finalData = await runTransaction(firestore, async (transaction) => {
           const countersSnap = await transaction.get(countersRef);
           let nextUserId = 100000;
@@ -52,13 +51,13 @@ export function ProfileInitializer() {
           const initialData = {
             id: profileId,
             specialId: String(nextUserId),
-            username: user.displayName || `Ummy_${String(nextUserId).substring(2)}`,
+            username: user.displayName || `Tribe_${String(nextUserId).substring(2)}`,
             avatarUrl: user.photoURL || `https://picsum.photos/seed/${profileId}/400`,
             email: user.email || '',
             bio: 'Synchronized with the Ummy frequency.',
             wallet: { 
               coins: 500, 
-              diamonds: 0,
+              diamonds: 0, // Recipient will receive 40% of gift values here
               totalSpent: 0
             },
             inventory: { ownedItems: [], activeFrame: 'None', activeBubble: 'Default' },
@@ -77,7 +76,7 @@ export function ProfileInitializer() {
           return initialData;
         });
 
-        // Step 1: Set Root Identity (Critical for Security Rules isAdmin lookup)
+        // Step 1: Set Root Identity (Essential for system-wide lookup)
         await setDoc(userRef, {
           id: profileId,
           specialId: finalData.specialId,
@@ -96,7 +95,7 @@ export function ProfileInitializer() {
 
         // Step 3: Welcome Notification
         addDocumentNonBlocking(collection(firestore, 'users', profileId, 'notifications'), {
-          title: 'Welcome to Ummy!',
+          title: 'Welcome to the Tribe!',
           content: `Your unique Tribe ID is ${finalData.specialId}. We've gifted you 500 Gold Coins to explore the Boutique!`,
           type: 'system',
           timestamp: serverTimestamp(),
@@ -109,7 +108,8 @@ export function ProfileInitializer() {
         });
 
       } catch (e: any) {
-        hasInitialized.current = null;
+        hasInitialized.current = null; // Allow retry on failure
+        console.error("Initialization Error:", e);
         if (e.code === 'permission-denied') {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: `users/${user.uid}`,
