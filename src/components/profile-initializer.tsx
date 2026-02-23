@@ -10,7 +10,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 /**
  * Ensures a user profile exists in Firestore after login.
  * Assigns a unique sequential numeric ID (starting from 1001).
- * Synchronizes identity across root summary and detailed profile.
+ * Hardened to ensure root summary exists for security rules.
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -30,7 +30,6 @@ export function ProfileInitializer() {
       try {
         const userSnap = await getDoc(userRef);
         
-        // Prevent double initialization if document already exists
         if (userSnap.exists()) {
           hasInitialized.current = profileId;
           return;
@@ -57,7 +56,7 @@ export function ProfileInitializer() {
             email: user.email || '',
             bio: 'Vibing on the Ummy frequency! Join my tribe.',
             wallet: { 
-              coins: 100000, // Distribution Gift: 100k coins
+              coins: 100000, 
               diamonds: 0,
               totalSpent: 0
             },
@@ -77,7 +76,7 @@ export function ProfileInitializer() {
           return initialData;
         });
 
-        // 2. Synchronize root summary (Required for rules and leaderboards)
+        // 2. MUST sync root summary first so isAdmin() lookups in rules don't fail for new users
         await setDoc(userRef, {
           id: profileId,
           specialId: finalData.specialId,
@@ -94,7 +93,7 @@ export function ProfileInitializer() {
         // 3. Synchronize detailed profile
         await setDoc(profileRef, finalData, { merge: true });
 
-        // 4. Send Welcome Message to user's local inbox
+        // 4. Send Welcome Message
         addDocumentNonBlocking(collection(firestore, 'users', profileId, 'notifications'), {
           title: 'Welcome to the Tribe!',
           content: `Your unique Tribe ID is ${finalData.specialId}. We've gifted you 100,000 Gold Coins to get started in the Boutique!`,
