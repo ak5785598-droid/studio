@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation';
 import { RoomClient } from './room-client';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { doc, serverTimestamp, runTransaction } from 'firebase/firestore';
-import { Loader, ShieldAlert, Ghost } from 'lucide-react';
+import { doc } from 'firebase/firestore';
+import { Loader, ShieldAlert, Ghost, ChevronLeft } from 'lucide-react';
 import type { Room } from '@/lib/types';
 import { useRoomContext } from '@/components/room-provider';
+import Link from 'next/link';
 
 /**
  * Chat Room Entry Page Gateway.
- * Hardened: No longer auto-provisions random rooms. Only Official Hub is auto-created.
+ * Strict Production Mode: No auto-provisioning. Rooms must be created manually.
  */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -21,10 +22,6 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   const { user: currentUser, isLoading: isAuthLoading } = useUser();
   const { setActiveRoom, setIsMinimized } = useRoomContext();
   
-  const [initStatus, setInitStatus] = useState<string>('Verifying Session...');
-  const [isProvisioning, setIsProvisioning] = useState(false);
-  const [hasHandshaked, setHasHandshaked] = useState(false);
-
   // Authentication Guard
   useEffect(() => {
     if (!isAuthLoading && !currentUser) {
@@ -39,60 +36,6 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   }, [firestore, slug, isAuthLoading, currentUser]);
 
   const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
-
-  // Frequency Handshake: Assigns sequential IDs to new rooms
-  // ONLY auto-creates if it is the official-help-room
-  useEffect(() => {
-    const performHandshake = async () => {
-      if (!roomDocRef || isAuthLoading || !firestore || !currentUser || isDocLoading) return;
-
-      const isOfficial = slug === 'official-help-room';
-
-      if (!firestoreRoom && isOfficial && !isProvisioning) {
-        setIsProvisioning(true);
-        setInitStatus('Provisioning Official Frequency...');
-        const countersRef = doc(firestore, 'appConfig', 'counters');
-        
-        try {
-          await runTransaction(firestore, async (transaction) => {
-            const countersSnap = await transaction.get(countersRef);
-            let nextRoomNum = 1;
-            
-            if (countersSnap.exists()) {
-              nextRoomNum = (countersSnap.data().roomCounter || 0) + 1;
-            }
-            transaction.set(countersRef, { roomCounter: nextRoomNum }, { merge: true });
-
-            const roomNumber = '0001';
-
-            transaction.set(roomDocRef, {
-              name: 'Ummy Official Hub',
-              description: 'Live community and team support.',
-              roomNumber,
-              ownerId: 'official-admin',
-              category: 'Chat',
-              coverUrl: `https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop`,
-              announcement: 'Welcome to the Official Hub! Respect the frequency.',
-              createdAt: serverTimestamp(),
-              moderatorIds: [],
-              lockedSeats: [],
-              stats: { totalGifts: 0 }
-            }, { merge: true });
-          });
-        } catch (e) {
-          console.warn("Handshake delayed:", e);
-        } finally {
-          setIsProvisioning(false);
-          setHasHandshaked(true);
-        }
-      } else {
-        // If room exists or it's not official, just stop loading
-        setHasHandshaked(true);
-      }
-    };
-
-    performHandshake();
-  }, [slug, firestoreRoom, isDocLoading, firestore, currentUser, isProvisioning, roomDocRef, isAuthLoading]);
 
   // Sync global room context
   useEffect(() => {
@@ -146,7 +89,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
      );
   }
 
-  const isWaiting = isAuthLoading || (!!roomDocRef && isDocLoading) || isProvisioning || !hasHandshaked;
+  const isWaiting = isAuthLoading || (!!roomDocRef && isDocLoading);
 
   if (isWaiting) {
     return (
@@ -154,7 +97,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
         <div className="flex h-[60vh] w-full flex-col items-center justify-center space-y-4">
           <Loader className="h-10 w-10 animate-spin text-primary" />
           <p className="text-xs text-muted-foreground animate-pulse font-black uppercase tracking-widest">
-            {initStatus}
+            Tuning Frequency...
           </p>
         </div>
       </AppLayout>

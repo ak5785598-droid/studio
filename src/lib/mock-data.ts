@@ -1,8 +1,8 @@
 import type { User, Room, Game, CoinPackage, Task } from './types';
 
 /**
- * Production Mock Data.
- * All placeholder rooms have been removed to ensure the discovery grid is 100% real-time.
+ * Production Data Source.
+ * All mock users and rooms have been permanently removed for a clean slate.
  */
 const users: User[] = [];
 const rooms: Room[] = []; 
