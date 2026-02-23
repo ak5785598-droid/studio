@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, MessageSquare, User, Settings, Youtube, ClipboardList, Trophy, LogOut, ShoppingBag, ShieldCheck, Zap, Mail } from "lucide-react";
+import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, Zap, Mail } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ import { FloatingRoomBar } from "../floating-room-bar";
 
 const navItems = [
   { href: "/rooms", label: "Home", icon: Home },
-  { href: "/messages", label: "Message", icon: MessageSquare },
+  { href: "/messages", label: "Message", icon: MessageSquare, badge: 19 },
   { href: "/profile", label: "Me", icon: User },
 ];
 
@@ -35,10 +35,12 @@ const sidebarItems = [
   { href: "/messages", label: "Messages", icon: Mail },
   { href: "/match", label: "Vibe Match", icon: Zap },
   { href: "/store", label: "Boutique", icon: ShoppingBag },
-  { href: "/leaderboard", label: "Rankings", icon: Trophy },
-  { href: "/tasks", label: "Task Center", icon: ClipboardList },
+  { href: "/leaderboard", label: "Rankings", icon: Crown },
+  { href: "/tasks", label: "Task Center", icon: ShieldCheck },
   { href: "/games", label: "Game Zone", icon: GameControllerIcon },
 ];
+
+import { Crown } from "lucide-react";
 
 export function AppLayout({ 
   children, 
@@ -76,7 +78,7 @@ export function AppLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background font-headline">
+      <div className="flex min-h-screen w-full bg-background font-headline overflow-hidden">
         <Sidebar className="hidden md:flex">
           <SidebarHeader>
             <Logo />
@@ -143,9 +145,9 @@ export function AppLayout({
           {/* Floating Minimized Room Bar */}
           <FloatingRoomBar />
 
-          {/* Bottom Mobile Navigation */}
+          {/* Bottom Mobile Navigation - Yari Style */}
           {!hideSidebarOnMobile && (
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[60] rounded-t-3xl shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-50 px-6 py-2 flex justify-between items-center z-[60] rounded-t-[2.5rem] shadow-[0_-10px_20px_rgba(0,0,0,0.03)] h-20">
               {navItems.map((item) => {
                 const active = pathname === item.href || (item.href === '/profile' && pathname.startsWith('/profile'));
                 return (
@@ -153,18 +155,35 @@ export function AppLayout({
                     key={item.label} 
                     href={item.href} 
                     className={cn(
-                      "flex flex-col items-center gap-1 transition-all",
-                      active ? "text-primary scale-110" : "text-gray-400"
+                      "flex flex-col items-center gap-1 transition-all relative",
+                      active ? "text-[#D4E100] scale-110" : "text-gray-400"
                     )}
                   >
-                    {item.label === 'Home' ? (
-                       <div className={cn("p-1.5 rounded-full", active ? "bg-primary/20" : "")}>
-                          <UmmyLogoIcon className={cn("h-7 w-7", active ? "text-primary" : "text-gray-400 grayscale")} />
-                       </div>
-                    ) : (
-                      <item.icon className="h-7 w-7" strokeWidth={active ? 3 : 2} />
-                    )}
-                    <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+                    <div className={cn(
+                      "p-1 rounded-full transition-colors",
+                      active && "bg-yellow-50"
+                    )}>
+                      {item.label === 'Home' ? (
+                         <div className="relative">
+                            <div className={cn(
+                              "h-8 w-8 rounded-xl flex items-center justify-center transition-all",
+                              active ? "bg-[#D4E100] text-white shadow-md" : "bg-gray-100 text-gray-400"
+                            )}>
+                               <UmmyLogoIcon className="h-5 w-5" />
+                            </div>
+                         </div>
+                      ) : (
+                        <div className="relative">
+                           <item.icon className={cn("h-7 w-7", active ? "stroke-[3px]" : "stroke-2")} />
+                           {item.badge && (
+                             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] font-black h-4 w-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                               {item.badge}
+                             </span>
+                           )}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-tight">{item.label}</span>
                   </Link>
                 );
               })}

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { BarChart2 } from 'lucide-react';
+import { BarChart2, Zap } from 'lucide-react';
 import type { Room } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -15,7 +15,7 @@ interface ChatRoomCardProps {
 
 /**
  * Chat Room Card Component.
- * Optimized with proper alt tags and real-time participant counts.
+ * Redesigned to match the Yari high-density grid style.
  */
 export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
   const { user } = useUser();
@@ -31,26 +31,44 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
 
   if (variant === 'modern') {
     return (
-      <Link href={`/rooms/${room.id}`} className="group block w-full">
+      <Link href={`/rooms/${room.id}`} className="group block w-full animate-in fade-in zoom-in duration-500">
         <div className="space-y-2">
-          <div className="relative aspect-square w-full rounded-2xl overflow-hidden shadow-md">
+          <div className="relative aspect-square w-full rounded-[1.5rem] overflow-hidden shadow-sm border-2 border-white">
             <Image
               src={room.coverUrl || `https://picsum.photos/seed/${room.id}/400/400`}
               alt={`Live community room: ${room.title}`}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
               sizes="(max-width: 768px) 50vw, 33vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] text-white font-bold">
-              <BarChart2 className="h-3 w-3" />
-              <span>{onlineCount}</span>
+            {/* Status Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+            
+            {/* Rocket/Level Overlay */}
+            <div className="absolute bottom-2 left-2">
+               <div className="bg-black/20 backdrop-blur-sm rounded-lg p-1 animate-pulse">
+                  <span className="text-xl">🚀</span>
+               </div>
+            </div>
+
+            {/* Real-time Bars/Count Overlay */}
+            <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-black/30 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10">
+              <div className="flex items-end gap-0.5 h-3">
+                 <div className="w-0.5 bg-white h-1 animate-bounce" style={{ animationDelay: '0.1s' }} />
+                 <div className="w-0.5 bg-white h-2 animate-bounce" style={{ animationDelay: '0.2s' }} />
+                 <div className="w-0.5 bg-white h-3 animate-bounce" style={{ animationDelay: '0.3s' }} />
+              </div>
+              <span className="text-[10px] text-white font-black">{onlineCount}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 px-1">
-            <span className="text-lg" aria-label="India flag">🇮🇳</span>
-            <h3 className="font-bold text-sm truncate flex-1">{room.title}</h3>
+          
+          <div className="flex items-center gap-1.5 px-1 min-w-0">
+            <span className="text-sm shrink-0" aria-label="Region flag">🇮🇳</span>
+            <h3 className="font-bold text-xs text-gray-800 truncate uppercase tracking-tight">
+              {room.title}
+            </h3>
+            {room.id === 'official-help-room' && <Zap className="h-3 w-3 text-yellow-500 fill-current" />}
           </div>
         </div>
       </Link>
@@ -59,7 +77,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
 
   return (
     <Link href={`/rooms/${room.id}`} className="group block">
-      <Card className="overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1 bg-card">
+      <Card className="overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1 bg-white border-none shadow-sm rounded-2xl">
         <div className="p-0">
           <div className="relative h-40 w-full">
             <Image
@@ -67,18 +85,16 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
               alt={`Chat room background for ${room.title}`}
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
           </div>
         </div>
         <div className="p-4">
-          <h3 className="font-headline text-lg truncate font-bold">{room.title}</h3>
-          <div className="mt-2 text-sm text-muted-foreground flex justify-between items-center">
-            <div className="flex items-center gap-2">
-                <div className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="font-bold text-green-500 uppercase tracking-tighter">{onlineCount} Real-time</span>
-            </div>
+          <h3 className="font-bold text-gray-900 truncate">{room.title}</h3>
+          <div className="mt-2 text-[10px] text-gray-400 flex items-center gap-2 uppercase font-black">
+             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+             {onlineCount} Tribe Online
           </div>
         </div>
       </Card>
