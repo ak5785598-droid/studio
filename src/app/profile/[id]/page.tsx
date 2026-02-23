@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { notFound, useParams, useRouter } from 'next/navigation';
-import { User, Loader, Camera, Gem, Award, ShieldCheck, BadgeCheck, Sparkles, Globe2, HeartHandshake } from 'lucide-react';
+import { User, Loader, Camera, Gem, Award, ShieldCheck, BadgeCheck, Sparkles, Globe2, HeartHandshake, Layout } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { useProfilePictureUpload } from '@/hooks/use-profile-picture-upload';
