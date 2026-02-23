@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 
 /**
  * Explore Rooms Page - Yari Elite Edition.
- * Now features functional Mine vs Popular filtering.
+ * Now features functional Mine vs Popular filtering and high-fidelity discovery grid.
  */
 export default function RoomsPage() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -37,7 +37,7 @@ export default function RoomsPage() {
 
   const filteredRooms = useMemo(() => {
     if (!roomsData) return [];
-    let rooms = roomsData;
+    let rooms = [...roomsData];
     
     if (filterType === 'mine' && user) {
       rooms = rooms.filter((r: any) => r.ownerId === user.uid);
@@ -52,7 +52,7 @@ export default function RoomsPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-[#F8F8F8] -m-4 md:m-0">
+      <div className="min-h-screen bg-[#F8F8F8]">
         {/* Yari High-Energy Header */}
         <header className="bg-gradient-to-b from-[#FFF5A5] to-[#FFFFFF] px-4 pt-10 pb-4 shadow-sm sticky top-0 z-50">
           <div className="flex items-center justify-between mb-4">
@@ -126,7 +126,7 @@ export default function RoomsPage() {
             </Link>
             
             <Link href="/match" className="relative h-28 rounded-2xl bg-gradient-to-br from-[#FF69B4] to-[#FF1493] p-3 shadow-md hover:scale-[1.02] transition-transform group overflow-hidden border border-pink-300">
-               <span className="text-white font-black text-sm uppercase tracking-tight relative z-10">CP</span>
+               <span className="text-white font-black text-sm uppercase tracking-tight relative z-10">CP Match</span>
                <div className="absolute inset-0 flex items-center justify-center opacity-40">
                   <Heart className="h-16 w-16 text-white" />
                </div>
@@ -174,7 +174,7 @@ export default function RoomsPage() {
               <Loader className="animate-spin text-primary" />
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-3 gap-y-6 pb-32">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-6 pb-12">
               {filteredRooms.length > 0 ? (
                 filteredRooms.map((room: any) => (
                   <ChatRoomCard key={room.id} room={room} variant="modern" />

@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirestore, useDoc, useUser, useUserProfile, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { doc, setDoc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch } from 'firebase/firestore';
-import { Settings, Shield, Loader, Search, ClipboardList, TrendingUp, AlertTriangle, Trash2, RefreshCw } from 'lucide-react';
+import { Shield, Loader, Search, ClipboardList, TrendingUp, AlertTriangle, Trash2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,7 +18,7 @@ import { format } from 'date-fns';
 
 /**
  * Enterprise Admin Control Panel.
- * Featuring the "Nuclear" option to remove all rooms.
+ * Featuring the "Nuclear" option to remove all rooms and reset sequential IDs.
  */
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -59,9 +59,7 @@ export default function AdminPage() {
         details,
         createdAt: serverTimestamp()
       });
-    } catch (e) {
-      console.warn("Audit logging failed:", e);
-    }
+    } catch (e) {}
   };
 
   const handleSearchUsers = async () => {
@@ -75,11 +73,7 @@ export default function AdminPage() {
         limit(5)
       );
       const snap = await getDocs(q);
-      const users = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-      setFoundUsers(users);
-      if (users.length === 0) toast({ title: 'No users found' });
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Search failed' });
+      setFoundUsers(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     } finally {
       setIsSearching(false);
     }
@@ -91,55 +85,26 @@ export default function AdminPage() {
     try {
       const userRef = doc(firestore, 'users', targetUserId);
       const profileRef = doc(firestore, 'users', targetUserId, 'profile', targetUserId);
-      
-      const updateData = {
-        [`wallet.${type}`]: increment(amount),
-        updatedAt: serverTimestamp()
-      };
-      
+      const updateData = { [`wallet.${type}`]: increment(amount), updatedAt: serverTimestamp() };
       updateDocumentNonBlocking(userRef, updateData);
       updateDocumentNonBlocking(profileRef, updateData);
-
       await logAdminAction(`Adjust ${type}`, targetUserId, { amount });
-      
       toast({ title: 'Balance Adjusted', description: `${amount} ${type} processed.` });
-      setTimeout(() => handleSearchUsers(), 500); 
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Action failed' });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const toggleGlobalConfig = async (field: string, value: boolean) => {
-    if (!firestore || !configRef) return;
-    setIsSaving(true);
-    try {
-      await setDoc(configRef, { [field]: value }, { merge: true });
-      await logAdminAction('Toggle Config', 'global', { field, value });
-      toast({ title: 'System Updated', description: `${field} is now ${value ? 'enabled' : 'disabled'}.` });
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Update failed' });
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleClearAllRooms = async () => {
-    if (!firestore || !user || !isAdmin) return;
+    if (!firestore || !isAdmin) return;
     setIsSaving(true);
     try {
       const snap = await getDocs(collection(firestore, 'chatRooms'));
       const batch = writeBatch(firestore);
-      snap.docs.forEach(d => {
-        // Keep the official help room if needed, or wipe everything
-        batch.delete(d.ref);
-      });
+      snap.docs.forEach(d => batch.delete(d.ref));
       await batch.commit();
       await logAdminAction('Wipe All Rooms', 'collection/chatRooms', { count: snap.size });
-      toast({ title: 'All Frequencies Terminated', description: `${snap.size} rooms removed.` });
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Wipe failed' });
+      toast({ title: 'All Frequencies Terminated' });
     } finally {
       setIsSaving(false);
     }
@@ -152,131 +117,63 @@ export default function AdminPage() {
       const countersRef = doc(firestore, 'appConfig', 'counters');
       await setDoc(countersRef, { roomCounter: 0, userCounter: 1000 }, { merge: true });
       await logAdminAction('Reset Counters', 'config/counters', {});
-      toast({ title: 'System Counters Reset', description: 'Sequential IDs will start from baseline.' });
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Reset failed' });
+      toast({ title: 'System Counters Reset', description: 'IDs will restart from baseline.' });
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (isProfileLoading) return <AppLayout><div className="flex h-[50vh] items-center justify-center"><Loader className="animate-spin" /></div></AppLayout>;
-
-  if (!isAdmin) {
-    return (
-      <AppLayout>
-        <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-          <Shield className="h-16 w-16 text-destructive mb-4" />
-          <h1 className="text-2xl font-bold">Unauthorized Access</h1>
-          <p className="text-muted-foreground">Only the App Owner/Official can access this enterprise panel.</p>
-        </div>
-      </AppLayout>
-    );
-  }
+  if (!isAdmin) return <AppLayout><div className="flex h-[50vh] items-center justify-center text-destructive"><Shield className="h-12 w-12 mr-2" /> Unauthorized</div></AppLayout>;
 
   return (
     <AppLayout>
-      <div className="space-y-8 max-w-6xl mx-auto animate-in fade-in duration-700">
+      <div className="space-y-8 max-w-6xl mx-auto p-4 animate-in fade-in duration-700">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
           <div className="flex items-center gap-4">
-             <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20">
-                <Shield className="h-8 w-8 text-white" />
-             </div>
+             <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20"><Shield className="h-8 w-8 text-white" /></div>
              <div>
-                <h1 className="text-4xl font-bold font-headline uppercase tracking-tighter italic">Ummy Command Center</h1>
-                <p className="text-muted-foreground font-body text-lg">System-wide authority and audit oversight.</p>
+                <h1 className="text-4xl font-bold uppercase italic tracking-tighter">Ummy Command Center</h1>
+                <p className="text-muted-foreground">System-wide authority and audit oversight.</p>
              </div>
-          </div>
-          <div className="flex gap-2">
-             <Badge variant="outline" className="px-4 py-1 border-primary text-primary font-black uppercase tracking-widest">Enterprise Mode</Badge>
-             <Badge className="bg-green-500 hover:bg-green-600 text-white font-black uppercase tracking-widest">Live Sync</Badge>
           </div>
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="bg-secondary/50 p-1.5 h-14 rounded-full border border-white/50 w-fit">
-            <TabsTrigger value="overview" className="rounded-full px-8 font-black uppercase tracking-widest text-xs">Overview</TabsTrigger>
-            <TabsTrigger value="users" className="rounded-full px-8 font-black uppercase tracking-widest text-xs">Users</TabsTrigger>
-            <TabsTrigger value="config" className="rounded-full px-8 font-black uppercase tracking-widest text-xs">Global Config</TabsTrigger>
-            <TabsTrigger value="logs" className="rounded-full px-8 font-black uppercase tracking-widest text-xs">Audit Logs</TabsTrigger>
+          <TabsList className="bg-secondary/50 p-1 h-12 rounded-full border w-fit">
+            <TabsTrigger value="overview" className="rounded-full px-6 font-black uppercase text-[10px]">Overview</TabsTrigger>
+            <TabsTrigger value="users" className="rounded-full px-6 font-black uppercase text-[10px]">Users</TabsTrigger>
+            <TabsTrigger value="config" className="rounded-full px-6 font-black uppercase text-[10px]">Config</TabsTrigger>
+            <TabsTrigger value="logs" className="rounded-full px-6 font-black uppercase text-[10px]">Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20">
-                   <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Economy Status</CardTitle>
-                   </CardHeader>
-                   <CardContent>
-                      <p className="text-3xl font-black uppercase italic">{config?.economyEnabled ? 'Active' : 'Paused'}</p>
-                   </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20">
-                   <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Maintenance</CardTitle>
-                   </CardHeader>
-                   <CardContent>
-                      <p className="text-3xl font-black uppercase italic text-blue-500">{config?.maintenanceMode ? 'ON' : 'OFF'}</p>
-                   </CardContent>
-                </Card>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Economy Status</CardTitle></CardHeader><CardContent><p className="text-3xl font-black uppercase italic">{config?.economyEnabled ? 'Active' : 'Paused'}</p></CardContent></Card>
+                <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Health</CardTitle></CardHeader><CardContent><div className="flex items-center gap-2 text-green-500 font-black uppercase italic"><TrendingUp className="h-5 w-5" /> Normal Frequency</div></CardContent></Card>
              </div>
-             
-             <Card>
-                <CardHeader>
-                   <CardTitle className="font-headline uppercase italic">System Health</CardTitle>
-                </CardHeader>
-                <CardContent className="h-64 flex items-center justify-center bg-muted/20 rounded-xl">
-                   <div className="text-center opacity-30">
-                      <TrendingUp className="h-12 w-12 mx-auto mb-2" />
-                      <p className="font-black uppercase tracking-widest text-xs">Real-time Analytics Syncing...</p>
-                   </div>
-                </CardContent>
-             </Card>
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
-             <Card className="border-none shadow-xl rounded-[2.5rem]">
-                <CardHeader>
-                   <CardTitle className="font-headline text-2xl uppercase italic">User Authority Panel</CardTitle>
-                   <CardDescription>Search for any user to adjust coins, diamonds, or roles.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
+             <Card className="rounded-[2rem] border-none shadow-xl">
+                <CardContent className="pt-6 space-y-6">
                    <div className="flex gap-4">
                       <div className="relative flex-1">
                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                         <Input 
-                            placeholder="Search by username..." 
-                            className="pl-10 h-12 rounded-xl"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearchUsers()}
-                         />
+                         <Input placeholder="Search username..." className="pl-10 h-12 rounded-xl" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearchUsers()} />
                       </div>
-                      <Button onClick={handleSearchUsers} className="h-12 rounded-xl px-8" disabled={isSearching}>
-                         {isSearching ? <Loader className="animate-spin" /> : 'Find User'}
-                      </Button>
+                      <Button onClick={handleSearchUsers} className="h-12 rounded-xl" disabled={isSearching}>{isSearching ? <Loader className="animate-spin" /> : 'Find'}</Button>
                    </div>
-
                    <div className="space-y-4">
                       {foundUsers.map((u) => (
-                        <div key={u.id} className="p-6 bg-secondary/20 rounded-3xl border border-white/5 flex flex-col md:flex-row items-center gap-6">
-                           <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
-                              <AvatarImage src={u.avatarUrl} />
-                              <AvatarFallback>{u.username?.charAt(0)}</AvatarFallback>
-                           </Avatar>
-                           <div className="flex-1 text-center md:text-left">
-                              <p className="text-xl font-black uppercase italic">{u.username || 'User'}</p>
-                              <p className="text-xs text-muted-foreground font-mono">ID: {u.specialId || u.id}</p>
-                              <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-2">
-                                 <Badge className="bg-primary/20 text-primary border-none">Coins: {u.wallet?.coins || 0}</Badge>
-                                 <Badge className="bg-blue-500/20 text-blue-500 border-none">Diamonds: {u.wallet?.diamonds || 0}</Badge>
-                              </div>
+                        <div key={u.id} className="p-4 bg-muted/20 rounded-2xl border flex items-center gap-4">
+                           <Avatar className="h-12 w-12 border-2 border-white"><AvatarImage src={u.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar>
+                           <div className="flex-1">
+                              <p className="font-black text-sm uppercase italic">{u.username}</p>
+                              <p className="text-[10px] text-muted-foreground">ID: {u.specialId}</p>
                            </div>
-                           <div className="grid grid-cols-2 gap-2">
-                              <Button variant="outline" size="sm" onClick={() => adjustBalance(u.id, 'coins', 1000)} className="rounded-full">+1k Coins</Button>
-                              <Button variant="outline" size="sm" onClick={() => adjustBalance(u.id, 'coins', -1000)} className="rounded-full text-destructive">-1k Coins</Button>
-                              <Button variant="outline" size="sm" onClick={() => adjustBalance(u.id, 'diamonds', 100)} className="rounded-full">+100 Dia</Button>
-                              <Button variant="outline" size="sm" onClick={() => adjustBalance(u.id, 'diamonds', -100)} className="rounded-full text-destructive">-100 Dia</Button>
+                           <div className="flex gap-2">
+                              <Button variant="outline" size="sm" onClick={() => adjustBalance(u.id, 'coins', 1000)} className="rounded-full h-8 text-[10px]">+1k</Button>
+                              <Button variant="outline" size="sm" onClick={() => adjustBalance(u.id, 'diamonds', 100)} className="rounded-full h-8 text-[10px]">+100</Button>
                            </div>
                         </div>
                       ))}
@@ -287,95 +184,29 @@ export default function AdminPage() {
 
           <TabsContent value="config" className="space-y-6">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="rounded-[2.5rem] border-none shadow-xl">
-                   <CardHeader>
-                      <CardTitle className="font-headline uppercase italic">System Toggles</CardTitle>
-                   </CardHeader>
-                   <CardContent className="space-y-6">
-                      <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl">
-                         <div>
-                            <Label className="text-lg font-black uppercase italic">Economy Engine</Label>
-                            <p className="text-xs text-muted-foreground">Disable all coin spending/earning.</p>
-                         </div>
-                         <Switch 
-                            checked={config?.economyEnabled ?? true} 
-                            onCheckedChange={(val) => toggleGlobalConfig('economyEnabled', val)}
-                         />
-                      </div>
-                      <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl">
-                         <div>
-                            <Label className="text-lg font-black uppercase italic">Maintenance Mode</Label>
-                            <p className="text-xs text-muted-foreground">Only Admins/Officials can login.</p>
-                         </div>
-                         <Switch 
-                            checked={config?.maintenanceMode ?? false} 
-                            onCheckedChange={(val) => toggleGlobalConfig('maintenanceMode', val)}
-                         />
+                <Card className="rounded-[2rem] border-none shadow-xl">
+                   <CardHeader><CardTitle className="font-headline uppercase italic">System Toggles</CardTitle></CardHeader>
+                   <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl">
+                         <div><Label className="font-black uppercase italic">Economy Engine</Label><p className="text-[10px] text-muted-foreground">Toggle coin spending.</p></div>
+                         <Switch checked={config?.economyEnabled ?? true} onCheckedChange={(val) => setDoc(configRef!, { economyEnabled: val }, { merge: true })} />
                       </div>
                    </CardContent>
                 </Card>
-
-                <Card className="rounded-[2.5rem] border-none shadow-xl">
-                   <CardHeader>
-                      <CardTitle className="font-headline uppercase italic text-destructive flex items-center gap-2">
-                         <AlertTriangle className="h-5 w-5" /> Danger Zone
-                      </CardTitle>
-                   </CardHeader>
+                <Card className="rounded-[2rem] border-none shadow-xl">
+                   <CardHeader><CardTitle className="font-headline uppercase italic text-destructive">Danger Zone</CardTitle></CardHeader>
                    <CardContent className="space-y-4">
-                      <Button 
-                        variant="destructive" 
-                        className="w-full rounded-2xl h-14 font-black uppercase tracking-widest italic"
-                        disabled={isSaving}
-                        onClick={handleClearAllRooms}
-                      >
-                        <Trash2 className="mr-2 h-5 w-5" /> Terminate All Frequencies
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full rounded-2xl h-14 font-black uppercase tracking-widest italic border-destructive text-destructive hover:bg-destructive/5"
-                        disabled={isSaving}
-                        onClick={handleResetCounters}
-                      >
-                        <RefreshCw className="mr-2 h-5 w-5" /> Reset ID Counters
-                      </Button>
+                      <Button variant="destructive" className="w-full rounded-xl font-black uppercase italic" disabled={isSaving} onClick={handleClearAllRooms}><Trash2 className="mr-2 h-4 w-4" /> Wipe All Rooms</Button>
+                      <Button variant="outline" className="w-full rounded-xl font-black uppercase italic border-destructive text-destructive" disabled={isSaving} onClick={handleResetCounters}><RefreshCw className="mr-2 h-4 w-4" /> Reset ID Sequence</Button>
                    </CardContent>
                 </Card>
              </div>
           </TabsContent>
 
           <TabsContent value="logs">
-             <Card className="border-none shadow-xl rounded-[2.5rem]">
-                <CardHeader>
-                   <CardTitle className="font-headline text-2xl uppercase italic flex items-center gap-2">
-                      <ClipboardList className="h-6 w-6" /> System Audit Logs
-                   </CardTitle>
-                   <CardDescription>Comprehensive trail of all administrative actions.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                   <div className="space-y-2">
-                      {logs?.map((log: any) => (
-                        <div key={log.id} className="p-4 bg-muted/10 rounded-2xl border border-gray-100 flex items-center justify-between group hover:bg-muted/20 transition-all">
-                           <div className="flex items-center gap-4">
-                              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black italic">
-                                 {log.adminName?.charAt(0)}
-                              </div>
-                              <div>
-                                 <p className="text-sm font-black uppercase italic">{log.action}</p>
-                                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                                    Admin: {log.adminName} • Target ID: {log.targetId?.substring(0, 8)}...
-                                 </p>
-                              </div>
-                           </div>
-                           <div className="text-right">
-                              <p className="text-[10px] font-mono text-muted-foreground">
-                                 {log.createdAt ? format(log.createdAt.toDate(), 'HH:mm:ss • MMM dd') : 'Syncing...'}
-                              </p>
-                              <Badge variant="outline" className="text-[8px] font-bold uppercase border-gray-200">Success</Badge>
-                           </div>
-                        </div>
-                      ))}
-                   </div>
-                </CardContent>
+             <Card className="border-none shadow-xl rounded-[2rem]">
+                <CardHeader><CardTitle className="font-headline text-2xl uppercase italic flex items-center gap-2"><ClipboardList className="h-6 w-6" /> Audit Logs</CardTitle></CardHeader>
+                <CardContent><div className="space-y-2">{logs?.map((log: any) => (<div key={log.id} className="p-3 bg-muted/10 rounded-xl border flex items-center justify-between"><div className="flex-1"><p className="text-xs font-black uppercase italic">{log.action}</p><p className="text-[8px] text-muted-foreground">Admin: {log.adminName}</p></div><p className="text-[8px] opacity-50">{log.createdAt ? format(log.createdAt.toDate(), 'HH:mm') : '...'}</p></div>))}</div></CardContent>
              </Card>
           </TabsContent>
         </Tabs>

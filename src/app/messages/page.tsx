@@ -2,15 +2,13 @@
 
 import { AppLayout } from '@/components/layout/app-layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, MessageCircle, UserPlus, Star, ShieldCheck, ChevronRight, Search } from 'lucide-react';
 import { useUser, useUserProfile } from '@/firebase';
-import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { UmmyLogoIcon } from '@/components/icons';
 
 /**
- * Message Center - High-fidelity Inbox.
+ * Message Center - High-fidelity Elite Inbox.
  */
 export default function MessagesPage() {
   const { user } = useUser();
@@ -20,7 +18,7 @@ export default function MessagesPage() {
     {
       id: 'system-1',
       title: 'Welcome to Ummy Official!',
-      content: 'Your Tribe Frequency is now online. Join the Official Hub for support.',
+      content: 'Your Tribe Frequency is now online. Join the Official Hub for team support.',
       time: 'Just now',
       isOfficial: true,
     }
@@ -28,7 +26,7 @@ export default function MessagesPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-700">
+      <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-700 p-4">
         <header className="flex items-center justify-between">
           <h1 className="text-4xl font-black uppercase italic tracking-tighter">Messages</h1>
           <div className="flex gap-2">
@@ -37,7 +35,6 @@ export default function MessagesPage() {
           </div>
         </header>
 
-        {/* Quick Links */}
         <div className="grid grid-cols-4 gap-4">
            <div className="flex flex-col items-center gap-2 group cursor-pointer">
               <div className="h-14 w-14 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">

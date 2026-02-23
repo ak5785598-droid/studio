@@ -16,7 +16,6 @@ import {
   Globe, 
   MessageSquare, 
   Settings as SettingsIcon, 
-  Wallet, 
   Shirt, 
   Sparkles, 
   Store, 
@@ -55,9 +54,8 @@ const MenuItem = ({ icon: Icon, label, href, extra, iconColor, onClick, router }
 );
 
 /**
- * Premium Me Center / Profile Page.
- * Displays unique sequential User IDs (starting 1001).
- * Optimized sub-component structure for performance.
+ * Me Center / Profile Page.
+ * Displays sequential Tribe ID (starting 1001) and premium assets.
  */
 export default function ProfilePage() {
   const params = useParams();
@@ -77,10 +75,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!isAuthLoading && !currentUser) router.replace('/login');
   }, [currentUser, isAuthLoading, router]);
-
-  useEffect(() => {
-    if (!isUploading) setLocalAvatarPreview(null);
-  }, [isUploading]);
 
   const isOwnProfile = currentUser?.uid === profileId;
 
@@ -107,21 +101,12 @@ export default function ProfilePage() {
     toast({ title: 'Top-up Successful!', description: '1,000 Beta Coins added.' });
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) return;
-      setLocalAvatarPreview(URL.createObjectURL(file));
-      uploadProfilePicture(file);
-    }
-  };
-
   if (isAuthLoading || (isProfileLoading && !profile)) {
     return (
       <AppLayout>
         <div className="flex h-[60vh] w-full flex-col items-center justify-center space-y-4">
           <Loader className="animate-spin text-primary h-10 w-10" />
-          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Synchronizing Identity...</p>
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Synchronizing Identity...</p>
         </div>
       </AppLayout>
     );
@@ -143,23 +128,17 @@ export default function ProfilePage() {
            </button>
         </div>
 
-        {/* Identity Section */}
         <div className="relative bg-white pb-6 rounded-b-[3rem] shadow-sm overflow-hidden">
           <div className="relative h-44 w-full">
-            <Image 
-              src={profile.coverUrl || "https://images.unsplash.com/photo-1501785888041-af3ef285b470"} 
-              alt="Banner" 
-              fill 
-              className="object-cover" 
-            />
+            <Image src={profile.coverUrl || "https://images.unsplash.com/photo-1501785888041-af3ef285b470"} alt="Banner" fill className="object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
           </div>
           <div className="px-6 -mt-12 flex items-end gap-4 relative z-10">
             <div className="relative group shrink-0">
               <AvatarFrame frameId={profile.inventory?.activeFrame} size="xl">
-                <Avatar className="h-28 w-28 border-4 border-white shadow-xl cursor-pointer ring-4 ring-primary/5">
+                <Avatar className="h-28 w-28 border-4 border-white shadow-xl">
                   <AvatarImage src={localAvatarPreview || profile.avatarUrl} />
-                  <AvatarFallback className="text-4xl font-black bg-secondary">{(profile.username || 'U').charAt(0)}</AvatarFallback>
+                  <AvatarFallback className="text-4xl font-black">{(profile.username || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
               </AvatarFrame>
               {isOwnProfile && (
@@ -174,37 +153,20 @@ export default function ProfilePage() {
             <div className="pb-2 flex-1">
                <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">{profile.username}</h1>
-                  {profile.tags?.includes('Official') && (
-                    <div className="bg-primary p-1 rounded-sm shadow-sm ring-1 ring-white">
-                       <Sparkles className="h-3 w-3 text-white" />
-                    </div>
-                  )}
+                  {profile.tags?.includes('Official') && <Sparkles className="h-4 w-4 text-primary" />}
                </div>
                <div className="flex items-center gap-3 mt-1">
                   <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-secondary/50 px-2 py-0.5 rounded">ID: {profile.specialId || '----'}</span>
-                  {isOwnProfile ? (
-                    <EditProfileDialog profile={profile} />
-                  ) : (
-                    <p className="text-xs text-muted-foreground italic line-clamp-1">{profile.bio || 'Vibing on the frequency!'}</p>
-                  )}
+                  {isOwnProfile ? <EditProfileDialog profile={profile} /> : <p className="text-xs text-muted-foreground italic line-clamp-1">{profile.bio}</p>}
                </div>
             </div>
           </div>
         </div>
 
-        {/* Vault & Rankings */}
         <div className="px-4 space-y-3">
           <h2 className="text-sm font-black uppercase tracking-widest px-2 font-headline text-gray-400">Vault & Identity</h2>
           <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
-            <MenuItem 
-              icon={Gem} 
-              label="Gold Coins" 
-              extra={(profile.wallet?.coins || 0).toLocaleString()} 
-              href={isOwnProfile ? "/settings" : undefined}
-              iconColor="text-yellow-500"
-              router={router}
-            />
-            
+            <MenuItem icon={Gem} label="Gold Coins" extra={(profile.wallet?.coins || 0).toLocaleString()} iconColor="text-yellow-500" router={router} />
             {isOwnProfile && (
               <div className="px-6 py-3 bg-primary/5">
                  <Button variant="outline" size="sm" className="w-full rounded-2xl border-dashed border-2 border-primary/30 hover:bg-primary/10 text-primary font-black uppercase italic" onClick={handleTestTopUp}>
@@ -212,40 +174,13 @@ export default function ProfilePage() {
                  </Button>
               </div>
             )}
-
-            <MenuItem 
-              icon={Sparkles} 
-              label="Blue Diamonds" 
-              extra={(profile.wallet?.diamonds || 0).toLocaleString()} 
-              iconColor="text-blue-500" 
-              router={router}
-            />
-            <MenuItem 
-              icon={Store} 
-              label="Ummy Boutique" 
-              href="/store" 
-              iconColor="text-orange-500" 
-              router={router}
-            />
-            <MenuItem 
-              icon={Trophy} 
-              label="Tribe Level" 
-              href="/leaderboard" 
-              extra={`Level ${profile.level?.rich || 1}`}
-              iconColor="text-yellow-600" 
-              router={router}
-            />
-            <MenuItem 
-              icon={Shirt} 
-              label={isOwnProfile ? "My Assets" : "Collection"} 
-              href="/store" 
-              iconColor="text-cyan-500" 
-              router={router}
-            />
+            <MenuItem icon={Sparkles} label="Blue Diamonds" extra={(profile.wallet?.diamonds || 0).toLocaleString()} iconColor="text-blue-500" router={router} />
+            <MenuItem icon={Store} label="Ummy Boutique" href="/store" iconColor="text-orange-500" router={router} />
+            <MenuItem icon={Trophy} label="Tribe Level" href="/leaderboard" extra={`Level ${profile.level?.rich || 1}`} iconColor="text-yellow-600" router={router} />
+            <MenuItem icon={Shirt} label={isOwnProfile ? "My Assets" : "Collection"} href="/store" iconColor="text-cyan-500" router={router} />
           </Card>
         </div>
 
-        {/* Secondary Navigation */}
         <div className="px-4 space-y-3">
           <h2 className="text-sm font-black uppercase tracking-widest px-2 font-headline text-gray-400">Community</h2>
           <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
@@ -263,7 +198,13 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
-      <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+      <input type="file" ref={fileInputRef} onChange={(e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          setLocalAvatarPreview(URL.createObjectURL(file));
+          uploadProfilePicture(file);
+        }
+      }} className="hidden" accept="image/*" />
     </AppLayout>
   );
 }

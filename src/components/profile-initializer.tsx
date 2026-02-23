@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 /**
  * Ensures a user profile exists in Firestore after login.
  * Assigns a unique sequential numeric ID (starting from 1001).
+ * Synchronizes identity across root summary and detailed profile.
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -29,7 +30,7 @@ export function ProfileInitializer() {
         hasInitialized.current = profileId;
 
         if (!profileSnap.exists()) {
-          // Use transaction to get and increment the user ID counter
+          // Use transaction to get and increment the user ID counter starting at 1001
           const finalData = await runTransaction(firestore, async (transaction) => {
             const countersSnap = await transaction.get(countersRef);
             let nextUserId = 1001;
@@ -46,7 +47,7 @@ export function ProfileInitializer() {
               username: user.displayName || `Ummy_${profileId.substring(0, 5)}`,
               avatarUrl: user.photoURL || `https://picsum.photos/seed/${profileId}/400`,
               email: user.email || '',
-              bio: 'Vibing on Ummy! Join my tribe.',
+              bio: 'Vibing on the Ummy frequency! Join my tribe.',
               wallet: { 
                 coins: 1500, 
                 diamonds: 0,
@@ -71,7 +72,7 @@ export function ProfileInitializer() {
           // Background sync for detailed profile
           await setDoc(profileRef, finalData, { merge: true });
           
-          // Background sync for user summary - REQUIRED for Security Rules
+          // Background sync for user summary - REQUIRED for Security Rules & Global Rankings
           await setDoc(userRef, {
             id: profileId,
             specialId: finalData.specialId,

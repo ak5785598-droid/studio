@@ -16,7 +16,6 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Logo } from "@/components/logo";
 import { useUser, useAuth } from "@/firebase";
 import { UmmyLogoIcon, GameControllerIcon } from "../icons";
 import { signOut } from "firebase/auth";
@@ -79,7 +78,12 @@ export function AppLayout({
       <div className="flex min-h-screen w-full bg-background font-headline overflow-hidden relative">
         <Sidebar className="hidden md:flex">
           <SidebarHeader>
-            <Logo />
+            <div className="flex items-center gap-2 p-2" aria-label="Ummy Home">
+              <UmmyLogoIcon className="h-7 w-7"/>
+              <span className="font-headline text-2xl font-bold tracking-tight text-foreground">
+                Ummy
+              </span>
+            </div>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
@@ -135,7 +139,7 @@ export function AppLayout({
 
         <div className="flex flex-1 flex-col overflow-hidden relative">
           <SidebarInset className="bg-background">
-            <main className="flex-1 overflow-y-auto p-4 md:p-12 pb-28 md:pb-12 h-screen">
+            <main className="flex-1 overflow-y-auto h-screen pb-28 md:pb-4">
               {children}
             </main>
           </SidebarInset>
@@ -143,7 +147,7 @@ export function AppLayout({
           {/* Floating Minimized Room Bar */}
           <FloatingRoomBar />
 
-          {/* Bottom Mobile Navigation - Yari Style */}
+          {/* Bottom Mobile Navigation - Yari Elite Style */}
           {!hideSidebarOnMobile && (
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-2 flex justify-between items-center z-[70] rounded-t-[2.5rem] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] h-20">
               {navItems.map((item) => {
@@ -173,7 +177,6 @@ export function AppLayout({
                       ) : (
                         <div className="relative">
                            <item.icon className={cn("h-7 w-7", active ? "stroke-[3px]" : "stroke-2")} />
-                           {/* Badge removed as requested */}
                         </div>
                       )}
                     </div>

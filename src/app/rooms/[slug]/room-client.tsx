@@ -9,8 +9,6 @@ import {
   Lock,
   Unlock,
   Loader,
-  MoreVertical,
-  UserX,
   Gift as GiftIcon,
   Users,
   Crown,
@@ -20,18 +18,14 @@ import {
   Trash2,
   LogOut,
   UserPlus,
-  Heart,
-  Star,
   Zap,
-  Sparkles,
   Megaphone,
   UserCheck,
   Ban,
-  ShieldCheck,
   ChevronDown,
   AlertTriangle,
 } from 'lucide-react';
-import type { Room, RoomParticipant, Gift, Message } from '@/lib/types';
+import type { Room, RoomParticipant, Gift } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,7 +43,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
@@ -81,13 +74,11 @@ import {
   orderBy, 
   limitToLast, 
   doc, 
-  setDoc, 
-  deleteDoc,
-  arrayUnion,
-  arrayRemove,
   increment,
   writeBatch,
   getDocs,
+  arrayUnion,
+  arrayRemove
 } from 'firebase/firestore';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { useRouter } from 'next/navigation';
@@ -104,8 +95,8 @@ const AVAILABLE_GIFTS: Gift[] = [
 ];
 
 /**
- * Room Client - Elite Voice App Edition.
- * Now featuring Room Deletion for Master/Admin.
+ * Room Client - Elite "Yari" Edition.
+ * Features full Admin controls, Sequential ID display, and Background Minimization support.
  */
 export function RoomClient({ room }: { room: Room }) {
   const [isMicOn, setIsMicOn] = useState(false);
@@ -142,18 +133,6 @@ export function RoomClient({ room }: { room: Room }) {
   const currentUserParticipant = participants?.find(p => p.uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
 
-  // Listen for room existence - if it's gone, boot users
-  const roomRef = useMemoFirebase(() => {
-    if (!firestore || !room.id) return null;
-    return doc(firestore, 'chatRooms', room.id);
-  }, [firestore, room.id]);
-
-  useEffect(() => {
-    if (!firestore || !room.id) return;
-    // We already have a useDoc in page.tsx that might handle this, 
-    // but we can add a simple listener here too for instant redirect.
-  }, [firestore, room.id]);
-
   // Messages Sync
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !room.id || !currentUser) return null;
@@ -175,6 +154,12 @@ export function RoomClient({ room }: { room: Room }) {
       user: { id: m.senderId, name: m.senderName || 'User', avatarUrl: m.senderAvatar || '' }
     })) || [];
   }, [firestoreMessages]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [activeMessages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,7 +188,7 @@ export function RoomClient({ room }: { room: Room }) {
 
     const userRef = doc(firestore, 'users', currentUser.uid);
     const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
-    const roomRef = doc(firestore, 'chatRooms', room.id);
+    const roomDocRef = doc(firestore, 'chatRooms', room.id);
     
     const walletUpdates = {
       wallet: {
@@ -216,7 +201,7 @@ export function RoomClient({ room }: { room: Room }) {
     setDocumentNonBlocking(userRef, walletUpdates, { merge: true });
     setDocumentNonBlocking(profileRef, walletUpdates, { merge: true });
 
-    updateDocumentNonBlocking(roomRef, { stats: { totalGifts: increment(gift.price) }, updatedAt: serverTimestamp() });
+    updateDocumentNonBlocking(roomDocRef, { stats: { totalGifts: increment(gift.price) }, updatedAt: serverTimestamp() });
 
     let finalRecipient = giftRecipient;
     if (!finalRecipient) {
@@ -261,22 +246,16 @@ export function RoomClient({ room }: { room: Room }) {
     if (!firestore || !room.id || (!isOwner && !isGlobalAdmin)) return;
     setIsDeleting(true);
     try {
-      // 1. Delete all participants to boot them
       const participantsSnap = await getDocs(collection(firestore, 'chatRooms', room.id, 'participants'));
       const batch = writeBatch(firestore);
       participantsSnap.docs.forEach(d => batch.delete(d.ref));
-      
-      // 2. Delete the room document
-      const roomDocRef = doc(firestore, 'chatRooms', room.id);
-      batch.delete(roomDocRef);
-      
+      batch.delete(doc(firestore, 'chatRooms', room.id));
       await batch.commit();
       
       toast({ title: 'Frequency Terminated', description: 'The tribe has been disbanded.' });
       setActiveRoom(null);
       router.push('/rooms');
     } catch (e) {
-      console.error(e);
       toast({ variant: 'destructive', title: 'Deletion Failed' });
     } finally {
       setIsDeleting(false);
@@ -328,7 +307,7 @@ export function RoomClient({ room }: { room: Room }) {
     }
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { 
       seatIndex: index,
-      isMuted: true // Re-mute when changing seats for safety
+      isMuted: true 
     });
   };
 
@@ -381,7 +360,7 @@ export function RoomClient({ room }: { room: Room }) {
 
       <header className="relative z-50 flex items-center justify-between p-6 pb-2">
         <div className="flex items-center gap-3">
-          <button onClick={minimizeRoom} className="bg-white/10 p-2 rounded-full mr-1 hover:bg-white/20">
+          <button onClick={minimizeRoom} className="bg-white/10 p-2 rounded-full mr-1 hover:bg-white/20 transition-all">
              <ChevronDown className="h-5 w-5" />
           </button>
           <Avatar className="h-12 w-12 rounded-xl border-2 border-primary/50 shadow-lg">
@@ -467,12 +446,12 @@ export function RoomClient({ room }: { room: Room }) {
                     <AlertDialogHeader>
                       <AlertDialogTitle className="text-2xl font-black uppercase italic">Terminate Frequency?</AlertDialogTitle>
                       <AlertDialogDescription className="text-muted-foreground font-body text-base">
-                        This will permanently delete the <strong>{room.title}</strong> tribe. All messages and current participants will be disconnected. This action cannot be undone.
+                        This will permanently delete the tribe. All messages and participants will be disconnected.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDeleteRoom} className="bg-destructive text-white rounded-full hover:bg-destructive/90">
+                      <AlertDialogAction onClick={handleDeleteRoom} className="bg-destructive text-white rounded-full">
                         {isDeleting ? <Loader className="animate-spin h-4 w-4" /> : 'Delete Permanently'}
                       </AlertDialogAction>
                     </AlertDialogFooter>

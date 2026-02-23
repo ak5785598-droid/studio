@@ -17,6 +17,7 @@ export type User = {
     sent?: number;
     followers?: number;
     fans?: number;
+    totalGifts?: number;
   };
   wallet?: {
     coins: number;
