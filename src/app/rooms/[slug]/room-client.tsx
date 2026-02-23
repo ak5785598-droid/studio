@@ -206,27 +206,31 @@ export function RoomClient({ room }: { room: Room }) {
     const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
     const roomRef = doc(firestore, 'chatRooms', room.id);
     
-    // Sync identity fields to summary doc to ensure leaderboard displays correct info
+    // Identity for synchronization
     const identitySync = {
       username: userProfile.username,
       avatarUrl: userProfile.avatarUrl,
       updatedAt: serverTimestamp()
     };
 
-    // Use setDocumentNonBlocking with merge: true for the root doc to ensure it exists and has identity info
+    // Sender updates: Use nested object structure for setDoc compatibility
     const walletUpdates = {
-      'wallet.coins': increment(-gift.price),
-      'wallet.totalSpent': increment(gift.price),
+      wallet: {
+        coins: increment(-gift.price),
+        totalSpent: increment(gift.price),
+      },
       ...identitySync
     };
 
     setDocumentNonBlocking(userRef, walletUpdates, { merge: true });
     setDocumentNonBlocking(profileRef, walletUpdates, { merge: true });
 
-    // Update Room Stats for the Room Leaderboard (using dot notation)
+    // Room Ranking update: Use nested object structure
     setDocumentNonBlocking(roomRef, {
-      'stats.totalGifts': increment(gift.price),
-      'updatedAt': serverTimestamp()
+      stats: {
+        totalGifts: increment(gift.price),
+      },
+      updatedAt: serverTimestamp()
     }, { merge: true });
 
     let finalRecipient = giftRecipient;
@@ -235,16 +239,19 @@ export function RoomClient({ room }: { room: Room }) {
       if (host) finalRecipient = { uid: host.uid, name: host.name, avatarUrl: host.avatarUrl };
     }
 
+    // Recipient updates (Charm Ranking)
     if (finalRecipient) {
       const recipientRef = doc(firestore, 'users', finalRecipient.uid);
       const recipientProfileRef = doc(firestore, 'users', finalRecipient.uid, 'profile', finalRecipient.uid);
       
-      // CRITICAL: Sync recipient identity info to root doc so they show up in Charm Rank correctly
+      // CRITICAL: Use nested object structure for stats.fans to ensure Firestore indexing
       const charmUpdates = {
-        'stats.fans': increment(gift.price),
-        'username': finalRecipient.name,
-        'avatarUrl': finalRecipient.avatarUrl || '',
-        'updatedAt': serverTimestamp()
+        stats: {
+          fans: increment(gift.price),
+        },
+        username: finalRecipient.name,
+        avatarUrl: finalRecipient.avatarUrl || '',
+        updatedAt: serverTimestamp()
       };
       
       setDocumentNonBlocking(recipientRef, charmUpdates, { merge: true });
