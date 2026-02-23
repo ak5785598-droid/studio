@@ -335,7 +335,8 @@ export function RoomClient({ room }: { room: Room }) {
                             </DropdownMenuItem>
                             {occupant && (
                                 <DropdownMenuItem onClick={() => {
-                                    const pRef = doc(firestore!, 'chatRooms', room.id, 'participants', occupant.uid);
+                                    if (!firestore) return;
+                                    const pRef = doc(firestore, 'chatRooms', room.id, 'participants', occupant.uid);
                                     updateDoc(pRef, { seatIndex: 0 });
                                 }} className="text-destructive focus:bg-destructive/10 h-11 cursor-pointer rounded-xl mx-1 mb-1">
                                     <UserX className="mr-3 h-4 w-4" /> <span className="font-bold text-xs uppercase tracking-widest">Kick to Sofa</span>

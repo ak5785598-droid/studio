@@ -19,6 +19,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   const firestore = useFirestore();
   const { user: currentUser, isLoading: isAuthLoading } = useUser();
   const [initStatus, setInitStatus] = useState<string>('Verifying Session...');
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
   // Redirect to login if auth check finishes and no user is found
   useEffect(() => {
@@ -38,6 +39,13 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   }, [firestore, slug, isAuthLoading, currentUser]);
 
   const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
+
+  // Track if we've actually seen the loading state for the current ref
+  useEffect(() => {
+    if (isDocLoading) {
+      setHasAttemptedFetch(true);
+    }
+  }, [isDocLoading]);
 
   // Auto-initialize Official Help Room if it doesn't exist
   useEffect(() => {
@@ -92,8 +100,11 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
      );
   }
 
-  // Final check for existence - only trigger if we definitely have a user and ref AND the fetch is done
-  if (currentUser && roomDocRef && !isDocLoading && !firestoreRoom && slug !== 'official-help-room') {
+  // Final check for existence - only trigger if we definitely have a user, a ref, the fetch is finished, AND we actually attempted a fetch
+  // This prevents the "premature 404" during the initial hydration/auth handshake
+  const isActuallyNotFound = !isAuthLoading && !!currentUser && !!roomDocRef && !isDocLoading && !firestoreRoom && hasAttemptedFetch;
+
+  if (isActuallyNotFound && slug !== 'official-help-room') {
     notFound();
   }
 
