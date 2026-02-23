@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { ChatRoomCard } from '@/components/chat-room-card';
-import { Search, Loader, Flame, Gamepad2, Music, Crown, Heart, Users, Home } from 'lucide-react';
+import { Search, Loader, Flame, Gamepad2, Music, Crown, Heart, Users, Home, BadgeCheck } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
@@ -10,10 +10,13 @@ import { collection, query, limit } from 'firebase/firestore';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 /**
  * Explore Rooms Page.
  * Vibrant Yari-style design with community banners and discovery grid.
+ * Added Official Room section for immediate support.
  */
 export default function RoomsPage() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -96,6 +99,33 @@ export default function RoomsPage() {
                <span className="text-white font-bold text-sm uppercase relative z-10">Family</span>
                <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-white/20 group-hover:scale-110 transition-transform" aria-hidden="true" />
             </div>
+          </div>
+
+          {/* Official Room Sticky Section */}
+          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+            <Link href="/rooms/official-help-room" className="block group">
+              <Card className="overflow-hidden border-2 border-blue-500/10 bg-gradient-to-r from-blue-50/50 to-white rounded-[2rem] shadow-sm hover:shadow-md transition-all">
+                <div className="flex items-center gap-4 p-4">
+                  <div className="relative h-14 w-14 shrink-0 rounded-2xl overflow-hidden border-2 border-white shadow-sm bg-blue-100 flex items-center justify-center">
+                    <BadgeCheck className="h-8 w-8 text-blue-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-black text-blue-700 uppercase italic tracking-tight truncate text-sm">Ummy Official Hub</h3>
+                      <BadgeCheck className="h-4 w-4 text-blue-500 shrink-0" />
+                    </div>
+                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest leading-none mt-1">Live Support & Community</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge className="bg-blue-500 text-white border-none text-[8px] font-black px-2 py-0 h-4">OFFICIAL</Badge>
+                    <div className="flex items-center gap-1 text-[10px] font-black text-blue-300">
+                      <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                      <span>Online</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </Link>
           </div>
 
           {/* Category Selector */}
