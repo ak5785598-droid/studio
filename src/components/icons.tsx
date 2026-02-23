@@ -5,39 +5,72 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
         {...props}
     >
         <defs>
-            <linearGradient id="teddyGradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="hsl(var(--primary))" />
+            <linearGradient id="micGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#d1d5db" />
+                <stop offset="50%" stopColor="#9ca3af" />
+                <stop offset="100%" stopColor="#4b5563" />
             </linearGradient>
-            <linearGradient id="earGradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--accent))" />
-                <stop offset="100%" stopColor="hsl(var(--primary))" />
+            <linearGradient id="fireGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#fbbf24" />
+                <stop offset="50%" stopColor="#f97316" />
+                <stop offset="100%" stopColor="#ef4444" />
             </linearGradient>
+            <linearGradient id="textGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#f472b6" />
+                <stop offset="100%" stopColor="#8b5cf6" />
+            </linearGradient>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
         </defs>
 
-        {/* Head */}
-        <circle cx="50" cy="50" r="35" fill="url(#teddyGradient)" />
+        {/* Flames Background */}
+        <path 
+            d="M50 10 Q60 25 55 35 Q75 20 70 45 Q85 35 80 60 Q50 75 20 60 Q15 35 30 45 Q25 20 45 35 Q40 25 50 10" 
+            fill="url(#fireGradient)"
+            filter="url(#glow)"
+        />
 
-        {/* Ears */}
-        <circle cx="25" cy="25" r="15" fill="url(#earGradient)" />
-        <circle cx="75" cy="25" r="15" fill="url(#earGradient)" />
+        {/* Equalizer Bars */}
+        <rect x="20" y="50" width="4" height="10" fill="#f472b6" opacity="0.6" />
+        <rect x="26" y="45" width="4" height="15" fill="#f472b6" opacity="0.8" />
+        <rect x="32" y="40" width="4" height="20" fill="#f472b6" />
+        <rect x="64" y="40" width="4" height="20" fill="#8b5cf6" />
+        <rect x="70" y="45" width="4" height="15" fill="#8b5cf6" opacity="0.8" />
+        <rect x="76" y="50" width="4" height="10" fill="#8b5cf6" opacity="0.6" />
+
+        {/* Lightning Bolts */}
+        <path d="M15 35 L25 45 L20 45 L30 55" stroke="#fbbf24" strokeWidth="2" fill="none" />
+        <path d="M85 35 L75 45 L80 45 L70 55" stroke="#fbbf24" strokeWidth="2" fill="none" />
+
+        {/* Microphone Body */}
+        <rect x="42" y="30" width="16" height="25" rx="8" fill="url(#micGradient)" stroke="#1f2937" strokeWidth="1" />
+        <path d="M42 42 H58" stroke="#1f2937" strokeWidth="0.5" />
+        <path d="M42 36 H58" stroke="#1f2937" strokeWidth="0.5" />
+        <path d="M42 48 H58" stroke="#1f2937" strokeWidth="0.5" />
         
-        {/* Inner Ears */}
-        <circle cx="28" cy="28" r="8" fill="url(#teddyGradient)" />
-        <circle cx="72" cy="28" r="8" fill="url(#teddyGradient)" />
-        
-        {/* Snout */}
-        <ellipse cx="50" cy="58" rx="20" ry="15" fill="#FFFFFF" fillOpacity="0.7" />
-        
-        {/* Nose */}
-        <path d="M 50 55 a 5 4 0 1 1 0.001 0" fill="hsl(var(--foreground))" opacity="0.8"/>
-        
-        {/* Eyes */}
-        <circle cx="40" cy="45" r="4" fill="hsl(var(--foreground))" opacity="0.9" />
-        <circle cx="60" cy="45" r="4" fill="hsl(var(--foreground))" opacity="0.9" />
-        
-        {/* Smile */}
-        <path d="M 45 65 Q 50 70 55 65" stroke="hsl(var(--foreground))" strokeOpacity="0.8" strokeWidth="2" fill="none" strokeLinecap="round"/>
+        {/* Mic Stand */}
+        <path d="M40 50 Q40 65 50 65 Q60 65 60 50" fill="none" stroke="#9ca3af" strokeWidth="2" />
+        <rect x="48" y="65" width="4" height="5" fill="#4b5563" />
+
+        {/* UMMY Shield/Text Base */}
+        <path d="M15 75 L85 75 L75 90 L50 95 L25 90 Z" fill="#1e1b4b" stroke="#4f46e5" strokeWidth="1" />
+        <path d="M30 85 Q50 80 70 85" fill="none" stroke="#38bdf8" strokeWidth="1" opacity="0.8" />
+
+        {/* UMMY Text (Simplified) */}
+        <text 
+            x="50" 
+            y="85" 
+            textAnchor="middle" 
+            fill="url(#textGradient)" 
+            style={{ fontSize: '12px', fontWeight: '900', fontFamily: 'sans-serif', fontStyle: 'italic' }}
+        >
+            UMMY
+        </text>
     </svg>
 );
 
