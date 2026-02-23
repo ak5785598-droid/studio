@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
@@ -28,11 +27,11 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { useUser, useUserProfile, useProfilePictureUpload, useAuth, setDocumentNonBlocking } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { EditProfileDialog } from '@/components/edit-profile-dialog';
-import Link from 'next/link';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { doc, increment, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import { AvatarFrame } from '@/components/avatar-frame';
 
 /**
  * Premium Me Center / Profile Page - Yari Edition.
@@ -75,9 +74,7 @@ export default function ProfilePage() {
     const userRef = doc(firestore, 'users', currentUser.uid);
     
     const updateData = { 
-      wallet: {
-        coins: increment(1000),
-      },
+      'wallet.coins': increment(1000),
       updatedAt: serverTimestamp() 
     };
     
@@ -156,13 +153,15 @@ export default function ProfilePage() {
           </div>
           <div className="px-6 -mt-12 flex items-end gap-4 relative z-10">
             <div className="relative group shrink-0">
-              <Avatar className="h-28 w-28 border-4 border-white shadow-xl cursor-pointer ring-4 ring-primary/5">
-                <AvatarImage src={localAvatarPreview || profile.avatarUrl} />
-                <AvatarFallback className="text-4xl font-black bg-secondary">{(profile.username || 'U').charAt(0)}</AvatarFallback>
-              </Avatar>
+              <AvatarFrame frameId={profile.inventory?.activeFrame} size="xl">
+                <Avatar className="h-28 w-28 border-4 border-white shadow-xl cursor-pointer ring-4 ring-primary/5">
+                  <AvatarImage src={localAvatarPreview || profile.avatarUrl} />
+                  <AvatarFallback className="text-4xl font-black bg-secondary">{(profile.username || 'U').charAt(0)}</AvatarFallback>
+                </Avatar>
+              </AvatarFrame>
               {isOwnProfile && (
                 <div 
-                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-full transition-opacity cursor-pointer backdrop-blur-sm"
+                  className="absolute inset-0 z-30 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-full transition-opacity cursor-pointer backdrop-blur-sm"
                   onClick={() => fileInputRef.current?.click()}
                 >
                    {isUploading ? <Loader className="animate-spin text-white" /> : <Camera className="text-white h-6 w-6" />}

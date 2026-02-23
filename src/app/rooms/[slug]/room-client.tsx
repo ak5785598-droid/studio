@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -67,7 +66,7 @@ import {
   writeBatch,
   getDocs,
 } from 'firebase/firestore';
-import { Progress } from '@/components/ui/progress';
+import { AvatarFrame } from '@/components/avatar-frame';
 
 const AVAILABLE_GIFTS: Gift[] = [
   { id: 'rose', name: 'Rose', emoji: '🌹', price: 10, animationType: 'pulse' },
@@ -125,7 +124,7 @@ export function RoomClient({ room }: { room: Room }) {
       uid: currentUser.uid,
       name: userProfile.username || 'Guest',
       avatarUrl: userProfile.avatarUrl || '',
-      activeFrame: userProfile.tags?.includes('Official') ? 'Official' : 'None',
+      activeFrame: userProfile.inventory?.activeFrame || (userProfile.tags?.includes('Official') ? 'Official' : 'None'),
       joinedAt: serverTimestamp(),
       isMuted: !isMicOn,
       seatIndex: currentUserParticipant?.seatIndex || 0,
@@ -134,7 +133,7 @@ export function RoomClient({ room }: { room: Room }) {
     return () => { 
       deleteDoc(participantRef).catch(() => {}); 
     };
-  }, [firestore, room.id, currentUser?.uid, userProfile?.username, userProfile?.avatarUrl, userProfile?.tags, isMicOn]);
+  }, [firestore, room.id, currentUser?.uid, userProfile?.username, userProfile?.avatarUrl, userProfile?.tags, userProfile?.inventory?.activeFrame, isMicOn]);
 
   // Real-time Messages
   const messagesQuery = useMemoFirebase(() => {
@@ -477,28 +476,22 @@ export function RoomClient({ room }: { room: Room }) {
           {/* Main Stage Seat (Room Master) */}
           <div className="flex justify-center">
              <div className="flex flex-col items-center gap-3">
-                <div 
-                  onClick={() => handleSeatAvatarClick(1, hostParticipant)}
-                  className={cn(
-                    "h-28 w-28 rounded-full flex items-center justify-center transition-all relative cursor-pointer border-2 bg-black/40 backdrop-blur-md",
-                    hostParticipant ? "border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.5)]" : "border-white/10 hover:border-blue-400/50"
-                  )}
-                >
-                  {hostParticipant ? (
-                    <Avatar className={cn(
-                      "h-full w-full rounded-full border-2 border-black p-1",
-                      hostParticipant.activeFrame === 'Official' && "border-primary animate-glow"
-                    )}>
-                       <AvatarImage src={hostParticipant.avatarUrl} />
-                       <AvatarFallback>{hostParticipant.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  ) : <Crown className="h-10 w-10 text-white/10" />}
-                  {hostParticipant && hostParticipant.activeFrame === 'Official' && (
-                    <div className="absolute -top-4 -right-2 bg-primary text-black p-1 rounded-full border-2 border-black scale-75">
-                       <Star className="h-4 w-4 fill-current" />
-                    </div>
-                  )}
-                </div>
+                <AvatarFrame frameId={hostParticipant?.activeFrame} size="xl">
+                  <div 
+                    onClick={() => handleSeatAvatarClick(1, hostParticipant)}
+                    className={cn(
+                      "h-28 w-28 rounded-full flex items-center justify-center transition-all relative cursor-pointer border-2 bg-black/40 backdrop-blur-md",
+                      hostParticipant ? "border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.5)]" : "border-white/10 hover:border-blue-400/50"
+                    )}
+                  >
+                    {hostParticipant ? (
+                      <Avatar className="h-full w-full rounded-full border-2 border-black p-1">
+                         <AvatarImage src={hostParticipant.avatarUrl} />
+                         <AvatarFallback>{hostParticipant.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    ) : <Crown className="h-10 w-10 text-white/10" />}
+                  </div>
+                </AvatarFrame>
                 <Badge className="bg-blue-500 text-white text-[10px] uppercase font-black">Room Master</Badge>
              </div>
           </div>
@@ -511,23 +504,24 @@ export function RoomClient({ room }: { room: Room }) {
               const isLocked = room.lockedSeats?.includes(seatIndex);
               return (
                 <div key={seatIndex} className="flex flex-col items-center gap-2">
-                  <div 
-                    onClick={() => handleSeatAvatarClick(seatIndex, occupant)}
-                    className={cn(
-                      "h-16 w-16 rounded-full flex items-center justify-center transition-all relative cursor-pointer bg-black/30 backdrop-blur-lg border-2",
-                      isLocked ? "border-red-500/30 bg-red-950/20" : "border-purple-500/30",
-                      occupant && "border-primary shadow-[0_0_20px_rgba(255,107,107,0.3)] ring-2 ring-white/5",
-                      occupant?.activeFrame === 'Official' && "animate-glow border-yellow-400"
-                    )}
-                  >
-                    {isLocked ? <Lock className="h-6 w-6 text-red-500/40" /> : occupant ? (
-                      <Avatar className="h-full w-full rounded-full p-0.5">
-                        <AvatarImage src={occupant.avatarUrl} />
-                        <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    ) : <Mic className="h-6 w-6 text-white/20" />}
-                    {occupant && !occupant.isMuted && <div className="absolute -inset-1 rounded-full border-2 border-primary animate-ping" />}
-                  </div>
+                  <AvatarFrame frameId={occupant?.activeFrame} size="md">
+                    <div 
+                      onClick={() => handleSeatAvatarClick(seatIndex, occupant)}
+                      className={cn(
+                        "h-16 w-16 rounded-full flex items-center justify-center transition-all relative cursor-pointer bg-black/30 backdrop-blur-lg border-2",
+                        isLocked ? "border-red-500/30 bg-red-950/20" : "border-purple-500/30",
+                        occupant && "border-primary shadow-[0_0_20px_rgba(255,107,107,0.3)] ring-2 ring-white/5",
+                      )}
+                    >
+                      {isLocked ? <Lock className="h-6 w-6 text-red-500/40" /> : occupant ? (
+                        <Avatar className="h-full w-full rounded-full p-0.5">
+                          <AvatarImage src={occupant.avatarUrl} />
+                          <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      ) : <Mic className="h-6 w-6 text-white/20" />}
+                      {occupant && !occupant.isMuted && <div className="absolute -inset-1 rounded-full border-2 border-primary animate-ping" />}
+                    </div>
+                  </AvatarFrame>
                   <span className="text-[9px] font-black truncate max-w-[60px] uppercase text-white/40">
                     {occupant ? occupant.name : `Slot ${seatIndex}`}
                   </span>
