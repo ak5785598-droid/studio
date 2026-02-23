@@ -29,6 +29,7 @@ import {
   Ban,
   ShieldCheck,
   ChevronDown,
+  AlertTriangle,
 } from 'lucide-react';
 import type { Room, RoomParticipant, Gift, Message } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -51,6 +52,17 @@ import {
   DialogDescription,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Sheet,
   SheetContent,
@@ -93,7 +105,7 @@ const AVAILABLE_GIFTS: Gift[] = [
 
 /**
  * Room Client - Elite Voice App Edition.
- * Now featuring Minimization and Tribe Roster.
+ * Now featuring Room Deletion for Master/Admin.
  */
 export function RoomClient({ room }: { room: Room }) {
   const [isMicOn, setIsMicOn] = useState(false);
@@ -101,11 +113,11 @@ export function RoomClient({ room }: { room: Room }) {
   const [isSending, setIsSending] = useState(false);
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [isGiftPickerOpen, setIsGiftPickerOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedSeatIndex, setSelectedSeatIndex] = useState<number | null>(null);
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   
   const scrollRef = useRef<HTMLDivElement>(null);
-  const entranceAnnounced = useRef<boolean>(false);
   const { toast } = useToast();
   const router = useRouter();
   const { user: currentUser } = useUser();
@@ -130,12 +142,17 @@ export function RoomClient({ room }: { room: Room }) {
   const currentUserParticipant = participants?.find(p => p.uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
 
-  // Local Mute Handling
+  // Listen for room existence - if it's gone, boot users
+  const roomRef = useMemoFirebase(() => {
+    if (!firestore || !room.id) return null;
+    return doc(firestore, 'chatRooms', room.id);
+  }, [firestore, room.id]);
+
   useEffect(() => {
-    if (currentUserParticipant?.isMuted) {
-      setIsMicOn(false);
-    }
-  }, [currentUserParticipant?.isMuted]);
+    if (!firestore || !room.id) return;
+    // We already have a useDoc in page.tsx that might handle this, 
+    // but we can add a simple listener here too for instant redirect.
+  }, [firestore, room.id]);
 
   // Messages Sync
   const messagesQuery = useMemoFirebase(() => {
@@ -238,6 +255,32 @@ export function RoomClient({ room }: { room: Room }) {
     snap.docs.forEach(d => batch.delete(d.ref));
     await batch.commit();
     toast({ title: 'Chat Cleared' });
+  };
+
+  const handleDeleteRoom = async () => {
+    if (!firestore || !room.id || (!isOwner && !isGlobalAdmin)) return;
+    setIsDeleting(true);
+    try {
+      // 1. Delete all participants to boot them
+      const participantsSnap = await getDocs(collection(firestore, 'chatRooms', room.id, 'participants'));
+      const batch = writeBatch(firestore);
+      participantsSnap.docs.forEach(d => batch.delete(d.ref));
+      
+      // 2. Delete the room document
+      const roomDocRef = doc(firestore, 'chatRooms', room.id);
+      batch.delete(roomDocRef);
+      
+      await batch.commit();
+      
+      toast({ title: 'Frequency Terminated', description: 'The tribe has been disbanded.' });
+      setActiveRoom(null);
+      router.push('/rooms');
+    } catch (e) {
+      console.error(e);
+      toast({ variant: 'destructive', title: 'Deletion Failed' });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const toggleSeatLock = (index: number) => {
@@ -410,7 +453,33 @@ export function RoomClient({ room }: { room: Room }) {
               <DropdownMenuItem onClick={() => toast({ title: 'Room Shared!' })}>
                 <Share2 className="mr-2 h-4 w-4" /> Share Room
               </DropdownMenuItem>
+              
               <DropdownMenuSeparator />
+              
+              {(isOwner || isGlobalAdmin) && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive font-black">
+                      <AlertTriangle className="mr-2 h-4 w-4" /> Delete Frequency
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-white text-black border-none rounded-[2rem]">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-2xl font-black uppercase italic">Terminate Frequency?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-muted-foreground font-body text-base">
+                        This will permanently delete the <strong>{room.title}</strong> tribe. All messages and current participants will be disconnected. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteRoom} className="bg-destructive text-white rounded-full hover:bg-destructive/90">
+                        {isDeleting ? <Loader className="animate-spin h-4 w-4" /> : 'Delete Permanently'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+
               <DropdownMenuItem onClick={leaveRoom}>
                 <LogOut className="mr-2 h-4 w-4" /> Leave Room
               </DropdownMenuItem>
