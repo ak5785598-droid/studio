@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -49,6 +50,7 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
+  increment,
 } from 'firebase/firestore';
 
 export function RoomClient({ room }: { room: Room }) {
@@ -74,8 +76,7 @@ export function RoomClient({ room }: { room: Room }) {
   const { data: participants } = useCollection<RoomParticipant>(participantsQuery);
   const onlineCount = participants?.length || 0;
 
-  // Presence Synchronization - Hardened to prevent re-join loops
-  const presenceKey = `${currentUser?.uid}-${room.id}`;
+  // Presence Synchronization
   useEffect(() => {
     if (!firestore || !room.id || !currentUser || !userProfile) return;
     const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
@@ -136,6 +137,42 @@ export function RoomClient({ room }: { room: Room }) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to send message.' }); 
     } finally { 
       setIsSending(false); 
+    }
+  };
+
+  /**
+   * Handles gift sending. 
+   * This automatically updates the user's totalSpent field to rank them on the leaderboard.
+   */
+  const handleSendGift = async () => {
+    if (!currentUser || !firestore || !userProfile) return;
+    
+    const giftCost = 100; // Mock gift cost
+    if ((userProfile.wallet?.coins || 0) < giftCost) {
+      toast({ variant: 'destructive', title: 'Insufficient Coins', description: 'Recharge to send gifts!' });
+      return;
+    }
+
+    try {
+      const userRef = doc(firestore, 'users', currentUser.uid);
+      const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
+
+      // Deduct coins and increment totalSpent for leaderboard ranking
+      const updateData = {
+        'wallet.coins': increment(-giftCost),
+        'wallet.totalSpent': increment(giftCost),
+        'updatedAt': serverTimestamp()
+      };
+
+      // Atomic updates for both the searchable user doc and private profile doc
+      await Promise.all([
+        updateDoc(userRef, updateData),
+        updateDoc(profileRef, updateData)
+      ]);
+
+      toast({ title: 'Gift Sent!', description: `You sent a 100 coin gift! Your Rich ranking has increased.` });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Gift Error', description: 'Failed to send gift.' });
     }
   };
 
@@ -388,7 +425,13 @@ export function RoomClient({ room }: { room: Room }) {
             <Button variant="ghost" size="icon" className="rounded-full h-12 w-12 bg-white/5 border border-white/10 backdrop-blur-md text-white/60" aria-label="Toggle Audio">
               <Volume2 className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-full h-14 w-14 bg-gradient-to-br from-pink-500 to-rose-600 shadow-xl shadow-pink-500/20 border-2 border-white/20 animate-pulse hover:scale-110 transition-transform" aria-label="Send Gift">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleSendGift}
+              className="rounded-full h-14 w-14 bg-gradient-to-br from-pink-500 to-rose-600 shadow-xl shadow-pink-500/20 border-2 border-white/20 animate-pulse hover:scale-110 transition-transform" 
+              aria-label="Send Gift"
+            >
               <Gift className="h-7 w-7 text-white" />
             </Button>
           </div>

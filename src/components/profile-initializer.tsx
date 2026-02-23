@@ -1,12 +1,14 @@
+
 'use client';
 
 import { useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 /**
  * Ensures a user profile exists in Firestore after login.
  * This component is "Real" and prevents app features from failing due to missing data.
+ * Initializes wallet with a new 'totalSpent' field for leaderboard tracking.
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -28,7 +30,11 @@ export function ProfileInitializer() {
           avatarUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/200`,
           email: user.email || '',
           bio: 'Vibing on Ummy! Join my tribe.',
-          wallet: { coins: 500, diamonds: 0 },
+          wallet: { 
+            coins: 500, 
+            diamonds: 0,
+            totalSpent: 0 // Initialize total spent for leaderboard
+          },
           inventory: { ownedItems: [], activeFrame: 'None', activeBubble: 'Default' },
           stats: { followers: 0, fans: 0 },
           level: { rich: 1, charm: 1 },
@@ -46,6 +52,7 @@ export function ProfileInitializer() {
         await setDoc(profileRef, initialData, { merge: true });
         
         // Also sync basic info to top-level user doc for rankings/leaderboard queries
+        // Crucial: Wallet and stats must be at top-level for Firestore orderBy queries
         await setDoc(userRef, {
           id: user.uid,
           username: initialData.username,

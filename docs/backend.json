@@ -16,7 +16,8 @@
           "type": "object",
           "properties": {
             "coins": { "type": "number" },
-            "diamonds": { "type": "number" }
+            "diamonds": { "type": "number" },
+            "totalSpent": { "type": "number", "description": "Total coins spent on gifts for ranking." }
           }
         },
         "inventory": {
@@ -28,7 +29,14 @@
             "ownedItems": { "type": "array", "items": { "type": "string" } }
           }
         },
-        "tags": { "type": "array", "items": { "type": "string" } }
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "followers": { "type": "number" },
+            "fans": { "type": "number" }
+          }
+        }
       }
     },
     "AppConfig": {
