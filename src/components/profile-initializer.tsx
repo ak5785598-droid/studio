@@ -9,7 +9,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
  * Production Profile Initializer.
- * Assigns a unique sequential numeric ID and standard starting balance.
+ * Assigns a unique sequential 6-digit numeric ID (starting from 100,000).
  * Hardened: Synchronizes root identity before detailed profile for Security Rules compliance.
  */
 export function ProfileInitializer() {
@@ -37,13 +37,14 @@ export function ProfileInitializer() {
 
         hasInitialized.current = profileId;
 
-        // Atomic Transaction for ID assignment
+        // Atomic Transaction for 6-digit ID assignment
         const finalData = await runTransaction(firestore, async (transaction) => {
           const countersSnap = await transaction.get(countersRef);
-          let nextUserId = 1001;
+          let nextUserId = 100000;
 
           if (countersSnap.exists()) {
-            nextUserId = (countersSnap.data().userCounter || 1000) + 1;
+            const current = countersSnap.data().userCounter || 99999;
+            nextUserId = current + 1;
           }
 
           transaction.set(countersRef, { userCounter: nextUserId }, { merge: true });
@@ -51,7 +52,7 @@ export function ProfileInitializer() {
           const initialData = {
             id: profileId,
             specialId: String(nextUserId),
-            username: user.displayName || `Ummy_${profileId.substring(0, 5)}`,
+            username: user.displayName || `Ummy_${String(nextUserId).substring(2)}`,
             avatarUrl: user.photoURL || `https://picsum.photos/seed/${profileId}/400`,
             email: user.email || '',
             bio: 'Synchronized with the Ummy frequency.',

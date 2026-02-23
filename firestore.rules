@@ -4,17 +4,14 @@ service cloud.firestore {
     function isSignedIn() { return request.auth != null; }
     
     // Check if the user document has elevated tags for system-wide admin.
-    // Safe lookup that doesn't crash if doc doesn't exist.
     function isAdmin() {
       return isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('tags', []).hasAny(['Admin', 'Official']);
     }
 
     match /users/{userId} {
-      // Allow read for all signed in users to support social features/leaderboards
       allow read: if isSignedIn();
-      
-      // Allow users to create or update their own identity summary
       allow create, update: if isSignedIn() && request.auth.uid == userId;
       
       // SPECIAL: Allow anyone to update 'stats' and 'updatedAt' for gifting/follow system
@@ -27,7 +24,6 @@ service cloud.firestore {
       match /profile/{profileId} {
         allow read: if isSignedIn();
         allow create, update: if isSignedIn() && request.auth.uid == userId;
-        // Also allow stats updates on profile sub-doc
         allow update: if isSignedIn() && (
           request.resource.data.diff(resource.data).affectedKeys().hasAny(['stats', 'updatedAt', 'wallet'])
         );
@@ -43,7 +39,7 @@ service cloud.firestore {
 
     match /appConfig/{configId} {
       allow read: if isSignedIn();
-      // Allow anyone to increment user/room counters during initialization/creation
+      // Allow anyone to increment counters during initialization/creation
       allow write: if isSignedIn() && (configId == 'counters' || isAdmin());
     }
     
