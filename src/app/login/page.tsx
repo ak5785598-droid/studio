@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -34,8 +35,9 @@ export default function LoginPage() {
     useState<ConfirmationResult | null>(null);
 
   useEffect(() => {
+    // Use replace instead of push to prevent back-button loops after login
     if (!isUserLoading && user) {
-      router.push('/rooms');
+      router.replace('/rooms');
     }
   }, [user, isUserLoading, router]);
 
@@ -44,7 +46,6 @@ export default function LoginPage() {
     setIsSigningIn(true);
     try {
       const provider = new GoogleAuthProvider();
-      // Forces the account picker to show every time
       provider.setCustomParameters({
         prompt: 'select_account'
       });
@@ -118,8 +119,8 @@ export default function LoginPage() {
 
   if (isUserLoading || user) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex h-screen w-full items-center justify-center bg-primary">
+        <UmmyLogoIcon className="h-12 w-12 text-white animate-pulse" />
       </div>
     );
   }

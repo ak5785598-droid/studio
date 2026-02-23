@@ -1,3 +1,4 @@
+
 'use client';
 
 import { use, useMemo, useEffect, useState } from 'react';
@@ -9,6 +10,10 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader, ShieldAlert } from 'lucide-react';
 import type { Room } from '@/lib/types';
 
+/**
+ * Dynamic Room Page.
+ * Handles authentication, Firestore room fetching, and "Official Room" auto-provisioning.
+ */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const router = useRouter();
@@ -40,6 +45,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     }
   }, [isDocLoading]);
 
+  // Provision official room if it doesn't exist
   useEffect(() => {
     if (slug === 'official-help-room' && !isDocLoading && !firestoreRoom && firestore && currentUser) {
       setInitStatus('Provisioning Official Hub...');
@@ -90,9 +96,11 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
      );
   }
 
-  const isActuallyNotFound = !isAuthLoading && !!currentUser && !!roomDocRef && !isDocLoading && !firestoreRoom && hasAttemptedFetch;
+  // Only trigger 404 if we are definitively logged in, have a valid doc ref, are NOT loading, and document is still null.
+  // We explicitly skip 404 for 'official-help-room' while it might be provisioning.
+  const isActuallyNotFound = !isAuthLoading && !!currentUser && !!roomDocRef && !isDocLoading && !firestoreRoom && hasAttemptedFetch && slug !== 'official-help-room';
 
-  if (isActuallyNotFound && slug !== 'official-help-room') {
+  if (isActuallyNotFound) {
     notFound();
   }
 
