@@ -19,6 +19,7 @@ import {
   Share2,
   Volume2,
   Trash2,
+  LogOut,
 } from 'lucide-react';
 import type { Room, RoomParticipant } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -51,6 +52,8 @@ import {
   arrayUnion,
   arrayRemove,
   increment,
+  writeBatch,
+  getDocs,
 } from 'firebase/firestore';
 
 export function RoomClient({ room }: { room: Room }) {
@@ -177,13 +180,23 @@ export function RoomClient({ room }: { room: Room }) {
   };
 
   const handleClearChat = async () => {
-    if (!isAdmin || !firestore || !room.id || !firestoreMessages) return;
+    if (!isAdmin || !firestore || !room.id) return;
     
     try {
-      const deletePromises = firestoreMessages.map(m => 
-        deleteDoc(doc(firestore, 'chatRooms', room.id, 'messages', m.id))
-      );
-      await Promise.all(deletePromises);
+      const messagesRef = collection(firestore, 'chatRooms', room.id, 'messages');
+      const snapshot = await getDocs(messagesRef);
+      
+      if (snapshot.empty) {
+        toast({ title: 'Chat is already clear' });
+        return;
+      }
+
+      const batch = writeBatch(firestore);
+      snapshot.docs.forEach((d) => {
+        batch.delete(d.ref);
+      });
+      
+      await batch.commit();
       toast({ title: 'Chat Cleared', description: 'All room messages have been removed.' });
     } catch (e) {
       toast({ variant: 'destructive', title: 'Action Failed', description: 'Could not clear chat history.' });
@@ -198,6 +211,13 @@ export function RoomClient({ room }: { room: Room }) {
     }
     const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
     updateDoc(participantRef, { seatIndex: index });
+  };
+
+  const leaveSeat = async () => {
+    if (!firestore || !room.id || !currentUser) return;
+    const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
+    updateDoc(participantRef, { seatIndex: 0 });
+    toast({ title: 'Seat Left', description: 'You are now in the audience.' });
   };
 
   const toggleSeatLock = async (index: number) => {
@@ -295,22 +315,41 @@ export function RoomClient({ room }: { room: Room }) {
              <div className="flex flex-col items-center gap-3">
                 <div className="relative">
                    <div className="absolute -inset-4 bg-blue-500/20 rounded-full blur-2xl animate-pulse" />
-                   <div 
-                      onClick={() => !hostParticipant && takeSeat(1)}
-                      className={cn(
-                        "h-28 w-28 rounded-full flex items-center justify-center transition-all relative cursor-pointer border-2 bg-black/40 backdrop-blur-md",
-                        hostParticipant ? "border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.5)]" : "border-white/10 hover:border-blue-400/50"
-                      )}
-                   >
-                      {hostParticipant ? (
-                        <Avatar className="h-full w-full rounded-full border-2 border-black">
-                           <AvatarImage src={hostParticipant.avatarUrl} alt={`${hostParticipant.name}'s room master avatar`} />
-                           <AvatarFallback>{hostParticipant.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <Crown className="h-10 w-10 text-white/10" />
-                      )}
-                   </div>
+                   {hostParticipant?.uid === currentUser.uid ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <div className="h-28 w-28 rounded-full flex items-center justify-center transition-all relative cursor-pointer border-2 bg-black/40 backdrop-blur-md border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+                            <Avatar className="h-full w-full rounded-full border-2 border-black">
+                               <AvatarImage src={hostParticipant.avatarUrl} alt={`${hostParticipant.name}'s room master avatar`} />
+                               <AvatarFallback>{hostParticipant.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                          </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-slate-900 border-white/10 text-white">
+                           <DropdownMenuItem onClick={leaveSeat} className="text-destructive">
+                              <LogOut className="mr-2 h-4 w-4" />
+                              <span>Leave Seat</span>
+                           </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                   ) : (
+                     <div 
+                        onClick={() => !hostParticipant && takeSeat(1)}
+                        className={cn(
+                          "h-28 w-28 rounded-full flex items-center justify-center transition-all relative cursor-pointer border-2 bg-black/40 backdrop-blur-md",
+                          hostParticipant ? "border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.5)]" : "border-white/10 hover:border-blue-400/50"
+                        )}
+                     >
+                        {hostParticipant ? (
+                          <Avatar className="h-full w-full rounded-full border-2 border-black">
+                             <AvatarImage src={hostParticipant.avatarUrl} alt={`${hostParticipant.name}'s room master avatar`} />
+                             <AvatarFallback>{hostParticipant.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <Crown className="h-10 w-10 text-white/10" />
+                        )}
+                     </div>
+                   )}
                 </div>
                 <Badge variant="secondary" className="bg-blue-500 text-white border-none text-[10px] uppercase font-black px-3">Room Master</Badge>
              </div>
@@ -326,25 +365,44 @@ export function RoomClient({ room }: { room: Room }) {
               return (
                 <div key={seatIndex} className="flex flex-col items-center gap-2">
                   <div className="relative group/seat">
-                    <div 
-                      onClick={() => !occupant && !isLocked && takeSeat(seatIndex)}
-                      className={cn(
-                        "h-16 w-16 rounded-full flex items-center justify-center transition-all relative cursor-pointer bg-black/30 backdrop-blur-lg border-2",
-                        isLocked ? "border-red-500/30 bg-red-950/20" : "border-purple-500/30 hover:border-primary",
-                        occupant && "border-primary shadow-[0_0_20px_rgba(255,107,107,0.3)] ring-2 ring-white/5"
-                      )}
-                    >
-                      {isLocked ? (
-                        <Lock className="h-6 w-6 text-red-500/40" />
-                      ) : occupant ? (
-                        <Avatar className="h-full w-full rounded-full p-0.5">
-                          <AvatarImage src={occupant.avatarUrl} alt={`${occupant.name}'s mic seat avatar`} />
-                          <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <Mic className="h-6 w-6 text-white/20" />
-                      )}
-                    </div>
+                    {occupant?.uid === currentUser.uid ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <div className="h-16 w-16 rounded-full flex items-center justify-center transition-all relative cursor-pointer bg-black/30 backdrop-blur-lg border-2 border-primary shadow-[0_0_20px_rgba(255,107,107,0.3)] ring-2 ring-white/5">
+                            <Avatar className="h-full w-full rounded-full p-0.5">
+                              <AvatarImage src={occupant.avatarUrl} alt={`${occupant.name}'s mic seat avatar`} />
+                              <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                          </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-slate-900 border-white/10 text-white">
+                           <DropdownMenuItem onClick={leaveSeat} className="text-destructive">
+                              <LogOut className="mr-2 h-4 w-4" />
+                              <span>Leave Seat</span>
+                           </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <div 
+                        onClick={() => !occupant && !isLocked && takeSeat(seatIndex)}
+                        className={cn(
+                          "h-16 w-16 rounded-full flex items-center justify-center transition-all relative cursor-pointer bg-black/30 backdrop-blur-lg border-2",
+                          isLocked ? "border-red-500/30 bg-red-950/20" : "border-purple-500/30 hover:border-primary",
+                          occupant && "border-primary shadow-[0_0_20px_rgba(255,107,107,0.3)] ring-2 ring-white/5"
+                        )}
+                      >
+                        {isLocked ? (
+                          <Lock className="h-6 w-6 text-red-500/40" />
+                        ) : occupant ? (
+                          <Avatar className="h-full w-full rounded-full p-0.5">
+                            <AvatarImage src={occupant.avatarUrl} alt={`${occupant.name}'s mic seat avatar`} />
+                            <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <Mic className="h-6 w-6 text-white/20" />
+                        )}
+                      </div>
+                    )}
                     
                     {isAdmin && (
                       <div className="absolute -top-1 -right-1 z-30 opacity-0 group-hover/seat:opacity-100 transition-opacity">
