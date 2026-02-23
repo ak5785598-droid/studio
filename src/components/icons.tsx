@@ -20,7 +20,7 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
                 <stop offset="100%" stopColor="#8b5cf6" />
             </linearGradient>
             <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
                 <feMerge>
                     <feMergeNode in="coloredBlur"/>
                     <feMergeNode in="SourceGraphic"/>
@@ -29,80 +29,74 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
         </defs>
 
         {/* Circular Background Ring */}
-        <circle cx="50" cy="45" r="35" fill="none" stroke="#fbbf24" strokeWidth="1" opacity="0.3" />
+        <circle cx="50" cy="45" r="38" fill="none" stroke="#fbbf24" strokeWidth="1" opacity="0.2" />
 
         {/* High-Fidelity Flames */}
         <g filter="url(#glow)">
             <path 
-                d="M50 10 Q60 25 55 35 Q75 20 70 45 Q85 35 80 60 Q50 75 20 60 Q15 35 30 45 Q25 20 45 35 Q40 25 50 10" 
+                d="M50 8 Q65 25 58 35 Q80 20 75 45 Q90 35 85 65 Q50 80 15 65 Q10 35 25 45 Q20 20 42 35 Q35 25 50 8" 
                 fill="url(#fireGradient)"
             />
             <path 
-                d="M50 15 Q55 25 53 32 Q65 22 62 40 Q75 32 72 50 Q50 60 28 50 Q25 32 38 40 Q35 22 47 32 Q45 25 50 15" 
+                d="M50 15 Q58 28 55 35 Q70 25 68 42 Q80 35 76 55 Q50 65 24 55 Q20 35 32 42 Q30 25 45 35 Q42 28 50 15" 
                 fill="#fbbf24" opacity="0.6"
             />
         </g>
 
-        {/* Equalizer Bars on sides */}
-        <g opacity="0.8">
-            <rect x="15" y="45" width="3" height="12" rx="1.5" fill="#f472b6" />
-            <rect x="20" y="40" width="3" height="18" rx="1.5" fill="#f472b6" />
-            <rect x="25" y="35" width="3" height="25" rx="1.5" fill="#f472b6" />
+        {/* Equalizer Bars */}
+        <g opacity="0.9">
+            <rect x="12" y="48" width="3.5" height="15" rx="1.75" fill="#f472b6" />
+            <rect x="18" y="42" width="3.5" height="22" rx="1.75" fill="#f472b6" />
+            <rect x="24" y="38" width="3.5" height="28" rx="1.75" fill="#f472b6" />
             
-            <rect x="72" y="35" width="3" height="25" rx="1.5" fill="#8b5cf6" />
-            <rect x="77" y="40" width="3" height="18" rx="1.5" fill="#8b5cf6" />
-            <rect x="82" y="45" width="3" height="12" rx="1.5" fill="#8b5cf6" />
+            <rect x="72.5" y="38" width="3.5" height="28" rx="1.75" fill="#8b5cf6" />
+            <rect x="78.5" y="42" width="3.5" height="22" rx="1.75" fill="#8b5cf6" />
+            <rect x="84.5" y="48" width="3.5" height="15" rx="1.75" fill="#8b5cf6" />
         </g>
 
-        {/* Lightning Bolts */}
-        <path d="M10 30 L22 42 L16 42 L28 55" stroke="#fbbf24" strokeWidth="2" fill="none" filter="url(#glow)" />
-        <path d="M90 30 L78 42 L84 42 L72 55" stroke="#fbbf24" strokeWidth="2" fill="none" filter="url(#glow)" />
-
-        {/* Microphone Body (Detailed) */}
-        <rect x="40" y="25" width="20" height="30" rx="10" fill="url(#micGradient)" stroke="#1f2937" strokeWidth="1.5" />
-        <path d="M40 35 H60 M40 40 H60 M40 45 H60" stroke="#1f2937" strokeWidth="0.5" />
-        <path d="M48 25 V55 M52 25 V55" stroke="#1f2937" strokeWidth="0.5" opacity="0.2" />
+        {/* Microphone Body */}
+        <rect x="38" y="28" width="24" height="32" rx="12" fill="url(#micGradient)" stroke="#1f2937" strokeWidth="1.5" />
+        <path d="M38 40 H62 M38 46 H62 M38 52 H62" stroke="#1f2937" strokeWidth="0.5" />
         
-        {/* Mic Holder/Stand */}
-        <path d="M38 45 Q38 60 50 60 Q62 60 62 45" fill="none" stroke="#9ca3af" strokeWidth="2" />
-        <rect x="48" y="60" width="4" height="4" fill="#4b5563" />
+        {/* Mic Holder */}
+        <path d="M35 50 Q35 65 50 65 Q65 65 65 50" fill="none" stroke="#9ca3af" strokeWidth="2.5" />
+        <rect x="47.5" y="65" width="5" height="6" fill="#4b5563" />
 
-        {/* UMMY Logo Shield Base */}
+        {/* UMMY Shield Base */}
         <path 
-            d="M10 70 L90 70 L80 92 L50 98 L20 92 Z" 
+            d="M10 72 L90 72 L82 94 L50 100 L18 94 Z" 
             fill="#0f172a" 
             stroke="#4f46e5" 
-            strokeWidth="1.5" 
+            strokeWidth="2" 
         />
         
-        {/* Neon Frequency Line inside shield */}
+        {/* Neon Frequency Line */}
         <path 
-            d="M20 85 L35 85 L40 78 L45 92 L50 85 L55 78 L60 92 L65 85 L80 85" 
+            d="M20 88 L32 88 L38 80 L44 96 L50 88 L56 80 L62 96 L68 88 L80 88" 
             fill="none" 
             stroke="#00f2ff" 
-            strokeWidth="1.5" 
+            strokeWidth="2" 
             filter="url(#glow)" 
         />
 
-        {/* UMMY Text in high-energy font style */}
+        {/* UMMY Text */}
         <text 
             x="50" 
-            y="82" 
+            y="85" 
             textAnchor="middle" 
             fill="url(#textGradient)" 
             style={{ 
-                fontSize: '14px', 
-                fontWeight: '900', 
+                fontSize: '15px', 
+                fontWeight: '950', 
                 fontFamily: 'system-ui', 
                 fontStyle: 'italic',
-                textShadow: '0 0 5px rgba(244,114,182,0.8)' 
+                textShadow: '0 0 8px rgba(244,114,182,0.9)' 
             }}
         >
             UMMY
         </text>
     </svg>
 );
-
 
 export const GameControllerIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
