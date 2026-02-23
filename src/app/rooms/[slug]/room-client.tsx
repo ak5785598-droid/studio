@@ -228,11 +228,11 @@ export function RoomClient({ room }: { room: Room }) {
            </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" className="rounded-full bg-white/5 border border-white/10 text-primary h-10 w-10 p-0 shadow-lg">
+          <Button variant="ghost" className="rounded-full bg-white/5 border border-white/10 text-primary h-10 w-10 p-0 shadow-lg" aria-label="Room Stats">
             <Swords className="h-5 w-5" />
           </Button>
           <Button size="icon" variant="destructive" asChild className="rounded-2xl h-11 w-11 shadow-2xl hover:scale-105 transition-transform">
-            <a href="/rooms"><PhoneOff className="h-5 w-5" /></a>
+            <a href="/rooms" aria-label="Exit Room"><PhoneOff className="h-5 w-5" /></a>
           </Button>
         </div>
       </header>
@@ -262,7 +262,10 @@ export function RoomClient({ room }: { room: Room }) {
                       {participants?.find(p => p.seatIndex === 1) ? (
                          <div className="relative h-full w-full">
                             <Avatar className="h-full w-full rounded-full border-2 border-black">
-                               <AvatarImage src={participants.find(p => p.seatIndex === 1)?.avatarUrl} alt="Host Avatar" />
+                               <AvatarImage 
+                                 src={participants.find(p => p.seatIndex === 1)?.avatarUrl} 
+                                 alt="Host Avatar" 
+                               />
                                <AvatarFallback>H</AvatarFallback>
                             </Avatar>
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-black text-[8px] font-black px-2 py-0.5 rounded-full shadow-lg border border-black/10">HOST</div>
@@ -382,7 +385,7 @@ export function RoomClient({ room }: { room: Room }) {
                 onChange={(e) => setMessageText(e.target.value)}
                 disabled={isSending}
               />
-              <Button type="button" variant="ghost" size="icon" className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-primary transition-colors">
+              <Button type="button" variant="ghost" size="icon" className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-primary transition-colors" aria-label="Add Emoji">
                 <Smile className="h-6 w-6" />
               </Button>
             </div>
@@ -397,10 +400,11 @@ export function RoomClient({ room }: { room: Room }) {
               size="icon" 
               onClick={() => setIsMicOn(!isMicOn)}
               className={cn("rounded-3xl h-14 w-14 shadow-2xl transition-all", isMicOn ? "bg-green-500 hover:bg-green-600 scale-110" : "bg-white/5 border border-white/10")}
+              aria-label={isMicOn ? "Mute Mic" : "Unmute Mic"}
             >
               {isMicOn ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6 text-white/20"/>}
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-3xl h-14 w-14 bg-gradient-to-br from-primary to-accent border-none shadow-2xl hover:scale-110 transition-transform animate-pulse">
+            <Button variant="secondary" size="icon" className="rounded-3xl h-14 w-14 bg-gradient-to-br from-primary to-accent border-none shadow-2xl hover:scale-110 transition-transform animate-pulse" aria-label="Send Gift">
               <Gift className="h-6 w-6 text-white" />
             </Button>
           </div>

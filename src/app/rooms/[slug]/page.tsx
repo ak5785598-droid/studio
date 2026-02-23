@@ -92,7 +92,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
      );
   }
 
-  // Final check for existence - only trigger if we definitely have a user and ref
+  // Final check for existence - only trigger if we definitely have a user and ref and we are not loading
   if (currentUser && roomDocRef && !isDocLoading && !firestoreRoom && slug !== 'official-help-room') {
     notFound();
   }
