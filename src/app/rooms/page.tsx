@@ -16,8 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 /**
- * Explore Rooms Page.
- * Vibrant Yari-style design with community banners and discovery grid.
+ * Explore Rooms Page - Yari Enterprise Edition.
+ * Vibrant design with discovery ribbons and social proof.
  */
 export default function RoomsPage() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -52,6 +52,7 @@ export default function RoomsPage() {
   return (
     <AppLayout hideSidebarOnMobile>
       <div className="min-h-screen bg-background pb-20">
+        {/* Yari Header with Mine/Popular Toggles */}
         <header className="bg-gradient-to-b from-primary to-primary/80 px-4 pt-10 pb-6 rounded-b-[2.5rem] shadow-lg sticky top-0 z-50">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 bg-white/20 p-2 rounded-full backdrop-blur-sm">
@@ -90,13 +91,14 @@ export default function RoomsPage() {
         </header>
 
         <div className="px-4 mt-6 space-y-6">
+          {/* Discovery Ribbons */}
           <div className="grid grid-cols-3 gap-3">
             <Link href="/leaderboard" className="relative h-24 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-400 p-3 shadow-lg hover:scale-105 transition-transform group overflow-hidden">
                <span className="text-white font-bold text-sm uppercase relative z-10">Ranking</span>
                <Crown className="absolute -bottom-2 -right-2 h-16 w-16 text-white/20" />
             </Link>
             <Link href="/match" className="relative h-24 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 p-3 shadow-lg hover:scale-105 transition-transform group overflow-hidden">
-               <span className="text-white font-bold text-sm uppercase relative z-10">CP</span>
+               <span className="text-white font-bold text-sm uppercase relative z-10">CP Match</span>
                <Heart className="absolute -bottom-2 -right-2 h-16 w-16 text-white/20" />
             </Link>
             <div className="relative h-24 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 p-3 shadow-lg hover:scale-105 transition-transform group overflow-hidden cursor-pointer">
@@ -126,11 +128,11 @@ export default function RoomsPage() {
             </Link>
           </div>
 
-          {/* New Discoveries Section - Social Proof */}
+          {/* Social Proof Section */}
           <section className="space-y-3">
              <div className="flex items-center gap-2 px-1">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <h2 className="text-sm font-black uppercase italic tracking-tight">New Tribes joining</h2>
+                <h2 className="text-sm font-black uppercase italic tracking-tight">Active Frequency</h2>
              </div>
              <div className="flex gap-4 overflow-x-auto no-scrollbar py-2">
                 {recentUsers?.map((u) => (
@@ -148,6 +150,7 @@ export default function RoomsPage() {
              </div>
           </section>
 
+          {/* Category Tabs */}
           <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-2">
             {categories.map((cat) => (
               <button
@@ -180,7 +183,7 @@ export default function RoomsPage() {
                 ))
               ) : (
                 <div className="col-span-2 py-20 text-center text-muted-foreground bg-secondary/10 rounded-3xl border border-dashed border-muted">
-                   <p className="font-bold uppercase tracking-widest text-xs">Waiting for the vibe to start...</p>
+                   <p className="font-bold uppercase tracking-widest text-xs">Syncing Tribe Frequency...</p>
                 </div>
               )}
             </div>

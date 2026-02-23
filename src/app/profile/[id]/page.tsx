@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
@@ -34,8 +35,8 @@ import { doc, increment, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 
 /**
- * Redesigned Premium Profile Page.
- * Matches the layout of the Me Center/Settings page exactly as requested.
+ * Premium Me Center / Profile Page - Yari Edition.
+ * Unified high-fidelity design for identity cards.
  */
 export default function ProfilePage() {
   const params = useParams();
@@ -82,7 +83,7 @@ export default function ProfilePage() {
     
     setDocumentNonBlocking(profileRef, updateData, { merge: true });
     setDocumentNonBlocking(userRef, updateData, { merge: true });
-    toast({ title: 'Top-up Successful!', description: '1,000 Testing Coins added.' });
+    toast({ title: 'Top-up Successful!', description: '1,000 Beta Coins added.' });
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,7 +100,7 @@ export default function ProfilePage() {
       <AppLayout>
         <div className="flex h-[60vh] w-full flex-col items-center justify-center space-y-4">
           <Loader className="animate-spin text-primary h-10 w-10" />
-          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Syncing Frequency...</p>
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Synchronizing Identity...</p>
         </div>
       </AppLayout>
     );
@@ -121,11 +122,13 @@ export default function ProfilePage() {
       }}
     >
       <div className="flex items-center gap-4">
-        <Icon className={cn("h-6 w-6", iconColor || "text-primary")} />
+        <div className={cn("p-2 rounded-xl", iconColor?.replace('text-', 'bg-') + '/10' || "bg-primary/10")}>
+           <Icon className={cn("h-5 w-5", iconColor || "text-primary")} />
+        </div>
         <span className="font-bold text-gray-800 text-sm">{label}</span>
       </div>
       <div className="flex items-center gap-2">
-        {extra && <span className="text-xs text-muted-foreground">{extra}</span>}
+        {extra && <span className="text-xs font-black text-muted-foreground italic">{extra}</span>}
         <ChevronRight className="h-4 w-4 opacity-40" />
       </div>
     </div>
@@ -134,15 +137,14 @@ export default function ProfilePage() {
   return (
     <AppLayout>
       <div className="max-w-xl mx-auto space-y-6 pb-24 bg-gray-50/50 min-h-screen animate-in fade-in duration-700">
-        {/* Header Navigation */}
         <div className="flex items-center px-4 pt-4">
            <button onClick={() => router.back()} className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 transition-all">
               <ChevronLeft className="h-5 w-5" />
            </button>
         </div>
 
-        {/* Top Profile Card */}
-        <div className="relative bg-white pb-6 rounded-b-[2rem] shadow-sm overflow-hidden">
+        {/* Identity Section */}
+        <div className="relative bg-white pb-6 rounded-b-[3rem] shadow-sm overflow-hidden">
           <div className="relative h-44 w-full">
             <Image 
               src={profile.coverUrl || "https://images.unsplash.com/photo-1501785888041-af3ef285b470"} 
@@ -150,16 +152,17 @@ export default function ProfilePage() {
               fill 
               className="object-cover" 
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
           </div>
-          <div className="px-6 -mt-10 flex items-end gap-4 relative z-10">
+          <div className="px-6 -mt-12 flex items-end gap-4 relative z-10">
             <div className="relative group shrink-0">
-              <Avatar className="h-24 w-24 border-4 border-white shadow-lg cursor-pointer">
+              <Avatar className="h-28 w-28 border-4 border-white shadow-xl cursor-pointer ring-4 ring-primary/5">
                 <AvatarImage src={localAvatarPreview || profile.avatarUrl} />
-                <AvatarFallback className="text-3xl font-black">{(profile.username || 'U').charAt(0)}</AvatarFallback>
+                <AvatarFallback className="text-4xl font-black bg-secondary">{(profile.username || 'U').charAt(0)}</AvatarFallback>
               </Avatar>
               {isOwnProfile && (
                 <div 
-                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-full transition-opacity cursor-pointer"
+                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-full transition-opacity cursor-pointer backdrop-blur-sm"
                   onClick={() => fileInputRef.current?.click()}
                 >
                    {isUploading ? <Loader className="animate-spin text-white" /> : <Camera className="text-white h-6 w-6" />}
@@ -168,82 +171,86 @@ export default function ProfilePage() {
             </div>
             <div className="pb-2 flex-1">
                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-gray-900">{profile.username}</h1>
-                  {profile.tags?.includes('Admin') && <Sparkles className="h-4 w-4 text-primary" />}
+                  <h1 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">{profile.username}</h1>
+                  {profile.tags?.includes('Official') && (
+                    <div className="bg-primary p-1 rounded-sm shadow-sm ring-1 ring-white">
+                       <Sparkles className="h-3 w-3 text-white" />
+                    </div>
+                  )}
                </div>
                <div className="flex items-center gap-2 mt-1">
                   {isOwnProfile ? (
                     <EditProfileDialog profile={profile} />
                   ) : (
-                    <p className="text-xs text-muted-foreground line-clamp-1">{profile.bio || 'Vibing on Ummy!'}</p>
+                    <p className="text-xs text-muted-foreground italic line-clamp-1">{profile.bio || 'Vibing on the frequency!'}</p>
                   )}
                </div>
             </div>
           </div>
         </div>
 
-        {/* Wallet & Assets Section */}
+        {/* Vault & Rankings */}
         <div className="px-4 space-y-3">
-          <h2 className="text-lg font-bold px-2 font-headline">Wallet & Assets</h2>
-          <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
+          <h2 className="text-sm font-black uppercase tracking-widest px-2 font-headline text-gray-400">Vault & Identity</h2>
+          <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
             <MenuItem 
               icon={Gem} 
-              label="Coins" 
+              label="Gold Coins" 
               extra={(profile.wallet?.coins || 0).toLocaleString()} 
               href={isOwnProfile ? "/settings" : undefined}
+              iconColor="text-yellow-500"
             />
             
             {isOwnProfile && (
-              <div className="px-6 py-2 bg-gray-50/30">
-                 <Button variant="outline" size="sm" className="w-full rounded-xl border-dashed border-2 hover:bg-primary/5" onClick={handleTestTopUp}>
-                   <Zap className="h-3.5 w-3.5 mr-1.5 text-primary" /> Claim 1,000 Beta Coins
+              <div className="px-6 py-3 bg-primary/5">
+                 <Button variant="outline" size="sm" className="w-full rounded-2xl border-dashed border-2 border-primary/30 hover:bg-primary/10 text-primary font-black uppercase italic" onClick={handleTestTopUp}>
+                   <Zap className="h-3.5 w-3.5 mr-1.5" /> Claim 1,000 Beta Coins
                  </Button>
               </div>
             )}
 
             <MenuItem 
               icon={Sparkles} 
-              label="Diamonds" 
+              label="Blue Diamonds" 
               extra={(profile.wallet?.diamonds || 0).toLocaleString()} 
               iconColor="text-blue-500" 
             />
             <MenuItem 
               icon={Store} 
-              label="Store" 
+              label="Ummy Boutique" 
               href="/store" 
               iconColor="text-orange-500" 
             />
             <MenuItem 
               icon={Trophy} 
-              label="Level" 
+              label="Tribe Level" 
               href="/leaderboard" 
-              extra={`Lv.${profile.level?.rich || 1}`}
-              iconColor="text-yellow-500" 
+              extra={`Level ${profile.level?.rich || 1}`}
+              iconColor="text-yellow-600" 
             />
             <MenuItem 
               icon={Shirt} 
-              label={isOwnProfile ? "My Items" : "Persona Boutique"} 
+              label={isOwnProfile ? "My Assets" : "Collection"} 
               href="/store" 
               iconColor="text-cyan-500" 
             />
           </Card>
         </div>
 
-        {/* Others Section */}
+        {/* Secondary Navigation */}
         <div className="px-4 space-y-3">
-          <h2 className="text-lg font-bold px-2 font-headline">Others</h2>
-          <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
-            <MenuItem icon={Globe} label="Language" extra="English" iconColor="text-gray-400" />
+          <h2 className="text-sm font-black uppercase tracking-widest px-2 font-headline text-gray-400">Community</h2>
+          <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
+            <MenuItem icon={Globe} label="Region" extra="India / Official" iconColor="text-gray-400" />
             <MenuItem icon={MessageSquare} label="Feedback" href="/help-center" iconColor="text-gray-400" />
-            <MenuItem icon={SettingsIcon} label="Settings" href={isOwnProfile ? "/settings" : undefined} iconColor="text-gray-400" />
+            <MenuItem icon={SettingsIcon} label="Preference" href={isOwnProfile ? "/settings" : undefined} iconColor="text-gray-400" />
           </Card>
         </div>
 
-        {/* Logout Control */}
         {isOwnProfile && (
           <div className="px-8 pt-4 pb-10 flex justify-center">
-             <Button variant="ghost" className="text-red-500 hover:bg-red-50 font-bold" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" /> Logout
+             <Button variant="ghost" className="text-red-500 hover:bg-red-50 font-black uppercase italic tracking-widest text-xs" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" /> Exit Frequency
              </Button>
           </div>
         )}

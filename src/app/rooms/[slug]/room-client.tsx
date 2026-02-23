@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -80,8 +81,8 @@ const AVAILABLE_GIFTS: Gift[] = [
 ];
 
 /**
- * Enterprise Chat Room Client.
- * features: Marquee, PK Battle Bar, Identity Frames, and Recursive Ranking Sync.
+ * Room Client - Enterprise Yari Edition.
+ * Features: Marquee Announcement, PK Tug-of-War Bar, Animated Gifting, Identity Frames.
  */
 export function RoomClient({ room }: { room: Room }) {
   const [isMicOn, setIsMicOn] = useState(false);
@@ -116,7 +117,7 @@ export function RoomClient({ room }: { room: Room }) {
   const currentUserParticipant = participants?.find(p => p.uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
 
-  // Presence & Identity Sync
+  // Presence Identity Engine
   useEffect(() => {
     if (!firestore || !room.id || !currentUser || !userProfile) return;
     const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
@@ -158,7 +159,7 @@ export function RoomClient({ room }: { room: Room }) {
     })) || [];
   }, [firestoreMessages]);
 
-  // Handle Gifting Animations
+  // Gifting Animation Logic
   useEffect(() => {
     if (!activeMessages.length) return;
     const lastMsg = activeMessages[activeMessages.length - 1];
@@ -172,7 +173,7 @@ export function RoomClient({ room }: { room: Room }) {
     }
   }, [activeMessages]);
 
-  // Auto-scroll chat
+  // Chat Auto-scroll
   useEffect(() => {
     if (scrollRef.current) {
       const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
@@ -208,8 +209,8 @@ export function RoomClient({ room }: { room: Room }) {
   };
 
   /**
-   * Unified Ranking Identity Engine.
-   * Increments sender wealth, recipient charm, and room popularity using nested objects.
+   * Unified Recursive Ranking Sync.
+   * Increments Rich (Sender), Charm (Recipient), and Room popularity.
    */
   const handleSendGift = async (gift: Gift) => {
     if (!currentUser || !firestore || !userProfile) return;
@@ -229,7 +230,7 @@ export function RoomClient({ room }: { room: Room }) {
       updatedAt: serverTimestamp()
     };
 
-    // SENDER UPDATE: Wealth Rank (Nested)
+    // SENDER: Wealth Rank
     const senderUpdates = {
       wallet: {
         coins: increment(-gift.price),
@@ -241,7 +242,7 @@ export function RoomClient({ room }: { room: Room }) {
     setDocumentNonBlocking(userRef, senderUpdates, { merge: true });
     setDocumentNonBlocking(profileRef, senderUpdates, { merge: true });
 
-    // ROOM UPDATE: Popularity Rank (Nested)
+    // ROOM: Popularity Rank
     setDocumentNonBlocking(roomRef, {
       stats: {
         totalGifts: increment(gift.price),
@@ -255,7 +256,7 @@ export function RoomClient({ room }: { room: Room }) {
       if (host) finalRecipient = { uid: host.uid, name: host.name, avatarUrl: host.avatarUrl };
     }
 
-    // RECIPIENT UPDATE: Charm Rank (Nested) + Identity Persistence
+    // RECIPIENT: Charm Rank
     if (finalRecipient) {
       const recipientRef = doc(firestore, 'users', finalRecipient.uid);
       const recipientProfileRef = doc(firestore, 'users', finalRecipient.uid, 'profile', finalRecipient.uid);
@@ -287,7 +288,7 @@ export function RoomClient({ room }: { room: Room }) {
 
     setIsGiftPickerOpen(false);
     setGiftRecipient(null);
-    toast({ title: 'Gift Sent!', description: 'Ranks synchronized globally.' });
+    toast({ title: 'Launched!', description: `${gift.emoji} Vibe sent.` });
   };
 
   const handleClearChat = async () => {
@@ -308,10 +309,9 @@ export function RoomClient({ room }: { room: Room }) {
         await batch.commit();
       }
       
-      toast({ title: 'Chat Cleared', description: 'The frequency is now silent.' });
+      toast({ title: 'Frequency Purged', description: 'Chat is clear.' });
     } catch (e) {
-      console.warn("Clear failed:", e);
-      toast({ variant: 'destructive', title: 'Clear Failed', description: 'Check your authority.' });
+      toast({ variant: 'destructive', title: 'Clear Failed' });
     }
   };
 
@@ -331,7 +331,7 @@ export function RoomClient({ room }: { room: Room }) {
     const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
     updateDocumentNonBlocking(participantRef, { seatIndex: 0 });
     setIsActionMenuOpen(false);
-    toast({ title: 'Moved to Audience' });
+    toast({ title: 'Audience Mode' });
   };
 
   const toggleSeatLock = (index: number | null) => {
@@ -362,7 +362,7 @@ export function RoomClient({ room }: { room: Room }) {
       if (firstAvailable) {
         takeSeat(firstAvailable);
       } else {
-        toast({ variant: 'destructive', title: 'All Seats Occupied' });
+        toast({ variant: 'destructive', title: 'Full Capacity' });
       }
     } else {
       setIsMicOn(!isMicOn);
@@ -383,13 +383,13 @@ export function RoomClient({ room }: { room: Room }) {
 
   return (
     <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl border border-white/5 animate-in fade-in duration-700">
-      {/* Dynamic Background */}
+      {/* Immersive Room Backdrop */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 via-blue-900/40 to-black z-10" />
-        <img src="https://images.unsplash.com/photo-1464802686167-b939a67e06a1?q=80&w=2070&auto=format&fit=crop" className="h-full w-full object-cover opacity-60 scale-110" alt="Room Backdrop" />
+        <img src="https://images.unsplash.com/photo-1464802686167-b939a67e06a1?q=80&w=2070&auto=format&fit=crop" className="h-full w-full object-cover opacity-60 scale-110" alt="Backdrop" />
       </div>
 
-      {/* Center Gift Animation Overlay */}
+      {/* Full-Screen Gift Animation Overlay */}
       {activeGiftAnimation && (
         <div className="absolute inset-0 z-[100] pointer-events-none flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500">
           <div className="bg-black/60 backdrop-blur-3xl p-12 rounded-[4rem] border-4 border-primary/50 flex flex-col items-center gap-6 shadow-[0_0_150px_rgba(251,191,36,0.4)]">
@@ -413,7 +413,7 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       )}
 
-      {/* Header */}
+      {/* Room Header */}
       <header className="relative z-50 flex items-center justify-between p-6 pb-2">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12 rounded-xl border-2 border-primary/50">
@@ -460,7 +460,7 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </header>
 
-      {/* Marquee Announcement */}
+      {/* Marquee News Bar */}
       <div className="relative z-50 px-6 py-1">
          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full h-8 flex items-center overflow-hidden px-4 gap-3">
             <Megaphone className="h-3 w-3 text-primary shrink-0" />
@@ -472,7 +472,7 @@ export function RoomClient({ room }: { room: Room }) {
          </div>
       </div>
 
-      {/* PK Battle Bar */}
+      {/* PK Tug-of-War Bar */}
       <div className="relative z-50 px-6 mt-4">
          <div className="bg-black/40 backdrop-blur-xl border-2 border-white/5 rounded-2xl p-2 relative overflow-hidden">
             <div className="flex justify-between items-center px-4 mb-1">
@@ -496,10 +496,10 @@ export function RoomClient({ room }: { room: Room }) {
          </div>
       </div>
 
-      {/* Stage */}
+      {/* The Stage */}
       <ScrollArea className="relative z-10 flex-1 px-4" ref={scrollRef}>
         <div className="max-w-4xl mx-auto py-6 space-y-12 pb-32">
-          {/* Host Seat */}
+          {/* Main Stage Seat (Room Master) */}
           <div className="flex justify-center">
              <div className="flex flex-col items-center gap-3">
                 <div 
@@ -561,7 +561,7 @@ export function RoomClient({ room }: { room: Room }) {
             })}
           </div>
 
-          {/* Chat Feed */}
+          {/* Real-time Vibe Feed */}
           <div className="mt-8 max-w-lg mx-auto space-y-3 px-4">
             {activeMessages.map((msg) => (
               <div key={msg.id} className={cn(
@@ -582,7 +582,7 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </ScrollArea>
 
-      {/* Room Controls */}
+      {/* Interactive Controls */}
       <footer className="relative z-50 shrink-0 px-6 pb-12 pt-4 bg-gradient-to-t from-black via-black/80 to-transparent">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <form className="flex-1 flex items-center bg-blue-900/40 backdrop-blur-xl rounded-full border border-white/10 h-12 px-5" onSubmit={handleSendMessage}>
@@ -650,7 +650,7 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </footer>
 
-      {/* Seat Actions Dialog */}
+      {/* Seat Actions Modal */}
       <Dialog open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
         <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-xl border-none p-0 rounded-t-[2.5rem] overflow-hidden">
           <DialogHeader className="p-6 border-b border-gray-100">
