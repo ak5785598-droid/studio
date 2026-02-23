@@ -1,12 +1,12 @@
 'use client';
 
-import { use, useMemo, useEffect } from 'react';
+import { use, useMemo, useEffect, useState } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import { RoomClient } from './room-client';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Loader } from 'lucide-react';
+import { Loader, ShieldAlert } from 'lucide-react';
 import type { Room } from '@/lib/types';
 
 /**
@@ -18,11 +18,16 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   const router = useRouter();
   const firestore = useFirestore();
   const { user: currentUser, isLoading: isUserLoading } = useUser();
+  const [initStatus, setInitStatus] = useState<string>('Verifying Session...');
 
   // Redirect to login if auth check finishes and no user is found
   useEffect(() => {
-    if (!isUserLoading && !currentUser) {
-      router.replace('/login');
+    if (!isUserLoading) {
+      if (!currentUser) {
+        router.replace('/login');
+      } else {
+        setInitStatus('Connecting to Frequency...');
+      }
     }
   }, [isUserLoading, currentUser, router]);
 
@@ -32,11 +37,12 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     return doc(firestore, 'chatRooms', slug);
   }, [firestore, slug, isUserLoading, currentUser]);
 
-  const { data: firestoreRoom, isLoading: isDocLoading } = useDoc(roomDocRef);
+  const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
 
   // Auto-initialize Official Help Room if it doesn't exist
   useEffect(() => {
     if (slug === 'official-help-room' && !isDocLoading && !firestoreRoom && firestore && currentUser) {
+      setInitStatus('Provisioning Official Hub...');
       const officialRef = doc(firestore, 'chatRooms', 'official-help-room');
       setDoc(officialRef, {
         name: 'Ummy Official Help Room',
@@ -48,7 +54,9 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
         createdAt: serverTimestamp(),
         moderatorIds: ['official-admin'],
         lockedSeats: []
-      }, { merge: true });
+      }, { merge: true }).catch(err => {
+        console.error("Hub initialization failed", err);
+      });
     }
   }, [slug, isDocLoading, firestoreRoom, firestore, currentUser]);
 
@@ -70,16 +78,18 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     } as any;
   }, [firestoreRoom]);
 
-  // Loading screen for auth or doc loading
-  if (isUserLoading || (isDocLoading && !firestoreRoom)) {
-    return (
-      <AppLayout>
-        <div className="flex h-[50vh] w-full flex-col items-center justify-center space-y-4">
-          <Loader className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground animate-pulse font-mono uppercase tracking-widest">Synchronizing Vibe...</p>
-        </div>
-      </AppLayout>
-    );
+  // Handle Permission or Fetch Errors
+  if (docError) {
+     return (
+        <AppLayout>
+            <div className="flex h-[60vh] flex-col items-center justify-center space-y-4 text-center px-6">
+                <ShieldAlert className="h-16 w-16 text-destructive mb-2" />
+                <h1 className="text-2xl font-black uppercase italic">Access Frequency Denied</h1>
+                <p className="text-muted-foreground max-w-md">The room ID is invalid or you do not have permission to access this vibe.</p>
+                <button onClick={() => router.push('/rooms')} className="bg-primary text-white font-black uppercase px-8 py-3 rounded-full shadow-lg">Back to Explore</button>
+            </div>
+        </AppLayout>
+     );
   }
 
   // Final check for existence - only trigger if we definitely have a user and ref
@@ -87,12 +97,25 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     notFound();
   }
 
+  // Loading screen for auth or doc loading
+  if (isUserLoading || (isDocLoading && !firestoreRoom) || (slug === 'official-help-room' && !firestoreRoom)) {
+    return (
+      <AppLayout>
+        <div className="flex h-[60vh] w-full flex-col items-center justify-center space-y-4">
+          <Loader className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground animate-pulse font-mono uppercase tracking-[0.3em] font-bold">{initStatus}</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
   // Ensure we have a user and a room before rendering client
   if (!currentUser || !activeRoom) {
      return (
         <AppLayout>
-            <div className="flex h-[50vh] w-full flex-col items-center justify-center">
+            <div className="flex h-[60vh] w-full flex-col items-center justify-center">
                 <Loader className="h-10 w-10 animate-spin text-primary" />
+                <p className="text-xs text-muted-foreground mt-4 uppercase font-bold tracking-widest">Finalizing Connection...</p>
             </div>
         </AppLayout>
      );

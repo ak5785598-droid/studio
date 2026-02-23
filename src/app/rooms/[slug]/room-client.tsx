@@ -94,7 +94,7 @@ export function RoomClient({ room }: { room: Room }) {
     return () => unsub();
   }, [firestore, room.id, currentUser]);
 
-  // Presence Synchronization - Wait for userProfile to be fully loaded
+  // Presence Synchronization
   useEffect(() => {
     if (!firestore || !room.id || !currentUser || !userProfile) return;
     const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
@@ -175,7 +175,12 @@ export function RoomClient({ room }: { room: Room }) {
   };
 
   if (isUserLoading || !currentUser || isProfileLoading) {
-    return <div className="flex h-[50vh] items-center justify-center"><Loader className="animate-spin text-primary" /></div>;
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
+        <Loader className="animate-spin text-primary h-10 w-10" />
+        <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">Initializing Social Grid...</p>
+      </div>
+    );
   }
 
   return (
@@ -197,7 +202,7 @@ export function RoomClient({ room }: { room: Room }) {
               <Avatar className="h-14 w-14 border-2 border-primary relative z-10 shadow-2xl">
                 <AvatarImage 
                   src={room.coverUrl || `https://picsum.photos/seed/${room.id}/200`} 
-                  alt={room.title}
+                  alt={`${room.title} Cover`}
                 />
                 <AvatarFallback>UM</AvatarFallback>
               </Avatar>
@@ -227,7 +232,7 @@ export function RoomClient({ room }: { room: Room }) {
             <Swords className="h-5 w-5" />
           </Button>
           <Button size="icon" variant="destructive" asChild className="rounded-2xl h-11 w-11 shadow-2xl hover:scale-105 transition-transform">
-            <a href="/rooms"><PhoneOff className="h-5 w-5" alt="Leave room" /></a>
+            <a href="/rooms"><PhoneOff className="h-5 w-5" /></a>
           </Button>
         </div>
       </header>
@@ -257,7 +262,7 @@ export function RoomClient({ room }: { room: Room }) {
                       {participants?.find(p => p.seatIndex === 1) ? (
                          <div className="relative h-full w-full">
                             <Avatar className="h-full w-full rounded-full border-2 border-black">
-                               <AvatarImage src={participants.find(p => p.seatIndex === 1)?.avatarUrl} alt="Host Profile" />
+                               <AvatarImage src={participants.find(p => p.seatIndex === 1)?.avatarUrl} alt="Host Avatar" />
                                <AvatarFallback>H</AvatarFallback>
                             </Avatar>
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-black text-[8px] font-black px-2 py-0.5 rounded-full shadow-lg border border-black/10">HOST</div>
@@ -295,7 +300,7 @@ export function RoomClient({ room }: { room: Room }) {
                       ) : occupant ? (
                         <div className="relative h-full w-full p-1">
                           <Avatar className="h-full w-full rounded-full">
-                            <AvatarImage src={occupant.avatarUrl} alt={`${occupant.name} Profile`} />
+                            <AvatarImage src={occupant.avatarUrl} alt={`${occupant.name} Seat Avatar`} />
                             <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           {isMicOn && occupant.uid === currentUser?.uid && (
@@ -351,7 +356,7 @@ export function RoomClient({ room }: { room: Room }) {
             {activeMessages.map((msg) => (
               <div key={msg.id} className="flex items-start gap-3 group/msg animate-in slide-in-from-bottom-2">
                 <Avatar className="h-9 w-9 border border-white/5">
-                  <AvatarImage src={msg.user.avatarUrl} alt={`${msg.user.name} Avatar`} />
+                  <AvatarImage src={msg.user.avatarUrl} alt={`${msg.user.name} Chat Avatar`} />
                   <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 flex flex-col items-start">
