@@ -5,21 +5,21 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
         {...props}
     >
         <defs>
-            <linearGradient id="micGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="micChrome" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#ffffff" />
-                <stop offset="40%" stopColor="#d1d5db" />
-                <stop offset="100%" stopColor="#4b5563" />
+                <stop offset="50%" stopColor="#a1a1aa" />
+                <stop offset="100%" stopColor="#3f3f46" />
             </linearGradient>
-            <linearGradient id="fireGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="fireGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#fbbf24" />
                 <stop offset="50%" stopColor="#f97316" />
                 <stop offset="100%" stopColor="#ef4444" />
             </linearGradient>
-            <linearGradient id="textGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="textGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#f472b6" />
                 <stop offset="100%" stopColor="#8b5cf6" />
             </linearGradient>
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
                 <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
                 <feMerge>
                     <feMergeNode in="coloredBlur"/>
@@ -28,69 +28,69 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
             </filter>
         </defs>
 
-        {/* Circular Background Ring */}
-        <circle cx="50" cy="45" r="38" fill="none" stroke="#fbbf24" strokeWidth="1" opacity="0.2" />
+        {/* Golden Ring Background */}
+        <circle cx="50" cy="42" r="38" fill="none" stroke="#fbbf24" strokeWidth="1.5" opacity="0.6" />
 
-        {/* High-Fidelity Flames */}
-        <g filter="url(#glow)">
+        {/* Dynamic Flames */}
+        <g filter="url(#neonGlow)">
             <path 
-                d="M50 8 Q65 25 58 35 Q80 20 75 45 Q90 35 85 65 Q50 80 15 65 Q10 35 25 45 Q20 20 42 35 Q35 25 50 8" 
-                fill="url(#fireGradient)"
-            />
-            <path 
-                d="M50 15 Q58 28 55 35 Q70 25 68 42 Q80 35 76 55 Q50 65 24 55 Q20 35 32 42 Q30 25 45 35 Q42 28 50 15" 
-                fill="#fbbf24" opacity="0.6"
+                d="M50 5 Q65 22 58 35 Q80 20 75 45 Q90 35 85 65 Q50 80 15 65 Q10 35 25 45 Q20 20 42 35 Q35 22 50 5" 
+                fill="url(#fireGrad)"
             />
         </g>
+
+        {/* Lightning Bolts */}
+        <path d="M15 35 L25 50 L20 50 L30 65" fill="#facc15" stroke="#ffffff" strokeWidth="0.5" filter="url(#neonGlow)" />
+        <path d="M85 35 L75 50 L80 50 L70 65" fill="#facc15" stroke="#ffffff" strokeWidth="0.5" filter="url(#neonGlow)" />
 
         {/* Equalizer Bars */}
         <g opacity="0.9">
-            <rect x="12" y="48" width="3.5" height="15" rx="1.75" fill="#f472b6" />
-            <rect x="18" y="42" width="3.5" height="22" rx="1.75" fill="#f472b6" />
-            <rect x="24" y="38" width="3.5" height="28" rx="1.75" fill="#f472b6" />
+            <rect x="8" y="52" width="3.5" height="15" rx="1.75" fill="#f472b6" />
+            <rect x="14" y="48" width="3.5" height="20" rx="1.75" fill="#f472b6" />
+            <rect x="20" y="44" width="3.5" height="24" rx="1.75" fill="#f472b6" />
             
-            <rect x="72.5" y="38" width="3.5" height="28" rx="1.75" fill="#8b5cf6" />
-            <rect x="78.5" y="42" width="3.5" height="22" rx="1.75" fill="#8b5cf6" />
-            <rect x="84.5" y="48" width="3.5" height="15" rx="1.75" fill="#8b5cf6" />
+            <rect x="76.5" y="44" width="3.5" height="24" rx="1.75" fill="#8b5cf6" />
+            <rect x="82.5" y="48" width="3.5" height="20" rx="1.75" fill="#8b5cf6" />
+            <rect x="88.5" y="52" width="3.5" height="15" rx="1.75" fill="#8b5cf6" />
         </g>
 
         {/* Microphone Body */}
-        <rect x="38" y="28" width="24" height="32" rx="12" fill="url(#micGradient)" stroke="#1f2937" strokeWidth="1.5" />
-        <path d="M38 40 H62 M38 46 H62 M38 52 H62" stroke="#1f2937" strokeWidth="0.5" />
+        <rect x="38" y="22" width="24" height="35" rx="12" fill="url(#micChrome)" stroke="#000" strokeWidth="1.2" />
+        <path d="M38 32 H62 M38 39 H62 M38 46 H62" stroke="#000" strokeWidth="0.5" opacity="0.4" />
         
         {/* Mic Holder */}
-        <path d="M35 50 Q35 65 50 65 Q65 65 65 50" fill="none" stroke="#9ca3af" strokeWidth="2.5" />
-        <rect x="47.5" y="65" width="5" height="6" fill="#4b5563" />
+        <path d="M35 48 Q35 65 50 65 Q65 65 65 48" fill="none" stroke="#a1a1aa" strokeWidth="2.5" />
+        <rect x="47.5" y="65" width="5" height="8" fill="#3f3f46" />
 
         {/* UMMY Shield Base */}
         <path 
-            d="M10 72 L90 72 L82 94 L50 100 L18 94 Z" 
+            d="M10 70 L90 70 L82 94 L50 100 L18 94 Z" 
             fill="#0f172a" 
             stroke="#4f46e5" 
-            strokeWidth="2" 
+            strokeWidth="2.5" 
         />
         
         {/* Neon Frequency Line */}
         <path 
-            d="M20 88 L32 88 L38 80 L44 96 L50 88 L56 80 L62 96 L68 88 L80 88" 
+            d="M20 88 L32 88 L38 82 L44 94 L50 88 L56 82 L62 94 L68 88 L80 88" 
             fill="none" 
             stroke="#00f2ff" 
             strokeWidth="2" 
-            filter="url(#glow)" 
+            filter="url(#neonGlow)" 
         />
 
-        {/* UMMY Text */}
+        {/* UMMY Text Styling */}
         <text 
             x="50" 
             y="85" 
             textAnchor="middle" 
-            fill="url(#textGradient)" 
+            fill="url(#textGrad)" 
             style={{ 
-                fontSize: '15px', 
+                fontSize: '16px', 
                 fontWeight: '950', 
-                fontFamily: 'system-ui', 
+                fontFamily: 'Arial Black, sans-serif', 
                 fontStyle: 'italic',
-                textShadow: '0 0 8px rgba(244,114,182,0.9)' 
+                textShadow: '0 0 10px rgba(244,114,182,0.8)' 
             }}
         >
             UMMY

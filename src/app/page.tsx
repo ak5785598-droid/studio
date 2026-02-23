@@ -29,15 +29,12 @@ export default function Home() {
       <div className="absolute top-1/4 -left-1/4 w-[100%] h-[100%] bg-purple-900/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 -right-1/4 w-[100%] h-[100%] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none" />
       
-      <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-1000 relative z-10">
-        <div className="relative h-56 w-56 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-1000 relative z-10 scale-125 md:scale-150">
+        <div className="relative h-64 w-64 flex items-center justify-center">
            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
-           <UmmyLogoIcon className="h-full w-full drop-shadow-[0_0_40px_rgba(251,191,36,0.5)]" />
+           <UmmyLogoIcon className="h-full w-full drop-shadow-[0_0_50px_rgba(251,191,36,0.6)]" />
         </div>
         <div className="flex flex-col items-center gap-3">
-           <h1 className="font-headline text-7xl font-black text-white italic tracking-tighter drop-shadow-2xl">
-             UMMY
-           </h1>
            <p className="text-primary font-black uppercase tracking-[0.5em] text-xs animate-pulse">
              Syncing Frequency...
            </p>
@@ -48,6 +45,7 @@ export default function Home() {
          <div className="h-1.5 w-full max-w-xs bg-white/5 rounded-full overflow-hidden border border-white/5 backdrop-blur-sm">
             <div className="h-full bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 animate-loading-bar" style={{ width: '40%' }} />
          </div>
+         <p className="text-[10px] text-white/20 font-black uppercase tracking-widest">Powered by Ummy Neural Engine</p>
       </div>
 
       <style jsx>{`
