@@ -94,7 +94,7 @@ export function EditProfileDialog({ profile }: EditProfileDialogProps) {
       <DialogContent className="sm:max-w-[425px] bg-background">
         <form onSubmit={handleSave}>
           <DialogHeader>
-            <DialogTitle className="font-headline text-2xl">Edit Profile</DialogTitle>
+            <DialogTitle className="font-headline text-2xl uppercase italic">Edit Profile</DialogTitle>
             <DialogDescription>
               Update your Name, Bio, and DP. Identity changes are instant.
             </DialogDescription>
@@ -124,7 +124,8 @@ export function EditProfileDialog({ profile }: EditProfileDialogProps) {
                 onChange={(e) => setName(e.target.value)}
                 required
                 disabled={isSubmitting}
-                placeholder="Enter your real name"
+                placeholder="Enter your name"
+                className="rounded-xl h-12"
               />
             </div>
             <div className="grid gap-2">
@@ -134,7 +135,7 @@ export function EditProfileDialog({ profile }: EditProfileDialogProps) {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Tell the world about yourself..."
-                className="resize-none h-24"
+                className="resize-none h-24 rounded-xl"
                 disabled={isSubmitting}
               />
             </div>
@@ -144,18 +145,18 @@ export function EditProfileDialog({ profile }: EditProfileDialogProps) {
                 <Label className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-muted-foreground">
                   <Globe className="h-3 w-3" /> Country (Fixed)
                 </Label>
-                <Input value={profile?.details?.hometown || 'India'} disabled className="bg-muted cursor-not-allowed h-9 text-xs" />
+                <Input value={profile?.details?.hometown || 'India'} disabled className="bg-muted cursor-not-allowed h-9 text-xs rounded-lg" />
               </div>
               <div className="grid gap-2 opacity-60">
                 <Label className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-muted-foreground">
                   <User2 className="h-3 w-3" /> Gender (Fixed)
                 </Label>
-                <Input value={profile?.details?.gender || 'Secret'} disabled className="bg-muted cursor-not-allowed h-9 text-xs" />
+                <Input value={profile?.details?.gender || 'Secret'} disabled className="bg-muted cursor-not-allowed h-9 text-xs rounded-lg" />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={isSubmitting || isUploading}>
+            <Button type="submit" className="w-full h-14 text-lg font-black uppercase italic rounded-2xl shadow-lg" disabled={isSubmitting || isUploading}>
               {isSubmitting ? <Loader className="mr-2 h-5 w-5 animate-spin" /> : null}
               Save All Changes
             </Button>

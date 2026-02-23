@@ -92,6 +92,9 @@ export function RoomClient({ room }: { room: Room }) {
   const { data: participants } = useCollection<RoomParticipant>(participantsQuery);
   const onlineCount = participants?.length || 0;
 
+  const currentUserParticipant = participants?.find(p => p.uid === currentUser?.uid);
+  const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
+
   // Presence Synchronization
   useEffect(() => {
     if (!firestore || !room.id || !currentUser || !userProfile) return;
@@ -104,7 +107,7 @@ export function RoomClient({ room }: { room: Room }) {
       activeFrame: userProfile.frame || 'None',
       joinedAt: serverTimestamp(),
       isMuted: !isMicOn,
-      seatIndex: participants?.find(p => p.uid === currentUser.uid)?.seatIndex || 0,
+      seatIndex: currentUserParticipant?.seatIndex || 0,
     }, { merge: true }).catch(err => console.warn('Presence sync delayed', err));
 
     return () => { 
@@ -219,6 +222,7 @@ export function RoomClient({ room }: { room: Room }) {
     }
     const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
     updateDoc(participantRef, { seatIndex: index });
+    toast({ title: 'You took a seat!', description: `Welcome to seat ${index}.` });
   };
 
   const leaveSeat = async () => {
@@ -240,8 +244,8 @@ export function RoomClient({ room }: { room: Room }) {
   const toggleAllSeatsLock = async () => {
     if (!firestore || !room.id || !isAdmin) return;
     const roomRef = doc(firestore, 'chatRooms', room.id);
-    const allLocked = room.lockedSeats?.length === 12;
-    updateDoc(roomRef, { lockedSeats: allLocked ? [] : Array.from({ length: 12 }, (_, i) => i + 2) });
+    const allLocked = room.lockedSeats?.length >= 13;
+    updateDoc(roomRef, { lockedSeats: allLocked ? [] : Array.from({ length: 13 }, (_, i) => i + 1) });
     setIsActionMenuOpen(false);
   };
 
@@ -251,6 +255,22 @@ export function RoomClient({ room }: { room: Room }) {
       setIsActionMenuOpen(true);
     } else if (!occupant && !room.lockedSeats?.includes(index)) {
       takeSeat(index);
+    }
+  };
+
+  const handleBottomMicClick = () => {
+    if (!isInSeat) {
+      // Find first available seat
+      const firstAvailable = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].find(idx => 
+        !participants?.some(p => p.seatIndex === idx) && !room.lockedSeats?.includes(idx)
+      );
+      if (firstAvailable) {
+        takeSeat(firstAvailable);
+      } else {
+        toast({ variant: 'destructive', title: 'Full Room', description: 'No empty seats available.' });
+      }
+    } else {
+      setIsMicOn(!isMicOn);
     }
   };
 
@@ -292,24 +312,28 @@ export function RoomClient({ room }: { room: Room }) {
         <div className="flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon"><Settings /></Button>
+              <button className="bg-white/10 p-2 rounded-full backdrop-blur-md hover:bg-white/20 transition-colors">
+                <Settings className="h-5 w-5" />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-slate-900 border-white/10 text-white">
               <DropdownMenuLabel>Management</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {isAdmin && (
-                <DropdownMenuItem onClick={handleClearChat} className="text-destructive">
+                <DropdownMenuItem onClick={handleClearChat} className="text-destructive focus:bg-destructive/10">
                   <Trash2 className="mr-2 h-4 w-4" /> Clear Chat
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" size="icon" asChild><a href="/rooms"><PhoneOff /></a></Button>
+          <Button variant="ghost" size="icon" asChild className="rounded-full bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white">
+            <a href="/rooms"><PhoneOff className="h-5 w-5" /></a>
+          </Button>
         </div>
       </header>
 
       <ScrollArea className="relative z-10 flex-1 px-4" ref={scrollRef}>
-        <div className="max-w-4xl mx-auto py-6 space-y-12">
+        <div className="max-w-4xl mx-auto py-6 space-y-12 pb-32">
           {/* Host Seat */}
           <div className="flex justify-center">
              <div className="flex flex-col items-center gap-3">
@@ -363,7 +387,7 @@ export function RoomClient({ room }: { room: Room }) {
             })}
           </div>
 
-          <div className="mt-8 mb-24 max-w-lg mx-auto space-y-3 px-4">
+          <div className="mt-8 max-w-lg mx-auto space-y-3 px-4">
             {activeMessages.map((msg) => (
               <div key={msg.id} className="flex items-start gap-2 animate-in fade-in slide-in-from-bottom-2">
                 <span className="text-[10px] font-black text-blue-400 uppercase shrink-0 mt-1">{msg.user.name}:</span>
@@ -374,37 +398,50 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </ScrollArea>
 
-      <footer className="relative z-50 shrink-0 px-6 pb-12 pt-4 bg-transparent">
+      <footer className="relative z-50 shrink-0 px-6 pb-12 pt-4 bg-gradient-to-t from-black via-black/80 to-transparent">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <form className="flex-1 flex items-center bg-blue-900/40 backdrop-blur-xl rounded-full border border-white/10 h-12 px-5" onSubmit={handleSendMessage}>
-            <Input placeholder="Type a vibe..." className="bg-transparent border-none h-full focus-visible:ring-0 text-xs" value={messageText} onChange={(e) => setMessageText(e.target.value)} disabled={isSending} />
-            <Button type="submit" variant="ghost" size="icon" disabled={isSending}><Send className="h-5 w-5" /></Button>
+            <Input placeholder="Type a vibe..." className="bg-transparent border-none h-full focus-visible:ring-0 text-xs text-white placeholder:text-white/40" value={messageText} onChange={(e) => setMessageText(e.target.value)} disabled={isSending} />
+            <Button type="submit" variant="ghost" size="icon" disabled={isSending || !messageText.trim()} className="text-white hover:text-primary"><Send className="h-5 w-5" /></Button>
           </form>
           <div className="flex items-center gap-3">
-            <Button onClick={() => setIsMicOn(!isMicOn)} className={cn("rounded-full h-12 w-12", isMicOn ? "bg-primary/20 text-primary border-primary/50" : "bg-white/5 text-white/40")}><Mic className="h-5 w-5"/></Button>
-            <Button onClick={handleSendGift} className="rounded-full h-14 w-14 bg-gradient-to-br from-pink-500 to-rose-600 animate-pulse"><Gift className="h-7 w-7 text-white" /></Button>
+            <Button 
+              onClick={handleBottomMicClick} 
+              className={cn(
+                "rounded-full h-12 w-12 transition-all", 
+                isInSeat 
+                  ? (isMicOn ? "bg-primary text-black shadow-lg shadow-primary/20" : "bg-white/10 text-white/40")
+                  : "bg-white/5 text-white/40 border border-white/10"
+              )}
+            >
+              {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+            </Button>
+            <Button onClick={handleSendGift} className="rounded-full h-14 w-14 bg-gradient-to-br from-pink-500 to-rose-600 animate-pulse shadow-xl shadow-pink-500/20"><Gift className="h-7 w-7 text-white" /></Button>
           </div>
         </div>
       </footer>
 
-      {/* Action Menu Dialog (Screenshot Style) */}
+      {/* Action Menu Dialog */}
       <Dialog open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
-        <DialogContent className="sm:max-w-sm bg-white/95 backdrop-blur-xl border-none p-0 rounded-t-[2rem] overflow-hidden">
+        <DialogContent className="sm:max-w-sm bg-white/95 backdrop-blur-xl border-none p-0 rounded-t-[2.5rem] overflow-hidden">
           <DialogHeader className="p-6 border-b border-gray-100">
-            <DialogTitle className="text-center font-headline text-xl text-gray-800">Seat Actions</DialogTitle>
+            <DialogTitle className="text-center font-headline text-2xl text-gray-800 uppercase italic italic">Seat Actions</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col text-center divide-y divide-gray-100">
-            <button onClick={() => setIsMicOn(!isMicOn)} className="py-5 font-bold text-gray-700 hover:bg-gray-50 transition-colors">On mic</button>
-            <button onClick={() => toast({ title: 'Invited!', description: 'Link shared to your tribe.' })} className="py-5 font-bold text-gray-700 hover:bg-gray-50 transition-colors">Invite</button>
+            <button onClick={() => { setIsMicOn(!isMicOn); setIsActionMenuOpen(false); }} className="py-5 font-bold text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-widest text-xs">
+              {isMicOn ? 'Mute Mic' : 'Turn On Mic'}
+            </button>
+            <button onClick={() => { toast({ title: 'Invited!', description: 'Link shared to your tribe.' }); setIsActionMenuOpen(false); }} className="py-5 font-bold text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-widest text-xs">Invite Tribe</button>
             {isAdmin && (
               <>
-                <button onClick={() => toggleSeatLock(selectedSeatIndex)} className="py-5 font-bold text-gray-700 hover:bg-gray-50 transition-colors">Lock</button>
-                <button onClick={toggleAllSeatsLock} className="py-5 font-bold text-gray-700 hover:bg-gray-50 transition-colors">Lock All</button>
+                <button onClick={() => toggleSeatLock(selectedSeatIndex)} className="py-5 font-bold text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-widest text-xs">
+                  {room.lockedSeats?.includes(selectedSeatIndex || 0) ? 'Unlock Seat' : 'Lock Seat'}
+                </button>
+                <button onClick={toggleAllSeatsLock} className="py-5 font-bold text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-widest text-xs">Lock All Seats</button>
               </>
             )}
-            <button onClick={() => setIsMicOn(false)} className="py-5 font-bold text-gray-700 hover:bg-gray-50 transition-colors">Mute</button>
-            <button onClick={leaveSeat} className="py-5 font-black text-destructive hover:bg-red-50 transition-colors">Leave Seat</button>
-            <button onClick={() => setIsActionMenuOpen(false)} className="py-6 font-bold text-gray-400 bg-gray-50/50">Cancel</button>
+            <button onClick={leaveSeat} className="py-6 font-black text-destructive hover:bg-red-50 transition-colors uppercase tracking-widest text-sm italic">Leave Seat</button>
+            <button onClick={() => setIsActionMenuOpen(false)} className="py-6 font-bold text-gray-400 bg-gray-50/50 uppercase tracking-widest text-[10px]">Cancel</button>
           </div>
         </DialogContent>
       </Dialog>
