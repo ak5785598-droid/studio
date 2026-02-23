@@ -12,19 +12,24 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow create, update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      // Allow users to create their own identity summary
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      // Allow updates by the owner or an admin
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow delete: if isAdmin();
       
       match /profile/{profileId} {
         allow read: if isSignedIn();
-        allow create, update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+        // User must be creating/updating their own detailed profile
+        allow create: if isSignedIn() && request.auth.uid == userId;
+        allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
         allow delete: if isAdmin();
       }
     }
 
     match /appConfig/{configId} {
       allow read: if isSignedIn();
-      // Allow users to update counters during initialization/creation
+      // Allow users to update counters during initialization (transactional increment)
       allow update: if isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['userCounter', 'roomCounter']);
       allow write: if isAdmin();
     }
