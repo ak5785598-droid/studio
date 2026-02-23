@@ -8,12 +8,14 @@ import { UmmyLogoIcon } from '@/components/icons';
 /**
  * Root Application Entry / Splash Screen.
  * Displays the high-energy Ummy logo with a deep galaxy theme.
+ * Optimized for rapid redirection once auth state is determined.
  */
 export default function Home() {
   const router = useRouter();
   const { user, isLoading } = useUser();
 
   useEffect(() => {
+    // Redirection happens immediately upon auth resolution to maximize speed.
     if (!isLoading) {
       if (user) {
         router.replace('/rooms');
@@ -29,7 +31,7 @@ export default function Home() {
       <div className="absolute top-1/4 -left-1/4 w-[100%] h-[100%] bg-purple-900/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 -right-1/4 w-[100%] h-[100%] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none" />
       
-      <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-1000 relative z-10 scale-125 md:scale-150">
+      <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-500 relative z-10 scale-125 md:scale-150">
         <div className="relative h-64 w-64 flex items-center justify-center">
            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
            <UmmyLogoIcon className="h-full w-full drop-shadow-[0_0_50px_rgba(251,191,36,0.6)]" />
@@ -43,7 +45,7 @@ export default function Home() {
       
       <div className="absolute bottom-16 flex flex-col items-center gap-4 w-full px-12">
          <div className="h-1.5 w-full max-w-xs bg-white/5 rounded-full overflow-hidden border border-white/5 backdrop-blur-sm">
-            <div className="h-full bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 animate-loading-bar" style={{ width: '40%' }} />
+            <div className="h-full bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 animate-loading-bar" style={{ width: '60%' }} />
          </div>
          <p className="text-[10px] text-white/20 font-black uppercase tracking-widest">Powered by Ummy Neural Engine</p>
       </div>
@@ -54,7 +56,7 @@ export default function Home() {
           100% { transform: translateX(250%); }
         }
         .animate-loading-bar {
-          animation: loading-bar 1.5s ease-in-out infinite;
+          animation: loading-bar 1s ease-in-out infinite;
         }
       `}</style>
     </div>

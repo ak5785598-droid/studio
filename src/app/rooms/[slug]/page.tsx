@@ -12,6 +12,7 @@ import type { Room } from '@/lib/types';
 /**
  * Chat Room Entry Page.
  * Handles authentication checks, room data fetching, and official room provisioning.
+ * Optimized to reduce initialization lag.
  */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -40,21 +41,17 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
 
   const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
 
-  // Verification Logic: Only conclude loading is finished after Firestore responds
+  // Verification Logic: Speed up the transition to the client view.
   useEffect(() => {
     if (!isDocLoading && !isAuthLoading && roomDocRef) {
-      // Small delay to ensure state batching is finished before showing 404
-      const timer = setTimeout(() => {
-        setHasActuallyLoadedOnce(true);
-      }, 200);
-      return () => clearTimeout(timer);
+       // Proceed immediately when data is available.
+       setHasActuallyLoadedOnce(true);
     }
   }, [isDocLoading, isAuthLoading, roomDocRef]);
 
-  // Provision official room if it doesn't exist
+  // Provision official room if it doesn't exist (Runs in background)
   useEffect(() => {
     if (slug === 'official-help-room' && hasActuallyLoadedOnce && !firestoreRoom && firestore && currentUser) {
-      setInitStatus('Provisioning Official Hub...');
       const officialRef = doc(firestore, 'chatRooms', 'official-help-room');
       setDoc(officialRef, {
         name: 'Ummy Official Help Room',
@@ -108,7 +105,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
      );
   }
 
-  // Loading State Guard: Wait for definitive response
+  // Loading State Guard
   if (!hasActuallyLoadedOnce || (slug === 'official-help-room' && !firestoreRoom)) {
     return (
       <AppLayout>
@@ -122,7 +119,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     );
   }
 
-  // Final 404 Guard: Only trigger after verified loading completion
+  // Final 404 Guard
   if (!activeRoom) {
     notFound();
     return null;
