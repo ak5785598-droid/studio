@@ -207,16 +207,23 @@ export function RoomClient({ room }: { room: Room }) {
 
     const userRef = doc(firestore, 'users', currentUser.uid);
     const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
+    const roomRef = doc(firestore, 'chatRooms', room.id);
     
     // Robust "Upsert" style updates using dot notation and merge
-    const updateData = {
+    const userUpdateData = {
       'wallet.coins': increment(-gift.price),
       'wallet.totalSpent': increment(gift.price), 
       'updatedAt': serverTimestamp()
     };
 
-    setDocumentNonBlocking(userRef, updateData, { merge: true });
-    setDocumentNonBlocking(profileRef, updateData, { merge: true });
+    setDocumentNonBlocking(userRef, userUpdateData, { merge: true });
+    setDocumentNonBlocking(profileRef, userUpdateData, { merge: true });
+
+    // Update Room Stats for the Room Leaderboard
+    setDocumentNonBlocking(roomRef, {
+      'stats.totalGifts': increment(gift.price),
+      'updatedAt': serverTimestamp()
+    }, { merge: true });
 
     // Identify Recipient (Charm Ranking)
     let finalRecipient = giftRecipient;
