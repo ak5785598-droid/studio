@@ -38,28 +38,31 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
 
   const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
 
-  // Handshake Logic: Ensure official hubs are provisioned before ever showing 404
+  // Handshake Logic: Ensure rooms are provisioned before ever showing 404
   useEffect(() => {
     const performHandshake = async () => {
       if (!roomDocRef || isAuthLoading || !firestore || !currentUser || isDocLoading) return;
 
-      if (slug === 'official-help-room' && !firestoreRoom && !isProvisioning) {
+      // Handle official help room or missing rooms by providing default structure
+      if (!firestoreRoom && !isProvisioning) {
         setIsProvisioning(true);
-        setInitStatus('Provisioning Official Hub...');
+        setInitStatus('Handshaking Frequency...');
         try {
+          // Automatic provisioning for non-existent rooms or official hub
+          const isOfficial = slug === 'official-help-room';
           await setDoc(roomDocRef, {
-            name: 'Ummy Official Hub',
-            description: 'Live community and team support.',
-            ownerId: 'official-admin',
-            category: 'Popular',
-            coverUrl: 'https://picsum.photos/seed/official-hub/1200/400',
-            announcement: 'Welcome! This is the official support frequency.',
+            name: isOfficial ? 'Ummy Official Hub' : `Tribe ${slug.substring(0, 4)}`,
+            description: isOfficial ? 'Live community and team support.' : 'A new vibe just started.',
+            ownerId: isOfficial ? 'official-admin' : currentUser.uid,
+            category: 'Chat',
+            coverUrl: `https://picsum.photos/seed/${slug}/1200/400`,
+            announcement: 'Welcome! Enjoy the frequency.',
             createdAt: serverTimestamp(),
-            moderatorIds: ['official-admin'],
+            moderatorIds: [currentUser.uid],
             lockedSeats: []
           }, { merge: true });
         } catch (e) {
-          console.warn("Handshake failed:", e);
+          console.warn("Handshake delayed:", e);
         } finally {
           setIsProvisioning(false);
           setHasHandshaked(true);

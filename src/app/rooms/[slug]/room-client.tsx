@@ -43,6 +43,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
@@ -335,7 +336,7 @@ export function RoomClient({ room }: { room: Room }) {
     <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl border border-white/5 animate-in fade-in duration-700">
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 via-blue-900/40 to-black z-10" />
-        <img src="https://images.unsplash.com/photo-1464802686167-b939a67e06a1?q=80&w=2070&auto=format&fit=crop" className="h-full w-full object-cover opacity-60 scale-110" />
+        <img src="https://images.unsplash.com/photo-1464802686167-b939a67e06a1?q=80&w=2070&auto=format&fit=crop" className="h-full w-full object-cover opacity-60 scale-110" alt="Background" />
       </div>
 
       {activeGiftAnimation && (
@@ -477,7 +478,7 @@ export function RoomClient({ room }: { room: Room }) {
       <footer className="relative z-50 shrink-0 px-6 pb-12 pt-4 bg-gradient-to-t from-black via-black/80 to-transparent">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <form className="flex-1 flex items-center bg-blue-900/40 backdrop-blur-xl rounded-full border border-white/10 h-12 px-5" onSubmit={handleSendMessage}>
-            <Input placeholder="Type a vibe..." className="bg-transparent border-none h-full focus-visible:ring-0 text-xs text-white placeholder:text-white/40" value={messageText} onChange={(e) => setMessageText(e.target.value)} disabled={isSending} />
+            <Input placeholder="Type a vibe..." className="bg-transparent border-none h-full focus-visible:ring-0 text-xs text-white placeholder:text-white/40" value={messageText} onChange={(e) => setMessageText(e.target.value)} disabled={isSending} aria-label="Chat message" />
             <Button type="submit" variant="ghost" size="icon" disabled={isSending || !messageText.trim()} className="text-white hover:text-primary"><Send className="h-5 w-5" /></Button>
           </form>
           <div className="flex items-center gap-3">
@@ -489,23 +490,24 @@ export function RoomClient({ room }: { room: Room }) {
                   ? (isMicOn ? "bg-primary text-black shadow-lg shadow-primary/20" : "bg-white/10 text-white/40")
                   : "bg-white/5 text-white/40 border border-white/10"
               )}
+              aria-label={isMicOn ? "Turn off mic" : "Turn on mic"}
             >
               {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
             </Button>
             <Dialog open={isGiftPickerOpen} onOpenChange={(val) => { setIsGiftPickerOpen(val); if (!val) setGiftRecipient(null); }}>
               <DialogTrigger asChild>
-                <Button className="rounded-full h-14 w-14 bg-gradient-to-br from-pink-500 to-rose-600 animate-pulse shadow-xl shadow-pink-500/20">
+                <Button className="rounded-full h-14 w-14 bg-gradient-to-br from-pink-500 to-rose-600 animate-pulse shadow-xl shadow-pink-500/20" aria-label="Open gift picker">
                    <GiftIcon className="h-7 w-7 text-white" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] overflow-hidden border-none">
-                 <div className="p-8 space-y-6">
-                    <header className="text-center space-y-1">
-                       <h2 className="text-3xl font-black italic uppercase tracking-tighter">Ummy Boutique</h2>
-                       <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">
-                         {giftRecipient ? `Sending to ${giftRecipient.name}` : 'Surprise the Tribe with a Vibe'}
-                       </p>
-                    </header>
+                 <DialogHeader className="p-8 pb-0 text-center">
+                    <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Ummy Boutique</DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground uppercase font-black tracking-widest">
+                       {giftRecipient ? `Sending to ${giftRecipient.name}` : 'Surprise the Tribe with a Vibe'}
+                    </DialogDescription>
+                 </DialogHeader>
+                 <div className="p-8 pt-6 space-y-6">
                     <div className="grid grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto p-2">
                        {AVAILABLE_GIFTS.map(gift => (
                          <button 
@@ -542,6 +544,7 @@ export function RoomClient({ room }: { room: Room }) {
         <DialogContent className="sm:max-w-sm bg-white/95 backdrop-blur-xl border-none p-0 rounded-t-[2.5rem] overflow-hidden">
           <DialogHeader className="p-6 border-b border-gray-100">
             <DialogTitle className="text-center font-headline text-2xl text-gray-800 uppercase italic">Seat Actions</DialogTitle>
+            <DialogDescription className="sr-only">Manage your seat and microphone settings.</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col text-center divide-y divide-gray-100">
             {selectedSeatIndex !== null && (
