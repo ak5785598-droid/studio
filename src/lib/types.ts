@@ -1,6 +1,8 @@
+
 export type User = {
   id: string;
   name: string;
+  username?: string;
   avatarUrl: string;
   bio?: string;
   isOnline?: boolean;
@@ -17,16 +19,10 @@ export type User = {
     followers?: number;
     fans?: number;
   };
-  details?: {
-    age?: number;
-    emotionalState?: string;
-    occupation?: string;
-    hometown?: string;
-    personalitySignature?: string;
-  };
   wallet?: {
     coins: number;
     diamonds: number;
+    totalSpent: number;
   };
   inventory?: {
     activeFrame?: string;
@@ -103,4 +99,14 @@ export type PkBattle = {
   room2: Room;
   score1: number;
   score2: number;
+};
+
+export type AdminLog = {
+  id: string;
+  adminId: string;
+  adminName: string;
+  targetId: string;
+  action: string;
+  details: any;
+  createdAt: any;
 };

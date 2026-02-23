@@ -2,7 +2,6 @@
 {
   "entities": {
     "UserProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
       "description": "Represents a user profile in the Ummy app.",
@@ -17,7 +16,7 @@
           "properties": {
             "coins": { "type": "number" },
             "diamonds": { "type": "number" },
-            "totalSpent": { "type": "number", "description": "Total coins spent on gifts for ranking." }
+            "totalSpent": { "type": "number" }
           }
         },
         "inventory": {
@@ -25,7 +24,6 @@
           "properties": {
             "activeFrame": { "type": "string" },
             "activeBubble": { "type": "string" },
-            "activeWave": { "type": "string" },
             "ownedItems": { "type": "array", "items": { "type": "string" } }
           }
         },
@@ -35,6 +33,13 @@
           "properties": {
             "followers": { "type": "number" },
             "fans": { "type": "number" }
+          }
+        },
+        "level": {
+          "type": "object",
+          "properties": {
+            "rich": { "type": "number" },
+            "charm": { "type": "number" }
           }
         }
       }
@@ -57,16 +62,18 @@
         "title": { "type": "string" }
       }
     },
-    "StoreItem": {
-      "title": "StoreItem",
+    "AdminLog": {
+      "title": "AdminLog",
       "type": "object",
+      "description": "Audit log for admin actions.",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "price": { "type": "number" },
-        "type": { "type": "string", "enum": ["Frame", "Bubble", "Wave", "Entry"] },
-        "previewUrl": { "type": "string" }
-      }
+        "adminId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["adminId", "action", "createdAt"]
     }
   },
   "auth": {
@@ -79,7 +86,7 @@
         "definition": {
           "entityName": "AppConfig",
           "schema": { "$ref": "#/backend/entities/AppConfig" },
-          "description": "Global application settings controlled by the Owner/Official."
+          "description": "Global application settings."
         }
       },
       {
@@ -87,15 +94,15 @@
         "definition": {
           "entityName": "UserProfile",
           "schema": { "$ref": "#/backend/entities/UserProfile" },
-          "description": "User profile with inventory and wallet."
+          "description": "User profile data."
         }
       },
       {
-        "path": "/storeItems/{itemId}",
+        "path": "/adminLogs/{logId}",
         "definition": {
-          "entityName": "StoreItem",
-          "schema": { "$ref": "#/backend/entities/StoreItem" },
-          "description": "Items available in the virtual store."
+          "entityName": "AdminLog",
+          "schema": { "$ref": "#/backend/entities/AdminLog" },
+          "description": "Audit trails for admin operations."
         }
       }
     ]
