@@ -8,9 +8,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
- * Ensures a user profile exists in Firestore after login.
- * Assigns a unique sequential numeric ID (starting from 1001).
- * Hardened to ensure root summary exists for security rules.
+ * Production Profile Initializer.
+ * Assigns a unique sequential numeric ID and small starting balance.
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -37,7 +36,6 @@ export function ProfileInitializer() {
 
         hasInitialized.current = profileId;
 
-        // 1. Atomically get and increment the sequential ID
         const finalData = await runTransaction(firestore, async (transaction) => {
           const countersSnap = await transaction.get(countersRef);
           let nextUserId = 1001;
@@ -54,16 +52,16 @@ export function ProfileInitializer() {
             username: user.displayName || `Ummy_${profileId.substring(0, 5)}`,
             avatarUrl: user.photoURL || `https://picsum.photos/seed/${profileId}/400`,
             email: user.email || '',
-            bio: 'Vibing on the Ummy frequency! Join my tribe.',
+            bio: 'Synchronized with the Ummy frequency.',
             wallet: { 
-              coins: 100000, 
+              coins: 500, // Small welcome bonus for production
               diamonds: 0,
               totalSpent: 0
             },
             inventory: { ownedItems: [], activeFrame: 'None', activeBubble: 'Default' },
             stats: { followers: 0, fans: 0 },
             level: { rich: 1, charm: 1 },
-            tags: ['Newcomer'],
+            tags: ['Tribe Member'],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             details: {
@@ -76,7 +74,6 @@ export function ProfileInitializer() {
           return initialData;
         });
 
-        // 2. MUST sync root summary first so isAdmin() lookups in rules don't fail for new users
         await setDoc(userRef, {
           id: profileId,
           specialId: finalData.specialId,
@@ -90,21 +87,19 @@ export function ProfileInitializer() {
           joinedAt: serverTimestamp(),
         }, { merge: true });
 
-        // 3. Synchronize detailed profile
         await setDoc(profileRef, finalData, { merge: true });
 
-        // 4. Send Welcome Message
         addDocumentNonBlocking(collection(firestore, 'users', profileId, 'notifications'), {
-          title: 'Welcome to the Tribe!',
-          content: `Your unique Tribe ID is ${finalData.specialId}. We've gifted you 100,000 Gold Coins to get started in the Boutique!`,
+          title: 'Welcome to Ummy!',
+          content: `Your unique Tribe ID is ${finalData.specialId}. We've gifted you 500 Gold Coins to explore the Boutique!`,
           type: 'system',
           timestamp: serverTimestamp(),
           isRead: false
         });
 
         toast({
-          title: 'Welcome to Ummy!',
-          description: `Your Tribe ID is ${finalData.specialId}. Enjoy 100,000 free coins!`,
+          title: 'Identity Synchronized!',
+          description: `Welcome to the tribe. ID: ${finalData.specialId}`,
         });
 
       } catch (e: any) {

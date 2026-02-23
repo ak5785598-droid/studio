@@ -20,15 +20,17 @@ import {
   Sparkles, 
   Store, 
   Zap,
-  ChevronLeft
+  ChevronLeft,
+  UserPlus,
+  UserCheck
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
-import { useUser, useUserProfile, useProfilePictureUpload, useAuth, setDocumentNonBlocking } from '@/firebase';
+import { useUser, useUserProfile, useProfilePictureUpload, useAuth, updateDocumentNonBlocking } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { EditProfileDialog } from '@/components/edit-profile-dialog';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
-import { doc, increment, serverTimestamp } from 'firebase/firestore';
+import { doc, increment, serverTimestamp, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { AvatarFrame } from '@/components/avatar-frame';
 
@@ -54,8 +56,7 @@ const MenuItem = ({ icon: Icon, label, href, extra, iconColor, onClick, router }
 );
 
 /**
- * Me Center / Profile Page.
- * Displays sequential Tribe ID (starting 1001) and premium assets.
+ * Me Center / Profile Page - Final Production Edition.
  */
 export default function ProfilePage() {
   const params = useParams();
@@ -67,6 +68,7 @@ export default function ProfilePage() {
   
   const { user: currentUser, isLoading: isAuthLoading } = useUser();
   const { userProfile: profile, isLoading: isProfileLoading } = useUserProfile(profileId);
+  const { userProfile: myProfile } = useUserProfile(currentUser?.uid);
   const { isUploading, uploadProfilePicture } = useProfilePictureUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,6 +79,7 @@ export default function ProfilePage() {
   }, [currentUser, isAuthLoading, router]);
 
   const isOwnProfile = currentUser?.uid === profileId;
+  const isFollowing = myProfile?.tags?.includes(`following:${profileId}`);
 
   const handleLogout = async () => {
     if (!auth) return;
@@ -84,21 +87,21 @@ export default function ProfilePage() {
     router.push('/login');
   };
 
-  const handleTestTopUp = () => {
-    if (!firestore || !currentUser || !profile) return;
-    const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
-    const userRef = doc(firestore, 'users', currentUser.uid);
+  const handleFollow = () => {
+    if (!firestore || !currentUser || !myProfile || isOwnProfile) return;
     
-    const updateData = { 
-      wallet: {
-        coins: increment(100000)
-      },
-      updatedAt: serverTimestamp() 
-    };
+    const myProfileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
+    const targetProfileRef = doc(firestore, 'users', profileId, 'profile', profileId);
     
-    setDocumentNonBlocking(profileRef, updateData, { merge: true });
-    setDocumentNonBlocking(userRef, updateData, { merge: true });
-    toast({ title: 'Top-up Successful!', description: '100,000 Beta Coins added.' });
+    if (isFollowing) {
+      updateDocumentNonBlocking(myProfileRef, { tags: arrayRemove(`following:${profileId}`) });
+      updateDocumentNonBlocking(targetProfileRef, { 'stats.followers': increment(-1) });
+      toast({ title: 'Unfollowed' });
+    } else {
+      updateDocumentNonBlocking(myProfileRef, { tags: arrayUnion(`following:${profileId}`) });
+      updateDocumentNonBlocking(targetProfileRef, { 'stats.followers': increment(1) });
+      toast({ title: 'Following Tribe Member!' });
+    }
   };
 
   if (isAuthLoading || (isProfileLoading && !profile)) {
@@ -151,12 +154,25 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="pb-2 flex-1">
-               <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">{profile.username}</h1>
-                  {profile.tags?.includes('Official') && <Sparkles className="h-4 w-4 text-primary" />}
+               <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">{profile.username}</h1>
+                        {profile.tags?.includes('Official') && <Sparkles className="h-4 w-4 text-primary" />}
+                    </div>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-secondary/50 px-2 py-0.5 rounded">ID: {profile.specialId || '----'}</span>
+                  </div>
+                  {!isOwnProfile && (
+                    <Button 
+                      onClick={handleFollow} 
+                      variant={isFollowing ? "outline" : "default"}
+                      className="rounded-full h-10 font-black uppercase italic text-xs px-6"
+                    >
+                      {isFollowing ? <><UserCheck className="h-4 w-4 mr-2" /> Following</> : <><UserPlus className="h-4 w-4 mr-2" /> Follow</>}
+                    </Button>
+                  )}
                </div>
-               <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-secondary/50 px-2 py-0.5 rounded">ID: {profile.specialId || '----'}</span>
+               <div className="mt-2">
                   {isOwnProfile ? <EditProfileDialog profile={profile} /> : <p className="text-xs text-muted-foreground italic line-clamp-1">{profile.bio}</p>}
                </div>
             </div>
@@ -167,13 +183,6 @@ export default function ProfilePage() {
           <h2 className="text-sm font-black uppercase tracking-widest px-2 font-headline text-gray-400">Vault & Identity</h2>
           <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
             <MenuItem icon={Gem} label="Gold Coins" extra={(profile.wallet?.coins || 0).toLocaleString()} iconColor="text-yellow-500" router={router} />
-            {isOwnProfile && (
-              <div className="px-6 py-3 bg-primary/5">
-                 <Button variant="outline" size="sm" className="w-full rounded-2xl border-dashed border-2 border-primary/30 hover:bg-primary/10 text-primary font-black uppercase italic" onClick={handleTestTopUp}>
-                   <Zap className="h-3.5 w-3.5 mr-1.5" /> Claim 100,000 Beta Coins
-                 </Button>
-              </div>
-            )}
             <MenuItem icon={Sparkles} label="Blue Diamonds" extra={(profile.wallet?.diamonds || 0).toLocaleString()} iconColor="text-blue-500" router={router} />
             <MenuItem icon={Store} label="Ummy Boutique" href="/store" iconColor="text-orange-500" router={router} />
             <MenuItem icon={Trophy} label="Tribe Level" href="/leaderboard" extra={`Level ${profile.level?.rich || 1}`} iconColor="text-yellow-600" router={router} />
@@ -182,7 +191,21 @@ export default function ProfilePage() {
         </div>
 
         <div className="px-4 space-y-3">
-          <h2 className="text-sm font-black uppercase tracking-widest px-2 font-headline text-gray-400">Community</h2>
+          <h2 className="text-sm font-black uppercase tracking-widest px-2 font-headline text-gray-400">Community Stats</h2>
+          <div className="grid grid-cols-2 gap-4 px-2">
+             <div className="bg-white p-4 rounded-3xl shadow-sm text-center">
+                <p className="text-xl font-black text-gray-900">{profile.stats?.followers || 0}</p>
+                <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Followers</p>
+             </div>
+             <div className="bg-white p-4 rounded-3xl shadow-sm text-center">
+                <p className="text-xl font-black text-gray-900">{profile.stats?.fans || 0}</p>
+                <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Fans</p>
+             </div>
+          </div>
+        </div>
+
+        <div className="px-4 space-y-3">
+          <h2 className="text-sm font-black uppercase tracking-widest px-2 font-headline text-gray-400">Region & Feedback</h2>
           <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
             <MenuItem icon={Globe} label="Region" extra="India / Official" iconColor="text-gray-400" router={router} />
             <MenuItem icon={MessageSquare} label="Feedback" href="/help-center" iconColor="text-gray-400" router={router} />

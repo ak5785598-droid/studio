@@ -17,8 +17,8 @@ const fontBody = Alegreya({
 });
 
 export const metadata: Metadata = {
-  title: 'Ummy - Find Your Vibe',
-  description: 'A voice chat app to connect with people and build communities.',
+  title: 'Ummy - Connect Your Tribe',
+  description: 'A professional real-time social voice chat experience.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

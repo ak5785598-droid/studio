@@ -1,9 +1,7 @@
-
 'use server';
 
 /**
- * @fileOverview AI Vibe Matching Action.
- * Uses Genkit to find a room or user that matches the user's interests.
+ * @fileOverview Production AI Vibe Matching Engine.
  */
 
 import { ai } from '@/ai/genkit';
@@ -40,19 +38,19 @@ const prompt = ai.definePrompt({
   name: 'vibeMatchPrompt',
   input: { schema: VibeMatchInputSchema },
   output: { schema: VibeMatchOutputSchema },
-  prompt: `You are the Ummy Neural Matching Engine. Your job is to find the perfect "tribe" for a user based on their vibe.
+  prompt: `You are the Ummy Social Graph Engine. Your job is to connect tribe members based on their interests and current mood.
 
   User Interests: {{{interests}}}
   User Mood: {{{mood}}}
 
   Instructions:
-  1. Generate a "Real" sounding match. Since we are in a prototype phase, you should hallucinate a high-quality match that would fit this user.
-  2. Provide a compelling "Reasoning" that explains why this match is perfect for them.
-  3. Include a catchy "vibeTag" (e.g., "Neon Dreamers", "Lo-Fi Soul", "Indie Rebels").
-  4. List 3 specific shared interests.
-  5. The 'id' should be a realistic Firestore ID (alphanumeric string).
+  1. Analyze the input to find a high-fidelity social match.
+  2. Provide professional "Reasoning" that explains the connection.
+  3. Include an evocative "vibeTag" (e.g., "Neon Dreamers", "Midnight Soul").
+  4. Identify 3 specific common grounds.
+  5. Generate a realistic Firestore document ID.
 
-  Be creative, warm, and encourage the user to join the tribe.
+  Be encouraging and community-focused.
   `,
 });
 

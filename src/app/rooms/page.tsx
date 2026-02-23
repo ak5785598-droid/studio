@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { ChatRoomCard } from '@/components/chat-room-card';
-import { Search, Loader, Flame, Gamepad2, Music, Crown, Heart, Users, Home, ShieldCheck } from 'lucide-react';
+import { Search, Loader, Flame, Gamepad2, Music, Crown, Heart, Users, Home } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
@@ -11,12 +11,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 
 /**
- * Explore Rooms Page - Yari Elite Edition.
- * Features functional Mine vs Popular filtering and high-fidelity discovery grid.
- * Added Beta Distribution Badge for testers.
+ * Explore Rooms Page - Production Edition.
+ * High-fidelity discovery grid for active frequencies.
  */
 export default function RoomsPage() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -55,16 +53,13 @@ export default function RoomsPage() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-[#F8F8F8]">
-        {/* Yari High-Energy Header */}
+        {/* Ummy Production Header */}
         <header className="bg-gradient-to-b from-[#FFF5A5] to-[#FFFFFF] px-4 pt-10 pb-4 shadow-sm sticky top-0 z-50">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 p-2 rounded-full">
+            <div className="flex items-center gap-2 p-2">
               <div className="bg-white/80 p-1.5 rounded-xl shadow-sm border border-yellow-200">
                  <Home className="h-5 w-5 text-gray-700" />
               </div>
-              <Badge variant="outline" className="bg-primary/10 border-primary text-primary font-black uppercase text-[8px] animate-pulse">
-                Beta Tester
-              </Badge>
             </div>
             <div className="flex items-center gap-8">
               <button 
@@ -118,7 +113,7 @@ export default function RoomsPage() {
         </header>
 
         <div className="px-4 mt-4 space-y-6">
-          {/* Discovery Ribbons - Triple Card Layout */}
+          {/* Discovery Ribbons */}
           <div className="grid grid-cols-3 gap-3">
             <Link href="/leaderboard" className="relative h-28 rounded-2xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] p-3 shadow-md hover:scale-[1.02] transition-transform group overflow-hidden border border-yellow-300">
                <span className="text-white font-black text-sm uppercase tracking-tight relative z-10">Ranking</span>
@@ -186,7 +181,7 @@ export default function RoomsPage() {
                 ))
               ) : (
                 <div className="col-span-2 py-20 text-center text-gray-400 font-bold uppercase tracking-widest text-xs italic">
-                  No Frequencies Found
+                  No Frequencies Active
                 </div>
               )}
             </div>

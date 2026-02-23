@@ -13,12 +13,10 @@ import {
   Trophy,
   Globe,
   Settings as SettingsIcon,
-  Wallet,
   Shirt,
   Sparkles,
   MessageSquare,
   Store,
-  Zap
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -27,19 +25,18 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   useAuth, 
   useUser, 
-  useFirestore, 
   useUserProfile, 
   useProfilePictureUpload, 
-  setDocumentNonBlocking 
 } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { EditProfileDialog } from '@/components/edit-profile-dialog';
 import Image from 'next/image';
-import { doc, increment, serverTimestamp } from 'firebase/firestore';
 
+/**
+ * Settings Page - Standard Production Edition.
+ */
 export default function SettingsPage() {
   const auth = useAuth();
-  const firestore = useFirestore();
   const { user, isLoading: isUserLoading } = useUser();
   const { userProfile, isLoading: isProfileLoading } = useUserProfile(user?.uid);
   const router = useRouter();
@@ -57,30 +54,6 @@ export default function SettingsPage() {
     if (!auth) return;
     await signOut(auth);
     router.push('/login');
-  };
-
-  const handleTestTopUp = () => {
-    if (!firestore || !user || !userProfile) return;
-    const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
-    const userRef = doc(firestore, 'users', user.uid);
-    
-    const identitySync = {
-      username: userProfile.username || 'User',
-      avatarUrl: userProfile.avatarUrl || '',
-    };
-
-    // Use robust nested object structure for recursive setDoc merge
-    const updateData = { 
-      wallet: {
-        coins: increment(100000),
-      },
-      ...identitySync,
-      updatedAt: serverTimestamp() 
-    };
-    
-    setDocumentNonBlocking(profileRef, updateData, { merge: true });
-    setDocumentNonBlocking(userRef, updateData, { merge: true });
-    toast({ title: 'Top-up Successful!', description: '100,000 Testing Coins added.' });
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,11 +107,6 @@ export default function SettingsPage() {
           <h2 className="text-lg font-bold px-2">Wallet & Assets</h2>
           <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
             <MenuItem icon={Gem} label="Coins" extra={(userProfile?.wallet?.coins || 0).toLocaleString()} />
-            <div className="px-6 py-2">
-               <Button variant="outline" size="sm" className="w-full rounded-xl border-dashed" onClick={handleTestTopUp}>
-                 <Zap className="h-3.5 w-3.5 mr-1.5" /> Claim 100,000 Beta Coins
-               </Button>
-            </div>
             <MenuItem icon={Sparkles} label="Diamonds" extra={(userProfile?.wallet?.diamonds || 0).toLocaleString()} iconColor="text-blue-500" />
             <MenuItem icon={Store} label="Store" href="/store" iconColor="text-orange-500" />
             <MenuItem icon={Trophy} label="Level" href="/leaderboard" iconColor="text-yellow-500" />
@@ -151,12 +119,12 @@ export default function SettingsPage() {
           <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
             <MenuItem icon={Globe} label="Language" extra="English" iconColor="text-gray-400" />
             <MenuItem icon={MessageSquare} label="Feedback" href="/help-center" iconColor="text-gray-400" />
-            <MenuItem icon={SettingsIcon} label="Settings" iconColor="text-gray-400" />
+            <MenuItem icon={SettingsIcon} label="Account Security" iconColor="text-gray-400" />
           </Card>
         </div>
 
         <div className="px-8 pt-4">
-           <Button variant="ghost" className="w-full text-destructive" onClick={handleLogout}><LogOut className="h-4 w-4 mr-2" /> Logout</Button>
+           <Button variant="ghost" className="w-full text-destructive font-bold" onClick={handleLogout}><LogOut className="h-4 w-4 mr-2" /> Logout</Button>
         </div>
       </div>
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
