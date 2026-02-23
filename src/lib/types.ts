@@ -1,6 +1,6 @@
-
 export type User = {
   id: string;
+  specialId: string; // Sequential numeric ID starting 1001
   name: string;
   username?: string;
   avatarUrl: string;
@@ -13,7 +13,6 @@ export type User = {
   };
   frame?: 'CG' | 'Official' | 'Leader' | 'Seller' | 'None';
   tags?: string[];
-  specialId?: string;
   stats?: {
     sent?: number;
     followers?: number;
@@ -39,15 +38,16 @@ export type Message = {
   senderName: string;
   senderAvatar: string;
   timestamp: any;
-  type?: 'text' | 'gift';
+  type?: 'text' | 'gift' | 'entrance';
   giftId?: string;
+  recipientName?: string;
 };
 
 export type RoomParticipant = {
   uid: string;
   name: string;
   avatarUrl: string;
-  seatIndex: number; // 0 for audience, 1 for host, 2-13 for seats
+  seatIndex: number;
   isMuted: boolean;
   joinedAt: any;
   activeFrame?: string;
@@ -55,6 +55,7 @@ export type RoomParticipant = {
 
 export type Room = {
   id: string;
+  roomNumber: string; // Sequential 4-digit ID starting 0001
   slug: string;
   title: string;
   topic: string;

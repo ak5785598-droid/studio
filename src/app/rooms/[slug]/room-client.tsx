@@ -83,7 +83,7 @@ const AVAILABLE_GIFTS: Gift[] = [
 
 /**
  * Room Client - Elite Voice App Edition.
- * Features: Admin Controls (Lock, Kick, Mute), Entrance Announcements, Marquee.
+ * Displays Sequential Room Numbers (e.g. 0001).
  */
 export function RoomClient({ room }: { room: Room }) {
   const [isMicOn, setIsMicOn] = useState(false);
@@ -92,7 +92,6 @@ export function RoomClient({ room }: { room: Room }) {
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [isGiftPickerOpen, setIsGiftPickerOpen] = useState(false);
   const [selectedSeatIndex, setSelectedSeatIndex] = useState<number | null>(null);
-  const [activeGiftAnimation, setActiveGiftAnimation] = useState<{ gift: Gift; senderName: string } | null>(null);
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -119,7 +118,7 @@ export function RoomClient({ room }: { room: Room }) {
   const currentUserParticipant = participants?.find(p => p.uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
 
-  // Local Mute Handling (Syncs from server for forced mutes)
+  // Local Mute Handling
   useEffect(() => {
     if (currentUserParticipant?.isMuted) {
       setIsMicOn(false);
@@ -210,16 +209,18 @@ export function RoomClient({ room }: { room: Room }) {
     const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
     const roomRef = doc(firestore, 'chatRooms', room.id);
     
-    setDocumentNonBlocking(userRef, { 
-      wallet: { coins: increment(-gift.price), totalSpent: increment(gift.price) },
+    const walletUpdates = {
+      wallet: {
+        coins: increment(-gift.price),
+        totalSpent: increment(gift.price)
+      },
       updatedAt: serverTimestamp()
-    }, { merge: true });
-    setDocumentNonBlocking(profileRef, { 
-      wallet: { coins: increment(-gift.price), totalSpent: increment(gift.price) },
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    };
 
-    updateDocumentNonBlocking(roomRef, { 'stats.totalGifts': increment(gift.price), updatedAt: serverTimestamp() });
+    setDocumentNonBlocking(userRef, walletUpdates, { merge: true });
+    setDocumentNonBlocking(profileRef, walletUpdates, { merge: true });
+
+    updateDocumentNonBlocking(roomRef, { stats: { totalGifts: increment(gift.price) }, updatedAt: serverTimestamp() });
 
     let finalRecipient = giftRecipient;
     if (!finalRecipient) {
@@ -353,7 +354,7 @@ export function RoomClient({ room }: { room: Room }) {
           <div>
             <h1 className="font-black text-xl tracking-tight uppercase italic">{room.title}</h1>
             <div className="flex items-center gap-2 text-[10px] font-bold text-white/60 uppercase">
-              <span>ID: {room.id.substring(0, 8)}</span>
+              <span>No: {room.roomNumber || '0000'}</span>
               <div className="flex items-center gap-1 text-pink-400">
                 <Users className="h-3 w-3" />
                 <span>{onlineCount} Tribe</span>

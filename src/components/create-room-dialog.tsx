@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, runTransaction, doc } from 'firebase/firestore';
 import { Plus, Loader } from 'lucide-react';
 import {
   Dialog,
@@ -30,7 +30,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
  * Dialog component for creating a new voice chat room.
- * Hardened with proper Next.js 15 routing and error handling.
+ * Assigns a unique sequential room number (starting from 0001).
  */
 export function CreateRoomDialog() {
   const [open, setOpen] = useState(false);
@@ -50,32 +50,48 @@ export function CreateRoomDialog() {
 
     setIsSubmitting(true);
 
-    const roomData = {
-      name,
-      description: topic,
-      ownerId: user.uid,
-      moderatorIds: [user.uid],
-      createdAt: serverTimestamp(),
-      category: category,
-      tags: [],
-      stats: { totalGifts: 0 } // Initialize for leaderboard indexing
-    };
+    const countersRef = doc(firestore, 'appConfig', 'counters');
 
     try {
+      // Transaction to get next room number
+      const roomNumber = await runTransaction(firestore, async (transaction) => {
+        const countersSnap = await transaction.get(countersRef);
+        let nextRoomNum = 1;
+        if (countersSnap.exists()) {
+          nextRoomNum = (countersSnap.data().roomCounter || 0) + 1;
+        }
+        transaction.set(countersRef, { roomCounter: nextRoomNum }, { merge: true });
+        return String(nextRoomNum).padStart(4, '0');
+      });
+
+      const roomData = {
+        name,
+        description: topic,
+        roomNumber,
+        ownerId: user.uid,
+        moderatorIds: [user.uid],
+        createdAt: serverTimestamp(),
+        category: category,
+        tags: [],
+        stats: { totalGifts: 0 },
+        lockedSeats: [],
+        announcement: 'Welcome to the frequency!'
+      };
+
       const docRef = await addDoc(collection(firestore, 'chatRooms'), roomData);
       
       toast({
         title: 'Room Created!',
-        description: `Welcome to your new room, ${name}.`,
+        description: `Room No. ${roomNumber} is now live!`,
       });
       
       setOpen(false);
       router.push(`/rooms/${docRef.id}`);
     } catch (error: any) {
+      console.error(error);
       const permissionError = new FirestorePermissionError({
         path: 'chatRooms',
         operation: 'create',
-        requestResourceData: roomData,
       });
       errorEmitter.emit('permission-error', permissionError);
     } finally {

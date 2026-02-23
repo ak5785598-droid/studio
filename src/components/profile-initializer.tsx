@@ -2,12 +2,12 @@
 
 import { useEffect, useRef } from 'react';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 /**
  * Ensures a user profile exists in Firestore after login.
- * Syncs critical fields to top-level user doc for security rules compliance.
+ * Assigns a unique sequential numeric ID (starting from 1001).
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -22,55 +22,72 @@ export function ProfileInitializer() {
       const profileId = user.uid;
       const profileRef = doc(firestore, 'users', profileId, 'profile', profileId);
       const userRef = doc(firestore, 'users', profileId);
+      const countersRef = doc(firestore, 'appConfig', 'counters');
       
       try {
         const profileSnap = await getDoc(profileRef);
         hasInitialized.current = profileId;
 
         if (!profileSnap.exists()) {
-          const initialData = {
-            id: profileId,
-            username: user.displayName || `Ummy_${profileId.substring(0, 5)}`,
-            avatarUrl: user.photoURL || `https://picsum.photos/seed/${profileId}/400`,
-            email: user.email || '',
-            bio: 'Vibing on Ummy! Join my tribe.',
-            wallet: { 
-              coins: 1500, 
-              diamonds: 0,
-              totalSpent: 0
-            },
-            inventory: { ownedItems: [], activeFrame: 'None', activeBubble: 'Default' },
-            stats: { followers: 0, fans: 0 },
-            level: { rich: 1, charm: 1 },
-            tags: ['Newcomer'],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            details: {
-              gender: 'Secret',
-              hometown: 'India',
-              age: 22
+          // Use transaction to get and increment the user ID counter
+          const finalData = await runTransaction(firestore, async (transaction) => {
+            const countersSnap = await transaction.get(countersRef);
+            let nextUserId = 1001;
+
+            if (countersSnap.exists()) {
+              nextUserId = (countersSnap.data().userCounter || 1000) + 1;
             }
-          };
+
+            transaction.set(countersRef, { userCounter: nextUserId }, { merge: true });
+
+            const initialData = {
+              id: profileId,
+              specialId: String(nextUserId),
+              username: user.displayName || `Ummy_${profileId.substring(0, 5)}`,
+              avatarUrl: user.photoURL || `https://picsum.photos/seed/${profileId}/400`,
+              email: user.email || '',
+              bio: 'Vibing on Ummy! Join my tribe.',
+              wallet: { 
+                coins: 1500, 
+                diamonds: 0,
+                totalSpent: 0
+              },
+              inventory: { ownedItems: [], activeFrame: 'None', activeBubble: 'Default' },
+              stats: { followers: 0, fans: 0 },
+              level: { rich: 1, charm: 1 },
+              tags: ['Newcomer'],
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+              details: {
+                gender: 'Secret',
+                hometown: 'India',
+                age: 22
+              }
+            };
+
+            return initialData;
+          });
 
           // Background sync for detailed profile
-          await setDoc(profileRef, initialData, { merge: true });
+          await setDoc(profileRef, finalData, { merge: true });
           
           // Background sync for user summary - REQUIRED for Security Rules
           await setDoc(userRef, {
             id: profileId,
-            username: initialData.username,
-            avatarUrl: initialData.avatarUrl,
-            wallet: initialData.wallet,
-            stats: initialData.stats,
-            level: initialData.level,
-            tags: initialData.tags, 
+            specialId: finalData.specialId,
+            username: finalData.username,
+            avatarUrl: finalData.avatarUrl,
+            wallet: finalData.wallet,
+            stats: finalData.stats,
+            level: finalData.level,
+            tags: finalData.tags, 
             updatedAt: serverTimestamp(),
             joinedAt: serverTimestamp(),
           }, { merge: true });
 
           toast({
             title: 'Welcome to Ummy!',
-            description: 'Enjoy 1,500 free coins!',
+            description: `Your Tribe ID is ${finalData.specialId}. Enjoy 1,500 free coins!`,
           });
         }
       } catch (e) {

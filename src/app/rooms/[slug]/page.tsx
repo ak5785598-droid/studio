@@ -5,13 +5,13 @@ import { notFound, useRouter } from 'next/navigation';
 import { RoomClient } from './room-client';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { Loader, ShieldAlert } from 'lucide-react';
 import type { Room } from '@/lib/types';
 
 /**
  * Chat Room Entry Page Gateway.
- * Hardened to prevent premature 404s and handle room provisioning with recursive stat indexing.
+ * Ensures rooms are provisioned with sequential numeric IDs.
  */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -38,7 +38,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
 
   const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
 
-  // Frequency Handshake: Ensures rooms are provisioned with correct nested stats for leaderboard indexing
+  // Frequency Handshake: Assigns sequential IDs to new rooms
   useEffect(() => {
     const performHandshake = async () => {
       if (!roomDocRef || isAuthLoading || !firestore || !currentUser || isDocLoading) return;
@@ -46,20 +46,38 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
       if (!firestoreRoom && !isProvisioning) {
         setIsProvisioning(true);
         setInitStatus('Provisioning Frequency...');
+        const countersRef = doc(firestore, 'appConfig', 'counters');
+        
         try {
           const isOfficial = slug === 'official-help-room';
-          await setDoc(roomDocRef, {
-            name: isOfficial ? 'Ummy Official Hub' : `Tribe ${slug.substring(0, 4)}`,
-            description: isOfficial ? 'Live community and team support.' : 'A new vibe just started.',
-            ownerId: isOfficial ? 'official-admin' : currentUser.uid,
-            category: 'Chat',
-            coverUrl: `https://picsum.photos/seed/${slug}/1200/400`,
-            announcement: 'Welcome to the frequency!',
-            createdAt: serverTimestamp(),
-            moderatorIds: [currentUser.uid],
-            lockedSeats: [],
-            stats: { totalGifts: 0 } // Required for ranking queries
-          }, { merge: true });
+          
+          await runTransaction(firestore, async (transaction) => {
+            const countersSnap = await transaction.get(countersRef);
+            let nextRoomNum = 1;
+            
+            if (!isOfficial) {
+              if (countersSnap.exists()) {
+                nextRoomNum = (countersSnap.data().roomCounter || 0) + 1;
+              }
+              transaction.set(countersRef, { roomCounter: nextRoomNum }, { merge: true });
+            }
+
+            const roomNumber = isOfficial ? '0001' : String(nextRoomNum).padStart(4, '0');
+
+            transaction.set(roomDocRef, {
+              name: isOfficial ? 'Ummy Official Hub' : `Tribe Frequency`,
+              description: isOfficial ? 'Live community and team support.' : 'A new vibe just started.',
+              roomNumber,
+              ownerId: isOfficial ? 'official-admin' : currentUser.uid,
+              category: 'Chat',
+              coverUrl: `https://picsum.photos/seed/${slug}/1200/400`,
+              announcement: 'Welcome to the frequency!',
+              createdAt: serverTimestamp(),
+              moderatorIds: [currentUser.uid],
+              lockedSeats: [],
+              stats: { totalGifts: 0 }
+            }, { merge: true });
+          });
         } catch (e) {
           console.warn("Handshake delayed:", e);
         } finally {
@@ -78,6 +96,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     if (!firestoreRoom) return null;
     return {
       id: firestoreRoom.id,
+      roomNumber: firestoreRoom.roomNumber,
       slug: firestoreRoom.id,
       title: firestoreRoom.name || 'Frequency',
       topic: firestoreRoom.description || '',

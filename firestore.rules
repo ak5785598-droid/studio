@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() { return request.auth != null; }
     
-    // Robust Admin Check: Safe evaluation even if doc is missing
+    // Robust Admin Check
     function isAdmin() {
       return isSignedIn() && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
@@ -12,7 +12,6 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isSignedIn();
-      // Prioritize ownership check for faster/safer evaluation
       allow create, update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow delete: if isAdmin();
       
@@ -25,13 +24,15 @@ service cloud.firestore {
 
     match /appConfig/{configId} {
       allow read: if isSignedIn();
+      // Allow users to update counters during initialization/creation
+      allow update: if isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['userCounter', 'roomCounter']);
       allow write: if isAdmin();
     }
     
     match /adminLogs/{logId} {
       allow read: if isAdmin();
       allow create: if isAdmin();
-      allow update, delete: if false; // Audit logs are immutable
+      allow update, delete: if false;
     }
 
     match /chatRooms/{chatRoomId} {

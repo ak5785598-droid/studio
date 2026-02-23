@@ -34,8 +34,8 @@ import { useFirestore } from '@/firebase';
 import { AvatarFrame } from '@/components/avatar-frame';
 
 /**
- * Premium Me Center / Profile Page - Yari Edition.
- * Unified high-fidelity design for identity cards.
+ * Premium Me Center / Profile Page.
+ * Displays unique sequential User IDs (starting 1001).
  */
 export default function ProfilePage() {
   const params = useParams();
@@ -74,7 +74,9 @@ export default function ProfilePage() {
     const userRef = doc(firestore, 'users', currentUser.uid);
     
     const updateData = { 
-      'wallet.coins': increment(1000),
+      wallet: {
+        coins: increment(1000)
+      },
       updatedAt: serverTimestamp() 
     };
     
@@ -177,7 +179,8 @@ export default function ProfilePage() {
                     </div>
                   )}
                </div>
-               <div className="flex items-center gap-2 mt-1">
+               <div className="flex items-center gap-3 mt-1">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-secondary/50 px-2 py-0.5 rounded">ID: {profile.specialId || '----'}</span>
                   {isOwnProfile ? (
                     <EditProfileDialog profile={profile} />
                   ) : (
