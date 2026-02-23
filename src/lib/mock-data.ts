@@ -1,6 +1,6 @@
 import type { User, Room, Game, CoinPackage, Task } from './types';
 
-// Production Logic: Mock data is removed to allow dynamic growth of the frequency.
+// Production Logic: Mock data is removed to allow dynamic growth of the community frequency.
 const users: User[] = [];
 const rooms: Room[] = []; 
 

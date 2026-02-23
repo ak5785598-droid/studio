@@ -37,6 +37,7 @@ export function ProfileInitializer() {
 
         hasInitialized.current = profileId;
 
+        // Atomic Transaction for ID assignment
         const finalData = await runTransaction(firestore, async (transaction) => {
           const countersSnap = await transaction.get(countersRef);
           let nextUserId = 1001;
@@ -55,7 +56,7 @@ export function ProfileInitializer() {
             email: user.email || '',
             bio: 'Synchronized with the Ummy frequency.',
             wallet: { 
-              coins: 500, // Standard production starting bonus
+              coins: 500, 
               diamonds: 0,
               totalSpent: 0
             },
@@ -75,7 +76,7 @@ export function ProfileInitializer() {
           return initialData;
         });
 
-        // Step 1: Set Root Identity (Critical for Security Rules)
+        // Step 1: Set Root Identity (Critical for Security Rules isAdmin lookup)
         await setDoc(userRef, {
           id: profileId,
           specialId: finalData.specialId,

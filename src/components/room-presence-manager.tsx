@@ -37,12 +37,16 @@ export function RoomPresenceManager() {
         });
       }
 
-      // 2. Seat Preservation Logic
+      // 2. Seat Preservation Logic: Check if we are already in a seat
       let existingSeatIndex = 0;
       if (!hasHandshakedForSession.current) {
-        const snap = await getDoc(participantRef);
-        if (snap.exists()) {
-          existingSeatIndex = snap.data().seatIndex || 0;
+        try {
+          const snap = await getDoc(participantRef);
+          if (snap.exists()) {
+            existingSeatIndex = snap.data().seatIndex || 0;
+          }
+        } catch (e) {
+          console.warn("Presence handshake delay:", e);
         }
         hasHandshakedForSession.current = true;
       }
@@ -55,19 +59,15 @@ export function RoomPresenceManager() {
         activeFrame: userProfile.inventory?.activeFrame || 'None',
         joinedAt: serverTimestamp(),
         isMuted: true,
-        seatIndex: existingSeatIndex,
+        seatIndex: existingSeatIndex, // Preserve seat across refreshes
       }, { merge: true });
     };
 
     performSync();
 
-    const unsubscribe = onSnapshot(participantRef, (snap) => {
-      // Future: Listen for remote silences or kicks
-    });
-
+    // Cleanup logic is handled by navigation or manual leave room actions
     return () => {
-      unsubscribe();
-      // We don't reset lastRoomId here so that intra-page navigation doesn't spam entrance messages
+      // Intentionally not deleting presence here to support quick page reloads
     };
   }, [firestore, activeRoom?.id, user?.uid, userProfile]);
 
