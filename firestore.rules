@@ -1,15 +1,14 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() { return request.auth != null; }
     
     // Check if the user has an Admin or Official tag
-    // Note: We check the top-level user doc for efficiency in rules
+    // Use exists() and get() with a default to prevent errors on missing fields
     function isAdmin() {
-      return isSignedIn() && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tags.hasAny(['Admin', 'Official'])
-      );
+      return isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('tags', []).hasAny(['Admin', 'Official']);
     }
 
     match /users/{userId} {

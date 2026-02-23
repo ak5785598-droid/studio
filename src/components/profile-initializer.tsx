@@ -52,9 +52,10 @@ export function ProfileInitializer() {
             }
           };
 
-          // Background sync
+          // Background sync for profile sub-document
           await setDoc(profileRef, initialData, { merge: true });
           
+          // Background sync for top-level user document (essential for rules and search)
           await setDoc(userRef, {
             id: user.uid,
             username: initialData.username,
@@ -62,6 +63,7 @@ export function ProfileInitializer() {
             wallet: initialData.wallet,
             stats: initialData.stats,
             level: initialData.level,
+            tags: initialData.tags, // Critical for security rules
             updatedAt: serverTimestamp(),
             joinedAt: serverTimestamp(),
           }, { merge: true });
