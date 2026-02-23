@@ -11,7 +11,7 @@ import type { Room } from '@/lib/types';
 
 /**
  * Chat Room Entry Page Gateway.
- * Hardened to prevent premature 404s and handle official room provisioning with high reliability.
+ * Hardened to prevent premature 404s and handle room provisioning with recursive stat indexing.
  */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -38,16 +38,15 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
 
   const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
 
-  // Frequency Handshake: Ensures rooms are provisioned or found before ever showing 404
+  // Frequency Handshake: Ensures rooms are provisioned with correct nested stats for leaderboard indexing
   useEffect(() => {
     const performHandshake = async () => {
       if (!roomDocRef || isAuthLoading || !firestore || !currentUser || isDocLoading) return;
 
       if (!firestoreRoom && !isProvisioning) {
         setIsProvisioning(true);
-        setInitStatus('Handshaking Frequency...');
+        setInitStatus('Provisioning Frequency...');
         try {
-          // Automatic provisioning for non-existent rooms or official hub
           const isOfficial = slug === 'official-help-room';
           await setDoc(roomDocRef, {
             name: isOfficial ? 'Ummy Official Hub' : `Tribe ${slug.substring(0, 4)}`,
@@ -55,11 +54,11 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
             ownerId: isOfficial ? 'official-admin' : currentUser.uid,
             category: 'Chat',
             coverUrl: `https://picsum.photos/seed/${slug}/1200/400`,
-            announcement: 'Welcome! Enjoy the frequency.',
+            announcement: 'Welcome to the frequency!',
             createdAt: serverTimestamp(),
             moderatorIds: [currentUser.uid],
             lockedSeats: [],
-            stats: { totalGifts: 0 } // Initialize nested object for leaderboard indexing
+            stats: { totalGifts: 0 } // Required for ranking queries
           }, { merge: true });
         } catch (e) {
           console.warn("Handshake delayed:", e);
@@ -97,15 +96,14 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
         <AppLayout>
             <div className="flex h-[60vh] flex-col items-center justify-center space-y-4 text-center px-6">
                 <ShieldAlert className="h-16 w-16 text-destructive mb-2" />
-                <h1 className="text-2xl font-black uppercase italic">Handshake Denied</h1>
-                <p className="text-muted-foreground max-w-md">You do not have permission to access this frequency.</p>
-                <button onClick={() => router.push('/rooms')} className="bg-primary text-black font-black uppercase px-8 py-3 rounded-full">Back to Explore</button>
+                <h1 className="text-2xl font-black uppercase italic">Access Denied</h1>
+                <p className="text-muted-foreground">You do not have permission to access this frequency.</p>
+                <button onClick={() => router.push('/rooms')} className="bg-primary text-black font-black uppercase px-8 py-3 rounded-full">Explore Others</button>
             </div>
         </AppLayout>
      );
   }
 
-  // Robust loading check to prevent 404 flickering while background processes run
   const isWaiting = isAuthLoading || (!!roomDocRef && isDocLoading) || isProvisioning || !hasHandshaked;
 
   if (isWaiting) {
