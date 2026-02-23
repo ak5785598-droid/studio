@@ -6,8 +6,8 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
     >
         <defs>
             <linearGradient id="micGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#d1d5db" />
-                <stop offset="50%" stopColor="#9ca3af" />
+                <stop offset="0%" stopColor="#ffffff" />
+                <stop offset="40%" stopColor="#d1d5db" />
                 <stop offset="100%" stopColor="#4b5563" />
             </linearGradient>
             <linearGradient id="fireGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -19,7 +19,7 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
                 <stop offset="0%" stopColor="#f472b6" />
                 <stop offset="100%" stopColor="#8b5cf6" />
             </linearGradient>
-            <filter id="glow">
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
                 <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
                 <feMerge>
                     <feMergeNode in="coloredBlur"/>
@@ -28,46 +28,75 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
             </filter>
         </defs>
 
-        {/* Flames Background */}
-        <path 
-            d="M50 10 Q60 25 55 35 Q75 20 70 45 Q85 35 80 60 Q50 75 20 60 Q15 35 30 45 Q25 20 45 35 Q40 25 50 10" 
-            fill="url(#fireGradient)"
-            filter="url(#glow)"
-        />
+        {/* Circular Background Ring */}
+        <circle cx="50" cy="45" r="35" fill="none" stroke="#fbbf24" strokeWidth="1" opacity="0.3" />
 
-        {/* Equalizer Bars */}
-        <rect x="20" y="50" width="4" height="10" fill="#f472b6" opacity="0.6" />
-        <rect x="26" y="45" width="4" height="15" fill="#f472b6" opacity="0.8" />
-        <rect x="32" y="40" width="4" height="20" fill="#f472b6" />
-        <rect x="64" y="40" width="4" height="20" fill="#8b5cf6" />
-        <rect x="70" y="45" width="4" height="15" fill="#8b5cf6" opacity="0.8" />
-        <rect x="76" y="50" width="4" height="10" fill="#8b5cf6" opacity="0.6" />
+        {/* High-Fidelity Flames */}
+        <g filter="url(#glow)">
+            <path 
+                d="M50 10 Q60 25 55 35 Q75 20 70 45 Q85 35 80 60 Q50 75 20 60 Q15 35 30 45 Q25 20 45 35 Q40 25 50 10" 
+                fill="url(#fireGradient)"
+            />
+            <path 
+                d="M50 15 Q55 25 53 32 Q65 22 62 40 Q75 32 72 50 Q50 60 28 50 Q25 32 38 40 Q35 22 47 32 Q45 25 50 15" 
+                fill="#fbbf24" opacity="0.6"
+            />
+        </g>
+
+        {/* Equalizer Bars on sides */}
+        <g opacity="0.8">
+            <rect x="15" y="45" width="3" height="12" rx="1.5" fill="#f472b6" />
+            <rect x="20" y="40" width="3" height="18" rx="1.5" fill="#f472b6" />
+            <rect x="25" y="35" width="3" height="25" rx="1.5" fill="#f472b6" />
+            
+            <rect x="72" y="35" width="3" height="25" rx="1.5" fill="#8b5cf6" />
+            <rect x="77" y="40" width="3" height="18" rx="1.5" fill="#8b5cf6" />
+            <rect x="82" y="45" width="3" height="12" rx="1.5" fill="#8b5cf6" />
+        </g>
 
         {/* Lightning Bolts */}
-        <path d="M15 35 L25 45 L20 45 L30 55" stroke="#fbbf24" strokeWidth="2" fill="none" />
-        <path d="M85 35 L75 45 L80 45 L70 55" stroke="#fbbf24" strokeWidth="2" fill="none" />
+        <path d="M10 30 L22 42 L16 42 L28 55" stroke="#fbbf24" strokeWidth="2" fill="none" filter="url(#glow)" />
+        <path d="M90 30 L78 42 L84 42 L72 55" stroke="#fbbf24" strokeWidth="2" fill="none" filter="url(#glow)" />
 
-        {/* Microphone Body */}
-        <rect x="42" y="30" width="16" height="25" rx="8" fill="url(#micGradient)" stroke="#1f2937" strokeWidth="1" />
-        <path d="M42 42 H58" stroke="#1f2937" strokeWidth="0.5" />
-        <path d="M42 36 H58" stroke="#1f2937" strokeWidth="0.5" />
-        <path d="M42 48 H58" stroke="#1f2937" strokeWidth="0.5" />
+        {/* Microphone Body (Detailed) */}
+        <rect x="40" y="25" width="20" height="30" rx="10" fill="url(#micGradient)" stroke="#1f2937" strokeWidth="1.5" />
+        <path d="M40 35 H60 M40 40 H60 M40 45 H60" stroke="#1f2937" strokeWidth="0.5" />
+        <path d="M48 25 V55 M52 25 V55" stroke="#1f2937" strokeWidth="0.5" opacity="0.2" />
         
-        {/* Mic Stand */}
-        <path d="M40 50 Q40 65 50 65 Q60 65 60 50" fill="none" stroke="#9ca3af" strokeWidth="2" />
-        <rect x="48" y="65" width="4" height="5" fill="#4b5563" />
+        {/* Mic Holder/Stand */}
+        <path d="M38 45 Q38 60 50 60 Q62 60 62 45" fill="none" stroke="#9ca3af" strokeWidth="2" />
+        <rect x="48" y="60" width="4" height="4" fill="#4b5563" />
 
-        {/* UMMY Shield/Text Base */}
-        <path d="M15 75 L85 75 L75 90 L50 95 L25 90 Z" fill="#1e1b4b" stroke="#4f46e5" strokeWidth="1" />
-        <path d="M30 85 Q50 80 70 85" fill="none" stroke="#38bdf8" strokeWidth="1" opacity="0.8" />
+        {/* UMMY Logo Shield Base */}
+        <path 
+            d="M10 70 L90 70 L80 92 L50 98 L20 92 Z" 
+            fill="#0f172a" 
+            stroke="#4f46e5" 
+            strokeWidth="1.5" 
+        />
+        
+        {/* Neon Frequency Line inside shield */}
+        <path 
+            d="M20 85 L35 85 L40 78 L45 92 L50 85 L55 78 L60 92 L65 85 L80 85" 
+            fill="none" 
+            stroke="#00f2ff" 
+            strokeWidth="1.5" 
+            filter="url(#glow)" 
+        />
 
-        {/* UMMY Text (Simplified) */}
+        {/* UMMY Text in high-energy font style */}
         <text 
             x="50" 
-            y="85" 
+            y="82" 
             textAnchor="middle" 
             fill="url(#textGradient)" 
-            style={{ fontSize: '12px', fontWeight: '900', fontFamily: 'sans-serif', fontStyle: 'italic' }}
+            style={{ 
+                fontSize: '14px', 
+                fontWeight: '900', 
+                fontFamily: 'system-ui', 
+                fontStyle: 'italic',
+                textShadow: '0 0 5px rgba(244,114,182,0.8)' 
+            }}
         >
             UMMY
         </text>
