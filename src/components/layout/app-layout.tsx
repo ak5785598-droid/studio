@@ -1,9 +1,9 @@
-
 "use client";
 
-import { Compass, User, Settings, Youtube, ClipboardList, Loader, Trophy, LogOut, ShoppingBag, ShieldCheck, Zap } from "lucide-react";
+import { Home, MessageSquare, User, Settings, Youtube, ClipboardList, Loader, Trophy, LogOut, ShoppingBag, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 import {
   Sidebar,
@@ -20,13 +20,19 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Logo } from "@/components/logo";
 import { useUser, useAuth } from "@/firebase";
-import { GameControllerIcon } from "../icons";
+import { GameControllerIcon, UmmyLogoIcon } from "../icons";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/hooks/use-user-profile";
 
 const navItems = [
-  { href: "/rooms", label: "Explore", icon: Compass },
+  { href: "/rooms", label: "Home", icon: Home },
+  { href: "/watch", label: "Message", icon: MessageSquare }, // Mocking message for demo
+  { href: "/profile", label: "Me", icon: User },
+];
+
+const sidebarItems = [
+  { href: "/rooms", label: "Explore", icon: Home },
   { href: "/match", label: "Vibe Match", icon: Zap },
   { href: "/store", label: "Boutique", icon: ShoppingBag },
   { href: "/leaderboard", label: "Rankings", icon: Trophy },
@@ -35,7 +41,13 @@ const navItems = [
   { href: "/watch", label: "Watch Party", icon: Youtube },
 ];
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout({ 
+  children, 
+  hideSidebarOnMobile = false 
+}: { 
+  children: React.ReactNode; 
+  hideSidebarOnMobile?: boolean;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useUser();
@@ -60,13 +72,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background font-headline">
-        <Sidebar>
+        <Sidebar className="hidden md:flex">
           <SidebarHeader>
             <Logo />
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {sidebarItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton
                     asChild
@@ -112,46 +124,42 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
-
-              <SidebarMenuItem className="pt-4 mt-4 border-t border-white/5">
-                 {isUserLoading || isProfileLoading ? (
-                    <div className="flex items-center justify-center py-4"><Loader className="animate-spin text-primary" /></div>
-                 ): user ? (
-                    <SidebarMenuButton asChild className="h-16 rounded-2xl bg-secondary/20 hover:bg-secondary/30 transition-all border border-white/5">
-                       <Link href="/profile">
-                         <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-lg">
-                            <AvatarImage src={avatarUrl} alt={displayName} />
-                            <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                        <div className="flex flex-col ml-2 overflow-hidden">
-                          <span className="font-bold truncate text-sm">{displayName}</span>
-                          <span className="text-[10px] opacity-40 uppercase tracking-widest truncate">View Profile</span>
-                        </div>
-                      </Link>
-                    </SidebarMenuButton>
-                 ) : null}
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <div className="flex flex-1 flex-col overflow-hidden">
-           <header className="flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-md px-6 md:hidden sticky top-0 z-40 shadow-sm">
-            <SidebarTrigger />
-            <Logo />
-             {user && (
-                <Link href="/profile" className="ml-auto">
-                 <Avatar className="h-9 w-9 border-2 border-primary/20">
-                    <AvatarImage src={avatarUrl} alt={displayName} />
-                    <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
-                  </Avatar>
-              </Link>
-             )}
-          </header>
+
+        <div className="flex flex-1 flex-col overflow-hidden relative">
           <SidebarInset>
-            <main className="flex-1 overflow-y-auto bg-gradient-to-b from-background to-secondary/10 px-4 py-8 md:px-12 md:py-16">
+            <main className="flex-1 overflow-y-auto bg-background p-4 md:p-12">
               {children}
             </main>
           </SidebarInset>
+
+          {/* Bottom Mobile Navigation */}
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 flex justify-between items-center z-[60] rounded-t-3xl shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+            {navItems.map((item) => {
+              const active = pathname === item.href || (item.href === '/profile' && pathname.startsWith('/profile'));
+              return (
+                <Link 
+                  key={item.label} 
+                  href={item.href} 
+                  className={cn(
+                    "flex flex-col items-center gap-1 transition-all",
+                    active ? "text-primary scale-110" : "text-gray-400"
+                  )}
+                >
+                  {item.label === 'Home' ? (
+                     <div className={cn("p-1.5 rounded-full", active ? "bg-primary/20" : "")}>
+                        <UmmyLogoIcon className={cn("h-7 w-7", active ? "text-primary" : "text-gray-400 grayscale")} />
+                     </div>
+                  ) : (
+                    <item.icon className="h-7 w-7" strokeWidth={active ? 3 : 2} />
+                  )}
+                  <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       </div>
     </SidebarProvider>

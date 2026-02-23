@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%; /* Deep Night */
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 16 100% 66%; /* Warm Coral */
-    --primary-foreground: 355.7 100% 97.3%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 343 44% 67%; /* Dusty Rose */
-    --accent-foreground: 0 0% 98%;
+    --background: 0 0% 98%; /* Light Grey */
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 48 100% 50%; /* Vibrant Yellow */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 343 100% 60%; /* Pink for CP */
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 16 100% 66%;
-    --radius: 1rem;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 48 100% 50%;
+    --radius: 1.25rem;
   }
 
   .dark {
@@ -33,19 +33,19 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 16 100% 66%;
-    --primary-foreground: 355.7 100% 97.3%;
+    --primary: 48 100% 50%;
+    --primary-foreground: 0 0% 0%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 343 44% 67%;
+    --accent: 343 100% 60%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 16 100% 66%;
+    --ring: 48 100% 50%;
   }
 }
 
@@ -59,12 +59,17 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
   }
-  p, div, span, a, li, button, input, textarea, label {
-    @apply font-body;
-  }
 }
 
-/* Animations */
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  animation: marquee 15s linear infinite;
+}
+
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
