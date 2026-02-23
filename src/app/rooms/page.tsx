@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -17,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 /**
  * Explore Rooms Page - Yari Enterprise Edition.
- * Vibrant design with discovery ribbons and social proof.
+ * This acts as the "Home" experience for the application.
  */
 export default function RoomsPage() {
   const { user, isLoading: isUserLoading } = useUser();

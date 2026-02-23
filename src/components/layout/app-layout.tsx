@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, MessageSquare, User, Settings, Youtube, ClipboardList, Trophy, LogOut, ShoppingBag, ShieldCheck, Zap } from "lucide-react";
+import { Home, MessageSquare, User, Settings, Youtube, ClipboardList, Trophy, LogOut, ShoppingBag, ShieldCheck, Zap, Mail } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -26,18 +26,18 @@ import { FloatingRoomBar } from "../floating-room-bar";
 
 const navItems = [
   { href: "/rooms", label: "Home", icon: Home },
-  { href: "/watch", label: "Watch", icon: MessageSquare },
+  { href: "/messages", label: "Message", icon: MessageSquare },
   { href: "/profile", label: "Me", icon: User },
 ];
 
 const sidebarItems = [
-  { href: "/rooms", label: "Explore", icon: Home },
+  { href: "/rooms", label: "Home", icon: Home },
+  { href: "/messages", label: "Messages", icon: Mail },
   { href: "/match", label: "Vibe Match", icon: Zap },
   { href: "/store", label: "Boutique", icon: ShoppingBag },
   { href: "/leaderboard", label: "Rankings", icon: Trophy },
   { href: "/tasks", label: "Task Center", icon: ClipboardList },
   { href: "/games", label: "Game Zone", icon: GameControllerIcon },
-  { href: "/watch", label: "Watch Party", icon: Youtube },
 ];
 
 export function AppLayout({ 
@@ -135,7 +135,7 @@ export function AppLayout({
 
         <div className="flex flex-1 flex-col overflow-hidden relative">
           <SidebarInset>
-            <main className="flex-1 overflow-y-auto bg-background p-4 md:p-12">
+            <main className="flex-1 overflow-y-auto bg-background p-4 md:p-12 pb-24 md:pb-12">
               {children}
             </main>
           </SidebarInset>
