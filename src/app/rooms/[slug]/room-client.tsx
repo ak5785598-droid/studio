@@ -87,14 +87,21 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { GiftAnimationOverlay } from '@/components/gift-animation-overlay';
 
+/**
+ * High-Tier Gift Definitions.
+ * Prices and animations scaled for the "Elite" version.
+ */
 const AVAILABLE_GIFTS: Gift[] = [
   { id: 'rose', name: 'Rose', emoji: '🌹', price: 10, animationType: 'pulse' },
   { id: 'heart', name: 'Heart', emoji: '💖', price: 50, animationType: 'zoom' },
   { id: 'ring', name: 'Ring', emoji: '💍', price: 500, animationType: 'bounce' },
   { id: 'car', name: 'Luxury Car', emoji: '🏎️', price: 2000, animationType: 'bounce' },
-  { id: 'rocket', name: 'Rocket', emoji: '🚀', price: 5000, animationType: 'zoom' },
-  { id: 'castle', name: 'Castle', emoji: '🏰', price: 10000, animationType: 'bounce' },
-  { id: 'galaxy', name: 'Galaxy', emoji: '🌌', price: 50000, animationType: 'zoom' },
+  { id: 'jet', name: 'Private Jet', emoji: '🛩️', price: 5000, animationType: 'bounce' },
+  { id: 'dragon', name: 'Dragon', emoji: '🐉', price: 10000, animationType: 'spin' },
+  { id: 'rocket', name: 'Rocket', emoji: '🚀', price: 25000, animationType: 'zoom' },
+  { id: 'castle', name: 'Castle', emoji: '🏰', price: 50000, animationType: 'bounce' },
+  { id: 'galaxy', name: 'Galaxy', emoji: '🌌', price: 100000, animationType: 'zoom' },
+  { id: 'supernova', name: 'Supernova', emoji: '💥', price: 250000, animationType: 'zoom' },
 ];
 
 export function RoomClient({ room }: { room: Room }) {
@@ -155,11 +162,13 @@ export function RoomClient({ room }: { room: Room }) {
     })) || [];
   }, [firestoreMessages]);
 
-  // Animation Trigger
+  // Animation Trigger with Force Reset logic
   useEffect(() => {
     const lastMsg = firestoreMessages?.[firestoreMessages.length - 1];
     if (lastMsg?.type === 'gift' && lastMsg.giftId) {
-      setActiveGiftAnimation(lastMsg.giftId);
+      // Small timeout to allow same-gift consecutive triggers
+      setActiveGiftAnimation(null);
+      setTimeout(() => setActiveGiftAnimation(lastMsg.giftId), 50);
     }
   }, [firestoreMessages]);
 
