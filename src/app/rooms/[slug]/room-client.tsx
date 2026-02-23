@@ -85,7 +85,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isGiftPickerOpen, setIsGiftPickerOpen] = useState(false);
   const [selectedSeatIndex, setSelectedSeatIndex] = useState<number | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<{ gift: Gift; senderName: string } | null>(null);
-  const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string } | null>(null);
+  const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -213,39 +213,42 @@ export function RoomClient({ room }: { room: Room }) {
       updatedAt: serverTimestamp()
     };
 
-    // Use dot notation for partial updates to protect other nested fields
+    // Use setDocumentNonBlocking with merge: true for the root doc to ensure it exists and has identity info
     const walletUpdates = {
       'wallet.coins': increment(-gift.price),
       'wallet.totalSpent': increment(gift.price),
       ...identitySync
     };
 
-    updateDocumentNonBlocking(userRef, walletUpdates);
-    updateDocumentNonBlocking(profileRef, walletUpdates);
+    setDocumentNonBlocking(userRef, walletUpdates, { merge: true });
+    setDocumentNonBlocking(profileRef, walletUpdates, { merge: true });
 
     // Update Room Stats for the Room Leaderboard (using dot notation)
-    updateDocumentNonBlocking(roomRef, {
+    setDocumentNonBlocking(roomRef, {
       'stats.totalGifts': increment(gift.price),
       'updatedAt': serverTimestamp()
-    });
+    }, { merge: true });
 
     let finalRecipient = giftRecipient;
     if (!finalRecipient) {
       const host = participants?.find(p => p.seatIndex === 1);
-      if (host) finalRecipient = { uid: host.uid, name: host.name };
+      if (host) finalRecipient = { uid: host.uid, name: host.name, avatarUrl: host.avatarUrl };
     }
 
     if (finalRecipient) {
       const recipientRef = doc(firestore, 'users', finalRecipient.uid);
       const recipientProfileRef = doc(firestore, 'users', finalRecipient.uid, 'profile', finalRecipient.uid);
       
+      // CRITICAL: Sync recipient identity info to root doc so they show up in Charm Rank correctly
       const charmUpdates = {
         'stats.fans': increment(gift.price),
+        'username': finalRecipient.name,
+        'avatarUrl': finalRecipient.avatarUrl || '',
         'updatedAt': serverTimestamp()
       };
       
-      updateDocumentNonBlocking(recipientRef, charmUpdates);
-      updateDocumentNonBlocking(recipientProfileRef, charmUpdates);
+      setDocumentNonBlocking(recipientRef, charmUpdates, { merge: true });
+      setDocumentNonBlocking(recipientProfileRef, charmUpdates, { merge: true });
     }
 
     addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
@@ -550,7 +553,7 @@ export function RoomClient({ room }: { room: Room }) {
       </footer>
 
       <Dialog open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
-        <DialogContent className="sm:max-w-sm bg-white/95 backdrop-blur-xl border-none p-0 rounded-t-[2.5rem] overflow-hidden">
+        <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-xl border-none p-0 rounded-t-[2.5rem] overflow-hidden">
           <DialogHeader className="p-6 border-b border-gray-100">
             <DialogTitle className="text-center font-headline text-2xl text-gray-800 uppercase italic">Seat Actions</DialogTitle>
             <DialogDescription className="sr-only">Manage seat access, mic status, or send gifts.</DialogDescription>
@@ -561,7 +564,7 @@ export function RoomClient({ room }: { room: Room }) {
                 onClick={() => { 
                   const occupant = participants?.find(p => p.seatIndex === selectedSeatIndex);
                   if (occupant) {
-                    setGiftRecipient({ uid: occupant.uid, name: occupant.name });
+                    setGiftRecipient({ uid: occupant.uid, name: occupant.name, avatarUrl: occupant.avatarUrl });
                     setIsGiftPickerOpen(true);
                   }
                   setIsActionMenuOpen(false); 
