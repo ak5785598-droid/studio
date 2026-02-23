@@ -64,7 +64,8 @@ export default function ProfilePage() {
     );
   }
 
-  if (!profile && !isProfileLoading) {
+  // Final 404 guard only after loading is definitely finished and no data returned
+  if (!profile && !isProfileLoading && !isAuthLoading) {
     notFound();
     return null;
   }
@@ -247,7 +248,6 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Placeholder for Room History or Activity */}
             <Card className="rounded-[2rem] border-none shadow-sm h-64 flex items-center justify-center bg-muted/5">
                 <div className="text-center space-y-2 opacity-30">
                   <Layout className="h-12 w-12 mx-auto" />
