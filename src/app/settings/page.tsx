@@ -24,14 +24,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { 
+  useAuth, 
+  useUser, 
+  useFirestore, 
+  useUserProfile, 
+  useProfilePictureUpload, 
+  setDocumentNonBlocking 
+} from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { useUserProfile } from '@/hooks/use-user-profile';
-import { useProfilePictureUpload } from '@/hooks/use-profile-picture-upload';
 import { EditProfileDialog } from '@/components/edit-profile-dialog';
 import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
 import { doc, increment, serverTimestamp } from 'firebase/firestore';
 
 export default function SettingsPage() {
