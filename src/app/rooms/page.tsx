@@ -2,19 +2,21 @@
 
 import { useState, useMemo } from 'react';
 import { ChatRoomCard } from '@/components/chat-room-card';
-import { Search, Loader, Flame, Gamepad2, Music, Crown, Heart, Users, Home } from 'lucide-react';
+import { Search, Loader, Flame, Gamepad2, Music, Crown, Heart, Users, Home, Plus } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, limit } from 'firebase/firestore';
+import { collection, query, limit, orderBy } from 'firebase/firestore';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 /**
  * Explore Rooms Page - Production Edition.
  * High-fidelity discovery grid for active frequencies.
+ * 100% Firestore driven.
  */
 export default function RoomsPage() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -22,9 +24,14 @@ export default function RoomsPage() {
   const [activeTab, setActiveTab] = useState('Popular');
   const [filterType, setFilterType] = useState<'popular' | 'mine'>('popular');
 
+  // Fetch all active rooms, ordered by latest creation or gift stats
   const allRoomsQuery = useMemoFirebase(() => {
     if (!firestore || isUserLoading || !user) return null;
-    return query(collection(firestore, 'chatRooms'), limit(50));
+    return query(
+      collection(firestore, 'chatRooms'), 
+      orderBy('createdAt', 'desc'),
+      limit(50)
+    );
   }, [firestore, isUserLoading, user]);
 
   const { data: roomsData, isLoading: isRoomsLoading } = useCollection(allRoomsQuery);
@@ -32,7 +39,7 @@ export default function RoomsPage() {
   const categories = [
     { id: 'Popular', label: 'Popular', icon: Flame },
     { id: 'Game', label: 'Game', icon: Gamepad2 },
-    { id: 'Video/Music', label: 'Video/Music', icon: Music },
+    { id: 'Singing', label: 'Singing', icon: Music },
   ];
 
   const filteredRooms = useMemo(() => {
@@ -60,6 +67,7 @@ export default function RoomsPage() {
               <div className="bg-white/80 p-1.5 rounded-xl shadow-sm border border-yellow-200">
                  <Home className="h-5 w-5 text-gray-700" />
               </div>
+              <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 font-black uppercase text-[8px] h-5 tracking-widest px-2">Production</Badge>
             </div>
             <div className="flex items-center gap-8">
               <button 
@@ -90,18 +98,23 @@ export default function RoomsPage() {
           </div>
 
           <div className="w-full mt-2 overflow-hidden rounded-2xl">
-            <Carousel className="w-full">
+            <Carousel className="w-full" opts={{ loop: true }}>
               <CarouselContent>
-                {[1, 2, 3].map((i) => (
-                  <CarouselItem key={i}>
+                {[
+                  { id: 1, hint: "vibrant community" },
+                  { id: 2, hint: "music performance" },
+                  { id: 3, hint: "gaming setup" }
+                ].map((item) => (
+                  <CarouselItem key={item.id}>
                     <div className="relative aspect-[1536/681] rounded-2xl overflow-hidden shadow-md mx-1">
                       <Image
-                        src={`https://picsum.photos/seed/yari-banner-${i}/800/400`}
-                        alt={`Featured event ${i}`}
+                        src={`https://picsum.photos/seed/ummy-banner-${item.id}/800/400`}
+                        alt={`Featured tribe event`}
                         fill
                         className="object-cover"
                         priority
                         sizes="(max-width: 768px) 100vw, 800px"
+                        data-ai-hint={item.hint}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                     </div>
@@ -170,8 +183,9 @@ export default function RoomsPage() {
           </div>
 
           {isRoomsLoading ? (
-            <div className="flex justify-center py-20">
-              <Loader className="animate-spin text-primary" />
+            <div className="flex flex-col items-center justify-center py-32 gap-4">
+              <Loader className="animate-spin text-primary h-8 w-8" />
+              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-50">Synchronizing Frequencies...</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-x-3 gap-y-6 pb-12">
@@ -180,8 +194,15 @@ export default function RoomsPage() {
                   <ChatRoomCard key={room.id} room={room} variant="modern" />
                 ))
               ) : (
-                <div className="col-span-2 py-20 text-center text-gray-400 font-bold uppercase tracking-widest text-xs italic">
-                  No Frequencies Active
+                <div className="col-span-2 py-32 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="h-20 w-20 bg-gray-100 rounded-full flex items-center justify-center">
+                     <Plus className="h-8 w-8 text-gray-300" />
+                  </div>
+                  <div>
+                    <p className="text-gray-400 font-black uppercase tracking-widest text-xs">No Frequencies Active</p>
+                    <p className="text-[10px] text-gray-400 uppercase font-bold mt-1">Be the first to launch a tribe frequency.</p>
+                  </div>
+                  <CreateRoomDialog />
                 </div>
               )}
             </div>

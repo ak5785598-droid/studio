@@ -1,6 +1,9 @@
 import type { User, Room, Game, CoinPackage, Task } from './types';
 
-// Production Logic: Mock data is removed to allow dynamic growth of the community frequency.
+/**
+ * Production Mock Data.
+ * All placeholder rooms have been removed to ensure the discovery grid is 100% real-time.
+ */
 const users: User[] = [];
 const rooms: Room[] = []; 
 
