@@ -4,7 +4,6 @@ service cloud.firestore {
     function isSignedIn() { return request.auth != null; }
     
     // Robust Admin Check: Verify if the user document has elevated tags.
-    // We check existence first to prevent rules errors on new user creation.
     function isAdmin() {
       return isSignedIn() && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
@@ -52,8 +51,14 @@ service cloud.firestore {
 
       // Any signed in user can find and launch rooms
       allow read, list, create: if isSignedIn();
-      // Room masters and moderators can update room settings
-      allow update: if isSignedIn() && isRoomAdmin();
+      
+      // Updated: Allow Room Admins to update everything.
+      // Allow regular users to update ONLY 'stats' and 'updatedAt' (required for sending gifts).
+      allow update: if isSignedIn() && (
+        isRoomAdmin() || 
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'updatedAt']))
+      );
+      
       // Owners or Global Admins can terminate frequencies
       allow delete: if isAdmin() || (isSignedIn() && resource.data.ownerId == request.auth.uid);
       
