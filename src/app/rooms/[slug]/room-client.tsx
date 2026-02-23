@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -209,11 +210,13 @@ export function RoomClient({ room }: { room: Room }) {
     const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
     const roomRef = doc(firestore, 'chatRooms', room.id);
     
-    // Robust "Upsert" style updates using dot notation and merge
+    // Use nested object syntax for setDoc with merge to ensure correct map structure
     const userUpdateData = {
-      'wallet.coins': increment(-gift.price),
-      'wallet.totalSpent': increment(gift.price), 
-      'updatedAt': serverTimestamp()
+      wallet: {
+        coins: increment(-gift.price),
+        totalSpent: increment(gift.price)
+      },
+      updatedAt: serverTimestamp()
     };
 
     setDocumentNonBlocking(userRef, userUpdateData, { merge: true });
@@ -221,8 +224,10 @@ export function RoomClient({ room }: { room: Room }) {
 
     // Update Room Stats for the Room Leaderboard
     setDocumentNonBlocking(roomRef, {
-      'stats.totalGifts': increment(gift.price),
-      'updatedAt': serverTimestamp()
+      stats: {
+        totalGifts: increment(gift.price)
+      },
+      updatedAt: serverTimestamp()
     }, { merge: true });
 
     // Identify Recipient (Charm Ranking)
@@ -236,8 +241,10 @@ export function RoomClient({ room }: { room: Room }) {
       const recipientRef = doc(firestore, 'users', finalRecipient.uid);
       const recipientProfileRef = doc(firestore, 'users', finalRecipient.uid, 'profile', finalRecipient.uid);
       const charmUpdate = {
-        'stats.fans': increment(gift.price), 
-        'updatedAt': serverTimestamp()
+        stats: {
+          fans: increment(gift.price)
+        },
+        updatedAt: serverTimestamp()
       };
       setDocumentNonBlocking(recipientRef, charmUpdate, { merge: true });
       setDocumentNonBlocking(recipientProfileRef, charmUpdate, { merge: true });

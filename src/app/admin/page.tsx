@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -91,12 +92,15 @@ export default function AdminPage() {
     try {
       const userRef = doc(firestore, 'users', targetUserId);
       const profileRef = doc(firestore, 'users', targetUserId, 'profile', targetUserId);
+      
+      // Use nested object structure for setDoc merge to maintain database hierarchy
       const updateData = {
-        [`wallet.${type}`]: increment(amount),
+        wallet: {
+          [type]: increment(amount)
+        },
         updatedAt: serverTimestamp()
       };
       
-      // Use setDoc with merge for robustness during admin overrides
       setDocumentNonBlocking(userRef, updateData, { merge: true });
       setDocumentNonBlocking(profileRef, updateData, { merge: true });
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
@@ -63,12 +64,15 @@ export default function SettingsPage() {
     if (!firestore || !user) return;
     const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
     const userRef = doc(firestore, 'users', user.uid);
+    
+    // Corrected nested object structure for setDoc with merge
     const updateData = { 
-      'wallet.coins': increment(1000), 
+      wallet: {
+        coins: increment(1000)
+      },
       updatedAt: serverTimestamp() 
     };
     
-    // Use setDocument with merge for robustness
     setDocumentNonBlocking(profileRef, updateData, { merge: true });
     setDocumentNonBlocking(userRef, updateData, { merge: true });
     toast({ title: 'Top-up Successful!', description: '1,000 Testing Coins added.' });

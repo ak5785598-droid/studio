@@ -1,3 +1,4 @@
+
 'use client';
 
 import { use, useMemo, useEffect, useState } from 'react';
@@ -58,7 +59,8 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
             announcement: 'Welcome! Enjoy the frequency.',
             createdAt: serverTimestamp(),
             moderatorIds: [currentUser.uid],
-            lockedSeats: []
+            lockedSeats: [],
+            stats: { totalGifts: 0 } // Initialize stats for leaderboard indexing
           }, { merge: true });
         } catch (e) {
           console.warn("Handshake delayed:", e);
