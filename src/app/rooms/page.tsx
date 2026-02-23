@@ -40,8 +40,8 @@ export default function RoomsPage() {
   }, [roomsData, activeTab]);
 
   return (
-    <AppLayout hideSidebarOnMobile>
-      <div className="min-h-screen bg-[#F8F8F8] pb-20 -m-4 md:m-0">
+    <AppLayout>
+      <div className="min-h-screen bg-[#F8F8F8] -m-4 md:m-0">
         {/* Yari High-Energy Header */}
         <header className="bg-gradient-to-b from-[#FFF5A5] to-[#FFFFFF] px-4 pt-10 pb-4 shadow-sm sticky top-0 z-50">
           <div className="flex items-center justify-between mb-4">
@@ -147,7 +147,7 @@ export default function RoomsPage() {
               <Loader className="animate-spin text-primary" />
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-3 gap-y-6 pb-24">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-6 pb-32">
               {filteredRooms.map((room: any) => (
                 <ChatRoomCard key={room.id} room={room} variant="modern" />
               ))}

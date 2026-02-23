@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, Zap, Mail } from "lucide-react";
+import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, Zap, Mail, Crown } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -40,8 +40,6 @@ const sidebarItems = [
   { href: "/games", label: "Game Zone", icon: GameControllerIcon },
 ];
 
-import { Crown } from "lucide-react";
-
 export function AppLayout({ 
   children, 
   hideSidebarOnMobile = false 
@@ -78,7 +76,7 @@ export function AppLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background font-headline overflow-hidden">
+      <div className="flex min-h-screen w-full bg-background font-headline overflow-hidden relative">
         <Sidebar className="hidden md:flex">
           <SidebarHeader>
             <Logo />
@@ -136,8 +134,8 @@ export function AppLayout({
         </Sidebar>
 
         <div className="flex flex-1 flex-col overflow-hidden relative">
-          <SidebarInset>
-            <main className="flex-1 overflow-y-auto bg-background p-4 md:p-12 pb-24 md:pb-12">
+          <SidebarInset className="bg-background">
+            <main className="flex-1 overflow-y-auto p-4 md:p-12 pb-28 md:pb-12 h-screen">
               {children}
             </main>
           </SidebarInset>
@@ -147,7 +145,7 @@ export function AppLayout({
 
           {/* Bottom Mobile Navigation - Yari Style */}
           {!hideSidebarOnMobile && (
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-50 px-6 py-2 flex justify-between items-center z-[60] rounded-t-[2.5rem] shadow-[0_-10px_20px_rgba(0,0,0,0.03)] h-20">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-2 flex justify-between items-center z-[70] rounded-t-[2.5rem] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] h-20">
               {navItems.map((item) => {
                 const active = pathname === item.href || (item.href === '/profile' && pathname.startsWith('/profile'));
                 return (
