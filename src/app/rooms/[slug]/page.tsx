@@ -125,6 +125,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   }
 
   // Patience Guard: Wait for auth, the ref to be created, doc loading, and provisioning
+  // We explicitly wait until isDocLoading is false AND hasCheckedProvisioning is true
   const isWaiting = isAuthLoading || !roomDocRef || isDocLoading || isProvisioning || !hasCheckedProvisioning;
 
   if (isWaiting) {
