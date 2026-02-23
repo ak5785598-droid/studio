@@ -11,7 +11,7 @@ import type { Room } from '@/lib/types';
 
 /**
  * Chat Room Entry Page.
- * Reinforced to prevent premature 404s and handle official room provisioning.
+ * Hardened to prevent premature 404s and handle official room provisioning.
  */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -43,7 +43,6 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     const performHandshake = async () => {
       if (!roomDocRef || isAuthLoading || !firestore || !currentUser || isDocLoading) return;
 
-      // Handle official help room or missing rooms by providing default structure
       if (!firestoreRoom && !isProvisioning) {
         setIsProvisioning(true);
         setInitStatus('Handshaking Frequency...');
@@ -67,10 +66,8 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
           setIsProvisioning(false);
           setHasHandshaked(true);
         }
-      } else {
-        // Short delay to ensure Firestore listener is fully populated
-        const timer = setTimeout(() => setHasHandshaked(true), 500);
-        return () => clearTimeout(timer);
+      } else if (firestoreRoom) {
+        setHasHandshaked(true);
       }
     };
 

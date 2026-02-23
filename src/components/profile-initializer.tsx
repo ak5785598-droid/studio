@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 
 /**
  * Ensures a user profile exists in Firestore after login.
- * Optimized to run only once per session or identity change.
+ * Syncs critical fields to top-level user doc for security rules compliance.
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -16,7 +16,6 @@ export function ProfileInitializer() {
   const hasInitialized = useRef<string | null>(null);
 
   useEffect(() => {
-    // Prevent redundant initialization if already checked for this user ID.
     if (!user || !firestore || hasInitialized.current === user.uid) return;
 
     const initProfile = async () => {
@@ -35,7 +34,7 @@ export function ProfileInitializer() {
             email: user.email || '',
             bio: 'Vibing on Ummy! Join my tribe.',
             wallet: { 
-              coins: 1500, // Starting balance
+              coins: 1500, 
               diamonds: 0,
               totalSpent: 0
             },
@@ -52,10 +51,10 @@ export function ProfileInitializer() {
             }
           };
 
-          // Background sync for profile sub-document
+          // Background sync for detailed profile
           await setDoc(profileRef, initialData, { merge: true });
           
-          // Background sync for top-level user document (essential for rules and search)
+          // Background sync for user summary - REQUIRED for Security Rules
           await setDoc(userRef, {
             id: user.uid,
             username: initialData.username,
@@ -63,7 +62,7 @@ export function ProfileInitializer() {
             wallet: initialData.wallet,
             stats: initialData.stats,
             level: initialData.level,
-            tags: initialData.tags, // Critical for security rules
+            tags: initialData.tags, 
             updatedAt: serverTimestamp(),
             joinedAt: serverTimestamp(),
           }, { merge: true });

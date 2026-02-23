@@ -3,8 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() { return request.auth != null; }
     
-    // Check if the user has an Admin or Official tag
-    // Use exists() and get() with a default to prevent errors on missing fields
+    // Robust Admin Check: Prevents errors if document or fields are missing
     function isAdmin() {
       return isSignedIn() && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
@@ -13,11 +12,12 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow write: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
+      // Explicitly allow based on ownership or admin status
+      allow create, update, delete: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
       
       match /profile/{profileId} {
         allow read: if isSignedIn();
-        allow write: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
+        allow create, update, delete: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
       }
     }
 

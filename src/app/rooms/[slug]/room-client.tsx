@@ -212,15 +212,15 @@ export function RoomClient({ room }: { room: Room }) {
     
     const updateData = {
       'wallet.coins': increment(-gift.price),
-      'wallet.totalSpent': increment(gift.price), // Tracking for RICH Ranking
+      'wallet.totalSpent': increment(gift.price), 
       'updatedAt': serverTimestamp()
     };
 
-    // Non-blocking update for Sender
+    // Atomic-style updates for the sender
     updateDocumentNonBlocking(userRef, updateData);
     updateDocumentNonBlocking(profileRef, updateData);
 
-    // Identify Recipient (Boosts Charm Rank)
+    // Identify Recipient (Charm Ranking)
     let finalRecipient = giftRecipient;
     if (!finalRecipient) {
       const host = participants?.find(p => p.seatIndex === 1);
@@ -231,14 +231,14 @@ export function RoomClient({ room }: { room: Room }) {
       const recipientRef = doc(firestore, 'users', finalRecipient.uid);
       const recipientProfileRef = doc(firestore, 'users', finalRecipient.uid, 'profile', finalRecipient.uid);
       const charmUpdate = {
-        'stats.fans': increment(gift.price), // Incrementing Fans for CHARM Ranking
+        'stats.fans': increment(gift.price), 
         'updatedAt': serverTimestamp()
       };
       updateDocumentNonBlocking(recipientRef, charmUpdate);
       updateDocumentNonBlocking(recipientProfileRef, charmUpdate);
     }
 
-    // Add gift message
+    // Register gift event in chat
     addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
       content: `sent a ${gift.name} ${gift.emoji} ${finalRecipient ? `to ${finalRecipient.name}` : ''}!`,
       senderId: currentUser.uid,
@@ -544,7 +544,7 @@ export function RoomClient({ room }: { room: Room }) {
         <DialogContent className="sm:max-w-sm bg-white/95 backdrop-blur-xl border-none p-0 rounded-t-[2.5rem] overflow-hidden">
           <DialogHeader className="p-6 border-b border-gray-100">
             <DialogTitle className="text-center font-headline text-2xl text-gray-800 uppercase italic">Seat Actions</DialogTitle>
-            <DialogDescription className="sr-only">Manage your seat and microphone settings.</DialogDescription>
+            <DialogDescription className="sr-only">Manage seat access, mic status, or send gifts.</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col text-center divide-y divide-gray-100">
             {selectedSeatIndex !== null && (
