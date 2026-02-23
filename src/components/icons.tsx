@@ -5,16 +5,34 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
         {...props}
     >
         <defs>
-            <linearGradient id="smileGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#FFF" />
-                <stop offset="100%" stopColor="#D4E100" />
+            <linearGradient id="earGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FF5F00" />
+                <stop offset="100%" stopColor="#FFCC00" />
             </linearGradient>
         </defs>
-        {/* Stylized Yari Face Icon */}
-        <circle cx="50" cy="50" r="45" fill="currentColor" />
-        <path d="M30 45 Q30 35 35 35 Q40 35 40 45" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" />
-        <path d="M60 45 Q60 35 65 35 Q70 35 70 45" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" />
-        <path d="M30 65 Q50 85 70 65" fill="none" stroke="white" strokeWidth="6" strokeLinecap="round" />
+        {/* Rounded white background box */}
+        <rect x="10" y="10" width="80" height="80" rx="24" fill="white" />
+        
+        {/* Ears */}
+        <circle cx="32" cy="38" r="14" fill="url(#earGradient)" />
+        <circle cx="68" cy="38" r="14" fill="url(#earGradient)" />
+        
+        {/* Face */}
+        <circle cx="50" cy="55" r="28" fill="#FFCC00" />
+        
+        {/* Features */}
+        <circle cx="40" cy="50" r="3.5" fill="#1A1A1A" />
+        <circle cx="60" cy="50" r="3.5" fill="#1A1A1A" />
+        <circle cx="50" cy="60" r="4.5" fill="#1A1A1A" />
+        
+        {/* Simple Smile */}
+        <path 
+            d="M 42 68 Q 50 74 58 68" 
+            fill="none" 
+            stroke="#1A1A1A" 
+            strokeWidth="2.5" 
+            strokeLinecap="round" 
+        />
     </svg>
 );
 

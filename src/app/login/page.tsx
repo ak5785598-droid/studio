@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -118,8 +117,8 @@ export default function LoginPage() {
 
   if (isUserLoading || user) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#050510]">
-        <UmmyLogoIcon className="h-16 w-16 text-primary animate-pulse" />
+      <div className="flex h-screen w-full items-center justify-center bg-[#FFCC00]">
+        <UmmyLogoIcon className="h-24 w-24 animate-pulse" />
       </div>
     );
   }
@@ -128,16 +127,15 @@ export default function LoginPage() {
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-6 text-foreground font-sans">
       <div id="recaptcha-container"></div>
       
-      <div className="flex flex-col items-center text-center space-y-4 mb-12">
+      <div className="flex flex-col items-center text-center space-y-4 mb-12 animate-in fade-in duration-1000">
         <div className="relative">
-           <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-           <UmmyLogoIcon className="h-28 w-28 text-primary relative z-10" />
+           <UmmyLogoIcon className="h-32 w-32 relative z-10 drop-shadow-xl" />
         </div>
-        <h1 className="font-headline text-6xl font-black italic uppercase tracking-tighter text-primary">
+        <h1 className="font-headline text-6xl font-black italic uppercase tracking-tighter text-[#FFCC00] drop-shadow-sm mt-4">
           Ummy
         </h1>
-        <p className="text-lg text-muted-foreground font-body max-w-xs">
-          Connect with your tribe in real-time. Join the global frequency.
+        <p className="text-muted-foreground font-body text-lg uppercase tracking-widest opacity-60">
+          Connecting Vibe
         </p>
       </div>
 
@@ -153,17 +151,17 @@ export default function LoginPage() {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       disabled={isSigningIn}
-                      className="h-14 pl-10 text-lg rounded-2xl border-2 focus:border-primary transition-all"
+                      className="h-14 pl-10 text-lg rounded-2xl border-2 focus:border-[#FFCC00] transition-all"
                    />
                 </div>
-                <Button onClick={handlePhoneSignIn} disabled={isSigningIn || !phoneNumber} className="w-full h-14 text-lg font-black uppercase italic rounded-2xl shadow-xl shadow-primary/20">
-                    {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Join via Phone'}
+                <Button onClick={handlePhoneSignIn} disabled={isSigningIn || !phoneNumber} className="w-full h-14 text-lg font-black uppercase italic rounded-2xl bg-[#FFCC00] text-white hover:bg-[#FFCC00]/90 shadow-xl shadow-yellow-500/20">
+                    {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Join the Frequency'}
                 </Button>
             </div>
 
             <div className="relative flex items-center gap-4 py-2">
               <span className="flex-1 border-t border-gray-100" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Secure Login</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Secure Portal</span>
               <span className="flex-1 border-t border-gray-100" />
             </div>
 
@@ -180,35 +178,35 @@ export default function LoginPage() {
         ) : (
              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <div className="text-center space-y-1">
-                   <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Verification</p>
+                   <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Identity Sync</p>
                    <p className="text-xs text-muted-foreground">Sent to {phoneNumber}</p>
                 </div>
                 <Input
                     type="text"
-                    placeholder="Enter Code"
+                    placeholder="000000"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value)}
                     disabled={isSigningIn}
-                    className="h-16 text-center text-3xl font-black tracking-[0.5em] rounded-2xl border-2 focus:border-primary"
+                    className="h-16 text-center text-3xl font-black tracking-[0.5em] rounded-2xl border-2 focus:border-[#FFCC00]"
                     maxLength={6}
                 />
-                <Button onClick={handleVerifyCode} disabled={isSigningIn || !verificationCode} className="w-full h-14 text-lg font-black uppercase italic rounded-2xl">
-                    {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Confirm Frequency'}
+                <Button onClick={handleVerifyCode} disabled={isSigningIn || !verificationCode} className="w-full h-14 text-lg font-black uppercase italic rounded-2xl bg-[#FFCC00] text-white">
+                    {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Enter Frequency'}
                 </Button>
-                <Button variant="link" onClick={() => setPhoneLoginStep('number')} className="w-full text-muted-foreground font-bold uppercase text-[10px] tracking-widest">
-                    Edit Phone Number
-                </Button>
+                <button onClick={() => setPhoneLoginStep('number')} className="w-full text-muted-foreground font-black uppercase text-[10px] tracking-widest hover:text-foreground transition-colors">
+                    Wrong Number?
+                </button>
             </div>
         )}
       </div>
 
       <div className="mt-16 flex flex-col items-center gap-4 text-center">
          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            <ShieldCheck className="h-4 w-4 text-primary" />
-            <span>End-to-End Encryption Enabled</span>
+            <ShieldCheck className="h-4 w-4 text-[#FFCC00]" />
+            <span>End-to-End Frequency Encryption</span>
          </div>
          <p className="text-[10px] text-muted-foreground leading-relaxed max-w-[200px]">
-            By continuing, you agree to our <Link href="/terms" className="underline font-bold text-foreground">Terms</Link> & <Link href="/terms" className="underline font-bold text-foreground">Privacy</Link>.
+            By continuing, you join the official Ummy tribe. <Link href="/terms" className="underline font-bold text-foreground">Terms & Privacy</Link>.
          </p>
       </div>
     </div>

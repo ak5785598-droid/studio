@@ -7,8 +7,7 @@ import { UmmyLogoIcon } from '@/components/icons';
 
 /**
  * Root Application Entry / Splash Screen.
- * Displays the high-energy Ummy logo with a deep galaxy theme.
- * Optimized for rapid redirection once auth state is determined.
+ * Now precisely matching the provided Yari design with solid yellow background and Bear logo.
  */
 export default function Home() {
   const router = useRouter();
@@ -17,37 +16,37 @@ export default function Home() {
   useEffect(() => {
     // Redirection happens immediately upon auth resolution to maximize speed.
     if (!isLoading) {
-      if (user) {
-        router.replace('/rooms');
-      } else {
-        router.replace('/login');
-      }
+      setTimeout(() => {
+        if (user) {
+          router.replace('/rooms');
+        } else {
+          router.replace('/login');
+        }
+      }, 2000); // Slight delay to show the high-fidelity splash
     }
   }, [isLoading, user, router]);
 
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center bg-[#050510] overflow-hidden relative">
-      {/* Background Glows */}
-      <div className="absolute top-1/4 -left-1/4 w-[100%] h-[100%] bg-purple-900/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-1/4 w-[100%] h-[100%] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none" />
-      
-      <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-500 relative z-10 scale-125 md:scale-150">
-        <div className="relative h-64 w-64 flex items-center justify-center">
-           <div className="absolute inset-0 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
-           <UmmyLogoIcon className="h-full w-full drop-shadow-[0_0_50px_rgba(251,191,36,0.6)]" />
+    <div className="flex h-screen w-full flex-col items-center justify-center bg-[#FFCC00] overflow-hidden relative font-headline">
+      <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-700 relative z-10">
+        <div className="relative h-48 w-48 flex items-center justify-center">
+           <UmmyLogoIcon className="h-full w-full drop-shadow-xl" />
         </div>
-        <div className="flex flex-col items-center gap-3">
-           <p className="text-primary font-black uppercase tracking-[0.5em] text-xs animate-pulse">
-             Syncing Frequency...
+        
+        <div className="flex flex-col items-center gap-2 mt-4">
+           <h1 className="text-6xl font-black text-white italic tracking-tighter uppercase italic drop-shadow-sm">
+             Ummy
+           </h1>
+           <p className="text-white font-bold uppercase tracking-[0.4em] text-[10px] opacity-90">
+             Connecting Vibe...
            </p>
         </div>
       </div>
       
-      <div className="absolute bottom-16 flex flex-col items-center gap-4 w-full px-12">
-         <div className="h-1.5 w-full max-w-xs bg-white/5 rounded-full overflow-hidden border border-white/5 backdrop-blur-sm">
-            <div className="h-full bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 animate-loading-bar" style={{ width: '60%' }} />
+      <div className="absolute bottom-20 flex flex-col items-center gap-4 w-full px-12">
+         <div className="h-[2px] w-48 bg-white/20 rounded-full overflow-hidden">
+            <div className="h-full bg-white animate-loading-bar" style={{ width: '40%' }} />
          </div>
-         <p className="text-[10px] text-white/20 font-black uppercase tracking-widest">Powered by Ummy Neural Engine</p>
       </div>
 
       <style jsx>{`
@@ -56,7 +55,7 @@ export default function Home() {
           100% { transform: translateX(250%); }
         }
         .animate-loading-bar {
-          animation: loading-bar 1s ease-in-out infinite;
+          animation: loading-bar 1.5s ease-in-out infinite;
         }
       `}</style>
     </div>
