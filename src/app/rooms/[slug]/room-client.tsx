@@ -92,7 +92,6 @@ import { GiftAnimationOverlay } from '@/components/gift-animation-overlay';
 
 /**
  * High-Tier Gift Definitions.
- * Return Policy: Recipient receives 40% of Coin value in Blue Diamonds.
  */
 const AVAILABLE_GIFTS: Gift[] = [
   { id: 'rose', name: 'Rose', emoji: '🌹', price: 10, animationType: 'pulse' },
@@ -214,15 +213,12 @@ export function RoomClient({ room }: { room: Room }) {
     }
 
     const isSelfGifting = finalRecipient.uid === currentUser.uid;
-
-    // 1. Update Sender Balance (and stats)
     const walletUpdates: any = {
       'wallet.coins': increment(-gift.price),
       'wallet.totalSpent': increment(gift.price),
       updatedAt: serverTimestamp()
     };
 
-    // 2. Diamond Return (40%)
     const diamondReturn = Math.floor(gift.price * 0.4);
 
     if (isSelfGifting) {
@@ -230,32 +226,26 @@ export function RoomClient({ room }: { room: Room }) {
       walletUpdates['stats.fans'] = increment(gift.price);
     }
 
-    // Apply Sender Updates
     updateDocumentNonBlocking(userRef, walletUpdates);
     updateDocumentNonBlocking(profileRef, walletUpdates);
 
-    // 3. Update Room Stats
     updateDocumentNonBlocking(roomDocRef, { 
       'stats.totalGifts': increment(gift.price), 
       updatedAt: serverTimestamp() 
     });
 
-    // 4. Update Recipient Stats (if NOT self-gifting, as self-gifting was handled above)
     if (!isSelfGifting) {
       const rRef = doc(firestore, 'users', finalRecipient.uid);
       const rpRef = doc(firestore, 'users', finalRecipient.uid, 'profile', finalRecipient.uid);
-      
       const recipientUpdates = { 
         'stats.fans': increment(gift.price), 
         'wallet.diamonds': increment(diamondReturn),
         updatedAt: serverTimestamp() 
       };
-      
       updateDocumentNonBlocking(rRef, recipientUpdates);
       updateDocumentNonBlocking(rpRef, recipientUpdates);
     }
 
-    // 5. Post Gift Message
     addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
       content: `sent ${isSelfGifting ? 'themselves' : finalRecipient.name} a ${gift.name} ${gift.emoji}!`,
       senderId: currentUser.uid,
@@ -299,18 +289,8 @@ export function RoomClient({ room }: { room: Room }) {
       participantsSnap.docs.forEach(d => batch.delete(d.ref));
       batch.delete(doc(firestore, 'chatRooms', room.id));
       await batch.commit();
-      
-      toast({ title: 'Frequency Terminated', description: 'The tribe has been disbanded.' });
       setActiveRoom(null);
       router.push('/rooms');
-    } catch (e: any) {
-      if (e.code === 'permission-denied') {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: `chatRooms/${room.id}`,
-          operation: 'delete',
-        }));
-      }
-      toast({ variant: 'destructive', title: 'Deletion Failed' });
     } finally {
       setIsDeleting(false);
     }
@@ -322,7 +302,6 @@ export function RoomClient({ room }: { room: Room }) {
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), {
       lockedSeats: isLocked ? arrayRemove(index) : arrayUnion(index)
     });
-    toast({ title: isLocked ? `Seat ${index} Unlocked` : `Seat ${index} Locked` });
   };
 
   const silenceParticipant = (uid: string, currentState: boolean) => {
@@ -331,13 +310,11 @@ export function RoomClient({ room }: { room: Room }) {
       isSilenced: !currentState,
       isMuted: true
     });
-    toast({ title: currentState ? 'Tribe Unsilenced' : 'Tribe Silenced' });
   };
 
   const kickParticipant = (uid: string) => {
     if (!canManageRoom || !firestore || !room.id) return;
     deleteDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid));
-    toast({ title: 'User Kicked' });
     setIsActionMenuOpen(false);
   };
 
@@ -394,12 +371,10 @@ export function RoomClient({ room }: { room: Room }) {
       if (first) takeSeat(first);
       return;
     }
-
     if (currentUserParticipant?.isSilenced) {
       toast({ variant: 'destructive', title: 'Silenced by Admin' });
       return;
     }
-
     const nextMuteState = !currentUserParticipant?.isMuted;
     if (firestore && currentUser && room.id) {
       updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { isMuted: nextMuteState });
@@ -449,7 +424,7 @@ export function RoomClient({ room }: { room: Room }) {
                <ScrollArea className="h-full px-8 pb-20">
                   <div className="space-y-4">
                      {participants?.map((p) => (
-                       <div key={p.uid} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                       <div key={p.uid} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 animate-in slide-in-from-bottom-2 duration-300">
                           <div className="flex items-center gap-4">
                              <AvatarFrame frameId={p.activeFrame} size="sm">
                                 <Avatar><AvatarImage src={p.avatarUrl} /><AvatarFallback>{p.name.charAt(0)}</AvatarFallback></Avatar>
@@ -549,14 +524,14 @@ export function RoomClient({ room }: { room: Room }) {
              <div className="flex flex-col items-center gap-3">
                 <div className="relative">
                    {hostParticipant && !hostParticipant.isMuted && (
-                      <div className="absolute -inset-4 rounded-full border-2 border-blue-400 animate-voice-wave" />
+                      <div className="absolute -inset-4 rounded-full border-2 border-primary animate-voice-wave" />
                    )}
                    <AvatarFrame frameId={hostParticipant?.activeFrame} size="xl">
                       <div 
                         onClick={() => handleSeatClick(1, hostParticipant)}
                         className={cn(
                           "h-28 w-28 rounded-full flex items-center justify-center transition-all cursor-pointer bg-black/40 backdrop-blur-md border-2",
-                          hostParticipant ? "border-blue-400 shadow-xl" : "border-white/10"
+                          hostParticipant ? "border-primary shadow-[0_0_20px_rgba(255,204,0,0.4)]" : "border-white/10"
                         )}
                       >
                         {hostParticipant ? (
@@ -565,7 +540,7 @@ export function RoomClient({ room }: { room: Room }) {
                       </div>
                    </AvatarFrame>
                 </div>
-                <Badge className="bg-blue-500 text-white text-[10px] font-black uppercase italic">Room Master</Badge>
+                <Badge className="bg-primary text-black text-[10px] font-black uppercase italic animate-pulse">Room Master</Badge>
              </div>
           </div>
 
@@ -575,7 +550,7 @@ export function RoomClient({ room }: { room: Room }) {
               const occupant = participants?.find(p => p.seatIndex === idx);
               const isLocked = room.lockedSeats?.includes(idx);
               return (
-                <div key={idx} className="flex flex-col items-center gap-2">
+                <div key={idx} className="flex flex-col items-center gap-2 group">
                   <div className="relative">
                     {occupant && !occupant.isMuted && (
                        <div className="absolute -inset-2 rounded-full border-2 border-primary animate-voice-wave" />
@@ -584,9 +559,9 @@ export function RoomClient({ room }: { room: Room }) {
                       <div 
                         onClick={() => handleSeatClick(idx, occupant)}
                         className={cn(
-                          "h-16 w-16 rounded-full flex items-center justify-center transition-all cursor-pointer bg-black/30 backdrop-blur-lg border-2",
+                          "h-16 w-16 rounded-full flex items-center justify-center transition-all cursor-pointer bg-black/30 backdrop-blur-lg border-2 hover:scale-110",
                           isLocked ? "border-red-500/30" : "border-purple-500/30",
-                          occupant && "border-primary shadow-lg",
+                          occupant && "border-primary shadow-lg shadow-primary/10",
                         )}
                       >
                         {isLocked ? <Lock className="h-6 w-6 text-red-500/40" /> : occupant ? (
@@ -595,12 +570,15 @@ export function RoomClient({ room }: { room: Room }) {
                       </div>
                     </AvatarFrame>
                     {occupant?.isMuted && (
-                      <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 border border-black">
+                      <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 border border-black shadow-lg">
                         <MicOff className="h-3 w-3 text-white" />
                       </div>
                     )}
                   </div>
-                  <span className="text-[9px] font-black uppercase text-white/40 truncate w-14 text-center">
+                  <span className={cn(
+                    "text-[9px] font-black uppercase truncate w-14 text-center transition-colors",
+                    occupant ? "text-primary" : "text-white/40"
+                  )}>
                     {occupant ? occupant.name : `Slot ${idx}`}
                   </span>
                 </div>
@@ -611,8 +589,8 @@ export function RoomClient({ room }: { room: Room }) {
           <div className="mt-8 max-w-lg mx-auto space-y-3 px-4">
             {activeMessages.map((msg) => (
               <div key={msg.id} className={cn(
-                "flex items-start gap-2 animate-in fade-in", 
-                msg.type === 'gift' && "bg-primary/10 p-2 rounded-xl border border-primary/20",
+                "flex items-start gap-2 animate-in fade-in slide-in-from-left-2 duration-300", 
+                msg.type === 'gift' && "bg-primary/10 p-2 rounded-xl border border-primary/20 shadow-[0_0_15px_rgba(255,204,0,0.1)]",
                 msg.type === 'entrance' && "bg-blue-500/10 p-1.5 px-3 rounded-full border border-blue-500/20 justify-center w-fit mx-auto"
               )}>
                 {msg.type === 'entrance' ? (
@@ -636,33 +614,31 @@ export function RoomClient({ room }: { room: Room }) {
 
       <footer className="relative z-50 px-6 pb-12 pt-4 bg-gradient-to-t from-black via-black/80 to-transparent">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <form className="flex-1 flex items-center bg-blue-900/40 backdrop-blur-xl rounded-full border border-white/10 h-12 px-5" onSubmit={handleSendMessage}>
+          <form className="flex-1 flex items-center bg-blue-900/40 backdrop-blur-xl rounded-full border border-white/10 h-12 px-5 group focus-within:border-primary/50 transition-colors" onSubmit={handleSendMessage}>
             <Input placeholder="Share a vibe..." className="bg-transparent border-none text-xs text-white placeholder:text-white/40 focus-visible:ring-0" value={messageText} onChange={(e) => setMessageText(e.target.value)} disabled={isSending} />
-            <button type="submit" disabled={isSending || !messageText.trim()} className="text-white hover:text-primary"><Send className="h-5 w-5" /></button>
+            <button type="submit" disabled={isSending || !messageText.trim()} className="text-white hover:text-primary transition-colors"><Send className="h-5 w-5" /></button>
           </form>
           <div className="flex items-center gap-3">
-            <Button onClick={handleMicToggle} className={cn("rounded-full h-12 w-12 transition-all shadow-lg", isInSeat ? (isMicOn ? "bg-primary text-black" : "bg-white/10 text-white/40") : "bg-white/5")}>
+            <Button onClick={handleMicToggle} className={cn("rounded-full h-12 w-12 transition-all shadow-lg", isInSeat ? (isMicOn ? "bg-primary text-black scale-110" : "bg-white/10 text-white/40") : "bg-white/5")}>
               {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
             </Button>
             
-            {/* Game Remote Button */}
             <Button 
               onClick={() => router.push('/games')}
-              className="rounded-full h-12 w-12 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30 shadow-lg shadow-blue-500/10 transition-all"
+              className="rounded-full h-12 w-12 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30 shadow-lg shadow-blue-500/10 transition-all hover:scale-110"
             >
               <Gamepad2 className="h-6 w-6" />
             </Button>
 
             <Dialog open={isGiftPickerOpen} onOpenChange={setIsGiftPickerOpen}>
               <DialogTrigger asChild>
-                <Button className="rounded-full h-14 w-14 bg-gradient-to-br from-pink-500 to-rose-600 animate-pulse shadow-xl shadow-pink-500/20">
+                <Button className="rounded-full h-14 w-14 bg-gradient-to-br from-pink-500 to-rose-600 animate-pulse shadow-xl shadow-pink-500/20 hover:scale-110 transition-transform">
                    <GiftIcon className="h-7 w-7 text-white" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden">
+              <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
                  <DialogHeader className="p-8 pb-0 text-center"><DialogTitle className="text-3xl font-black uppercase italic">Ummy Boutique</DialogTitle></DialogHeader>
                  <div className="p-8 pt-6 space-y-6">
-                    {/* Recipient Selector */}
                     <div className="flex items-center justify-between bg-secondary/30 p-4 rounded-2xl border-2 border-dashed border-primary/20">
                        <div className="flex items-center gap-3">
                           <div className="relative">
@@ -686,12 +662,12 @@ export function RoomClient({ room }: { room: Room }) {
                          size="sm" 
                          onClick={() => {
                            if (giftRecipient?.uid === currentUser?.uid) {
-                             setGiftRecipient(null); // Reset to host
+                             setGiftRecipient(null);
                            } else {
                              setGiftRecipient({ uid: currentUser!.uid, name: userProfile!.username, avatarUrl: userProfile!.avatarUrl });
                            }
                          }}
-                         className="rounded-full text-[10px] font-black uppercase italic tracking-widest text-primary hover:bg-primary/10 transition-colors"
+                         className="rounded-full text-[10px] font-black uppercase italic tracking-widest text-primary hover:bg-primary/10 transition-all active:scale-95"
                        >
                           <RefreshCw className="h-3 w-3 mr-1" />
                           {giftRecipient?.uid === currentUser?.uid ? 'Switch to Host' : 'Gift Myself'}
@@ -700,8 +676,8 @@ export function RoomClient({ room }: { room: Room }) {
 
                     <div className="grid grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto p-2 no-scrollbar">
                        {AVAILABLE_GIFTS.map(g => (
-                         <button key={g.id} onClick={() => handleSendGift(g)} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-secondary/50 hover:bg-primary/20 transition-all border-2 border-transparent hover:border-primary group">
-                            <span className="text-4xl group-hover:scale-125 transition-transform">{g.emoji}</span>
+                         <button key={g.id} onClick={() => handleSendGift(g)} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-secondary/50 hover:bg-primary/20 transition-all border-2 border-transparent hover:border-primary group active:scale-90">
+                            <span className="text-4xl group-hover:scale-125 transition-transform duration-300">{g.emoji}</span>
                             <div className="text-center">
                                <p className="text-[10px] font-black uppercase truncate w-20">{g.name}</p>
                                <div className="flex items-center justify-center gap-1 text-[10px] font-black text-primary"><Zap className="h-3 w-3 fill-current" />{g.price}</div>
@@ -709,9 +685,9 @@ export function RoomClient({ room }: { room: Room }) {
                          </button>
                        ))}
                     </div>
-                    <div className="bg-secondary/30 p-4 rounded-2xl flex items-center justify-between">
-                       <span className="text-xs font-black uppercase">Your Balance</span>
-                       <div className="flex items-center gap-2 font-black text-primary italic"><Zap className="h-4 w-4 fill-current" />{userProfile?.wallet?.coins || 0}</div>
+                    <div className="bg-secondary/30 p-4 rounded-2xl flex items-center justify-between shadow-inner">
+                       <span className="text-xs font-black uppercase opacity-60">Your Balance</span>
+                       <div className="flex items-center gap-2 font-black text-primary italic text-xl"><Zap className="h-5 w-5 fill-current" />{userProfile?.wallet?.coins || 0}</div>
                     </div>
                  </div>
               </DialogContent>
@@ -721,7 +697,7 @@ export function RoomClient({ room }: { room: Room }) {
       </footer>
 
       <Dialog open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-white text-black p-0 rounded-t-[2.5rem] overflow-hidden border-none shadow-2xl">
+        <DialogContent className="sm:max-w-[425px] bg-white text-black p-0 rounded-t-[2.5rem] overflow-hidden border-none shadow-2xl animate-in slide-in-from-bottom-full duration-500">
           <DialogHeader className="p-6 border-b border-gray-100">
             <DialogTitle className="text-center text-2xl text-gray-800 uppercase italic">
               {selectedOccupant ? `Tribe: ${selectedOccupant.name}` : `Seat ${selectedSeatIndex}`}
@@ -731,7 +707,7 @@ export function RoomClient({ room }: { room: Room }) {
             {selectedOccupant && (
               <button 
                 onClick={() => { setGiftRecipient({ uid: selectedOccupant.uid, name: selectedOccupant.name, avatarUrl: selectedOccupant.avatarUrl }); setIsGiftPickerOpen(true); setIsActionMenuOpen(false); }} 
-                className="py-5 font-black text-primary uppercase tracking-widest text-xs italic hover:bg-gray-50"
+                className="py-5 font-black text-primary uppercase tracking-widest text-xs italic hover:bg-gray-50 active:scale-95 transition-all"
               >
                 Send Gift
               </button>
@@ -743,7 +719,7 @@ export function RoomClient({ room }: { room: Room }) {
                   <>
                     <button 
                       onClick={() => silenceParticipant(selectedOccupant.uid, selectedOccupant.isSilenced ?? false)} 
-                      className="py-5 font-bold text-gray-700 uppercase tracking-widest text-xs hover:bg-gray-50 flex items-center justify-center gap-2"
+                      className="py-5 font-bold text-gray-700 uppercase tracking-widest text-xs hover:bg-gray-50 flex items-center justify-center gap-2 active:scale-95 transition-all"
                     >
                       {selectedOccupant.isSilenced ? <Volume2 className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
                       {selectedOccupant.isSilenced ? 'Unsilence Tribe' : 'Silence Tribe'}
@@ -751,7 +727,7 @@ export function RoomClient({ room }: { room: Room }) {
                     {selectedOccupant.uid !== currentUser?.uid && (
                       <button 
                         onClick={() => kickParticipant(selectedOccupant.uid)} 
-                        className="py-5 font-black text-destructive uppercase tracking-widest text-xs italic hover:bg-red-50 flex items-center justify-center gap-2"
+                        className="py-5 font-black text-destructive uppercase tracking-widest text-xs italic hover:bg-red-50 flex items-center justify-center gap-2 active:scale-95 transition-all"
                       >
                         <Ban className="h-4 w-4" /> Kick Tribe
                       </button>
@@ -760,7 +736,7 @@ export function RoomClient({ room }: { room: Room }) {
                 ) : (
                   <button 
                     onClick={() => toggleSeatLock(selectedSeatIndex!)} 
-                    className="py-5 font-bold text-purple-600 uppercase tracking-widest text-xs hover:bg-purple-50 flex items-center justify-center gap-2"
+                    className="py-5 font-bold text-purple-600 uppercase tracking-widest text-xs hover:bg-purple-50 flex items-center justify-center gap-2 active:scale-95 transition-all"
                   >
                     {room.lockedSeats?.includes(selectedSeatIndex!) ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     {room.lockedSeats?.includes(selectedSeatIndex!) ? 'Unlock Slot' : 'Lock Slot'}
@@ -772,20 +748,20 @@ export function RoomClient({ room }: { room: Room }) {
             {selectedOccupant?.uid === currentUser?.uid ? (
               <button 
                 onClick={leaveSeat} 
-                className="py-5 font-black text-red-500 uppercase tracking-widest text-xs italic hover:bg-red-50"
+                className="py-5 font-black text-red-500 uppercase tracking-widest text-xs italic hover:bg-red-50 active:scale-95 transition-all"
               >
                 Exit Seat
               </button>
             ) : !selectedOccupant && !room.lockedSeats?.includes(selectedSeatIndex!) && (
               <button 
                 onClick={() => takeSeat(selectedSeatIndex!)} 
-                className="py-5 font-black text-blue-600 uppercase tracking-widest text-xs italic hover:bg-blue-50"
+                className="py-5 font-black text-blue-600 uppercase tracking-widest text-xs italic hover:bg-blue-50 active:scale-95 transition-all"
               >
                 Take Seat
               </button>
             )}
 
-            <button onClick={() => setIsActionMenuOpen(false)} className="py-5 font-bold text-gray-400 bg-gray-50/50 text-[10px] uppercase tracking-widest">
+            <button onClick={() => setIsActionMenuOpen(false)} className="py-5 font-bold text-gray-400 bg-gray-50/50 text-[10px] uppercase tracking-widest hover:text-gray-600">
               Cancel
             </button>
           </div>
