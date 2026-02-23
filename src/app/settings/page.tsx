@@ -41,6 +41,10 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
+/**
+ * Me Center / Settings Page
+ * Redesigned to match high-fidelity social hub layout.
+ */
 export default function SettingsPage() {
   const auth = useAuth();
   const { user, isLoading: isUserLoading } = useUser();
@@ -81,14 +85,19 @@ export default function SettingsPage() {
     }
   };
 
-  if (isUserLoading || isProfileLoading || !user) {
+  if (isUserLoading || isProfileLoading) {
     return (
       <AppLayout>
-        <div className="flex h-full w-full items-center justify-center py-20">
+        <div className="flex h-full w-full flex-col items-center justify-center py-20 space-y-4">
           <Loader className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Syncing Me Center...</p>
         </div>
       </AppLayout>
-    )
+    );
+  }
+
+  if (!user) {
+    return null;
   }
 
   const displayName = userProfile?.username || user.displayName || 'User';
@@ -98,14 +107,14 @@ export default function SettingsPage() {
     const content = (
       <div className="flex items-center justify-between py-4 border-b border-gray-50 last:border-0 group cursor-pointer">
         <div className="flex items-center gap-4">
-          <div className={cn("p-2 rounded-xl bg-gray-50", iconColor)}>
+          <div className={cn("p-2 rounded-xl", iconColor || "bg-gray-50 text-gray-400")}>
             <Icon className="h-5 w-5" />
           </div>
-          <span className="font-semibold text-gray-800">{label}</span>
+          <span className="font-semibold text-gray-800 text-sm">{label}</span>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
           {extra}
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4 opacity-50" />
         </div>
       </div>
     );
@@ -118,13 +127,13 @@ export default function SettingsPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-6 pb-20">
+      <div className="max-w-2xl mx-auto space-y-6 pb-24">
         
         {/* Top Profile Header Area */}
         <div className="relative">
           <div className="relative h-48 w-full rounded-b-[2rem] overflow-hidden">
             <Image 
-              src="https://picsum.photos/seed/profile-banner/1200/400" 
+              src="https://picsum.photos/seed/me-banner/1200/400" 
               alt="Settings profile banner background" 
               fill 
               className="object-cover"
@@ -134,10 +143,12 @@ export default function SettingsPage() {
           
           <div className="px-6 -mt-12 flex flex-col items-start relative z-10">
             <div className="relative group">
-              <Avatar className="h-24 w-24 border-4 border-white shadow-xl ring-4 ring-primary/5">
-                <AvatarImage src={avatarUrl} alt={`${displayName}'s account avatar`} />
-                <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
-              </Avatar>
+              <div className="p-1 rounded-full bg-white shadow-xl ring-4 ring-primary/5">
+                <Avatar className="h-24 w-24 border-2 border-white">
+                  <AvatarImage src={avatarUrl} alt={`${displayName}'s account avatar`} />
+                  <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+                </Avatar>
+              </div>
               <button 
                 onClick={() => fileInputRef.current?.click()}
                 className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -148,7 +159,7 @@ export default function SettingsPage() {
               </button>
             </div>
             
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-1">
                <div className="flex items-center gap-2">
                  <h1 className="text-3xl font-black font-headline text-gray-900 tracking-tight">{displayName}</h1>
                  <EditProfileDialog profile={userProfile} />
@@ -168,16 +179,16 @@ export default function SettingsPage() {
             <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" /> Performance Overview
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            <Card className="border-none shadow-sm bg-yellow-50/30">
+            <Card className="border-none shadow-sm bg-yellow-50/40 rounded-2xl">
               <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                 <span className="text-3xl font-black text-yellow-600">{userProfile?.stats?.followers || 0}</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Followers</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Followers</span>
               </CardContent>
             </Card>
-            <Card className="border-none shadow-sm bg-pink-50/30">
+            <Card className="border-none shadow-sm bg-pink-50/40 rounded-2xl">
               <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                 <span className="text-3xl font-black text-pink-600">{userProfile?.stats?.fans || 0}</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Total Fans</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Total Fans</span>
               </CardContent>
             </Card>
           </div>
@@ -188,13 +199,13 @@ export default function SettingsPage() {
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
             <Trophy className="h-4 w-4 text-primary fill-primary" /> Wallet & Assets
           </h2>
-          <Card className="border-none shadow-sm bg-white overflow-hidden divide-y divide-gray-50">
+          <Card className="border-none shadow-sm bg-white overflow-hidden divide-y divide-gray-50 rounded-2xl">
             <div className="flex items-center justify-between p-4 group cursor-pointer hover:bg-gray-50/50 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-yellow-50 text-yellow-500">
                   <Gem className="h-5 w-5" />
                 </div>
-                <span className="font-semibold text-gray-800">Coins</span>
+                <span className="font-semibold text-gray-800 text-sm">Coins</span>
               </div>
               <span className="font-black text-gray-900">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
             </div>
@@ -203,7 +214,7 @@ export default function SettingsPage() {
                 <div className="p-2 rounded-xl bg-blue-50 text-blue-500">
                   <Sparkles className="h-5 w-5" />
                 </div>
-                <span className="font-semibold text-gray-800">Diamonds</span>
+                <span className="font-semibold text-gray-800 text-sm">Diamonds</span>
               </div>
               <span className="font-black text-gray-900">{(userProfile?.wallet?.diamonds || 0).toLocaleString()}</span>
             </div>
@@ -212,31 +223,36 @@ export default function SettingsPage() {
 
         {/* Main Menu List */}
         <div className="px-6 space-y-4">
-          <Card className="border-none shadow-sm bg-white px-6">
-            <MenuItem icon={Wallet} label="Wallet" href="/settings" iconColor="text-orange-500" />
-            <MenuItem icon={ShoppingBag} label="Store" href="/store" iconColor="text-cyan-500" />
+          <Card className="border-none shadow-sm bg-white px-6 rounded-2xl">
+            <MenuItem icon={Wallet} label="Wallet" href="/settings" iconColor="bg-orange-50 text-orange-500" />
+            <MenuItem icon={ShoppingBag} label="Store" href="/store" iconColor="bg-cyan-50 text-cyan-500" />
             <MenuItem 
-              icon={Star} 
+              icon={Trophy} 
               label="Level" 
-              href="/settings" 
-              iconColor="text-yellow-500" 
-              extra={<Badge className="bg-orange-700 text-white border-none rounded-full px-2 text-[8px] font-black h-4">Lv.3</Badge>}
+              href="/leaderboard" 
+              iconColor="bg-yellow-50 text-yellow-500" 
+              extra={
+                <div className="flex items-center gap-1 bg-amber-800/10 text-amber-800 px-2 py-0.5 rounded-full text-[8px] font-black">
+                   <Star className="h-2 w-2 fill-current" />
+                   <span>Lv.3</span>
+                </div>
+              }
             />
-            <MenuItem icon={Layout} label="My Items" href="/store" iconColor="text-purple-500" />
+            <MenuItem icon={Layout} label="My Items" href="/store" iconColor="bg-purple-50 text-purple-500" />
           </Card>
         </div>
 
         {/* Settings Group */}
         <div className="px-6 space-y-4">
-          <Card className="border-none shadow-sm bg-white px-6">
+          <Card className="border-none shadow-sm bg-white px-6 rounded-2xl">
             <MenuItem 
               icon={Globe} 
               label="Language" 
-              iconColor="text-blue-500" 
+              iconColor="bg-blue-50 text-blue-500" 
               extra={<span className="text-xs text-gray-400">English</span>}
             />
-            <MenuItem icon={MessageSquare} label="Feedback" iconColor="text-green-500" />
-            <MenuItem icon={SettingsIcon} label="Settings" iconColor="text-slate-500" />
+            <MenuItem icon={MessageSquare} label="Feedback" iconColor="bg-green-50 text-green-500" />
+            <MenuItem icon={SettingsIcon} label="Settings" iconColor="bg-slate-50 text-slate-500" />
           </Card>
         </div>
 

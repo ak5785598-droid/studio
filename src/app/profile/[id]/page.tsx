@@ -17,6 +17,10 @@ import { cn } from '@/lib/utils';
 import { doc } from 'firebase/firestore';
 import { EditProfileDialog } from '@/components/edit-profile-dialog';
 
+/**
+ * Social Profile Page
+ * Matches the high-energy, community aesthetic of Ummy.
+ */
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
@@ -35,7 +39,6 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Optimistic UI state for DP change
   const [localAvatarPreview, setLocalAvatarPreview] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,28 +47,26 @@ export default function ProfilePage() {
     }
   }, [currentUser, isAuthLoading, router]);
 
-  // Reset local preview when upload is finished or profile data changes
   useEffect(() => {
     if (!isUploading) {
       setLocalAvatarPreview(null);
     }
   }, [isUploading, profile?.avatarUrl]);
 
-  const isLoading = isAuthLoading || isProfileLoading;
-
-  if (isLoading) {
+  if (isAuthLoading || (isProfileLoading && !profile)) {
     return (
       <AppLayout>
         <div className="flex h-full w-full flex-col items-center justify-center py-20 space-y-4">
           <Loader className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Syncing Social Data...</p>
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Locating Frequency...</p>
         </div>
       </AppLayout>
     );
   }
 
-  if (!profile && !isProfileLoading && !isAuthLoading && profileRef) {
+  if (!profile && !isProfileLoading) {
     notFound();
+    return null;
   }
 
   if (!profile || !currentUser) return null;
@@ -80,7 +81,6 @@ export default function ProfilePage() {
         toast({ variant: "destructive", title: "File too large", description: "Limit is 5MB." });
         return;
       }
-      // Optimistic UI: Set preview immediately
       const previewUrl = URL.createObjectURL(file);
       setLocalAvatarPreview(previewUrl);
       uploadProfilePicture(file);
@@ -89,9 +89,9 @@ export default function ProfilePage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <Card className="overflow-hidden border-none shadow-2xl bg-gradient-to-b from-background to-secondary/20">
-          <div className="relative h-48 w-full bg-muted">
+      <div className="space-y-6 max-w-4xl mx-auto pb-24">
+        <Card className="overflow-hidden border-none shadow-2xl bg-gradient-to-b from-background to-secondary/10 rounded-[2rem]">
+          <div className="relative h-56 w-full bg-muted">
             {profileHeaderImage && (
               <Image
                 src={profile.coverUrl || profileHeaderImage.imageUrl}
@@ -101,7 +101,7 @@ export default function ProfilePage() {
                 priority
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
             
             {isOwnProfile && (
               <div className="absolute top-4 right-4 z-10">
@@ -109,16 +109,15 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
-          <div className="p-6 relative">
-            <div className="relative flex -mt-20 items-end gap-6">
+          <div className="p-8 relative">
+            <div className="relative flex -mt-24 items-end gap-6">
                <div className="relative group">
                   <div className={cn(
-                    "relative p-2 rounded-full bg-gradient-to-br transition-all",
-                    profile.frame === 'Official' && "from-yellow-400 to-orange-500",
-                    profile.frame === 'CG' && "from-blue-400 to-purple-500",
-                    (!profile.frame || profile.frame === 'None') && "from-transparent to-transparent"
+                    "relative p-1.5 rounded-full bg-white shadow-2xl transition-all",
+                    profile.frame === 'Official' && "bg-gradient-to-br from-yellow-400 to-orange-500 p-2",
+                    profile.frame === 'CG' && "bg-gradient-to-br from-blue-400 to-purple-500 p-2"
                   )}>
-                    <Avatar className="h-28 w-28 border-4 border-background shadow-xl">
+                    <Avatar className="h-32 w-32 border-4 border-white shadow-inner">
                       <AvatarImage 
                         src={localAvatarPreview || profile.avatarUrl} 
                         alt={`${profile.username || 'User'}'s Profile Photo`} 
@@ -136,20 +135,20 @@ export default function ProfilePage() {
                      </div>
                   )}
                </div>
-              <div className="flex-1 pb-2">
+              <div className="flex-1 pb-4">
                    <div className="flex items-center gap-2">
-                     <h1 className="font-headline text-3xl font-bold">{profile.username || profile.name}</h1>
-                     {profile.tags?.includes('Admin') && <ShieldCheck className="h-6 w-6 text-primary" />}
-                     {profile.tags?.includes('Official') && <BadgeCheck className="h-6 w-6 text-blue-500" />}
+                     <h1 className="font-headline text-4xl font-black italic uppercase tracking-tighter text-gray-900 drop-shadow-sm">{profile.username || profile.name}</h1>
+                     {profile.tags?.includes('Admin') && <ShieldCheck className="h-7 w-7 text-primary" />}
+                     {profile.tags?.includes('Official') && <BadgeCheck className="h-7 w-7 text-blue-500" />}
                    </div>
-                   <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">Lv.Rich {profile.level?.rich || 0}</Badge>
-                      <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/30">Lv.Charm {profile.level?.charm || 0}</Badge>
-                      <span className="text-xs text-muted-foreground ml-2">ID: {profile.id.substring(0, 8)}</span>
+                   <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 font-bold">Lv.Rich {profile.level?.rich || 0}</Badge>
+                      <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/30 font-bold">Lv.Charm {profile.level?.charm || 0}</Badge>
+                      <span className="text-[10px] text-muted-foreground font-mono bg-gray-100 px-2 py-0.5 rounded">ID: {profile.id.substring(0, 8)}</span>
                    </div>
               </div>
               <div className="flex gap-2">
-                {!isOwnProfile && <Button className="rounded-full px-8 shadow-lg">Follow</Button>}
+                {!isOwnProfile && <Button className="rounded-full px-10 h-12 text-lg font-black uppercase italic shadow-xl shadow-primary/20">Follow</Button>}
               </div>
             </div>
           </div>
@@ -157,61 +156,63 @@ export default function ProfilePage() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-1 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2">
+            <Card className="rounded-[2rem] border-none shadow-sm overflow-hidden">
+              <CardHeader className="bg-secondary/10">
+                <CardTitle className="font-headline flex items-center gap-2 text-lg">
                   <Award className="h-5 w-5 text-primary" /> Wallet & Assets
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg border border-white/5 shadow-inner">
+              <CardContent className="space-y-4 pt-6">
+                <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-black/5">
                   <div className="flex items-center gap-2">
                     <Gem className="h-5 w-5 text-primary" />
-                    <span className="font-semibold text-sm">Coins</span>
+                    <span className="font-bold text-sm uppercase">Coins</span>
                   </div>
-                  <span className="font-bold">{(profile.wallet?.coins || 0).toLocaleString()}</span>
+                  <span className="font-black text-xl">{(profile.wallet?.coins || 0).toLocaleString()}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg border border-white/5 shadow-inner">
+                <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-black/5">
                   <div className="flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-accent" />
-                    <span className="font-semibold text-sm">Diamonds</span>
+                    <span className="font-bold text-sm uppercase">Diamonds</span>
                   </div>
-                  <span className="font-bold">{(profile.wallet?.diamonds || 0).toLocaleString()}</span>
+                  <span className="font-black text-xl">{(profile.wallet?.diamonds || 0).toLocaleString()}</span>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline text-xl">Identity Details</CardTitle>
+            <Card className="rounded-[2rem] border-none shadow-sm">
+              <CardHeader className="bg-secondary/10">
+                <CardTitle className="font-headline text-lg uppercase tracking-widest italic">Identity Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm">
-                <p className="text-muted-foreground italic mb-4">"{profile.bio || 'This user is quite mysterious...'}"</p>
-                <div className="flex items-center gap-4 p-2 bg-muted/20 rounded-lg">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="h-5 w-5 text-primary/70" />
+              <CardContent className="space-y-4 pt-6">
+                <p className="text-muted-foreground italic font-body text-lg border-l-4 border-primary pl-4 py-1 mb-6">
+                  "{profile.bio || 'Vibing on Ummy! Join my tribe.'}"
+                </p>
+                <div className="flex items-center gap-4 p-3 bg-muted/10 rounded-2xl">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase text-muted-foreground">Gender</span>
-                    <span className="font-semibold">{profile.details?.gender || 'Secret'}</span>
+                    <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Gender</span>
+                    <span className="font-bold">{profile.details?.gender || 'Secret'}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 p-2 bg-muted/20 rounded-lg">
-                  <div className="h-8 w-8 rounded-full bg-accent/10 flex items-center justify-center">
-                    <Globe2 className="h-5 w-5 text-accent/70" />
+                <div className="flex items-center gap-4 p-3 bg-muted/10 rounded-2xl">
+                  <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center">
+                    <Globe2 className="h-5 w-5 text-accent" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase text-muted-foreground">Country</span>
-                    <span className="font-semibold">{profile.details?.hometown || 'India'}</span>
+                    <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Country</span>
+                    <span className="font-bold">{profile.details?.hometown || 'India'}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 p-2 bg-muted/20 rounded-lg">
-                  <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                    <HeartHandshake className="h-5 w-5 text-green-500/70" />
+                <div className="flex items-center gap-4 p-3 bg-muted/10 rounded-2xl">
+                  <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <HeartHandshake className="h-5 w-5 text-green-500" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase text-muted-foreground">Age</span>
-                    <span className="font-semibold">{profile.details?.age || '22'}</span>
+                    <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Age</span>
+                    <span className="font-bold">{profile.details?.age || '22'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -219,28 +220,39 @@ export default function ProfilePage() {
           </div>
 
           <div className="md:col-span-2 space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="font-headline flex items-center gap-2">
+            <Card className="rounded-[2rem] border-none shadow-sm overflow-hidden">
+              <CardHeader className="bg-secondary/10">
+                <CardTitle className="font-headline flex items-center gap-2 text-lg">
                   <Sparkles className="h-5 w-5 text-primary" /> Performance Overview
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    <div className="p-6 bg-gradient-to-br from-primary/10 to-transparent rounded-2xl text-center border border-primary/10 shadow-sm">
-                        <p className="text-3xl font-bold text-primary">{profile.stats?.followers || 0}</p>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Followers</p>
+              <CardContent className="pt-8">
+                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                    <div className="p-8 bg-gradient-to-br from-primary/5 to-transparent rounded-3xl text-center border border-primary/10 shadow-sm relative overflow-hidden group">
+                        <p className="text-4xl font-black text-primary relative z-10">{profile.stats?.followers || 0}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black mt-2 relative z-10">Followers</p>
+                        <div className="absolute -bottom-4 -right-4 text-primary/10 rotate-12 group-hover:scale-110 transition-transform"><User className="h-20 w-20" /></div>
                     </div>
-                    <div className="p-6 bg-gradient-to-br from-accent/10 to-transparent rounded-2xl text-center border border-accent/10 shadow-sm">
-                        <p className="text-3xl font-bold text-accent">{profile.stats?.fans || 0}</p>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Total Fans</p>
+                    <div className="p-8 bg-gradient-to-br from-accent/5 to-transparent rounded-3xl text-center border border-accent/10 shadow-sm relative overflow-hidden group">
+                        <p className="text-4xl font-black text-accent relative z-10">{profile.stats?.fans || 0}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black mt-2 relative z-10">Total Fans</p>
+                        <div className="absolute -bottom-4 -right-4 text-accent/10 rotate-12 group-hover:scale-110 transition-transform"><Sparkles className="h-20 w-20" /></div>
                     </div>
-                    <div className="p-6 bg-gradient-to-br from-yellow-500/10 to-transparent rounded-2xl text-center border border-yellow-500/10 shadow-sm">
-                        <p className="text-3xl font-bold text-yellow-600">{profile.level?.rich || 0}</p>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">VIP Status</p>
+                    <div className="p-8 bg-gradient-to-br from-yellow-500/5 to-transparent rounded-3xl text-center border border-yellow-500/10 shadow-sm relative overflow-hidden group">
+                        <p className="text-4xl font-black text-yellow-600 relative z-10">{profile.level?.rich || 0}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black mt-2 relative z-10">VIP Status</p>
+                        <div className="absolute -bottom-4 -right-4 text-yellow-600/10 rotate-12 group-hover:scale-110 transition-transform"><Award className="h-20 w-20" /></div>
                     </div>
                  </div>
               </CardContent>
+            </Card>
+
+            {/* Placeholder for Room History or Activity */}
+            <Card className="rounded-[2rem] border-none shadow-sm h-64 flex items-center justify-center bg-muted/5">
+                <div className="text-center space-y-2 opacity-30">
+                  <Layout className="h-12 w-12 mx-auto" />
+                  <p className="font-black uppercase tracking-widest text-xs">No Recent Activity</p>
+                </div>
             </Card>
           </div>
         </div>
