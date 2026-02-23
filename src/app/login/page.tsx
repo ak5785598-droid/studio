@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { UmmyLogoIcon } from '@/components/icons';
 import { FcGoogle } from 'react-icons/fc';
-import { Loader } from 'lucide-react';
+import { Loader, Phone, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
 import {
@@ -35,7 +35,6 @@ export default function LoginPage() {
     useState<ConfirmationResult | null>(null);
 
   useEffect(() => {
-    // Use replace instead of push to prevent back-button loops after login
     if (!isUserLoading && user) {
       router.replace('/rooms');
     }
@@ -68,7 +67,7 @@ export default function LoginPage() {
       toast({
         variant: 'destructive',
         title: 'Invalid Number',
-        description: 'Please enter a full phone number with area code.',
+        description: 'Please enter a full phone number with country code.',
       });
       return;
     }
@@ -88,7 +87,7 @@ export default function LoginPage() {
       setPhoneLoginStep('code');
       toast({
         title: 'Code Sent',
-        description: 'Check your phone for the verification code.',
+        description: 'Check your phone for the 6-digit verification code.',
       });
     } catch (error: any) {
       toast({
@@ -119,54 +118,58 @@ export default function LoginPage() {
 
   if (isUserLoading || user) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-primary">
-        <UmmyLogoIcon className="h-12 w-12 text-white animate-pulse" />
+      <div className="flex h-screen w-full items-center justify-center bg-[#050510]">
+        <UmmyLogoIcon className="h-16 w-16 text-primary animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4 text-foreground font-sans">
+    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-6 text-foreground font-sans">
       <div id="recaptcha-container"></div>
-      <div className="flex flex-col items-center text-center">
-        <UmmyLogoIcon className="h-24 w-24 text-primary" />
-        <h1 className="mt-4 font-headline text-6xl font-bold text-primary">
+      
+      <div className="flex flex-col items-center text-center space-y-4 mb-12">
+        <div className="relative">
+           <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+           <UmmyLogoIcon className="h-28 w-28 text-primary relative z-10" />
+        </div>
+        <h1 className="font-headline text-6xl font-black italic uppercase tracking-tighter text-primary">
           Ummy
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground font-serif">
-          Find your vibe, connect with your tribe.
+        <p className="text-lg text-muted-foreground font-body max-w-xs">
+          Connect with your tribe in real-time. Join the global frequency.
         </p>
       </div>
 
-      <div className="mt-16 w-full max-w-sm space-y-4">
+      <div className="w-full max-w-sm space-y-6">
         {phoneLoginStep === 'number' ? (
            <>
-            <div className="flex flex-col gap-2">
-                <Input
-                    type="tel"
-                    placeholder="Phone (e.g. 15551234567)"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    disabled={isSigningIn}
-                    className="h-12 text-lg"
-                />
-                 <Button onClick={handlePhoneSignIn} disabled={isSigningIn || !phoneNumber} className="h-12 text-lg font-bold">
-                    {isSigningIn ? <Loader className="h-4 w-4 animate-spin" /> : 'Send Verification Code'}
+            <div className="space-y-3">
+                <div className="relative">
+                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                   <Input
+                      type="tel"
+                      placeholder="e.g. +91 9876543210"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      disabled={isSigningIn}
+                      className="h-14 pl-10 text-lg rounded-2xl border-2 focus:border-primary transition-all"
+                   />
+                </div>
+                <Button onClick={handlePhoneSignIn} disabled={isSigningIn || !phoneNumber} className="w-full h-14 text-lg font-black uppercase italic rounded-2xl shadow-xl shadow-primary/20">
+                    {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Join via Phone'}
                 </Button>
             </div>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
+
+            <div className="relative flex items-center gap-4 py-2">
+              <span className="flex-1 border-t border-gray-100" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Secure Login</span>
+              <span className="flex-1 border-t border-gray-100" />
             </div>
+
             <Button
               variant="outline"
-              className="w-full h-12 justify-center gap-4 bg-white text-black hover:bg-gray-200 border-2"
+              className="w-full h-14 justify-center gap-4 bg-white text-black hover:bg-gray-50 border-2 rounded-2xl font-black uppercase italic transition-all"
               onClick={handleGoogleSignIn}
               disabled={isSigningIn}
             >
@@ -175,31 +178,38 @@ export default function LoginPage() {
             </Button>
           </>
         ) : (
-             <div className="space-y-4">
+             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="text-center space-y-1">
+                   <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Verification</p>
+                   <p className="text-xs text-muted-foreground">Sent to {phoneNumber}</p>
+                </div>
                 <Input
                     type="text"
-                    placeholder="Enter 6-digit code"
+                    placeholder="Enter Code"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value)}
                     disabled={isSigningIn}
-                    className="h-12 text-center text-2xl tracking-widest"
+                    className="h-16 text-center text-3xl font-black tracking-[0.5em] rounded-2xl border-2 focus:border-primary"
                     maxLength={6}
                 />
-                <Button onClick={handleVerifyCode} disabled={isSigningIn || !verificationCode} className="w-full h-12 text-lg font-bold">
-                    {isSigningIn ? <Loader className="h-4 w-4 animate-spin" /> : 'Verify and Sign In'}
+                <Button onClick={handleVerifyCode} disabled={isSigningIn || !verificationCode} className="w-full h-14 text-lg font-black uppercase italic rounded-2xl">
+                    {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Confirm Frequency'}
                 </Button>
-                <Button variant="link" onClick={() => setPhoneLoginStep('number')} className="w-full text-muted-foreground">
+                <Button variant="link" onClick={() => setPhoneLoginStep('number')} className="w-full text-muted-foreground font-bold uppercase text-[10px] tracking-widest">
                     Edit Phone Number
                 </Button>
             </div>
         )}
       </div>
 
-      <div className="absolute bottom-8 text-center text-xs text-muted-foreground">
-        <p>By signing in, you agree to our</p>
-        <Link href="/terms" className="underline">
-          Terms & Privacy
-        </Link>
+      <div className="mt-16 flex flex-col items-center gap-4 text-center">
+         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <span>End-to-End Encryption Enabled</span>
+         </div>
+         <p className="text-[10px] text-muted-foreground leading-relaxed max-w-[200px]">
+            By continuing, you agree to our <Link href="/terms" className="underline font-bold text-foreground">Terms</Link> & <Link href="/terms" className="underline font-bold text-foreground">Privacy</Link>.
+         </p>
       </div>
     </div>
   );

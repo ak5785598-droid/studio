@@ -4,6 +4,7 @@
 import { useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 /**
  * Ensures a user profile exists in Firestore after login.
@@ -13,6 +14,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 export function ProfileInitializer() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!user || !firestore) return;
@@ -26,14 +28,14 @@ export function ProfileInitializer() {
       if (!profileSnap.exists()) {
         const initialData = {
           id: user.uid,
-          username: user.displayName || 'Ummy User',
-          avatarUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/200`,
+          username: user.displayName || `Ummy_${user.uid.substring(0, 5)}`,
+          avatarUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/400`,
           email: user.email || '',
           bio: 'Vibing on Ummy! Join my tribe.',
           wallet: { 
             coins: 500, 
             diamonds: 0,
-            totalSpent: 0 // Initialize total spent for leaderboard
+            totalSpent: 0
           },
           inventory: { ownedItems: [], activeFrame: 'None', activeBubble: 'Default' },
           stats: { followers: 0, fans: 0 },
@@ -48,20 +50,29 @@ export function ProfileInitializer() {
           }
         };
 
-        // Create initial production-ready profile in subcollection
-        await setDoc(profileRef, initialData, { merge: true });
-        
-        // Also sync basic info to top-level user doc for rankings/leaderboard queries
-        // Crucial: Wallet and stats must be at top-level for Firestore orderBy queries
-        await setDoc(userRef, {
-          id: user.uid,
-          username: initialData.username,
-          avatarUrl: initialData.avatarUrl,
-          wallet: initialData.wallet,
-          stats: initialData.stats,
-          level: initialData.level,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+        try {
+          // Create initial production-ready profile in subcollection
+          await setDoc(profileRef, initialData, { merge: true });
+          
+          // Also sync basic info to top-level user doc for rankings/leaderboard queries
+          await setDoc(userRef, {
+            id: user.uid,
+            username: initialData.username,
+            avatarUrl: initialData.avatarUrl,
+            wallet: initialData.wallet,
+            stats: initialData.stats,
+            level: initialData.level,
+            updatedAt: serverTimestamp(),
+            joinedAt: serverTimestamp(),
+          }, { merge: true });
+
+          toast({
+            title: 'Welcome to Ummy!',
+            description: 'Your frequency is now synced. Enjoy 500 free coins!',
+          });
+        } catch (e) {
+          console.error("Profile initialization error:", e);
+        }
       }
     };
 
