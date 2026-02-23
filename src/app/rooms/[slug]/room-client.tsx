@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -44,7 +43,7 @@ import {
   serverTimestamp, 
   query, 
   orderBy, 
-  limit, 
+  limitToLast, 
   doc, 
   setDoc, 
   deleteDoc,
@@ -90,7 +89,7 @@ export function RoomClient({ room }: { room: Room }) {
       avatarUrl: userProfile.avatarUrl || '',
       activeFrame: userProfile.frame || 'None',
       joinedAt: serverTimestamp(),
-      isMuted: true,
+      isMuted: !isMicOn,
       seatIndex: 0,
     }, { merge: true }).catch(err => console.warn('Presence sync delayed', err));
 
@@ -99,10 +98,21 @@ export function RoomClient({ room }: { room: Room }) {
     };
   }, [firestore, room.id, currentUser?.uid, userProfile?.username, userProfile?.avatarUrl]);
 
-  // Messages Query
+  // Sync Mic State with Firestore
+  useEffect(() => {
+    if (!firestore || !room.id || !currentUser) return;
+    const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
+    updateDoc(participantRef, { isMuted: !isMicOn }).catch(() => {});
+  }, [isMicOn, firestore, room.id, currentUser]);
+
+  // Messages Query - Fixed to use limitToLast for correct chat flow
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !room.id || !currentUser) return null;
-    return query(collection(firestore, 'chatRooms', room.id, 'messages'), orderBy('timestamp', 'asc'), limit(50));
+    return query(
+      collection(firestore, 'chatRooms', room.id, 'messages'), 
+      orderBy('timestamp', 'asc'), 
+      limitToLast(50)
+    );
   }, [firestore, room.id, currentUser]);
 
   const { data: firestoreMessages } = useCollection(messagesQuery);
@@ -143,14 +153,10 @@ export function RoomClient({ room }: { room: Room }) {
     }
   };
 
-  /**
-   * Handles gift sending. 
-   * This automatically updates the user's totalSpent field to rank them on the leaderboard.
-   */
   const handleSendGift = async () => {
     if (!currentUser || !firestore || !userProfile) return;
     
-    const giftCost = 100; // Mock gift cost
+    const giftCost = 100;
     if ((userProfile.wallet?.coins || 0) < giftCost) {
       toast({ variant: 'destructive', title: 'Insufficient Coins', description: 'Recharge to send gifts!' });
       return;
@@ -160,14 +166,12 @@ export function RoomClient({ room }: { room: Room }) {
       const userRef = doc(firestore, 'users', currentUser.uid);
       const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
 
-      // Deduct coins and increment totalSpent for leaderboard ranking
       const updateData = {
         'wallet.coins': increment(-giftCost),
         'wallet.totalSpent': increment(giftCost),
         'updatedAt': serverTimestamp()
       };
 
-      // Atomic updates for both the searchable user doc and private profile doc
       await Promise.all([
         updateDoc(userRef, updateData),
         updateDoc(profileRef, updateData)
@@ -241,7 +245,6 @@ export function RoomClient({ room }: { room: Room }) {
   return (
     <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl border border-white/5">
       
-      {/* Background Image Layer */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 via-blue-900/40 to-black z-10" />
         <img 
@@ -251,7 +254,6 @@ export function RoomClient({ room }: { room: Room }) {
         />
       </div>
 
-      {/* Header */}
       <header className="relative z-50 flex items-center justify-between p-6 bg-transparent">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12 rounded-xl border-2 border-primary/50 shadow-[0_0_15px_rgba(255,107,107,0.3)]">
@@ -306,11 +308,9 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </header>
 
-      {/* Scrollable Area (Messages & Grid) */}
       <ScrollArea className="relative z-10 flex-1 px-4" ref={scrollRef}>
         <div className="max-w-4xl mx-auto py-6 space-y-12">
           
-          {/* Host Seat */}
           <div className="flex justify-center">
              <div className="flex flex-col items-center gap-3">
                 <div className="relative">
@@ -355,7 +355,6 @@ export function RoomClient({ room }: { room: Room }) {
              </div>
           </div>
 
-          {/* Grid of 12 Seats (3 rows of 4) */}
           <div className="grid grid-cols-4 gap-x-4 gap-y-10">
             {Array.from({ length: 12 }).map((_, i) => {
               const seatIndex = i + 2; 
@@ -373,6 +372,9 @@ export function RoomClient({ room }: { room: Room }) {
                               <AvatarImage src={occupant.avatarUrl} alt={`${occupant.name}'s mic seat avatar`} />
                               <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
                             </Avatar>
+                            {!occupant.isMuted && (
+                              <div className="absolute -inset-1 rounded-full border-2 border-primary animate-ping" />
+                            )}
                           </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="bg-slate-900 border-white/10 text-white">
@@ -417,7 +419,7 @@ export function RoomClient({ room }: { room: Room }) {
                               {isLocked ? <Unlock className="mr-2 h-3 w-3" /> : <Lock className="mr-2 h-3 w-3" />}
                               {isLocked ? 'Unlock Seat' : 'Lock Seat'}
                             </DropdownMenuItem>
-                            {occupant && !isOwner && (
+                            {occupant && occupant.uid !== room.ownerId && (
                               <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
                                 <UserX className="mr-2 h-3 w-3" />
                                 <span>Kick User</span>
@@ -436,9 +438,8 @@ export function RoomClient({ room }: { room: Room }) {
             })}
           </div>
 
-          {/* Simple Chat Preview Overlay */}
           <div className="mt-8 mb-24 max-w-lg mx-auto space-y-3 px-4">
-            {activeMessages.slice(-5).map((msg) => (
+            {activeMessages.map((msg) => (
               <div key={msg.id} className="flex items-start gap-2 animate-in fade-in slide-in-from-bottom-2">
                 <span className="text-[10px] font-black text-blue-400 uppercase shrink-0 mt-1">{msg.user.name}:</span>
                 <p className="text-xs text-white/80 font-body drop-shadow-sm">{msg.text}</p>
@@ -448,11 +449,9 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </ScrollArea>
 
-      {/* Floating Footer Toolbar */}
       <footer className="relative z-50 shrink-0 px-6 pb-12 pt-4 bg-transparent">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           
-          {/* Chat Input Pill */}
           <form className="flex-1 flex items-center bg-blue-900/40 backdrop-blur-xl rounded-full border border-white/10 h-12 px-5" onSubmit={handleSendMessage}>
             <Input 
               placeholder="Type a vibe..." 
@@ -466,7 +465,6 @@ export function RoomClient({ room }: { room: Room }) {
             </Button>
           </form>
           
-          {/* Action Buttons */}
           <div className="flex items-center gap-3">
             <Button 
               variant="ghost" 
@@ -474,7 +472,7 @@ export function RoomClient({ room }: { room: Room }) {
               onClick={() => setIsMicOn(!isMicOn)}
               className={cn(
                 "rounded-full h-12 w-12 border border-white/10 backdrop-blur-md transition-all",
-                isMicOn ? "bg-primary/20 text-primary border-primary/50" : "bg-white/5 text-white/40"
+                isMicOn ? "bg-primary/20 text-primary border-primary/50 shadow-[0_0_15px_rgba(251,191,36,0.3)]" : "bg-white/5 text-white/40"
               )}
               aria-label="Toggle Mic"
             >

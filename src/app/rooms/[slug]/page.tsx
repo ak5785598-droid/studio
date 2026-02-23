@@ -46,7 +46,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
       // Small delay to ensure state batching is finished before showing 404
       const timer = setTimeout(() => {
         setHasActuallyLoadedOnce(true);
-      }, 100);
+      }, 200);
       return () => clearTimeout(timer);
     }
   }, [isDocLoading, isAuthLoading, roomDocRef]);
