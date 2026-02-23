@@ -1,4 +1,3 @@
-
 export type User = {
   id: string;
   name: string;
@@ -65,6 +64,9 @@ export type Room = {
   moderatorIds?: string[];
   lockedSeats?: number[];
   createdAt: any;
+  stats?: {
+    totalGifts: number;
+  };
 };
 
 export type Gift = {

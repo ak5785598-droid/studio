@@ -24,6 +24,8 @@ import {
   Star,
   Zap,
   Sparkles,
+  Swords,
+  Megaphone,
 } from 'lucide-react';
 import type { Room, RoomParticipant, Gift, Message } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -65,6 +67,7 @@ import {
   writeBatch,
   getDocs,
 } from 'firebase/firestore';
+import { Progress } from '@/components/ui/progress';
 
 const AVAILABLE_GIFTS: Gift[] = [
   { id: 'rose', name: 'Rose', emoji: '🌹', price: 10, animationType: 'pulse' },
@@ -77,8 +80,8 @@ const AVAILABLE_GIFTS: Gift[] = [
 ];
 
 /**
- * Hardened Chat Room Client.
- * Handles real-time participants, interactive seats, animated gifting, and recursive ranking sync.
+ * Enterprise Chat Room Client.
+ * features: Marquee, PK Battle Bar, Identity Frames, and Recursive Ranking Sync.
  */
 export function RoomClient({ room }: { room: Room }) {
   const [isMicOn, setIsMicOn] = useState(false);
@@ -122,7 +125,7 @@ export function RoomClient({ room }: { room: Room }) {
       uid: currentUser.uid,
       name: userProfile.username || 'Guest',
       avatarUrl: userProfile.avatarUrl || '',
-      activeFrame: userProfile.frame || 'None',
+      activeFrame: userProfile.tags?.includes('Official') ? 'Official' : 'None',
       joinedAt: serverTimestamp(),
       isMuted: !isMicOn,
       seatIndex: currentUserParticipant?.seatIndex || 0,
@@ -131,7 +134,7 @@ export function RoomClient({ room }: { room: Room }) {
     return () => { 
       deleteDoc(participantRef).catch(() => {}); 
     };
-  }, [firestore, room.id, currentUser?.uid, userProfile?.username, userProfile?.avatarUrl, isMicOn]);
+  }, [firestore, room.id, currentUser?.uid, userProfile?.username, userProfile?.avatarUrl, userProfile?.tags, isMicOn]);
 
   // Real-time Messages
   const messagesQuery = useMemoFirebase(() => {
@@ -206,7 +209,7 @@ export function RoomClient({ room }: { room: Room }) {
 
   /**
    * Unified Ranking Identity Engine.
-   * Increments sender wealth, recipient charm, and room popularity using strictly nested objects for correct indexing.
+   * Increments sender wealth, recipient charm, and room popularity using nested objects.
    */
   const handleSendGift = async (gift: Gift) => {
     if (!currentUser || !firestore || !userProfile) return;
@@ -220,7 +223,6 @@ export function RoomClient({ room }: { room: Room }) {
     const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
     const roomRef = doc(firestore, 'chatRooms', room.id);
     
-    // IDENTITY SYNC: Ensure latest display info is persisted to summary doc
     const identitySync = {
       username: userProfile.username || 'User',
       avatarUrl: userProfile.avatarUrl || '',
@@ -253,7 +255,7 @@ export function RoomClient({ room }: { room: Room }) {
       if (host) finalRecipient = { uid: host.uid, name: host.name, avatarUrl: host.avatarUrl };
     }
 
-    // RECIPIENT UPDATE: Charm Rank (Nested)
+    // RECIPIENT UPDATE: Charm Rank (Nested) + Identity Persistence
     if (finalRecipient) {
       const recipientRef = doc(firestore, 'users', finalRecipient.uid);
       const recipientProfileRef = doc(firestore, 'users', finalRecipient.uid, 'profile', finalRecipient.uid);
@@ -295,7 +297,6 @@ export function RoomClient({ room }: { room: Room }) {
       const snapshot = await getDocs(messagesRef);
       if (snapshot.empty) return;
       
-      // Firestore batches have a limit of 500 operations
       const chunks = [];
       for (let i = 0; i < snapshot.docs.length; i += 500) {
         chunks.push(snapshot.docs.slice(i, i + 500));
@@ -310,7 +311,7 @@ export function RoomClient({ room }: { room: Room }) {
       toast({ title: 'Chat Cleared', description: 'The frequency is now silent.' });
     } catch (e) {
       console.warn("Clear failed:", e);
-      toast({ variant: 'destructive', title: 'Clear Failed', description: 'Insufficient authority or connection loss.' });
+      toast({ variant: 'destructive', title: 'Clear Failed', description: 'Check your authority.' });
     }
   };
 
@@ -378,6 +379,7 @@ export function RoomClient({ room }: { room: Room }) {
   }
 
   const hostParticipant = participants?.find(p => p.seatIndex === 1);
+  const roomGiftScore = (room as any).stats?.totalGifts || 0;
 
   return (
     <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl border border-white/5 animate-in fade-in duration-700">
@@ -387,7 +389,7 @@ export function RoomClient({ room }: { room: Room }) {
         <img src="https://images.unsplash.com/photo-1464802686167-b939a67e06a1?q=80&w=2070&auto=format&fit=crop" className="h-full w-full object-cover opacity-60 scale-110" alt="Room Backdrop" />
       </div>
 
-      {/* Center Gift Animation */}
+      {/* Center Gift Animation Overlay */}
       {activeGiftAnimation && (
         <div className="absolute inset-0 z-[100] pointer-events-none flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500">
           <div className="bg-black/60 backdrop-blur-3xl p-12 rounded-[4rem] border-4 border-primary/50 flex flex-col items-center gap-6 shadow-[0_0_150px_rgba(251,191,36,0.4)]">
@@ -412,14 +414,17 @@ export function RoomClient({ room }: { room: Room }) {
       )}
 
       {/* Header */}
-      <header className="relative z-50 flex items-center justify-between p-6">
+      <header className="relative z-50 flex items-center justify-between p-6 pb-2">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12 rounded-xl border-2 border-primary/50">
             <AvatarImage src={room.coverUrl || `https://picsum.photos/seed/${room.id}/200`} />
             <AvatarFallback>UM</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="font-black text-xl tracking-tight uppercase italic">{room.title}</h1>
+            <div className="flex items-center gap-2">
+               <h1 className="font-black text-xl tracking-tight uppercase italic">{room.title}</h1>
+               <Badge className="bg-primary text-black text-[8px] font-black h-4 px-1 rounded-sm">Lv.{(Math.floor(roomGiftScore/5000) + 1)}</Badge>
+            </div>
             <div className="flex items-center gap-2 text-[10px] font-bold text-white/60">
               <span>ID: {room.id.substring(0, 8)}</span>
               <div className="flex items-center gap-1 text-pink-400">
@@ -455,10 +460,46 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </header>
 
+      {/* Marquee Announcement */}
+      <div className="relative z-50 px-6 py-1">
+         <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full h-8 flex items-center overflow-hidden px-4 gap-3">
+            <Megaphone className="h-3 w-3 text-primary shrink-0" />
+            <div className="flex-1 overflow-hidden whitespace-nowrap">
+               <p className="text-[10px] font-black uppercase tracking-widest text-primary/80 animate-marquee inline-block">
+                  {room.announcement || 'Welcome to the frequency! Respect the vibe and enjoy the tribe.'}
+               </p>
+            </div>
+         </div>
+      </div>
+
+      {/* PK Battle Bar */}
+      <div className="relative z-50 px-6 mt-4">
+         <div className="bg-black/40 backdrop-blur-xl border-2 border-white/5 rounded-2xl p-2 relative overflow-hidden">
+            <div className="flex justify-between items-center px-4 mb-1">
+               <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black italic text-blue-400 uppercase">Host</span>
+                  <span className="text-[10px] font-mono text-white/60">{(roomGiftScore * 0.6).toLocaleString()}</span>
+               </div>
+               <div className="bg-red-500 p-1 rounded-sm rotate-12 flex items-center gap-1">
+                  <Swords className="h-3 w-3 text-white" />
+                  <span className="text-[8px] font-black text-white italic">PK LIVE</span>
+               </div>
+               <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-white/60">{(roomGiftScore * 0.4).toLocaleString()}</span>
+                  <span className="text-[10px] font-black italic text-pink-400 uppercase">Tribe</span>
+               </div>
+            </div>
+            <div className="relative h-2 w-full bg-pink-500 rounded-full overflow-hidden">
+               <div className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-1000" style={{ width: '60%' }} />
+               <div className="absolute top-0 left-[60%] -translate-x-1/2 h-full w-1 bg-white/50" />
+            </div>
+         </div>
+      </div>
+
       {/* Stage */}
       <ScrollArea className="relative z-10 flex-1 px-4" ref={scrollRef}>
         <div className="max-w-4xl mx-auto py-6 space-y-12 pb-32">
-          {/* Host */}
+          {/* Host Seat */}
           <div className="flex justify-center">
              <div className="flex flex-col items-center gap-3">
                 <div 
@@ -469,17 +510,25 @@ export function RoomClient({ room }: { room: Room }) {
                   )}
                 >
                   {hostParticipant ? (
-                    <Avatar className="h-full w-full rounded-full border-2 border-black">
+                    <Avatar className={cn(
+                      "h-full w-full rounded-full border-2 border-black p-1",
+                      hostParticipant.activeFrame === 'Official' && "border-primary animate-glow"
+                    )}>
                        <AvatarImage src={hostParticipant.avatarUrl} />
                        <AvatarFallback>{hostParticipant.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   ) : <Crown className="h-10 w-10 text-white/10" />}
+                  {hostParticipant && hostParticipant.activeFrame === 'Official' && (
+                    <div className="absolute -top-4 -right-2 bg-primary text-black p-1 rounded-full border-2 border-black scale-75">
+                       <Star className="h-4 w-4 fill-current" />
+                    </div>
+                  )}
                 </div>
                 <Badge className="bg-blue-500 text-white text-[10px] uppercase font-black">Room Master</Badge>
              </div>
           </div>
 
-          {/* Grid */}
+          {/* Seat Grid */}
           <div className="grid grid-cols-4 gap-x-4 gap-y-10">
             {Array.from({ length: 12 }).map((_, i) => {
               const seatIndex = i + 2; 
@@ -492,7 +541,8 @@ export function RoomClient({ room }: { room: Room }) {
                     className={cn(
                       "h-16 w-16 rounded-full flex items-center justify-center transition-all relative cursor-pointer bg-black/30 backdrop-blur-lg border-2",
                       isLocked ? "border-red-500/30 bg-red-950/20" : "border-purple-500/30",
-                      occupant && "border-primary shadow-[0_0_20px_rgba(255,107,107,0.3)] ring-2 ring-white/5"
+                      occupant && "border-primary shadow-[0_0_20px_rgba(255,107,107,0.3)] ring-2 ring-white/5",
+                      occupant?.activeFrame === 'Official' && "animate-glow border-yellow-400"
                     )}
                   >
                     {isLocked ? <Lock className="h-6 w-6 text-red-500/40" /> : occupant ? (
@@ -511,7 +561,7 @@ export function RoomClient({ room }: { room: Room }) {
             })}
           </div>
 
-          {/* Feed */}
+          {/* Chat Feed */}
           <div className="mt-8 max-w-lg mx-auto space-y-3 px-4">
             {activeMessages.map((msg) => (
               <div key={msg.id} className={cn(
@@ -532,12 +582,14 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </ScrollArea>
 
-      {/* Controls */}
+      {/* Room Controls */}
       <footer className="relative z-50 shrink-0 px-6 pb-12 pt-4 bg-gradient-to-t from-black via-black/80 to-transparent">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <form className="flex-1 flex items-center bg-blue-900/40 backdrop-blur-xl rounded-full border border-white/10 h-12 px-5" onSubmit={handleSendMessage}>
             <Input placeholder="Type a vibe..." className="bg-transparent border-none h-full focus-visible:ring-0 text-xs text-white placeholder:text-white/40" value={messageText} onChange={(e) => setMessageText(e.target.value)} disabled={isSending} aria-label="Chat input" />
-            <Button type="submit" variant="ghost" size="icon" disabled={isSending || !messageText.trim()} className="text-white hover:text-primary"><Send className="h-5 w-5" /></Button>
+            <button type="submit" disabled={isSending || !messageText.trim()} className="text-white hover:text-primary transition-colors">
+               <Send className="h-5 w-5" />
+            </button>
           </form>
           <div className="flex items-center gap-3">
             <Button 
@@ -598,7 +650,7 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </footer>
 
-      {/* Actions */}
+      {/* Seat Actions Dialog */}
       <Dialog open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
         <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-xl border-none p-0 rounded-t-[2.5rem] overflow-hidden">
           <DialogHeader className="p-6 border-b border-gray-100">
