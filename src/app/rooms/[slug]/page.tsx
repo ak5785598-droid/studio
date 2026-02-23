@@ -1,18 +1,18 @@
 'use client';
 
 import { use, useMemo, useEffect, useState } from 'react';
-import { notFound, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { RoomClient } from './room-client';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc, serverTimestamp, runTransaction } from 'firebase/firestore';
-import { Loader, ShieldAlert } from 'lucide-react';
+import { Loader, ShieldAlert, Ghost } from 'lucide-react';
 import type { Room } from '@/lib/types';
 import { useRoomContext } from '@/components/room-provider';
 
 /**
  * Chat Room Entry Page Gateway.
- * Ensures rooms are provisioned with sequential numeric IDs (0001+).
+ * Hardened: No longer auto-provisions random rooms. Only Official Hub is auto-created.
  */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -41,41 +41,40 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
 
   // Frequency Handshake: Assigns sequential IDs to new rooms
+  // ONLY auto-creates if it is the official-help-room
   useEffect(() => {
     const performHandshake = async () => {
       if (!roomDocRef || isAuthLoading || !firestore || !currentUser || isDocLoading) return;
 
-      if (!firestoreRoom && !isProvisioning) {
+      const isOfficial = slug === 'official-help-room';
+
+      if (!firestoreRoom && isOfficial && !isProvisioning) {
         setIsProvisioning(true);
-        setInitStatus('Provisioning Frequency...');
+        setInitStatus('Provisioning Official Frequency...');
         const countersRef = doc(firestore, 'appConfig', 'counters');
         
         try {
-          const isOfficial = slug === 'official-help-room';
-          
           await runTransaction(firestore, async (transaction) => {
             const countersSnap = await transaction.get(countersRef);
             let nextRoomNum = 1;
             
-            if (!isOfficial) {
-              if (countersSnap.exists()) {
-                nextRoomNum = (countersSnap.data().roomCounter || 0) + 1;
-              }
-              transaction.set(countersRef, { roomCounter: nextRoomNum }, { merge: true });
+            if (countersSnap.exists()) {
+              nextRoomNum = (countersSnap.data().roomCounter || 0) + 1;
             }
+            transaction.set(countersRef, { roomCounter: nextRoomNum }, { merge: true });
 
-            const roomNumber = isOfficial ? '0001' : String(nextRoomNum).padStart(4, '0');
+            const roomNumber = '0001';
 
             transaction.set(roomDocRef, {
-              name: isOfficial ? 'Ummy Official Hub' : `Tribe Frequency`,
-              description: isOfficial ? 'Live community and team support.' : 'A new vibe just started.',
+              name: 'Ummy Official Hub',
+              description: 'Live community and team support.',
               roomNumber,
-              ownerId: isOfficial ? 'official-admin' : currentUser.uid,
+              ownerId: 'official-admin',
               category: 'Chat',
-              coverUrl: `https://picsum.photos/seed/${slug}/1200/400`,
-              announcement: 'Welcome to the frequency!',
+              coverUrl: `https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop`,
+              announcement: 'Welcome to the Official Hub! Respect the frequency.',
               createdAt: serverTimestamp(),
-              moderatorIds: [currentUser.uid],
+              moderatorIds: [],
               lockedSeats: [],
               stats: { totalGifts: 0 }
             }, { merge: true });
@@ -86,7 +85,8 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
           setIsProvisioning(false);
           setHasHandshaked(true);
         }
-      } else if (firestoreRoom) {
+      } else {
+        // If room exists or it's not official, just stop loading
         setHasHandshaked(true);
       }
     };
@@ -162,8 +162,23 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   }
 
   if (!activeRoom) {
-    notFound();
-    return null;
+    return (
+      <AppLayout>
+        <div className="flex h-[60vh] flex-col items-center justify-center space-y-6 text-center px-6 animate-in fade-in duration-700">
+            <div className="h-24 w-24 bg-secondary/20 rounded-full flex items-center justify-center">
+               <Ghost className="h-12 w-12 text-muted-foreground opacity-40" />
+            </div>
+            <h1 className="text-3xl font-black uppercase italic tracking-tighter">Frequency Not Found</h1>
+            <p className="text-muted-foreground max-w-xs font-body text-lg">This tribe has disbanded or the frequency has been terminated by an Admin.</p>
+            <button 
+              onClick={() => router.push('/rooms')} 
+              className="bg-primary text-white font-black uppercase italic tracking-widest text-xs px-10 py-4 rounded-full shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+            >
+              Back to Home
+            </button>
+        </div>
+      </AppLayout>
+    );
   }
 
   return (

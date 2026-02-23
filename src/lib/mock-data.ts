@@ -1,5 +1,4 @@
-
-import type { User, Room, Message, Game, CoinPackage, Contribution, Task } from './types';
+import type { User, Room, Message, Game, CoinPackage, Task } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const users: User[] = [
@@ -40,67 +39,9 @@ const users: User[] = [
      details: { hometown: 'Delhi' },
      wallet: { coins: 100, diamonds: 0, totalSpent: 12345 }
   },
-  { 
-    id: 'u3', 
-    name: 'Anjali', 
-    avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-3')?.imageUrl!, 
-    isOnline: false,
-    level: { rich: 5, charm: 15 },
-    stats: { sent: 5432, followers: 230, fans: 150 },
-     details: { hometown: 'Bangalore' },
-     wallet: { coins: 50, diamonds: 0, totalSpent: 5432 }
-  },
-  { id: 'u4', 
-    name: 'Vikram', 
-    avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-4')?.imageUrl!, 
-    isOnline: true,
-    level: { rich: 30, charm: 22 },
-    frame: 'Leader',
-    stats: { sent: 9876, followers: 50, fans: 25 },
-     details: { hometown: 'Chennai' },
-     wallet: { coins: 200, diamonds: 0, totalSpent: 9876 }
-  },
-  { 
-    id: 'u5', 
-    name: 'Sneha', 
-    avatarUrl: PlaceHolderImages.find(i => i.id === 'user-avatar-5')?.imageUrl!, 
-    isOnline: false,
-    level: { rich: 1, charm: 2 },
-    stats: { sent: 100, followers: 10, fans: 5 },
-     details: { hometown: 'Kolkata' },
-     wallet: { coins: 10, diamonds: 0, totalSpent: 100 }
-  },
 ];
 
-const messages: Message[] = [
-    { id: 'm1', text: 'Hey everyone! Excited to be here.', senderId: 'u1', senderName: 'Priya', senderAvatar: 'https://picsum.photos/seed/user1/200/200', timestamp: '10:30 AM' },
-];
-
-const rooms: Room[] = [
-  { 
-    id: 'r1', 
-    slug: 'mumbai-adda', 
-    title: 'Mumbai Adda', 
-    topic: 'Bollywood & Gup-Shup', 
-    category: 'Popular',
-    coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-1')?.imageUrl!,
-    announcement: 'Welcome to the biggest Mumbai Adda! No toxicity allowed.',
-    ownerId: 'u1',
-    createdAt: new Date(),
-    stats: { totalGifts: 150000 }
-  },
-  { 
-    id: 'r2', 
-    slug: 'delhi-darbar', 
-    title: 'Delhi Darbar', 
-    topic: 'Food & History', 
-    category: 'Popular',
-    coverUrl: PlaceHolderImages.find(i => i.id === 'room-cover-2')?.imageUrl!,
-    ownerId: 'u2',
-    createdAt: new Date(),
-    stats: { totalGifts: 85000 }
-  },
-];
+const rooms: Room[] = []; // ALL MOCK ROOMS REMOVED
 
 const games: Game[] = [
   { id: 'g1', title: 'Ludo Party', slug: 'ludo', coverUrl: 'https://picsum.photos/seed/ludo/300/200', cost: 0, imageHint: 'ludo board' },

@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,8 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirestore, useDoc, useUser, useUserProfile, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
-import { doc, setDoc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where } from 'firebase/firestore';
-import { Settings, Shield, Zap, Gem, Globe, Layout, Loader, Search, User, ClipboardList, TrendingUp, AlertTriangle } from 'lucide-react';
+import { doc, setDoc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch } from 'firebase/firestore';
+import { Settings, Shield, Loader, Search, ClipboardList, TrendingUp, AlertTriangle, Trash2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +18,7 @@ import { format } from 'date-fns';
 
 /**
  * Enterprise Admin Control Panel.
+ * Featuring the "Nuclear" option to remove all rooms.
  */
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -37,14 +37,14 @@ export default function AdminPage() {
     if (!firestore) return null;
     return doc(firestore, 'appConfig', 'global');
   }, [firestore]);
-  const { data: config, isLoading: isConfigLoading } = useDoc(configRef);
+  const { data: config } = useDoc(configRef);
 
   // Logs
   const logsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'adminLogs'), orderBy('createdAt', 'desc'), limit(20));
   }, [firestore]);
-  const { data: logs, isLoading: isLogsLoading } = useCollection(logsQuery);
+  const { data: logs } = useCollection(logsQuery);
 
   const isAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
 
@@ -125,6 +125,41 @@ export default function AdminPage() {
     }
   };
 
+  const handleClearAllRooms = async () => {
+    if (!firestore || !user || !isAdmin) return;
+    setIsSaving(true);
+    try {
+      const snap = await getDocs(collection(firestore, 'chatRooms'));
+      const batch = writeBatch(firestore);
+      snap.docs.forEach(d => {
+        // Keep the official help room if needed, or wipe everything
+        batch.delete(d.ref);
+      });
+      await batch.commit();
+      await logAdminAction('Wipe All Rooms', 'collection/chatRooms', { count: snap.size });
+      toast({ title: 'All Frequencies Terminated', description: `${snap.size} rooms removed.` });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Wipe failed' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleResetCounters = async () => {
+    if (!firestore || !isAdmin) return;
+    setIsSaving(true);
+    try {
+      const countersRef = doc(firestore, 'appConfig', 'counters');
+      await setDoc(countersRef, { roomCounter: 0, userCounter: 1000 }, { merge: true });
+      await logAdminAction('Reset Counters', 'config/counters', {});
+      toast({ title: 'System Counters Reset', description: 'Sequential IDs will start from baseline.' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Reset failed' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isProfileLoading) return <AppLayout><div className="flex h-[50vh] items-center justify-center"><Loader className="animate-spin" /></div></AppLayout>;
 
   if (!isAdmin) {
@@ -148,7 +183,7 @@ export default function AdminPage() {
                 <Shield className="h-8 w-8 text-white" />
              </div>
              <div>
-                <h1 className="text-4xl font-bold font-headline uppercase tracking-tighter italic">Dilsey Command Center</h1>
+                <h1 className="text-4xl font-bold font-headline uppercase tracking-tighter italic">Ummy Command Center</h1>
                 <p className="text-muted-foreground font-body text-lg">System-wide authority and audit oversight.</p>
              </div>
           </div>
@@ -231,7 +266,7 @@ export default function AdminPage() {
                            </Avatar>
                            <div className="flex-1 text-center md:text-left">
                               <p className="text-xl font-black uppercase italic">{u.username || 'User'}</p>
-                              <p className="text-xs text-muted-foreground font-mono">ID: {u.id}</p>
+                              <p className="text-xs text-muted-foreground font-mono">ID: {u.specialId || u.id}</p>
                               <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-2">
                                  <Badge className="bg-primary/20 text-primary border-none">Coins: {u.wallet?.coins || 0}</Badge>
                                  <Badge className="bg-blue-500/20 text-blue-500 border-none">Diamonds: {u.wallet?.diamonds || 0}</Badge>
@@ -287,8 +322,22 @@ export default function AdminPage() {
                       </CardTitle>
                    </CardHeader>
                    <CardContent className="space-y-4">
-                      <Button variant="destructive" className="w-full rounded-2xl h-14 font-black uppercase tracking-widest italic">Clear Global Cache</Button>
-                      <Button variant="destructive" className="w-full rounded-2xl h-14 font-black uppercase tracking-widest italic">Re-index Leaderboard</Button>
+                      <Button 
+                        variant="destructive" 
+                        className="w-full rounded-2xl h-14 font-black uppercase tracking-widest italic"
+                        disabled={isSaving}
+                        onClick={handleClearAllRooms}
+                      >
+                        <Trash2 className="mr-2 h-5 w-5" /> Terminate All Frequencies
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full rounded-2xl h-14 font-black uppercase tracking-widest italic border-destructive text-destructive hover:bg-destructive/5"
+                        disabled={isSaving}
+                        onClick={handleResetCounters}
+                      >
+                        <RefreshCw className="mr-2 h-5 w-5" /> Reset ID Counters
+                      </Button>
                    </CardContent>
                 </Card>
              </div>
