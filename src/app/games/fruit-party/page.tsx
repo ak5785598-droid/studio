@@ -354,15 +354,21 @@ export default function FruitPartyPage() {
                     onClick={() => handlePlaceBet(item.id)}
                     disabled={gameState !== 'betting'}
                     className={cn(
-                      "relative h-16 rounded-2xl flex flex-col items-center justify-center transition-all border-2 group active:scale-95",
-                      myBets[item.id] ? "border-yellow-400 bg-white/20" : "border-white/10 bg-black/20",
+                      "relative h-16 rounded-2xl flex flex-col items-center justify-center transition-all border-2 group active:scale-95 overflow-visible",
+                      myBets[item.id] ? "border-yellow-400 bg-white/20 shadow-[0_0_15px_rgba(251,191,36,0.2)]" : "border-white/10 bg-black/20",
                       gameState !== 'betting' && "opacity-50 grayscale"
                     )}
                    >
                       <span className="text-2xl group-hover:scale-110 transition-transform">{item.emoji}</span>
                       <span className="text-[8px] font-black text-white/60">{item.multiplier}X</span>
+                      
+                      {/* Interactive Bet Stack Indicator */}
                       {myBets[item.id] && (
-                        <div className="absolute -top-2 -right-1 bg-yellow-400 text-black px-1.5 rounded-full text-[10px] font-black shadow-lg animate-in zoom-in ring-2 ring-white">
+                        <div 
+                          key={myBets[item.id]} // Forces re-render/animation on each bet tap
+                          className="absolute -top-3 -right-2 bg-yellow-400 text-black px-2 py-0.5 rounded-full text-[10px] font-black shadow-xl animate-in zoom-in bounce-in ring-2 ring-white z-50 flex items-center gap-0.5"
+                        >
+                           <Zap className="h-2.5 w-2.5 fill-current" />
                            {myBets[item.id] >= 1000 ? `${myBets[item.id]/1000}K` : myBets[item.id]}
                         </div>
                       )}
