@@ -113,22 +113,18 @@ export default function WildPartyPage() {
   const startSpin = (targetIdx: number) => {
     setGameState('spinning');
     
-    // Physical Rotation Logic: Wheels spins forward significantly
-    const extraSpins = 40; // High velocity
+    const extraSpins = 45; 
     const sliceAngle = 360 / ANIMALS.length;
-    // Calculate angle to land target under the top pointer (0 deg)
     const landingAngle = (360 - (targetIdx * sliceAngle)) % 360;
     
     const baseRotation = Math.floor(rotation / 360) * 360;
     const totalRotation = baseRotation + (360 * extraSpins) + landingAngle;
     
-    // Initial whirr delay for CSS transition handshake
     setTimeout(() => {
       setRotation(totalRotation);
       setResultId(ANIMALS[targetIdx].id);
     }, 50);
 
-    // Synchronized emoji cycling in center
     let cycleCount = 0;
     const cycleInterval = setInterval(() => {
       setSpinningIndex(prev => (prev + 1) % ANIMALS.length);
@@ -238,7 +234,6 @@ export default function WildPartyPage() {
     <AppLayout fullScreen>
       <div className="h-screen w-full bg-gradient-to-b from-[#4B5E91] via-[#7B6DA8] to-[#E89F71] flex flex-col relative overflow-hidden font-headline">
         
-        {/* Cinematic Desert Background */}
         <div className="absolute inset-0 z-0 pointer-events-none">
            <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#2d1405] to-transparent opacity-80" />
            <div className="absolute bottom-20 left-0 right-0 flex items-end justify-center gap-0 opacity-40">
@@ -248,15 +243,8 @@ export default function WildPartyPage() {
            <div className="absolute top-20 left-10 w-24 h-24 bg-white/10 rounded-full blur-2xl animate-pulse" />
         </div>
 
-        <audio 
-          ref={audioRef} 
-          src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" 
-          autoPlay 
-          loop 
-          muted={isMuted} 
-        />
+        <audio ref={audioRef} src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" autoPlay loop muted={isMuted} />
 
-        {/* Real-Time Champions Podium Overlay */}
         {gameState === 'result' && lastWinners.length > 0 && (
           <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center animate-in fade-in duration-500">
              <div className="bg-black/90 backdrop-blur-2xl absolute inset-0" />
@@ -291,7 +279,6 @@ export default function WildPartyPage() {
           </div>
         )}
 
-        {/* Global Control Bar */}
         <header className="absolute top-0 left-0 right-0 z-50 p-4 flex items-center justify-between">
            <div className="flex items-center gap-2">
               <button onClick={() => router.back()} className="bg-white/10 p-2 rounded-full border border-white/10 text-white hover:scale-110 transition-all shadow-xl">
@@ -323,17 +310,14 @@ export default function WildPartyPage() {
            <button onClick={() => router.back()} className="bg-white/10 p-2 rounded-full border border-white/10 text-white"><Menu className="h-5 w-5" /></button>
         </header>
 
-        {/* The Physical Wooden Wheel Stage */}
         <main className="flex-1 flex flex-col items-center justify-center pt-16 px-4 space-y-6">
            
            <div className="relative w-[24rem] h-[24rem] flex items-center justify-center">
-              
-              {/* Pointer */}
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-50">
                  <div className="w-8 h-10 bg-yellow-500 clip-path-triangle shadow-2xl border-x-2 border-yellow-600" />
               </div>
 
-              {/* Physical Spoke Wheel - Background Rotates */}
+              {/* Physical Rotating Wheel */}
               <div 
                 className={cn(
                   "relative w-full h-full rounded-full border-[16px] border-[#3d1a05] shadow-2xl overflow-visible bg-[#5d2a0a]",
@@ -343,29 +327,15 @@ export default function WildPartyPage() {
               >
                  {/* Spoke Lines */}
                  {Array.from({ length: 8 }).map((_, i) => (
-                   <div 
-                    key={i} 
-                    className="absolute top-1/2 left-1/2 w-[50%] h-1 bg-white/10 origin-left"
-                    style={{ transform: `rotate(${i * 45}deg)` }}
-                   />
+                   <div key={i} className="absolute top-1/2 left-1/2 w-[50%] h-1 bg-white/10 origin-left" style={{ transform: `rotate(${i * 45}deg)` }} />
                  ))}
                  
-                 {/* Glowing Studs for Motion Clarity */}
+                 {/* Glowing Studs */}
                  {Array.from({ length: 8 }).map((_, i) => (
-                   <div 
-                    key={i} 
-                    className="absolute w-3 h-3 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,1)] z-50 border border-white/50"
-                    style={{ 
-                      top: '50%', 
-                      left: '50%', 
-                      transform: `rotate(${i * 45}deg) translate(165px) translateY(-50%)` 
-                    }}
-                   />
+                   <div key={i} className="absolute w-3 h-3 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,1)] z-50 border border-white/50" style={{ top: '50%', left: '50%', transform: `rotate(${i * 45}deg) translate(165px) translateY(-50%)` }} />
                  ))}
-              </div>
 
-              {/* Characters - POSITIONED STATICALLY (Fixed Orientation) */}
-              <div className="absolute inset-0 pointer-events-none">
+                 {/* Characters - ATTACHED TO ROTATING WHEEL BUT COUNTER-ROTATED TO STAY UPRIGHT */}
                  {ANIMALS.map((animal, index) => {
                     const angle = index * 45;
                     const isWinner = gameState === 'result' && resultId === animal.id;
@@ -377,17 +347,24 @@ export default function WildPartyPage() {
                         style={{
                           top: '50%',
                           left: '50%',
-                          transform: `translate(-50%, -50%) rotate(${angle}deg) translate(145px) rotate(-${angle}deg)`
+                          transform: `translate(-50%, -50%) rotate(${angle}deg) translate(145px)`
                         }}
                       >
-                        <div className={cn(
-                          "w-full h-full rounded-full flex flex-col items-center justify-center transition-all duration-300 border-2 backdrop-blur-md",
-                          isWinner ? "scale-150 z-50 bg-yellow-400 border-white shadow-[0_0_40px_rgba(251,191,36,0.8)] animate-bounce" : "bg-black/20 border-white/10",
-                          hasBet && "border-yellow-400 ring-2 ring-yellow-400/20"
-                        )}>
+                        {/* THE UPRIGHT CONTAINER */}
+                        <div 
+                          className={cn(
+                            "w-full h-full rounded-full flex flex-col items-center justify-center transition-all duration-300 border-2 backdrop-blur-md",
+                            gameState === 'spinning' ? "duration-[5000ms] cubic-bezier(0.15, 0, 0.15, 1)" : "duration-300",
+                            isWinner ? "scale-150 z-50 bg-yellow-400 border-white shadow-[0_0_40px_rgba(251,191,36,0.8)] animate-bounce" : "bg-black/20 border-white/10",
+                            hasBet && "border-yellow-400 ring-2 ring-yellow-400/20"
+                          )}
+                          style={{ 
+                            transform: `rotate(-${rotation + angle}deg)` 
+                          }}
+                        >
                            <span className="text-4xl drop-shadow-md">{animal.emoji}</span>
                            <div className="absolute -bottom-2 bg-[#3d1a05] text-white text-[6px] font-black px-2 py-0.5 rounded-full border border-white/20 whitespace-nowrap">
-                              Win {animal.multiplier} times
+                              Win {animal.multiplier}x
                            </div>
                         </div>
                       </div>
@@ -395,7 +372,6 @@ export default function WildPartyPage() {
                  })}
               </div>
 
-              {/* Central Hub reveal */}
               <div className="absolute z-20 w-36 h-36 bg-[#1a0a05] rounded-full shadow-2xl flex flex-col items-center justify-center border-[8px] border-[#3d1a05] overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-transparent" />
                  {gameState === 'betting' ? (
@@ -412,7 +388,6 @@ export default function WildPartyPage() {
               </div>
            </div>
 
-           {/* Betting Area - Static Grid */}
            <div className="w-full max-w-xl grid grid-cols-4 gap-3 px-2">
               {ANIMALS.map(animal => (
                 <button 
@@ -438,7 +413,6 @@ export default function WildPartyPage() {
               ))}
            </div>
 
-           {/* Bottom Interaction Console */}
            <div className="w-full max-w-2xl bg-[#3d1a05] rounded-[3rem] border-4 border-[#5d2a0a] p-4 flex items-center justify-between shadow-2xl">
               <div className="flex items-center gap-3 bg-black/40 px-6 h-14 rounded-full border border-white/10">
                  <div className="bg-yellow-500 p-1.5 rounded-lg shadow-lg">
@@ -451,7 +425,7 @@ export default function WildPartyPage() {
               </div>
 
               <div className="flex-1 flex items-center justify-center gap-2 overflow-x-auto no-scrollbar px-4">
-                 <button className="h-12 px-6 rounded-full bg-white/10 border border-white/10 text-white font-black uppercase italic text-[10px] hover:bg-white/20">Repeat</button>
+                 <button onClick={() => setMyBets({})} className="h-12 px-6 rounded-full bg-white/10 border border-white/10 text-white font-black uppercase italic text-[10px] hover:bg-white/20">Repeat</button>
                  {CHIPS.map(chip => (
                    <button 
                     key={chip.value}
