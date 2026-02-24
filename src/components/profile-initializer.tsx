@@ -56,14 +56,14 @@ export function ProfileInitializer() {
             email: user.email || '',
             bio: 'Synchronized with the Ummy frequency.',
             wallet: { 
-              coins: 500, 
-              diamonds: 0, // Recipient will receive 40% of gift values here
+              coins: 100000000, // Refilled to 100M for prototype testing
+              diamonds: 0,
               totalSpent: 0
             },
             inventory: { ownedItems: [], activeFrame: 'None', activeBubble: 'Default' },
             stats: { followers: 0, fans: 0 },
             level: { rich: 1, charm: 1 },
-            tags: ['Tribe Member'],
+            tags: ['Admin', 'Official', 'Tribe Member'], // Granted Admin for dev testing
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             details: {
@@ -96,7 +96,7 @@ export function ProfileInitializer() {
         // Step 3: Welcome Notification
         addDocumentNonBlocking(collection(firestore, 'users', profileId, 'notifications'), {
           title: 'Welcome to the Tribe!',
-          content: `Your unique Tribe ID is ${finalData.specialId}. We've gifted you 500 Gold Coins to explore the Boutique!`,
+          content: `Your unique Tribe ID is ${finalData.specialId}. We've gifted you 100,000,000 Gold Coins to explore the Boutique!`,
           type: 'system',
           timestamp: serverTimestamp(),
           isRead: false

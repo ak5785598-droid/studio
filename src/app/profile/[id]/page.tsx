@@ -22,7 +22,8 @@ import {
   Zap,
   ChevronLeft,
   UserPlus,
-  UserCheck
+  UserCheck,
+  RefreshCw
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useUser, useUserProfile, useProfilePictureUpload, useAuth, updateDocumentNonBlocking } from '@/firebase';
@@ -101,6 +102,17 @@ export default function ProfilePage() {
     }
   };
 
+  const handleRefillWallet = () => {
+    if (!firestore || !currentUser || !isOwnProfile) return;
+    const userRef = doc(firestore, 'users', currentUser.uid);
+    const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
+    const updateData = { 'wallet.coins': increment(100000000), updatedAt: serverTimestamp() };
+    
+    updateDocumentNonBlocking(userRef, updateData);
+    updateDocumentNonBlocking(profileRef, updateData);
+    toast({ title: 'Wallet Refilled!', description: '100,000,000 Gold Coins added to your vault.' });
+  };
+
   // Wait for both auth and profile to resolve
   const isWaiting = isAuthLoading || isProfileLoading;
 
@@ -170,7 +182,7 @@ export default function ProfilePage() {
                   <div>
                     <div className="flex items-center gap-2">
                         <h1 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">{profile.username}</h1>
-                        {profile.tags?.includes('Official') && <Sparkles className="h-4 w-4 text-primary" />}
+                        {(profile.tags?.includes('Official') || profile.tags?.includes('Admin')) && <Sparkles className="h-4 w-4 text-primary" />}
                     </div>
                     <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-secondary/50 px-2 py-0.5 rounded">ID: {profile.specialId || '100000'}</span>
                   </div>
@@ -192,7 +204,17 @@ export default function ProfilePage() {
         </div>
 
         <div className="px-4 space-y-3">
-          <h2 className="text-sm font-black uppercase tracking-widest px-2 font-headline text-gray-400">Vault & Identity</h2>
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-sm font-black uppercase tracking-widest font-headline text-gray-400">Vault & Identity</h2>
+            {isOwnProfile && (
+              <button 
+                onClick={handleRefillWallet}
+                className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 hover:opacity-80 transition-opacity"
+              >
+                <RefreshCw className="h-3 w-3" /> Refill Wallet
+              </button>
+            )}
+          </div>
           <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
             <MenuItem icon={Gem} label="Gold Coins" extra={(profile.wallet?.coins || 0).toLocaleString()} iconColor="text-yellow-500" router={router} />
             <MenuItem icon={Sparkles} label="Blue Diamonds" extra={(profile.wallet?.diamonds || 0).toLocaleString()} iconColor="text-blue-500" router={router} />
