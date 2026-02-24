@@ -107,23 +107,33 @@ export default function LuckySlot777Page() {
     return () => clearInterval(interval);
   }, [gameState, timeLeft, isLaunching]);
 
+  // Visual motion feedback: rapidly cycle emojis during the 5-second physical rotation
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (gameState === 'spinning') {
+      interval = setInterval(() => {
+        setSpinningIndex(prev => (prev + 1) % WHEEL_DISTRIBUTION.length);
+      }, 60); // Fast cycling to match physical rotation energy
+    }
+    return () => clearInterval(interval);
+  }, [gameState]);
+
   const startSpin = (targetIdx: number) => {
     setGameState('spinning');
     
     // Physical Rotation Logic:
     // 8 slices, each 45 degrees.
-    // Landing Angle centers the winning slice at the top (0 degrees).
     const sliceAngle = 360 / WHEEL_DISTRIBUTION.length;
-    const extraSpins = 40; // Hyper-velocity sustained rotations
+    const extraSpins = 50; // High-velocity physical turns over 5 seconds
     const landingAngle = (360 - (targetIdx * sliceAngle)) % 360;
     const totalRotation = rotation + (360 * extraSpins) + landingAngle;
     
     setRotation(totalRotation);
     setResultId(WHEEL_DISTRIBUTION[targetIdx]);
-    setSpinningIndex(targetIdx);
 
     // Sustained 5s duration for hyper-velocity rotation
     setTimeout(() => {
+      setSpinningIndex(targetIdx); // Ensure center hub shows final result precisely
       showResult(WHEEL_DISTRIBUTION[targetIdx]);
     }, 5000);
   };
@@ -373,8 +383,13 @@ export default function LuckySlot777Page() {
                    </div>
                  ) : gameState === 'spinning' ? (
                    <div className="relative z-10 flex flex-col items-center animate-pulse">
-                      <RefreshCw className="h-10 w-10 text-yellow-500 animate-spin" />
-                      <span className="text-[8px] font-black uppercase text-yellow-500/60 tracking-widest mt-2">Spinning...</span>
+                      <div className="relative flex items-center justify-center">
+                         <RefreshCw className="h-10 w-10 text-yellow-500 animate-spin" />
+                         <span className="absolute text-xl font-black">
+                            {WHEEL_DISTRIBUTION[spinningIndex] === 'seven' ? '77' : (WHEEL_DISTRIBUTION[spinningIndex] === 'peach' ? '🍑' : '🍉')}
+                         </span>
+                      </div>
+                      <span className="text-[8px] font-black uppercase text-yellow-500/60 tracking-widest mt-2">Rotating...</span>
                    </div>
                  ) : (
                    <div className="relative z-10 flex flex-col items-center animate-in zoom-in">
