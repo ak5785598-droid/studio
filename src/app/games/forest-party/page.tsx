@@ -35,10 +35,11 @@ const ANIMALS = [
 
 const CHIPS = [
   { value: 100, color: 'bg-blue-600' },
-  { value: 500, color: 'bg-yellow-500' },
-  { value: 1000, color: 'bg-red-600' },
-  { value: 5000, color: 'bg-purple-600' },
-  { value: 10000, color: 'bg-black' },
+  { value: 1000, color: 'bg-yellow-500' },
+  { value: 10000, color: 'bg-red-600' },
+  { value: 100000, color: 'bg-purple-600' },
+  { value: 500000, color: 'bg-emerald-600' },
+  { value: 1000000, color: 'bg-slate-900' },
 ];
 
 export default function ForestPartyPage() {
@@ -174,6 +175,12 @@ export default function ForestPartyPage() {
     );
   };
 
+  const formatAmount = (v: number) => {
+    if (v >= 1000000) return `${v / 1000000}M`;
+    if (v >= 1000) return `${v / 1000}K`;
+    return v.toString();
+  };
+
   if (isLaunching) {
     return (
       <div className="h-screen w-full bg-[#1a2a1a] flex flex-col items-center justify-center space-y-6 overflow-hidden">
@@ -303,7 +310,7 @@ export default function ForestPartyPage() {
                     {hasBet && (
                       <div className="absolute -top-4 -right-2 bg-amber-500 text-black px-2 py-0.5 rounded-full text-[10px] font-black shadow-lg animate-in zoom-in bounce-in ring-2 ring-white z-50 flex items-center gap-1">
                          <Zap className="h-2 w-2 fill-current" />
-                         {myBets[animal.id] >= 1000 ? `${myBets[animal.id]/1000}K` : myBets[animal.id]}
+                         {formatAmount(myBets[animal.id])}
                       </div>
                     )}
                   </button>
@@ -334,7 +341,7 @@ export default function ForestPartyPage() {
                  <CloudSun className="h-4 w-4 text-amber-400" />
               </div>
               
-              <div className="flex justify-between gap-3 px-2 h-20 items-center">
+              <div className="flex justify-between gap-3 px-2 h-20 items-center overflow-x-auto no-scrollbar">
                  {CHIPS.map(chip => (
                    <button 
                     key={chip.value}
@@ -346,7 +353,7 @@ export default function ForestPartyPage() {
                         : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
                     )}
                    >
-                      <span className="text-xs font-black italic">{chip.value >= 1000 ? `${chip.value/1000}K` : chip.value}</span>
+                      <span className="text-xs font-black italic">{formatAmount(chip.value)}</span>
                       {selectedChip === chip.value && <div className="absolute inset-0 bg-white/10 rounded-full animate-pulse" />}
                    </button>
                  ))}
