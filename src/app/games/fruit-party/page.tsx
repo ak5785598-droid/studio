@@ -38,10 +38,11 @@ const ITEMS = [
 
 const CHIPS = [
   { value: 100, color: 'bg-green-500', border: 'border-green-600' },
-  { value: 500, color: 'bg-blue-500', border: 'border-blue-600' },
-  { value: 1000, color: 'bg-yellow-500', border: 'border-yellow-600' },
-  { value: 5000, color: 'bg-gray-500', border: 'border-gray-600' },
-  { value: 10000, color: 'bg-purple-500', border: 'border-purple-600' },
+  { value: 1000, color: 'bg-blue-500', border: 'border-blue-600' },
+  { value: 50000, color: 'bg-yellow-500', border: 'border-yellow-600' },
+  { value: 100000, color: 'bg-purple-500', border: 'border-purple-600' },
+  { value: 500000, color: 'bg-emerald-600', border: 'border-emerald-700' },
+  { value: 1000000, color: 'bg-slate-900', border: 'border-slate-950' },
 ];
 
 export default function FruitPartyPage() {
@@ -65,6 +66,12 @@ export default function FruitPartyPage() {
   const [showWinOverlay, setShowWinOverlay] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const formatAmount = (v: number) => {
+    if (v >= 1000000) return `${(v / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+    if (v >= 1000) return `${(v / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+    return v.toString();
+  };
 
   const participantsQuery = useMemoFirebase(() => {
     if (!firestore || !activeRoom?.id || !currentUser) return null;
@@ -313,7 +320,7 @@ export default function FruitPartyPage() {
                     {hasBet && (
                       <div className="absolute -top-4 -right-2 bg-yellow-400 text-black px-2 py-0.5 rounded-full text-[10px] font-black shadow-lg animate-in zoom-in bounce-in ring-2 ring-white z-50 flex items-center gap-1 border-b-2 border-yellow-600">
                          <Zap className="h-2 w-2 fill-current" />
-                         {myBets[item.id] >= 1000 ? `${myBets[item.id]/1000}K` : myBets[item.id]}
+                         {formatAmount(myBets[item.id])}
                       </div>
                     )}
                   </button>
@@ -344,7 +351,7 @@ export default function FruitPartyPage() {
                  <div className="h-2 w-2 bg-yellow-400 rounded-full animate-pulse" />
               </div>
               
-              <div className="flex justify-between gap-3 px-2 h-20 items-center">
+              <div className="flex justify-between gap-3 px-2 h-20 items-center overflow-x-auto no-scrollbar">
                  {CHIPS.map(chip => (
                    <button 
                     key={chip.value}
@@ -359,7 +366,7 @@ export default function FruitPartyPage() {
                       <span className={cn(
                         "text-xs font-black italic drop-shadow-sm",
                         selectedChip === chip.value ? "text-white" : "text-white/60"
-                      )}>{chip.value >= 1000 ? `${chip.value/1000}K` : chip.value}</span>
+                      )}>{formatAmount(chip.value)}</span>
                       {selectedChip === chip.value && <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse pointer-events-none" />}
                    </button>
                  ))}
