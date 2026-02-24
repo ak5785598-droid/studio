@@ -46,10 +46,11 @@ const WHEEL_DISTRIBUTION = [
 const CHIPS = [
   { value: 100, color: 'bg-blue-600', label: '100', border: 'border-blue-400' },
   { value: 1000, color: 'bg-yellow-500', label: '1K', border: 'border-yellow-300' },
-  { value: 10000, color: 'bg-red-600', label: '10K', border: 'border-red-400' },
   { value: 100000, color: 'bg-purple-600', label: '100K', border: 'border-purple-400' },
   { value: 500000, color: 'bg-emerald-600', label: '500K', border: 'border-emerald-400' },
   { value: 1000000, color: 'bg-slate-900', label: '1M', border: 'border-slate-700' },
+  { value: 10000000, color: 'bg-rose-600', label: '10M', border: 'border-rose-400' },
+  { value: 100000000, color: 'bg-amber-600', label: '100M', border: 'border-amber-400' },
 ];
 
 type RoundWinner = {
@@ -130,11 +131,9 @@ export default function LuckySlot777Page() {
     const extraSpins = 50; 
     const landingAngle = (360 - (targetIdx * sliceAngle)) % 360;
     
-    // Ensure rotation is always forward and cumulative to show the speed properly
     const baseRotation = Math.floor(rotation / 360) * 360;
     const totalRotation = baseRotation + (360 * extraSpins) + landingAngle;
     
-    // Tiny delay to ensure CSS transition is active before setting the rotation property
     setTimeout(() => {
       setRotation(totalRotation);
       setResultId(WHEEL_DISTRIBUTION[targetIdx]);
@@ -231,16 +230,12 @@ export default function LuckySlot777Page() {
     <AppLayout fullScreen>
       <div className="h-screen w-full bg-[#1a0a2e] flex flex-col relative overflow-hidden font-headline">
         
-        {/* Theatrical Stage - Cinematic Curtains and Pillars */}
         <div className="absolute inset-0 z-0 pointer-events-none">
            <div className="absolute inset-0 bg-gradient-to-b from-[#2d1b4e] via-[#1a0a2e] to-[#0a0514]" />
-           {/* Pillars */}
            <div className="absolute top-0 left-0 bottom-0 w-24 bg-gradient-to-r from-black/40 to-transparent border-r border-white/5" />
            <div className="absolute top-0 right-0 bottom-0 w-24 bg-gradient-to-l from-black/40 to-transparent border-l border-white/5" />
            <div className="absolute top-0 left-4 w-12 h-full bg-[#2d1b4e]/30 backdrop-blur-sm rounded-full blur-md opacity-20" />
            <div className="absolute top-0 right-4 w-12 h-full bg-[#2d1b4e]/30 backdrop-blur-sm rounded-full blur-md opacity-20" />
-           
-           {/* Center Stage Spotlight */}
            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-purple-500/10 rounded-full blur-[120px] animate-pulse" />
         </div>
 
@@ -285,7 +280,6 @@ export default function LuckySlot777Page() {
            </div>
         </header>
 
-        {/* Real-Time Winner Podium */}
         {gameState === 'result' && lastWinners.length > 0 && (
           <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center animate-in fade-in duration-500">
              <div className="bg-black/90 backdrop-blur-2xl absolute inset-0" />
@@ -321,9 +315,7 @@ export default function LuckySlot777Page() {
 
         <main className="flex-1 flex flex-col items-center justify-center pt-20 px-4 space-y-6">
            
-           {/* Ornate Rotating Wheel */}
            <div className="relative w-[22rem] h-[22rem] flex items-center justify-center">
-              {/* Golden Decorative Wings */}
               <div className="absolute -left-12 top-1/2 -translate-y-1/2 w-20 h-40 flex flex-col gap-1 pointer-events-none opacity-80">
                  <div className="h-8 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-l-2xl border-y border-l border-yellow-700/50 shadow-lg" />
                  <div className="h-10 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-l-2xl border-y border-l border-yellow-700/50 shadow-lg ml-2" />
@@ -339,7 +331,6 @@ export default function LuckySlot777Page() {
                  <div className="h-8 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-l-2xl border-y border-l border-yellow-700/50 shadow-lg" />
               </div>
 
-              {/* Top Gem Pointer */}
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center">
                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-900 rotate-45 border-4 border-yellow-500 shadow-2xl relative">
                     <div className="absolute inset-1 bg-white/20 rounded-full blur-sm animate-pulse" />
@@ -347,7 +338,6 @@ export default function LuckySlot777Page() {
                  <div className="w-6 h-8 bg-yellow-500 clip-path-triangle -mt-2 shadow-lg" />
               </div>
 
-              {/* Physical Rotating Wheel Container */}
               <div 
                 className={cn(
                   "relative w-full h-full rounded-full border-[12px] border-yellow-500 shadow-2xl overflow-visible ring-8 ring-black/40",
@@ -357,7 +347,6 @@ export default function LuckySlot777Page() {
                 )}
                 style={{ transform: `rotate(${rotation}deg)` }}
               >
-                 {/* Motion Glow Studs for Visual Speed */}
                  {Array.from({ length: 8 }).map((_, i) => (
                    <div 
                     key={i} 
@@ -407,7 +396,6 @@ export default function LuckySlot777Page() {
                  </svg>
               </div>
 
-              {/* Central Status Hub */}
               <div className="absolute z-20 w-32 h-32 bg-black rounded-full shadow-2xl flex flex-col items-center justify-center border-[8px] border-yellow-500 overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-transparent" />
                  {gameState === 'betting' ? (
@@ -424,7 +412,6 @@ export default function LuckySlot777Page() {
               </div>
            </div>
 
-           {/* Results Ribbon Strip */}
            <div className="w-full max-w-lg bg-black/40 backdrop-blur-xl border border-white/5 rounded-full py-2 px-6 flex items-center gap-4 mx-auto">
               <History className="h-4 w-4 text-yellow-500 shrink-0" />
               <div className="flex gap-3 overflow-x-auto no-scrollbar py-1 flex-1">
@@ -438,7 +425,6 @@ export default function LuckySlot777Page() {
               </div>
            </div>
 
-           {/* High-Fidelity Triple Betting Dashboard */}
            <div className="w-full max-w-xl grid grid-cols-3 gap-3 px-2">
               {ITEMS.map(item => (
                 <button 
@@ -455,7 +441,7 @@ export default function LuckySlot777Page() {
                    <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }} />
                    
                    <div className="absolute top-2 right-2 text-[10px] font-black text-white/40 bg-black/20 px-2 py-0.5 rounded-full">
-                      {formatAmount(myBets[item.id] || 0)} / {item.id === 'seven' ? '6520' : (item.id === 'peach' ? '15670' : '20560')}
+                      {formatAmount(myBets[item.id] || 0)}
                    </div>
 
                    <span className="text-5xl mb-2 drop-shadow-2xl group-hover:scale-110 transition-transform">
@@ -473,7 +459,6 @@ export default function LuckySlot777Page() {
               ))}
            </div>
 
-           {/* High-Stakes Chip Selector */}
            <div className="w-full max-w-lg flex items-center justify-between gap-4 px-4 pb-10">
               <div className="flex items-center gap-2">
                  <Avatar className="h-10 w-10 border-2 border-yellow-500 shadow-lg">
@@ -513,7 +498,6 @@ export default function LuckySlot777Page() {
            </div>
         </main>
 
-        {/* Voice Footer */}
         <footer className="absolute bottom-6 left-0 right-0 z-50 flex justify-center pb-4">
            <Button 
              onClick={() => {
