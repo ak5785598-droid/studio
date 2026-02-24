@@ -63,7 +63,7 @@ export default function LuckySlot777Page() {
   const { toast } = useToast();
 
   const [gameState, setGameState] = useState<'betting' | 'spinning' | 'result'>('betting');
-  const [timeLeft, setTimeLeft] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(8); // Faster betting time
   const [selectedChip, setSelectedChip] = useState(100);
   const [myBets, setMyBets] = useState<Record<string, number>>({});
   const [spinningIndex, setSpinningIndex] = useState(0);
@@ -86,7 +86,7 @@ export default function LuckySlot777Page() {
   const activeSpeakers = participants?.filter(p => !p.isMuted && p.seatIndex > 0) || [];
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLaunching(false), 2000);
+    const timer = setTimeout(() => setIsLaunching(false), 1500); // Faster launch
     return () => clearTimeout(timer);
   }, []);
 
@@ -112,17 +112,17 @@ export default function LuckySlot777Page() {
 
   const startSpin = (targetIdx: number) => {
     let current = 0;
-    const spins = 24 + targetIdx; 
-    let speed = 50;
+    const spins = 12 + targetIdx; // Reduced spins for speed
+    let speed = 40; // Faster initial speed
 
     const runSpin = () => {
       setSpinningIndex(current % WHEEL_DISTRIBUTION.length);
       if (current < spins) {
         current++;
-        speed += current * 1.5;
-        setTimeout(runSpin, speed > 300 ? 300 : speed);
+        speed += current * 1.2;
+        setTimeout(runSpin, speed > 150 ? 150 : speed); // Faster cap
       } else {
-        setTimeout(() => showResult(WHEEL_DISTRIBUTION[targetIdx]), 1000);
+        setTimeout(() => showResult(WHEEL_DISTRIBUTION[targetIdx]), 800);
       }
     };
     runSpin();
@@ -136,11 +136,7 @@ export default function LuckySlot777Page() {
     const multiplier = winningItem?.multiplier || 0;
     const winAmount = (myBets[id] || 0) * multiplier;
     
-    const mockWinners: RoundWinner[] = [
-      { name: 'SlotKing', amount: 50000 * multiplier, avatar: 'https://picsum.photos/seed/slot1/100' },
-      { name: 'LuckyTribe', amount: 15000 * multiplier, avatar: 'https://picsum.photos/seed/slot2/100' },
-      { name: 'SevenHunter', amount: 5000 * multiplier, avatar: 'https://picsum.photos/seed/slot3/100' },
-    ];
+    const realWinners: RoundWinner[] = [];
 
     if (winAmount > 0 && currentUser && firestore && userProfile) {
       setShowWinOverlay(true);
@@ -151,25 +147,25 @@ export default function LuckySlot777Page() {
       updateDocumentNonBlocking(userRef, updateData);
       updateDocumentNonBlocking(profileRef, updateData);
       
-      mockWinners.unshift({ 
+      realWinners.push({ 
         name: userProfile.username, 
         amount: winAmount, 
         avatar: userProfile.avatarUrl,
         isMe: true 
       });
 
-      setTimeout(() => setShowWinOverlay(false), 3500);
+      setTimeout(() => setShowWinOverlay(false), 3000);
     }
 
-    setLastWinners(mockWinners.sort((a, b) => b.amount - a.amount).slice(0, 3));
+    setLastWinners(realWinners);
 
     setTimeout(() => {
       setMyBets({});
       setGameState('betting');
-      setTimeLeft(10);
+      setTimeLeft(8);
       setResultId(null);
       setLastWinners([]);
-    }, 7000);
+    }, 4000); // Shorter result time for faster rounds
   };
 
   const handlePlaceBet = (itemId: string) => {
@@ -207,7 +203,7 @@ export default function LuckySlot777Page() {
         </div>
         <div className="text-center space-y-2">
            <h1 className="text-6xl font-black text-white uppercase italic tracking-tighter drop-shadow-2xl">Lucky Slot 777</h1>
-           <p className="text-purple-400 text-xs font-black uppercase tracking-[0.5em] animate-pulse">Opening the Grand Stage...</p>
+           <p className="text-purple-400 text-xs font-black uppercase tracking-[0.5em] animate-pulse">Syncing Engine...</p>
         </div>
       </div>
     );
@@ -220,10 +216,8 @@ export default function LuckySlot777Page() {
         {/* Theatrical Stage Elements */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
            <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-purple-900 to-transparent" />
-           {/* Pillars */}
            <div className="absolute bottom-0 left-10 w-24 h-[80vh] bg-gradient-to-t from-purple-900/40 to-transparent rounded-t-full border-x border-white/5" />
            <div className="absolute bottom-0 right-10 w-24 h-[80vh] bg-gradient-to-t from-purple-900/40 to-transparent rounded-t-full border-x border-white/5" />
-           {/* Spotlight Effect */}
            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-purple-500/10 rounded-full blur-[120px] animate-pulse" />
         </div>
 
@@ -235,7 +229,7 @@ export default function LuckySlot777Page() {
           muted={isMuted} 
         />
 
-        {/* Champions Podium Overlay */}
+        {/* Real-Time Champions Podium Overlay */}
         {gameState === 'result' && lastWinners.length > 0 && (
           <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center animate-in fade-in duration-500">
              <div className="bg-black/90 backdrop-blur-2xl absolute inset-0" />
@@ -247,27 +241,15 @@ export default function LuckySlot777Page() {
                          <Trophy className="h-12 w-12 text-white animate-bounce" />
                       </div>
                    </div>
-                   <h2 className="text-6xl font-black text-white uppercase italic tracking-tighter drop-shadow-2xl">Luck Masters</h2>
+                   <h2 className="text-6xl font-black text-white uppercase italic tracking-tighter drop-shadow-2xl">Real Winners</h2>
                    <p className="text-yellow-400 text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                      <Sparkles className="h-4 w-4" /> Grand Slot Champions <Sparkles className="h-4 w-4" />
+                      <Sparkles className="h-4 w-4" /> Live Tribe Achievement <Sparkles className="h-4 w-4" />
                    </p>
                 </div>
 
                 <div className="flex items-end justify-center gap-4 h-[300px]">
-                   {lastWinners[1] && (
-                     <div className="flex flex-col items-center w-1/3 space-y-4 animate-in slide-in-from-bottom-10 duration-700 delay-200">
-                        <Avatar className="h-20 w-20 border-4 border-slate-400 shadow-2xl">
-                           <AvatarImage src={lastWinners[1].avatar} />
-                           <AvatarFallback>U</AvatarFallback>
-                        </Avatar>
-                        <div className="bg-slate-400/10 border-2 border-slate-400/30 p-4 rounded-t-3xl w-full text-center space-y-1 backdrop-blur-md">
-                           <p className="text-sm font-black text-white truncate uppercase italic">{lastWinners[1].name}</p>
-                           <p className="text-lg font-black text-slate-400 italic">+{formatAmount(lastWinners[1].amount)}</p>
-                        </div>
-                     </div>
-                   )}
                    {lastWinners[0] && (
-                     <div className="flex flex-col items-center w-1/3 space-y-4 animate-in slide-in-from-bottom-20 duration-1000">
+                     <div className="flex flex-col items-center w-1/2 space-y-4 animate-in slide-in-from-bottom-20 duration-1000">
                         <div className="relative">
                            <Crown className="absolute -top-10 left-1/2 -translate-x-1/2 h-12 w-12 text-yellow-400 animate-bounce" />
                            <Avatar className="h-28 w-28 border-4 border-yellow-400 shadow-[0_0_40px_rgba(251,191,36,0.6)]">
@@ -281,18 +263,6 @@ export default function LuckySlot777Page() {
                               <Zap className="h-5 w-5 fill-current" />
                               {formatAmount(lastWinners[0].amount)}
                            </p>
-                        </div>
-                     </div>
-                   )}
-                   {lastWinners[2] && (
-                     <div className="flex flex-col items-center w-1/3 space-y-4 animate-in slide-in-from-bottom-10 duration-700 delay-400">
-                        <Avatar className="h-20 w-20 border-4 border-amber-700 shadow-2xl">
-                           <AvatarImage src={lastWinners[2].avatar} />
-                           <AvatarFallback>U</AvatarFallback>
-                        </Avatar>
-                        <div className="bg-amber-700/10 border-2 border-amber-700/30 p-4 rounded-t-3xl w-full text-center space-y-1 backdrop-blur-md">
-                           <p className="text-sm font-black text-white truncate uppercase italic">{lastWinners[2].name}</p>
-                           <p className="text-lg font-black text-amber-700 italic">+{formatAmount(lastWinners[2].amount)}</p>
                         </div>
                      </div>
                    )}
@@ -344,7 +314,7 @@ export default function LuckySlot777Page() {
                     {i === 0 && <Badge className="absolute -top-2 -right-2 bg-yellow-500 text-black text-[6px] h-3 px-1 font-black">NEW</Badge>}
                   </div>
                 ))}
-                {history.length === 0 && <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Waiting for first spin...</span>}
+                {history.length === 0 && <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Waiting...</span>}
               </div>
            </div>
         </div>
@@ -353,13 +323,11 @@ export default function LuckySlot777Page() {
         <main className="flex-1 flex flex-col items-center justify-center pt-32 px-4 space-y-12">
            
            <div className="relative w-[22rem] h-[22rem] flex items-center justify-center">
-              {/* Ornate Golden Frame */}
               <div className="absolute -inset-10 border-[16px] border-yellow-600/20 rounded-full shadow-[0_0_60px_rgba(234,179,8,0.2)]" />
               <div className="absolute -inset-6 border-[4px] border-yellow-500/40 rounded-full" />
               
-              {/* The Spinning Wheel Core */}
               <div className={cn(
-                "relative w-full h-full rounded-full border-[8px] border-yellow-500 shadow-2xl transition-transform duration-[3000ms] cubic-bezier(0.15, 0, 0.15, 1) overflow-hidden",
+                "relative w-full h-full rounded-full border-[8px] border-yellow-500 shadow-2xl transition-transform duration-[1500ms] cubic-bezier(0.15, 0, 0.15, 1) overflow-hidden",
                 gameState === 'spinning' && "animate-spin-slow"
               )}>
                  <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -380,7 +348,7 @@ export default function LuckySlot777Page() {
                              transform="rotate(22.5 65 25)" 
                              fontSize="8" 
                              textAnchor="middle" 
-                             className="pointer-events-none drop-shadow-md"
+                             className="pointer-events-none drop-shadow-md font-black"
                            >
                              {id === 'seven' ? '77' : (id === 'peach' ? '🍑' : '🍉')}
                            </text>
@@ -390,29 +358,26 @@ export default function LuckySlot777Page() {
                  </svg>
               </div>
 
-              {/* Center Hub Display */}
               <div className="absolute z-20 w-32 h-32 bg-black rounded-full shadow-2xl flex flex-col items-center justify-center border-[6px] border-yellow-500 group overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent" />
                  {gameState === 'betting' ? (
                    <div className="relative z-10 flex flex-col items-center animate-in fade-in">
-                    <span className="text-[8px] font-black text-yellow-500 uppercase tracking-widest mb-1 text-center">Place<br/>Your Bets</span>
+                    <span className="text-[8px] font-black text-yellow-500 uppercase tracking-widest mb-1 text-center">Place<br/>Bets</span>
                     <span className="text-4xl font-black text-white italic tracking-tighter drop-shadow-sm">{timeLeft}s</span>
                    </div>
                  ) : (
                    <div className="relative z-10 flex flex-col items-center animate-in zoom-in">
-                      <span className="text-[8px] font-black uppercase text-yellow-500/60 tracking-widest mb-1">Winning</span>
+                      <span className="text-[8px] font-black uppercase text-yellow-500/60 tracking-widest mb-1">Result</span>
                       <span className="text-5xl animate-bounce">{WHEEL_DISTRIBUTION[spinningIndex] === 'seven' ? '77' : (WHEEL_DISTRIBUTION[spinningIndex] === 'peach' ? '🍑' : '🍉')}</span>
                    </div>
                  )}
               </div>
 
-              {/* Selector Pin */}
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30">
                  <div className="w-8 h-10 bg-yellow-500 clip-path-triangle shadow-lg border-x border-b border-black/20" />
               </div>
            </div>
 
-           {/* Three-Tier Betting Console */}
            <div className="w-full max-w-xl grid grid-cols-3 gap-4 px-2">
               {ITEMS.map(item => (
                 <button 
@@ -427,28 +392,18 @@ export default function LuckySlot777Page() {
                   )}
                 >
                    <div className="absolute inset-0 bg-gradient-to-br opacity-20 from-white/20 to-transparent" />
-                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-                   
                    <span className="text-5xl mb-2 drop-shadow-xl group-hover:scale-110 transition-transform">{item.emoji}</span>
                    <span className="text-2xl font-black text-yellow-400 italic tracking-tighter">{item.label}</span>
                    
-                   <div className="mt-2 text-[10px] font-black uppercase tracking-widest opacity-60">
-                      {(item.id === 'seven' ? 6520 : (item.id === 'peach' ? 15670 : 20560)).toLocaleString()}
-                   </div>
-
                    {myBets[item.id] && (
                      <div className="absolute -top-2 -right-2 bg-yellow-500 text-black px-3 py-1 rounded-full text-[10px] font-black shadow-xl animate-in zoom-in bounce-in border-2 border-white">
                         {formatAmount(myBets[item.id])}
                      </div>
                    )}
-                   
-                   {/* Shining Sweep Animation */}
-                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </button>
               ))}
            </div>
 
-           {/* High-Stakes Wager Bar */}
            <div className="w-full max-w-lg bg-black/60 backdrop-blur-2xl rounded-full border-2 border-white/10 p-2 flex items-center justify-between shadow-2xl">
               <div className="flex-1 flex justify-center gap-3 px-4">
                  {CHIPS.map(chip => (
