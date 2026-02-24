@@ -12,7 +12,7 @@ const games: Game[] = [
     id: 'g1', 
     title: 'Ludo Masters', 
     slug: 'ludo', 
-    coverUrl: 'https://picsum.photos/seed/ludo-pro/1200/600', 
+    coverUrl: 'https://picsum.photos/seed/ludo-pro/600/600', 
     cost: 0, 
     imageHint: 'ludo board' 
   },
@@ -20,15 +20,15 @@ const games: Game[] = [
     id: 'g2', 
     title: 'Fruit Party', 
     slug: 'fruit-party', 
-    coverUrl: 'https://picsum.photos/seed/fruit-party/1200/600', 
+    coverUrl: 'https://picsum.photos/seed/fruit-party/600/600', 
     cost: 0, 
     imageHint: 'vibrant fruits' 
   },
   { 
     id: 'g3', 
-    title: 'Forest Party', 
+    title: 'Wild Party', 
     slug: 'forest-party', 
-    coverUrl: 'https://picsum.photos/seed/forest-party/1200/600', 
+    coverUrl: 'https://picsum.photos/seed/forest-party/600/600', 
     cost: 0, 
     imageHint: 'forest animals' 
   },
@@ -36,9 +36,57 @@ const games: Game[] = [
     id: 'g4', 
     title: 'Lucky Slot 777', 
     slug: 'lucky-slot-777', 
-    coverUrl: 'https://picsum.photos/seed/lucky777/1200/600', 
+    coverUrl: 'https://picsum.photos/seed/lucky777/600/600', 
     cost: 0, 
     imageHint: 'lucky 777 slot' 
+  },
+  { 
+    id: 'g5', 
+    title: '8-Ball Pool', 
+    slug: '8-ball-pool', 
+    coverUrl: 'https://picsum.photos/seed/8ball/600/600', 
+    cost: 0, 
+    imageHint: 'billiards table' 
+  },
+  { 
+    id: 'g6', 
+    title: 'Carrom', 
+    slug: 'carrom', 
+    coverUrl: 'https://picsum.photos/seed/carrom/600/600', 
+    cost: 0, 
+    imageHint: 'carrom board' 
+  },
+  { 
+    id: 'g7', 
+    title: 'Teen Patti', 
+    slug: 'rummy', 
+    coverUrl: 'https://picsum.photos/seed/patti/600/600', 
+    cost: 0, 
+    imageHint: 'cards deck' 
+  },
+  { 
+    id: 'g8', 
+    title: 'Monster Crush', 
+    slug: 'monster-crush', 
+    coverUrl: 'https://picsum.photos/seed/monster/600/600', 
+    cost: 0, 
+    imageHint: 'candy match' 
+  },
+  { 
+    id: 'g9', 
+    title: 'Bubble Shooter', 
+    slug: 'bubble-shooter', 
+    coverUrl: 'https://picsum.photos/seed/bubble/600/600', 
+    cost: 0, 
+    imageHint: 'colorful bubbles' 
+  },
+  { 
+    id: 'g10', 
+    title: 'Crazy Alpaca', 
+    slug: 'crazy-alpaca', 
+    coverUrl: 'https://picsum.photos/seed/alpaca/600/600', 
+    cost: 0, 
+    imageHint: 'funny animal' 
   },
 ];
 
