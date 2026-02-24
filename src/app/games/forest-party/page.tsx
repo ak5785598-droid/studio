@@ -16,12 +16,11 @@ import {
   VolumeX,
   History,
   Trophy,
-  Crown,
   Sparkles,
   HelpCircle,
   BarChart3,
-  Menu,
-  Maximize2
+  Maximize2,
+  Menu
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -30,24 +29,21 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 
 const ANIMALS = [
-  { id: 'lion', emoji: '🦁', multiplier: 45, label: '45x', color: 'bg-yellow-500/20' },
-  { id: 'tiger', emoji: '🐅', multiplier: 25, label: '25x', color: 'bg-orange-500/20' },
-  { id: 'leopard', emoji: '🐆', multiplier: 15, label: '15x', color: 'bg-amber-500/20' },
-  { id: 'eagle', emoji: '🦅', multiplier: 10, label: '10x', color: 'bg-blue-500/20' },
-  { id: 'camel', emoji: '🐪', multiplier: 5, label: '5x', color: 'bg-emerald-500/20' },
-  { id: 'dog', emoji: '🐕', multiplier: 5, label: '5x', color: 'bg-sky-500/20' },
-  { id: 'gazelle', emoji: '🦌', multiplier: 5, label: '5x', color: 'bg-lime-500/20' },
-  { id: 'rabbit', emoji: '🐰', multiplier: 5, label: '5x', color: 'bg-rose-500/20' },
+  { id: 'rabbit', emoji: '🐰', multiplier: 5, label: '5x', winText: 'Win 5 times' },
+  { id: 'gazelle', emoji: '🦌', multiplier: 5, label: '5x', winText: 'Win 5 times' },
+  { id: 'dog', emoji: '🐕', multiplier: 5, label: '5x', winText: 'Win 5 times' },
+  { id: 'camel', emoji: '🐪', multiplier: 5, label: '5x', winText: 'Win 5 times' },
+  { id: 'eagle', emoji: '🦅', multiplier: 10, label: '10x', winText: 'Win 10 times' },
+  { id: 'leopard', emoji: '🐆', multiplier: 15, label: '15x', winText: 'Win 15 times' },
+  { id: 'tiger', emoji: '🐅', multiplier: 25, label: '25x', winText: 'Win 25 times' },
+  { id: 'lion', emoji: '🦁', multiplier: 45, label: '45x', winText: 'Win 45 times' },
 ];
 
 const CHIPS = [
-  { value: 100, color: 'bg-blue-600', label: '100' },
-  { value: 1000, color: 'bg-yellow-500', label: '1K' },
-  { value: 100000, color: 'bg-purple-600', label: '100K' },
-  { value: 500000, color: 'bg-emerald-600', label: '500K' },
-  { value: 1000000, color: 'bg-slate-900', label: '1M' },
-  { value: 10000000, color: 'bg-rose-600', label: '10M' },
-  { value: 100000000, color: 'bg-amber-600', label: '100M' },
+  { value: 100000, label: '100K' },
+  { value: 500000, label: '500K' },
+  { value: 1000000, label: '1M' },
+  { value: 10000000, label: '10M' },
 ];
 
 type RoundWinner = {
@@ -67,7 +63,7 @@ export default function WildPartyPage() {
 
   const [gameState, setGameState] = useState<'betting' | 'spinning' | 'result'>('betting');
   const [timeLeft, setTimeLeft] = useState(20);
-  const [selectedChip, setSelectedChip] = useState(100);
+  const [selectedChip, setSelectedChip] = useState(100000);
   const [myBets, setMyBets] = useState<Record<string, number>>({});
   const [rotation, setRotation] = useState(0);
   const [spinningIndex, setSpinningIndex] = useState(0);
@@ -113,8 +109,9 @@ export default function WildPartyPage() {
   const startSpin = (targetIdx: number) => {
     setGameState('spinning');
     
-    const extraSpins = 45; 
+    const extraSpins = 40; 
     const sliceAngle = 360 / ANIMALS.length;
+    // Align targetIdx to top yellow pointer (360 - index * slice)
     const landingAngle = (360 - (targetIdx * sliceAngle)) % 360;
     
     const baseRotation = Math.floor(rotation / 360) * 360;
@@ -217,14 +214,14 @@ export default function WildPartyPage() {
 
   if (isLaunching) {
     return (
-      <div className="h-screen w-full bg-[#1a0a05] flex flex-col items-center justify-center space-y-6 overflow-hidden font-headline">
+      <div className="h-screen w-full bg-[#7B6DA8] flex flex-col items-center justify-center space-y-6 overflow-hidden font-headline">
         <div className="relative">
-           <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-3xl animate-pulse" />
+           <div className="absolute inset-0 bg-white/20 rounded-full blur-3xl animate-pulse" />
            <div className="text-8xl animate-bounce relative z-10">🦁</div>
         </div>
         <div className="text-center space-y-2">
            <h1 className="text-6xl font-black text-white uppercase italic tracking-tighter drop-shadow-2xl">Wild Party</h1>
-           <p className="text-orange-400 text-xs font-black uppercase tracking-[0.5em] animate-pulse">Entering the Savannah...</p>
+           <p className="text-white/60 text-xs font-black uppercase tracking-[0.5em] animate-pulse">Syncing Savannah...</p>
         </div>
       </div>
     );
@@ -232,17 +229,8 @@ export default function WildPartyPage() {
 
   return (
     <AppLayout fullScreen>
-      <div className="h-screen w-full bg-gradient-to-b from-[#4B5E91] via-[#7B6DA8] to-[#E89F71] flex flex-col relative overflow-hidden font-headline">
+      <div className="h-screen w-full bg-[#7B6DA8] flex flex-col relative overflow-hidden font-headline">
         
-        <div className="absolute inset-0 z-0 pointer-events-none">
-           <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#2d1405] to-transparent opacity-80" />
-           <div className="absolute bottom-20 left-0 right-0 flex items-end justify-center gap-0 opacity-40">
-              <div className="w-1/2 h-40 bg-[#1a0a05] rounded-[100%_100%_0_0] blur-xl translate-x-20" />
-              <div className="w-1/2 h-60 bg-[#1a0a05] rounded-[100%_100%_0_0] blur-2xl -translate-x-20" />
-           </div>
-           <div className="absolute top-20 left-10 w-24 h-24 bg-white/10 rounded-full blur-2xl animate-pulse" />
-        </div>
-
         <audio ref={audioRef} src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" autoPlay loop muted={isMuted} />
 
         {gameState === 'result' && lastWinners.length > 0 && (
@@ -258,20 +246,19 @@ export default function WildPartyPage() {
                    </div>
                    <h2 className="text-6xl font-black text-white uppercase italic tracking-tighter drop-shadow-2xl">Big Winner</h2>
                    <p className="text-orange-400 text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                      <Sparkles className="h-4 w-4" /> Wild Frequency Strike <Sparkles className="h-4 w-4" />
+                      <Sparkles className="h-4 w-4" /> Wild Strike <Sparkles className="h-4 w-4" />
                    </p>
                 </div>
 
-                <div className="flex flex-col items-center w-full max-w-xs mx-auto space-y-4 animate-in slide-in-from-bottom-20 duration-1000">
-                   <Avatar className="h-32 w-32 border-4 border-yellow-400 shadow-[0_0_40px_rgba(251,191,36,0.6)]">
+                <div className="flex flex-col items-center w-full max-w-xs mx-auto space-y-4">
+                   <Avatar className="h-32 w-32 border-4 border-yellow-400 shadow-2xl">
                       <AvatarImage src={lastWinners[0].avatar} />
                       <AvatarFallback>U</AvatarFallback>
                    </Avatar>
                    <div className="bg-yellow-400/20 border-2 border-yellow-400/50 p-6 rounded-t-[2.5rem] w-full text-center space-y-1 backdrop-blur-xl">
                       <p className="text-lg font-black text-white uppercase italic tracking-tighter">{lastWinners[0].name}</p>
-                      <p className="text-2xl font-black text-yellow-400 italic flex items-center justify-center gap-1">
-                         <Zap className="h-5 w-5 fill-current" />
-                         {formatAmount(lastWinners[0].amount)}
+                      <p className="text-2xl font-black text-yellow-400 italic">
+                         +{formatAmount(lastWinners[0].amount)}
                       </p>
                    </div>
                 </div>
@@ -281,7 +268,7 @@ export default function WildPartyPage() {
 
         <header className="absolute top-0 left-0 right-0 z-50 p-4 flex items-center justify-between">
            <div className="flex items-center gap-2">
-              <button onClick={() => router.back()} className="bg-white/10 p-2 rounded-full border border-white/10 text-white hover:scale-110 transition-all shadow-xl">
+              <button onClick={() => router.back()} className="bg-white/10 p-2 rounded-full border border-white/10 text-white">
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button onClick={() => setIsMuted(!isMuted)} className="bg-white/10 p-2 rounded-full border border-white/10 text-white">
@@ -295,7 +282,7 @@ export default function WildPartyPage() {
            <div className="bg-black/40 backdrop-blur-xl px-6 py-1.5 rounded-full border border-white/10 flex items-center gap-4">
               <div className="flex items-center gap-2 border-r border-white/10 pr-4">
                  <History className="h-4 w-4 text-orange-400" />
-                 <span className="text-[10px] font-black text-white uppercase">History</span>
+                 <span className="text-[10px] font-black text-white uppercase tracking-widest">History</span>
               </div>
               <div className="flex gap-2">
                 {history.map((id, i) => (
@@ -310,9 +297,9 @@ export default function WildPartyPage() {
            <button onClick={() => router.back()} className="bg-white/10 p-2 rounded-full border border-white/10 text-white"><Menu className="h-5 w-5" /></button>
         </header>
 
-        <main className="flex-1 flex flex-col items-center justify-center pt-16 px-4 space-y-6">
+        <main className="flex-1 flex flex-col items-center justify-center pt-16 px-4 space-y-8">
            
-           <div className="relative w-[24rem] h-[24rem] flex items-center justify-center">
+           <div className="relative w-[22rem] h-[22rem] flex items-center justify-center">
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-50">
                  <div className="w-8 h-10 bg-yellow-500 clip-path-triangle shadow-2xl border-x-2 border-yellow-600" />
               </div>
@@ -320,22 +307,23 @@ export default function WildPartyPage() {
               <div 
                 className={cn(
                   "relative w-full h-full rounded-full border-[16px] border-[#3d1a05] shadow-2xl overflow-visible bg-[#5d2a0a]",
-                  gameState === 'spinning' ? "transition-transform duration-[5000ms] cubic-bezier(0.15, 0, 0.15, 1) animate-vibrate" : "transition-none"
+                  gameState === 'spinning' ? "transition-transform duration-[5000ms] cubic-bezier(0.15, 0, 0.15, 1)" : "transition-none"
                 )}
                 style={{ transform: `rotate(${rotation}deg)` }}
               >
+                 {/* Spokes */}
                  {Array.from({ length: 8 }).map((_, i) => (
                    <div key={i} className="absolute top-1/2 left-1/2 w-[50%] h-1 bg-white/10 origin-left" style={{ transform: `rotate(${i * 45}deg)` }} />
                  ))}
                  
+                 {/* Pegs */}
                  {Array.from({ length: 8 }).map((_, i) => (
-                   <div key={i} className="absolute w-3 h-3 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,1)] z-50 border border-white/50" style={{ top: '50%', left: '50%', transform: `rotate(${i * 45}deg) translate(165px) translateY(-50%)` }} />
+                   <div key={i} className="absolute w-2 h-2 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,1)] z-50 border border-white/50" style={{ top: '50%', left: '50%', transform: `rotate(${i * 45 + 22.5}deg) translate(150px) translateY(-50%)` }} />
                  ))}
 
                  {ANIMALS.map((animal, index) => {
                     const angle = index * 45;
                     const isWinner = gameState === 'result' && resultId === animal.id;
-                    const hasBet = !!myBets[animal.id];
                     return (
                       <div 
                         key={animal.id}
@@ -343,23 +331,21 @@ export default function WildPartyPage() {
                         style={{
                           top: '50%',
                           left: '50%',
-                          transform: `translate(-50%, -50%) rotate(${angle}deg) translate(145px)`
+                          transform: `translate(-50%, -50%) rotate(${angle}deg) translate(135px)`
                         }}
                       >
                         <div 
                           className={cn(
                             "w-full h-full rounded-full flex flex-col items-center justify-center transition-all border-2 backdrop-blur-md",
-                            gameState === 'spinning' ? "duration-[5000ms] cubic-bezier(0.15, 0, 0.15, 1)" : "duration-300",
-                            isWinner ? "scale-150 z-50 bg-yellow-400 border-white shadow-[0_0_40px_rgba(251,191,36,0.8)] animate-bounce" : "bg-black/20 border-white/10",
-                            hasBet && "border-yellow-400 ring-2 ring-yellow-400/20"
+                            isWinner ? "scale-125 z-50 bg-yellow-400 border-white shadow-[0_0_40px_rgba(251,191,36,0.8)]" : "bg-black/20 border-white/10",
                           )}
                           style={{ 
                             transform: `rotate(-${rotation + angle}deg)` 
                           }}
                         >
                            <span className="text-4xl drop-shadow-md">{animal.emoji}</span>
-                           <div className="absolute -bottom-2 bg-[#3d1a05] text-white text-[6px] font-black px-2 py-0.5 rounded-full border border-white/20 whitespace-nowrap">
-                              Win {animal.multiplier}x
+                           <div className="absolute -bottom-3 bg-[#3d1a05] text-white text-[6px] font-black px-2 py-0.5 rounded-full border border-white/20 whitespace-nowrap">
+                              {animal.winText}
                            </div>
                         </div>
                       </div>
@@ -371,8 +357,8 @@ export default function WildPartyPage() {
                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-transparent" />
                  {gameState === 'betting' ? (
                    <div className="relative z-10 flex flex-col items-center text-center">
-                    <span className="text-[8px] font-black text-orange-500 uppercase tracking-widest mb-1">Select Animal<br/>Now</span>
-                    <span className="text-5xl font-black text-white italic tracking-tighter drop-shadow-sm">{timeLeft}</span>
+                    <span className="text-[8px] font-black text-orange-500 uppercase tracking-widest mb-1">Select Animal<br/>now</span>
+                    <span className="text-5xl font-black text-white italic tracking-tighter drop-shadow-sm">{timeLeft}s</span>
                    </div>
                  ) : (
                    <div className="relative z-10 flex flex-col items-center animate-in zoom-in">
@@ -383,21 +369,22 @@ export default function WildPartyPage() {
               </div>
            </div>
 
-           <div className="w-full max-w-xl grid grid-cols-4 gap-3 px-2">
+           {/* 2x4 Betting Grid */}
+           <div className="w-full max-w-lg grid grid-cols-4 gap-2 px-2">
               {ANIMALS.map(animal => (
                 <button 
                   key={animal.id}
                   onClick={() => handlePlaceBet(animal.id)}
                   disabled={gameState !== 'betting'}
                   className={cn(
-                    "relative group h-24 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center",
-                    "bg-[#3d1a05]/60 border-white/10 backdrop-blur-md hover:bg-[#3d1a05]/80",
-                    gameState !== 'betting' && "opacity-60 grayscale-[0.2]",
-                    myBets[animal.id] && "border-yellow-400 ring-4 ring-yellow-400/20"
+                    "relative group h-20 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center p-2 shadow-lg",
+                    "bg-[#5d4a66] border-white/10 hover:bg-[#6d5a76]",
+                    gameState !== 'betting' && "opacity-60",
+                    myBets[animal.id] && "border-yellow-400 ring-2 ring-yellow-400/20"
                   )}
                 >
                    <span className="text-3xl mb-1 group-hover:scale-110 transition-transform">{animal.emoji}</span>
-                   <span className="text-[10px] font-black text-yellow-500 italic">{animal.label}</span>
+                   <span className="text-[10px] font-black text-yellow-500 uppercase italic tracking-widest">{animal.label}</span>
                    
                    {myBets[animal.id] && (
                      <div className="absolute -top-2 -right-2 bg-yellow-400 text-black px-2 py-0.5 rounded-full text-[8px] font-black shadow-lg animate-in zoom-in border border-white">
@@ -408,7 +395,8 @@ export default function WildPartyPage() {
               ))}
            </div>
 
-           <div className="w-full max-w-2xl bg-[#3d1a05] rounded-[3rem] border-4 border-[#5d2a0a] p-4 flex items-center justify-between shadow-2xl">
+           {/* Premium Savannah Dashboard */}
+           <div className="w-full max-w-xl bg-[#1a0a05] rounded-[3rem] border-4 border-[#3d1a05] p-4 flex items-center justify-between shadow-2xl">
               <div className="flex items-center gap-3 bg-black/40 px-6 h-14 rounded-full border border-white/10">
                  <div className="bg-yellow-500 p-1.5 rounded-lg shadow-lg">
                     <Zap className="h-5 w-5 text-black fill-current" />
@@ -420,49 +408,35 @@ export default function WildPartyPage() {
               </div>
 
               <div className="flex-1 flex items-center justify-center gap-2 overflow-x-auto no-scrollbar px-4">
-                 <button onClick={() => setMyBets({})} className="h-12 px-6 rounded-full bg-white/10 border border-white/10 text-white font-black uppercase italic text-[10px] hover:bg-white/20">Repeat</button>
                  {CHIPS.map(chip => (
                    <button 
                     key={chip.value}
                     onClick={() => setSelectedChip(chip.value)}
                     className={cn(
-                      "h-14 w-14 rounded-full flex items-center justify-center transition-all border-4 active:scale-90 relative shrink-0",
+                      "h-12 w-12 rounded-full flex items-center justify-center transition-all border-4 active:scale-90 relative shrink-0",
                       selectedChip === chip.value 
-                        ? "scale-110 z-10 shadow-[0_0_20px_rgba(255,255,255,0.4)] " + chip.color + " border-white"
+                        ? "scale-110 z-10 shadow-[0_0_20px_rgba(255,255,255,0.4)] bg-slate-900 border-white"
                         : "bg-black/40 border-white/10 text-white/60"
                     )}
                    >
-                      <span className="text-[10px] font-black italic">{chip.label}</span>
+                      <span className="text-[8px] font-black italic">{chip.label}</span>
                       {selectedChip === chip.value && <div className="absolute inset-0 bg-white/10 rounded-full animate-pulse" />}
                    </button>
                  ))}
               </div>
 
-              <Button 
-                onClick={toggleMic}
-                className={cn(
-                  "rounded-full h-16 w-16 shadow-2xl transition-all scale-110 border-4",
-                  currentUserParticipant?.isMuted 
-                    ? "bg-rose-600 border-rose-400 text-white" 
-                    : "bg-orange-600 border-orange-400 text-white hover:scale-125 shadow-orange-500/20"
-                )}
+              <button 
+                className="h-16 w-16 bg-orange-500 rounded-full flex items-center justify-center shadow-2xl shadow-orange-500/40 hover:scale-110 active:scale-95 transition-all border-4 border-orange-400"
+                onClick={() => setMyBets({})}
               >
-                {currentUserParticipant?.isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6 animate-voice-wave" />}
-              </Button>
+                 <div className="h-10 w-10 rounded-full border-4 border-white/20 flex items-center justify-center">
+                    <div className="h-4 w-4 bg-white/40 rounded-full" />
+                 </div>
+              </button>
            </div>
         </main>
 
         <style jsx global>{`
-          @keyframes vibrate {
-            0% { transform: scale(1); }
-            25% { transform: scale(1.01) rotate(0.1deg); }
-            50% { transform: scale(1); }
-            75% { transform: scale(1.01) rotate(-0.1deg); }
-            100% { transform: scale(1); }
-          }
-          .animate-vibrate {
-            animation: vibrate 0.05s linear infinite;
-          }
           .clip-path-triangle {
             clip-path: polygon(50% 100%, 0 0, 100% 0);
           }
