@@ -24,6 +24,14 @@ const games: Game[] = [
     cost: 0, 
     imageHint: 'vibrant fruits' 
   },
+  { 
+    id: 'g3', 
+    title: 'Forest Party', 
+    slug: 'forest-party', 
+    coverUrl: 'https://picsum.photos/seed/forest-party/1200/600', 
+    cost: 0, 
+    imageHint: 'forest animals' 
+  },
 ];
 
 const coinPackages: CoinPackage[] = [

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getFreeGames } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { GameControllerIcon } from "@/components/icons";
-import { Play, Sparkles, Construction, Zap } from "lucide-react";
+import { Play, Sparkles, Construction, Zap, Trees } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 
 export default function GamesPage() {
@@ -28,9 +28,35 @@ export default function GamesPage() {
         
         {games.length > 0 ? (
           <section className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+             {/* Forest Party Feature */}
+             <Link href="/games/forest-party" className="block group">
+                <div className="relative aspect-[21/9] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
+                   <Image 
+                     src="https://picsum.photos/seed/forest-party/1200/600" 
+                     alt="Forest Party" 
+                     fill 
+                     className="object-cover group-hover:scale-105 transition-transform duration-1000"
+                     data-ai-hint="wild forest"
+                   />
+                   <div className="absolute inset-0 bg-gradient-to-r from-green-900/80 via-transparent to-transparent flex flex-col justify-center px-12 space-y-2">
+                      <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md w-fit px-4 py-1.5 rounded-full border border-white/30">
+                         <Trees className="h-4 w-4 text-white" />
+                         <span className="text-xs font-black uppercase text-white italic">Wild Tribe</span>
+                      </div>
+                      <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter">Forest Party</h2>
+                      <p className="text-white/80 max-w-xs font-body text-sm">Wager on the wild animal lineage. High-fidelity jungle vibes.</p>
+                      <div className="pt-2">
+                         <Button size="lg" className="rounded-full px-10 font-black uppercase italic bg-white text-green-800 hover:bg-white/90">
+                            <Play className="mr-2 h-5 w-5 fill-current" /> Enter Forest
+                         </Button>
+                      </div>
+                   </div>
+                </div>
+             </Link>
+
              {/* Fruit Party Feature */}
              <Link href="/games/fruit-party" className="block group">
-                <div className="relative aspect-[21/9] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
+                <div className="relative aspect-[21/9] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white opacity-80 hover:opacity-100 transition-opacity">
                    <Image 
                      src="https://picsum.photos/seed/fruit-party/1200/600" 
                      alt="Fruit Party" 
@@ -55,8 +81,8 @@ export default function GamesPage() {
              </Link>
 
              {/* Ludo Masters Feature */}
-             <Link href="/games/ludo" className="block group">
-                <div className="relative aspect-[21/9] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
+             <Link href="/games/ludo" className="block group md:col-span-2">
+                <div className="relative aspect-[21/7] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
                    <Image 
                      src="https://picsum.photos/seed/ludo-pro/1200/600" 
                      alt="Ludo Masters" 
@@ -70,7 +96,7 @@ export default function GamesPage() {
                          <span className="text-xs font-black uppercase text-white italic">Live Multiplayer</span>
                       </div>
                       <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter">Ludo Master</h2>
-                      <p className="text-white/80 max-w-xs font-body text-sm">Classic tribe board game with full voice sync.</p>
+                      <p className="text-white/80 max-w-md font-body text-sm">Classic tribe board game with full voice sync. Challenge the frequency elders.</p>
                       <div className="pt-2">
                          <Button size="lg" className="rounded-full px-10 font-black uppercase italic bg-white text-blue-600 hover:bg-white/90">
                             <Play className="mr-2 h-5 w-5 fill-current" /> Launch Ludo
