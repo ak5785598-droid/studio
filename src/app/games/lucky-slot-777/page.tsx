@@ -17,13 +17,9 @@ import {
   Trophy,
   Crown,
   Sparkles,
-  Info,
-  Users,
-  Settings,
-  MoreHorizontal,
+  Gamepad2,
   RefreshCw,
   User as UserIcon,
-  Gamepad2
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -69,8 +65,9 @@ export default function LuckySlot777Page() {
   const [timeLeft, setTimeLeft] = useState(20);
   const [selectedChip, setSelectedChip] = useState(100);
   const [myBets, setMyBets] = useState<Record<string, number>>({});
-  const [spinningIndex, setSpinningIndex] = useState(0);
+  const [rotation, setRotation] = useState(0);
   const [resultId, setResultId] = useState<string | null>(null);
+  const [spinningIndex, setSpinningIndex] = useState(0);
   const [history, setHistory] = useState<string[]>([]);
   const [lastWinners, setLastWinners] = useState<RoundWinner[]>([]);
   const [isMuted, setIsMuted] = useState(false);
@@ -101,10 +98,7 @@ export default function LuckySlot777Page() {
         if (timeLeft > 0) {
           setTimeLeft(prev => prev - 1);
         } else {
-          setGameState('spinning');
           const randomIndex = Math.floor(Math.random() * WHEEL_DISTRIBUTION.length);
-          const targetId = WHEEL_DISTRIBUTION[randomIndex];
-          setResultId(targetId);
           startSpin(randomIndex);
         }
       }
@@ -114,23 +108,25 @@ export default function LuckySlot777Page() {
   }, [gameState, timeLeft, isLaunching]);
 
   const startSpin = (targetIdx: number) => {
-    let current = 0;
-    const spins = 40 + targetIdx; 
-    let speed = 15; 
+    setGameState('spinning');
+    
+    // Physical Rotation Logic:
+    // 8 slices, each 45 degrees.
+    // The arrow is at the top (0 degrees).
+    // To land on index 'i', we must rotate the wheel so slice 'i' is at 0.
+    const sliceAngle = 360 / WHEEL_DISTRIBUTION.length;
+    const extraSpins = 10; // For high-speed effect
+    const landingAngle = (360 - (targetIdx * sliceAngle)) % 360;
+    const totalRotation = rotation + (360 * extraSpins) + landingAngle;
+    
+    setRotation(totalRotation);
+    setResultId(WHEEL_DISTRIBUTION[targetIdx]);
+    setSpinningIndex(targetIdx);
 
-    const runSpin = () => {
-      setSpinningIndex(current % WHEEL_DISTRIBUTION.length);
-      if (current < spins) {
-        current++;
-        if (current > spins - 10) {
-          speed += 20; 
-        }
-        setTimeout(runSpin, speed);
-      } else {
-        setTimeout(() => showResult(WHEEL_DISTRIBUTION[targetIdx]), 600);
-      }
-    };
-    runSpin();
+    // Fast 2.5s duration for rotation
+    setTimeout(() => {
+      showResult(WHEEL_DISTRIBUTION[targetIdx]);
+    }, 2500);
   };
 
   const showResult = (id: string) => {
@@ -234,7 +230,7 @@ export default function LuckySlot777Page() {
           muted={isMuted} 
         />
 
-        {/* Real-Time Champions Podium Overlay */}
+        {/* Real-Time Winners Podium Overlay */}
         {gameState === 'result' && lastWinners.length > 0 && (
           <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center animate-in fade-in duration-500">
              <div className="bg-black/90 backdrop-blur-2xl absolute inset-0" />
@@ -246,18 +242,18 @@ export default function LuckySlot777Page() {
                          <Trophy className="h-12 w-12 text-white animate-bounce" />
                       </div>
                    </div>
-                   <h2 className="text-6xl font-black text-white uppercase italic tracking-tighter drop-shadow-2xl">Real Winners</h2>
+                   <h2 className="text-6xl font-black text-white uppercase italic tracking-tighter drop-shadow-2xl">Big Winner</h2>
                    <p className="text-yellow-400 text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                      <Sparkles className="h-4 w-4" /> Live Tribe Achievement <Sparkles className="h-4 w-4" />
+                      <Sparkles className="h-4 w-4" /> Frequency Legend <Sparkles className="h-4 w-4" />
                    </p>
                 </div>
 
-                <div className="flex items-end justify-center gap-4 h-[300px]">
+                <div className="flex items-end justify-center gap-4">
                    {lastWinners[0] && (
-                     <div className="flex flex-col items-center w-1/2 space-y-4 animate-in slide-in-from-bottom-20 duration-1000">
+                     <div className="flex flex-col items-center w-full max-w-xs space-y-4 animate-in slide-in-from-bottom-20 duration-1000">
                         <div className="relative">
                            <Crown className="absolute -top-10 left-1/2 -translate-x-1/2 h-12 w-12 text-yellow-400 animate-bounce" />
-                           <Avatar className="h-28 w-28 border-4 border-yellow-400 shadow-[0_0_40px_rgba(251,191,36,0.6)]">
+                           <Avatar className="h-32 w-32 border-4 border-yellow-400 shadow-[0_0_40px_rgba(251,191,36,0.6)]">
                               <AvatarImage src={lastWinners[0].avatar} />
                               <AvatarFallback>U</AvatarFallback>
                            </Avatar>
@@ -315,31 +311,35 @@ export default function LuckySlot777Page() {
               <div className="flex gap-3 overflow-x-auto no-scrollbar py-1 flex-1">
                 {history.map((id, i) => (
                   <div key={i} className="h-8 w-8 bg-purple-500/10 rounded-full flex items-center justify-center text-xl border border-purple-500/20 relative">
-                    {WHEEL_DISTRIBUTION.includes(id) ? (id === 'seven' ? '7️⃣' : (id === 'peach' ? '🍑' : '🍉')) : ''}
+                    {id === 'seven' ? '7️⃣' : (id === 'peach' ? '🍑' : '🍉')}
                     {i === 0 && <Badge className="absolute -top-2 -right-2 bg-yellow-500 text-black text-[6px] h-3 px-1 font-black">NEW</Badge>}
                   </div>
                 ))}
-                {history.length === 0 && <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Waiting...</span>}
+                {history.length === 0 && <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Waiting for First Frequency...</span>}
               </div>
            </div>
         </div>
 
-        {/* The Golden Wheel Stage */}
+        {/* The Rotating Golden Wheel Stage */}
         <main className="flex-1 flex flex-col items-center justify-center pt-32 px-4 space-y-12">
            
            <div className="relative w-[22rem] h-[22rem] flex items-center justify-center">
               <div className="absolute -inset-10 border-[16px] border-yellow-600/20 rounded-full shadow-[0_0_60px_rgba(234,179,8,0.2)]" />
               <div className="absolute -inset-6 border-[4px] border-yellow-500/40 rounded-full" />
               
-              {/* Spinning Container with High-Speed Rotation Animation (No Blur) */}
-              <div className={cn(
-                "relative w-full h-full rounded-full border-[8px] border-yellow-500 shadow-2xl transition-all duration-[1500ms] cubic-bezier(0.15, 0, 0.15, 1) overflow-hidden",
-                gameState === 'spinning' && "animate-[spin_0.2s_linear_infinite] scale-[1.02] animate-pulse"
-              )}>
+              {/* Physical Rotating Wheel Container */}
+              <div 
+                className={cn(
+                  "relative w-full h-full rounded-full border-[8px] border-yellow-500 shadow-2xl overflow-hidden",
+                  gameState === 'spinning' 
+                    ? "transition-transform duration-[2500ms] cubic-bezier(0.15, 0, 0.15, 1) animate-pulse" 
+                    : "transition-none"
+                )}
+                style={{ transform: `rotate(${rotation}deg)` }}
+              >
                  <svg viewBox="0 0 100 100" className="w-full h-full">
                     {WHEEL_DISTRIBUTION.map((id, i) => {
                       const angle = i * 45;
-                      const isWinningIdx = spinningIndex === i;
                       return (
                         <g key={i} transform={`rotate(${angle} 50 50)`}>
                            <path 
@@ -347,14 +347,14 @@ export default function LuckySlot777Page() {
                              fill={id === 'seven' ? '#ff006e' : (i % 2 === 0 ? '#0077b6' : '#00b4d8')}
                              stroke="#fbbf24"
                              strokeWidth="0.5"
-                             className={cn("transition-opacity duration-300", isWinningIdx ? "opacity-100" : "opacity-80")}
+                             className="opacity-90"
                            />
                            <text 
                              x="65" y="25" 
                              transform="rotate(22.5 65 25)" 
                              fontSize="8" 
                              textAnchor="middle" 
-                             className="pointer-events-none drop-shadow-md font-black"
+                             className="pointer-events-none drop-shadow-md font-black fill-white"
                            >
                              {id === 'seven' ? '77' : (id === 'peach' ? '🍑' : '🍉')}
                            </text>
@@ -364,6 +364,7 @@ export default function LuckySlot777Page() {
                  </svg>
               </div>
 
+              {/* Central Non-Rotating Hub */}
               <div className="absolute z-20 w-32 h-32 bg-black rounded-full shadow-2xl flex flex-col items-center justify-center border-[6px] border-yellow-500 group overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent" />
                  {gameState === 'betting' ? (
@@ -371,19 +372,28 @@ export default function LuckySlot777Page() {
                     <span className="text-[8px] font-black text-yellow-500 uppercase tracking-widest mb-1 text-center">Place<br/>Bets</span>
                     <span className="text-4xl font-black text-white italic tracking-tighter drop-shadow-sm">{timeLeft}s</span>
                    </div>
+                 ) : gameState === 'spinning' ? (
+                   <div className="relative z-10 flex flex-col items-center animate-pulse">
+                      <RefreshCw className="h-10 w-10 text-yellow-500 animate-spin" />
+                      <span className="text-[8px] font-black uppercase text-yellow-500/60 tracking-widest mt-2">Spinning...</span>
+                   </div>
                  ) : (
                    <div className="relative z-10 flex flex-col items-center animate-in zoom-in">
                       <span className="text-[8px] font-black uppercase text-yellow-500/60 tracking-widest mb-1">Result</span>
-                      <span className="text-5xl animate-bounce">{WHEEL_DISTRIBUTION[spinningIndex] === 'seven' ? '77' : (WHEEL_DISTRIBUTION[spinningIndex] === 'peach' ? '🍑' : '🍉')}</span>
+                      <span className="text-5xl animate-bounce">
+                        {WHEEL_DISTRIBUTION[spinningIndex] === 'seven' ? '77' : (WHEEL_DISTRIBUTION[spinningIndex] === 'peach' ? '🍑' : '🍉')}
+                      </span>
                    </div>
                  )}
               </div>
 
+              {/* Result Pointer Arrow */}
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30">
                  <div className="w-8 h-10 bg-yellow-500 clip-path-triangle shadow-lg border-x border-b border-black/20" />
               </div>
            </div>
 
+           {/* Three-Tier Betting Dashboard */}
            <div className="w-full max-w-xl grid grid-cols-3 gap-4 px-2">
               {ITEMS.map(item => (
                 <button 
@@ -410,6 +420,7 @@ export default function LuckySlot777Page() {
               ))}
            </div>
 
+           {/* High-Stakes Chip Selector */}
            <div className="w-full max-w-lg bg-black/60 backdrop-blur-2xl rounded-full border-2 border-white/10 p-2 flex items-center justify-between shadow-2xl">
               <div className="flex-1 flex justify-center gap-3 px-4">
                  {CHIPS.map(chip => (
@@ -427,8 +438,13 @@ export default function LuckySlot777Page() {
                    </button>
                  ))}
               </div>
-              <Button className="h-12 rounded-full px-8 bg-white text-black font-black uppercase italic tracking-widest hover:bg-gray-200">
-                 Repeat
+              <Button 
+                variant="ghost"
+                className="h-12 rounded-full px-8 bg-white text-black font-black uppercase italic tracking-widest hover:bg-gray-200"
+                onClick={() => setMyBets({})}
+                disabled={gameState !== 'betting'}
+              >
+                 Clear
               </Button>
            </div>
         </main>
