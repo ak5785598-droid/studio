@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getFreeGames } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { GameControllerIcon } from "@/components/icons";
-import { Play, Sparkles, Construction, Zap, Trees } from "lucide-react";
+import { Play, Sparkles, Construction, Zap, Trees, Star } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 
 export default function GamesPage() {
@@ -28,6 +28,32 @@ export default function GamesPage() {
         
         {games.length > 0 ? (
           <section className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+             {/* Lucky Slot 777 - NEW Feature */}
+             <Link href="/games/lucky-slot-777" className="block group md:col-span-2">
+                <div className="relative aspect-[21/7] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
+                   <Image 
+                     src="https://picsum.photos/seed/lucky-slot/1200/600" 
+                     alt="Lucky Slot 777" 
+                     fill 
+                     className="object-cover group-hover:scale-105 transition-transform duration-1000"
+                     data-ai-hint="casino slot"
+                   />
+                   <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 via-transparent to-transparent flex flex-col justify-center px-12 space-y-2">
+                      <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md w-fit px-4 py-1.5 rounded-full border border-white/30">
+                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                         <span className="text-xs font-black uppercase text-white italic">Elite Jackpot</span>
+                      </div>
+                      <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter">Lucky Slot 777</h2>
+                      <p className="text-white/80 max-w-md font-body text-sm">Spin the golden wheel of fortune. High-fidelity theatrical vibes with 8x jackpot rewards!</p>
+                      <div className="pt-2">
+                         <Button size="lg" className="rounded-full px-10 font-black uppercase italic bg-yellow-400 text-purple-900 hover:bg-yellow-300 border-b-4 border-yellow-600">
+                            <Play className="mr-2 h-5 w-5 fill-current" /> Spin Now
+                         </Button>
+                      </div>
+                   </div>
+                </div>
+             </Link>
+
              {/* Forest Party Feature */}
              <Link href="/games/forest-party" className="block group">
                 <div className="relative aspect-[21/9] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
@@ -56,7 +82,7 @@ export default function GamesPage() {
 
              {/* Fruit Party Feature */}
              <Link href="/games/fruit-party" className="block group">
-                <div className="relative aspect-[21/9] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white opacity-80 hover:opacity-100 transition-opacity">
+                <div className="relative aspect-[21/9] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
                    <Image 
                      src="https://picsum.photos/seed/fruit-party/1200/600" 
                      alt="Fruit Party" 
@@ -74,32 +100,6 @@ export default function GamesPage() {
                       <div className="pt-2">
                          <Button size="lg" className="rounded-full px-10 font-black uppercase italic bg-white text-orange-600 hover:bg-white/90">
                             <Play className="mr-2 h-5 w-5 fill-current" /> Join Party
-                         </Button>
-                      </div>
-                   </div>
-                </div>
-             </Link>
-
-             {/* Ludo Masters Feature */}
-             <Link href="/games/ludo" className="block group md:col-span-2">
-                <div className="relative aspect-[21/7] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
-                   <Image 
-                     src="https://picsum.photos/seed/ludo-pro/1200/600" 
-                     alt="Ludo Masters" 
-                     fill 
-                     className="object-cover group-hover:scale-105 transition-transform duration-1000"
-                     data-ai-hint="ludo board"
-                   />
-                   <div className="absolute inset-0 bg-gradient-to-r from-blue-600/80 via-transparent to-transparent flex flex-col justify-center px-12 space-y-2">
-                      <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md w-fit px-4 py-1.5 rounded-full border border-white/30">
-                         <Sparkles className="h-4 w-4 text-white" />
-                         <span className="text-xs font-black uppercase text-white italic">Live Multiplayer</span>
-                      </div>
-                      <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter">Ludo Master</h2>
-                      <p className="text-white/80 max-w-md font-body text-sm">Classic tribe board game with full voice sync. Challenge the frequency elders.</p>
-                      <div className="pt-2">
-                         <Button size="lg" className="rounded-full px-10 font-black uppercase italic bg-white text-blue-600 hover:bg-white/90">
-                            <Play className="mr-2 h-5 w-5 fill-current" /> Launch Ludo
                          </Button>
                       </div>
                    </div>

@@ -32,6 +32,14 @@ const games: Game[] = [
     cost: 0, 
     imageHint: 'forest animals' 
   },
+  { 
+    id: 'g4', 
+    title: 'Lucky Slot 777', 
+    slug: 'lucky-slot-777', 
+    coverUrl: 'https://picsum.photos/seed/lucky777/1200/600', 
+    cost: 0, 
+    imageHint: 'lucky 777 slot' 
+  },
 ];
 
 const coinPackages: CoinPackage[] = [
