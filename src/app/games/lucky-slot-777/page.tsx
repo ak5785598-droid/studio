@@ -129,15 +129,21 @@ export default function LuckySlot777Page() {
     const sliceAngle = 360 / WHEEL_DISTRIBUTION.length;
     const extraSpins = 50; 
     const landingAngle = (360 - (targetIdx * sliceAngle)) % 360;
-    const totalRotation = rotation + (360 * extraSpins) + landingAngle;
     
-    setRotation(totalRotation);
-    setResultId(WHEEL_DISTRIBUTION[targetIdx]);
+    // Ensure rotation is always forward and cumulative to show the speed properly
+    const baseRotation = Math.floor(rotation / 360) * 360;
+    const totalRotation = baseRotation + (360 * extraSpins) + landingAngle;
+    
+    // Tiny delay to ensure CSS transition is active before setting the rotation property
+    setTimeout(() => {
+      setRotation(totalRotation);
+      setResultId(WHEEL_DISTRIBUTION[targetIdx]);
+    }, 50);
 
     setTimeout(() => {
       setSpinningIndex(targetIdx);
       showResult(WHEEL_DISTRIBUTION[targetIdx]);
-    }, 5000);
+    }, 5050);
   };
 
   const showResult = (id: string) => {
@@ -317,7 +323,7 @@ export default function LuckySlot777Page() {
            
            {/* Ornate Rotating Wheel */}
            <div className="relative w-[22rem] h-[22rem] flex items-center justify-center">
-              {/* Golden Decorative Wings (The "Fins" on side of machine) */}
+              {/* Golden Decorative Wings */}
               <div className="absolute -left-12 top-1/2 -translate-y-1/2 w-20 h-40 flex flex-col gap-1 pointer-events-none opacity-80">
                  <div className="h-8 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-l-2xl border-y border-l border-yellow-700/50 shadow-lg" />
                  <div className="h-10 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-l-2xl border-y border-l border-yellow-700/50 shadow-lg ml-2" />
@@ -344,14 +350,27 @@ export default function LuckySlot777Page() {
               {/* Physical Rotating Wheel Container */}
               <div 
                 className={cn(
-                  "relative w-full h-full rounded-full border-[12px] border-yellow-500 shadow-2xl overflow-hidden ring-8 ring-black/40",
+                  "relative w-full h-full rounded-full border-[12px] border-yellow-500 shadow-2xl overflow-visible ring-8 ring-black/40",
                   gameState === 'spinning' 
-                    ? "transition-transform duration-[5000ms] cubic-bezier(0.15, 0, 0.15, 1) animate-pulse" 
+                    ? "transition-transform duration-[5000ms] cubic-bezier(0.15, 0, 0.15, 1) animate-vibrate" 
                     : "transition-none"
                 )}
                 style={{ transform: `rotate(${rotation}deg)` }}
               >
-                 <svg viewBox="0 0 100 100" className="w-full h-full">
+                 {/* Motion Glow Studs for Visual Speed */}
+                 {Array.from({ length: 8 }).map((_, i) => (
+                   <div 
+                    key={i} 
+                    className="absolute w-3 h-3 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,1)] z-50 border border-white/50"
+                    style={{ 
+                      top: '50%', 
+                      left: '50%', 
+                      transform: `rotate(${i * 45}deg) translate(155px) translateY(-50%)` 
+                    }}
+                   />
+                 ))}
+
+                 <svg viewBox="0 0 100 100" className="w-full h-full rounded-full overflow-hidden">
                     <defs>
                        <linearGradient id="sliceBlue" x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stopColor="#0099ff" />
@@ -433,7 +452,6 @@ export default function LuckySlot777Page() {
                     myBets[item.id] && "border-yellow-400 ring-4 ring-yellow-400/20"
                   )}
                 >
-                   {/* Background Diamond Pattern Overlay */}
                    <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }} />
                    
                    <div className="absolute top-2 right-2 text-[10px] font-black text-white/40 bg-black/20 px-2 py-0.5 rounded-full">
@@ -513,6 +531,18 @@ export default function LuckySlot777Page() {
            </Button>
         </footer>
 
+        <style jsx global>{`
+          @keyframes vibrate {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.01) rotate(0.1deg); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.01) rotate(-0.1deg); }
+            100% { transform: scale(1); }
+          }
+          .animate-vibrate {
+            animation: vibrate 0.05s linear infinite;
+          }
+        `}</style>
       </div>
     </AppLayout>
   );
