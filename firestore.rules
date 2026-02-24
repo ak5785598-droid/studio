@@ -7,14 +7,20 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.auth.uid == userId;
+      // Allow the owner to change everything, or others to only update stats/wallet during gifting
       allow update: if isSignedIn() && (
         request.auth.uid == userId || 
-        request.resource.data.diff(resource.data).affectedKeys().hasAny(['stats', 'wallet', 'updatedAt'])
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'wallet', 'updatedAt'])
       );
       
       match /profile/{profileId} {
         allow read: if isSignedIn();
-        allow create, update: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn() && request.auth.uid == userId;
+        // Same logic for the detailed profile subcollection
+        allow update: if isSignedIn() && (
+          request.auth.uid == userId || 
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'wallet', 'updatedAt'])
+        );
       }
       match /notifications/{id} {
         allow read: if isSignedIn() && request.auth.uid == userId;
@@ -24,7 +30,7 @@ service cloud.firestore {
 
     match /appConfig/{id} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn() && id == 'counters';
+      allow write: if isSignedIn() && (id == 'counters' || id == 'global');
     }
 
     match /chatRooms/{roomId} {
@@ -44,6 +50,12 @@ service cloud.firestore {
         allow read, list, create: if isSignedIn();
         allow delete: if isSignedIn();
       }
+    }
+
+    // Admin Logs
+    match /adminLogs/{id} {
+      allow create: if isSignedIn();
+      allow read: if isSignedIn() && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tags.hasAny(['Admin', 'Official']));
     }
   }
 }
