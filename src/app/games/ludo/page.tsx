@@ -23,7 +23,8 @@ import {
   Maximize2,
   Plus,
   Star,
-  Settings
+  Settings,
+  CircleSlash
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -60,25 +61,25 @@ export default function LudoGamePage() {
 
   if (isLaunching) {
     return (
-      <div className="h-screen w-full bg-[#0a1a4a] flex flex-col items-center justify-center space-y-6">
+      <div className="h-screen w-full bg-[#0a1a4a] flex flex-col items-center justify-center space-y-6 font-headline">
         <div className="relative">
            <div className="absolute inset-0 bg-yellow-500/20 rounded-full blur-3xl animate-pulse" />
            <Gamepad2 className="h-20 w-20 text-yellow-500 relative z-10 animate-bounce" />
         </div>
         <div className="text-center space-y-2">
            <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter">Ludo Quick</h1>
-           <p className="text-muted-foreground text-xs font-black uppercase tracking-widest animate-pulse">Syncing with Frequency...</p>
+           <p className="text-muted-foreground text-xs font-black uppercase tracking-widest animate-pulse">Syncing Tribe Board...</p>
         </div>
       </div>
     );
   }
 
-  const SafetySpot = ({ color }: { color?: string }) => (
+  const SafetySpot = ({ type, color }: { type: 'star' | 'slash', color?: string }) => (
     <div className="flex items-center justify-center w-full h-full relative">
-       {color ? (
-         <Star className={cn("h-4 w-4 fill-current", color)} />
+       {type === 'star' ? (
+         <Star className={cn("h-5 w-5 fill-current", color || "text-green-800/40")} />
        ) : (
-         <div className="h-4 w-4 border-2 border-white/40 rounded-full flex items-center justify-center">
+         <div className="h-5 w-5 border-2 border-white/40 rounded-full flex items-center justify-center">
             <div className="w-px h-full bg-white/40 rotate-45" />
          </div>
        )}
@@ -87,221 +88,236 @@ export default function LudoGamePage() {
 
   const Bridge = ({ orientation }: { orientation: 'h' | 'v' }) => (
     <div className={cn(
-      "bg-orange-400 border-2 border-orange-600 rounded-sm shadow-sm flex items-center justify-center gap-0.5",
-      orientation === 'h' ? "w-6 h-4 flex-col" : "w-4 h-6"
+      "bg-[#f0ad4e] border-2 border-[#8b4513] rounded-sm shadow-md flex items-center justify-center gap-0.5 z-20",
+      orientation === 'h' ? "w-10 h-6 flex-col" : "w-6 h-10"
     )}>
        {Array.from({ length: 3 }).map((_, i) => (
-         <div key={i} className={cn("bg-orange-600/40", orientation === 'h' ? "h-[1px] w-full" : "w-[1px] h-full")} />
+         <div key={i} className={cn("bg-[#8b4513]/30", orientation === 'h' ? "h-[1px] w-full" : "w-[1px] h-full")} />
        ))}
     </div>
   );
 
   return (
     <AppLayout fullScreen>
-      <div className="h-screen w-full bg-[#0a1a4a] flex flex-col relative overflow-hidden font-headline">
+      <div className="h-screen w-full bg-gradient-to-b from-[#0a1a4a] via-[#050c2a] to-[#000000] flex flex-col relative overflow-hidden font-headline">
         
         {/* Sky Background Stars */}
         <div className="absolute inset-0 z-0 opacity-40">
            <div className="absolute top-20 left-[10%] w-1 h-1 bg-white rounded-full animate-pulse" />
            <div className="absolute top-40 left-[80%] w-1.5 h-1.5 bg-white rounded-full animate-pulse delay-700" />
            <div className="absolute bottom-60 left-[30%] w-1 h-1 bg-white rounded-full animate-pulse delay-300" />
-           <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white/20 rounded-full blur-xl animate-ping" />
+           <div className="absolute top-1/2 left-1/2 w-[40rem] h-[40rem] bg-blue-500/5 rounded-full blur-[120px] animate-ping" />
         </div>
 
-        {/* High-Fidelity Header */}
-        <header className="relative z-50 p-4 flex items-center justify-between">
+        {/* Top High-Fidelity Header */}
+        <header className="relative z-50 p-4 px-6 flex items-center justify-between">
            <div className="flex items-center gap-2">
-              <button className="bg-white/10 p-2 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all">
-                <Maximize2 className="h-4 w-4" />
+              <button className="bg-white/10 p-2 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg">
+                <Maximize2 className="h-5 w-5" />
               </button>
-              <button onClick={() => setIsMuted(!isMuted)} className="bg-white/10 p-2 rounded-full border border-white/10 text-white">
-                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              <button onClick={() => setIsMuted(!isMuted)} className="bg-white/10 p-2 rounded-full border border-white/10 text-white shadow-lg">
+                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
               </button>
-              <button className="bg-white/10 p-2 rounded-full border border-white/10 text-white">
-                <RefreshCw className="h-4 w-4" />
+              <button className="bg-white/10 p-2 rounded-full border border-white/10 text-white shadow-lg">
+                <RefreshCw className="h-5 w-5" />
               </button>
            </div>
 
            <div className="text-center">
-              <h1 className="text-2xl font-black text-white uppercase tracking-tight drop-shadow-lg">Ludo • Quick</h1>
+              <h1 className="text-3xl font-black text-white uppercase tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] italic">Ludo • Quick</h1>
            </div>
 
            <div className="flex items-center gap-2">
-              <button className="bg-white/10 p-2 rounded-full border border-white/10 text-white">
-                <HelpCircle className="h-4 w-4" />
+              <button className="bg-white/10 p-2 rounded-full border border-white/10 text-white shadow-lg">
+                <HelpCircle className="h-5 w-5" />
               </button>
-              <button className="bg-white/10 p-2 rounded-full border border-white/10 text-white">
-                <ChevronDown className="h-4 w-4" />
+              <button className="bg-white/10 p-2 rounded-full border border-white/10 text-white shadow-lg">
+                <ChevronDown className="h-5 w-5" />
               </button>
-              <button onClick={() => router.back()} className="bg-white/10 p-2 rounded-full border border-white/10 text-white">
-                <X className="h-4 w-4" />
+              <button onClick={() => router.back()} className="bg-white/10 p-2 rounded-full border border-white/10 text-white shadow-lg">
+                <X className="h-5 w-5" />
               </button>
            </div>
         </header>
 
-        {/* The Game Board */}
+        {/* The Game Stage */}
         <main className="flex-1 flex items-center justify-center p-4 relative z-10">
            
-           <div className="relative w-[min(90vw,90vh)] aspect-square bg-[#7cb342] rounded-[3rem] p-4 shadow-[0_30px_60px_rgba(0,0,0,0.5)] border-b-8 border-[#558b2f]">
+           <div className="relative w-[min(95vw,95vh)] aspect-square bg-[#7cb342] rounded-[3.5rem] p-5 shadow-[0_40px_80px_rgba(0,0,0,0.6)] border-b-[12px] border-[#558b2f]">
               
-              {/* Corner Plus Buttons */}
-              <button className="absolute -top-2 -left-2 h-12 w-12 bg-rose-500 rounded-full border-4 border-white/30 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                 <Plus className="h-6 w-6 text-white/60" />
-              </button>
-              <button className="absolute -top-2 -right-2 h-12 w-12 bg-green-500 rounded-full border-4 border-white/30 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                 <Plus className="h-6 w-6 text-white/60" />
-              </button>
-              <button className="absolute -bottom-2 -right-2 h-12 w-12 bg-orange-400 rounded-full border-4 border-white/30 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                 <Plus className="h-6 w-6 text-white/60" />
+              {/* Ornate Corner Protrusions & Plus Buttons */}
+              <div className="absolute -top-4 -left-4 h-24 w-24 bg-[#8bc34a] rounded-[2.5rem] -rotate-12 -z-10 shadow-xl" />
+              <button className="absolute -top-2 -left-2 h-14 w-14 bg-[#d9534f] rounded-full border-4 border-white/30 flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95">
+                 <Plus className="h-8 w-8 text-white/80" />
               </button>
 
-              <div className="grid grid-cols-15 grid-rows-15 h-full w-full gap-0.5">
+              <div className="absolute -top-4 -right-4 h-24 w-24 bg-[#8bc34a] rounded-[2.5rem] rotate-12 -z-10 shadow-xl" />
+              <button className="absolute -top-2 -right-2 h-14 w-14 bg-[#5cb85c] rounded-full border-4 border-white/30 flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95">
+                 <Plus className="h-8 w-8 text-white/80" />
+              </button>
+
+              <div className="absolute -bottom-4 -right-4 h-24 w-24 bg-[#8bc34a] rounded-[2.5rem] -rotate-12 -z-10 shadow-xl" />
+              <button className="absolute -bottom-2 -right-2 h-14 w-14 bg-[#f0ad4e] rounded-full border-4 border-white/30 flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95">
+                 <Plus className="h-8 w-8 text-white/80" />
+              </button>
+
+              <div className="grid grid-cols-15 grid-rows-15 h-full w-full gap-1">
                  
-                 {/* Red House (Top Left) */}
-                 <div className="col-span-6 row-span-6 bg-[#8bc34a] rounded-3xl p-3 border-4 border-[#558b2f]/30">
-                    <div className="w-full h-full bg-rose-500 rounded-2xl grid grid-cols-2 grid-rows-2 gap-2 p-4">
+                 {/* RED HOUSE (6x6) */}
+                 <div className="col-span-6 row-span-6 bg-[#8bc34a] rounded-[2.5rem] p-4 border-4 border-[#558b2f]/20 shadow-inner relative overflow-hidden group">
+                    <div className="w-full h-full bg-[#d9534f] rounded-[2rem] grid grid-cols-2 grid-rows-2 gap-4 p-6 shadow-2xl">
                        {[1,2,3,4].map(i => (
-                         <div key={i} className="bg-rose-900/40 rounded-full shadow-inner" />
+                         <div key={i} className="bg-black/20 rounded-full shadow-[inset_0_4px_10px_rgba(0,0,0,0.4)] border-2 border-[#d9534f]/50" />
                        ))}
                     </div>
                  </div>
 
-                 {/* Top Track (Vertical) */}
-                 <div className="col-span-3 row-span-6 grid grid-cols-3 grid-rows-6">
+                 {/* TOP PATH (3x6) */}
+                 <div className="col-span-3 row-span-6 grid grid-cols-3 grid-rows-6 gap-1">
                     {Array.from({ length: 18 }).map((_, i) => (
                       <div key={i} className={cn(
-                        "border-[0.5px] border-black/10 rounded-sm flex items-center justify-center",
-                        i >= 4 && i <= 16 && (i % 3 === 1) ? "bg-green-600" : "bg-[#9ccc65]",
-                        i === 4 && "relative"
+                        "rounded-md shadow-sm flex items-center justify-center border border-black/5",
+                        i >= 4 && i <= 16 && (i % 3 === 1) ? "bg-[#5cb85c]" : "bg-[#9ccc65]",
                       )}>
-                        {i === 4 && <SafetySpot />}
-                        {i === 5 && <SafetySpot color="text-green-800" />}
+                        {i === 4 && <SafetySpot type="slash" />}
+                        {i === 5 && <SafetySpot type="star" color="text-[#5cb85c]" />}
+                        {i === 10 && <div className="h-2 w-2 rounded-full bg-white/20 animate-pulse" />}
                       </div>
                     ))}
                  </div>
 
-                 {/* Green House (Top Right) */}
-                 <div className="col-span-6 row-span-6 bg-[#8bc34a] rounded-3xl p-3 border-4 border-[#558b2f]/30">
-                    <div className="w-full h-full bg-green-800 rounded-2xl grid grid-cols-2 grid-rows-2 gap-2 p-4">
+                 {/* GREEN HOUSE (6x6) */}
+                 <div className="col-span-6 row-span-6 bg-[#8bc34a] rounded-[2.5rem] p-4 border-4 border-[#558b2f]/20 shadow-inner">
+                    <div className="w-full h-full bg-[#5cb85c] rounded-[2rem] grid grid-cols-2 grid-rows-2 gap-4 p-6 shadow-2xl">
                        {[1,2,3,4].map(i => (
-                         <div key={i} className="bg-black/40 rounded-full shadow-inner" />
+                         <div key={i} className="bg-black/20 rounded-full shadow-[inset_0_4px_10px_rgba(0,0,0,0.4)] border-2 border-[#5cb85c]/50" />
                        ))}
                     </div>
                  </div>
 
-                 {/* Middle Track Left */}
-                 <div className="col-span-6 row-span-3 grid grid-cols-6 grid-rows-3">
+                 {/* LEFT PATH (6x3) */}
+                 <div className="col-span-6 row-span-3 grid grid-cols-6 grid-rows-3 gap-1">
                     {Array.from({ length: 18 }).map((_, i) => (
                       <div key={i} className={cn(
-                        "border-[0.5px] border-black/10 rounded-sm flex items-center justify-center",
-                        i >= 7 && i <= 11 ? "bg-rose-500" : "bg-[#9ccc65]"
+                        "rounded-md shadow-sm flex items-center justify-center border border-black/5",
+                        i >= 7 && i <= 11 ? "bg-[#d9534f]" : "bg-[#9ccc65]"
                       )}>
-                        {i === 1 && <SafetySpot color="text-rose-700" />}
-                        {i === 12 && <SafetySpot />}
-                        {i === 13 && <SafetySpot color="text-green-800" />}
+                        {i === 1 && <SafetySpot type="star" color="text-[#d9534f]" />}
+                        {i === 12 && <SafetySpot type="slash" />}
+                        {i === 13 && <SafetySpot type="star" color="text-[#5cb85c]" />}
                       </div>
                     ))}
                  </div>
 
-                 {/* Center Play Button */}
-                 <div className="col-span-3 row-span-3 bg-[#8bc34a] flex items-center justify-center p-1">
-                    <button className="w-full h-full bg-gradient-to-b from-orange-300 to-orange-500 rounded-2xl border-4 border-orange-600 shadow-[0_10px_20px_rgba(0,0,0,0.3)] flex items-center justify-center group active:scale-95 transition-all">
-                       <span className="text-white text-3xl font-black italic tracking-tighter drop-shadow-md group-hover:scale-110 transition-transform">Play</span>
+                 {/* CENTER PLAY BUTTON (3x3) */}
+                 <div className="col-span-3 row-span-3 flex items-center justify-center p-1 bg-[#8bc34a]">
+                    <button className="w-full h-full bg-gradient-to-b from-[#ffeb3b] to-[#fbc02d] rounded-[2rem] border-[6px] border-[#f9a825] shadow-[0_15px_30px_rgba(0,0,0,0.4)] flex items-center justify-center group active:scale-90 transition-all relative overflow-hidden">
+                       <div className="absolute inset-0 bg-white/30 h-1/2 rounded-t-full opacity-50" />
+                       <span className="text-white text-4xl font-black italic tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform">Play</span>
                     </button>
                  </div>
 
-                 {/* Middle Track Right */}
-                 <div className="col-span-6 row-span-3 grid grid-cols-6 grid-rows-3">
+                 {/* RIGHT PATH (6x3) */}
+                 <div className="col-span-6 row-span-3 grid grid-cols-6 grid-rows-3 gap-1">
                     {Array.from({ length: 18 }).map((_, i) => (
                       <div key={i} className={cn(
-                        "border-[0.5px] border-black/10 rounded-sm flex items-center justify-center",
-                        i >= 6 && i <= 10 ? "bg-yellow-500" : "bg-[#9ccc65]"
+                        "rounded-md shadow-sm flex items-center justify-center border border-black/5",
+                        i >= 6 && i <= 10 ? "bg-[#f0ad4e]" : "bg-[#9ccc65]"
                       )}>
-                        {i === 4 && <SafetySpot />}
-                        {i === 16 && <SafetySpot color="text-yellow-700" />}
+                        {i === 4 && <SafetySpot type="slash" />}
+                        {i === 16 && <SafetySpot type="star" color="text-[#fbc02d]" />}
                       </div>
                     ))}
                  </div>
 
-                 {/* Blue House (Bottom Left) */}
-                 <div className="col-span-6 row-span-6 bg-[#8bc34a] rounded-3xl p-3 border-4 border-[#558b2f]/30">
-                    <div className="w-full h-full bg-blue-600 rounded-2xl grid grid-cols-2 grid-rows-2 gap-2 p-4">
+                 {/* BLUE HOUSE (6x6) */}
+                 <div className="col-span-6 row-span-6 bg-[#8bc34a] rounded-[2.5rem] p-4 border-4 border-[#558b2f]/20 shadow-inner">
+                    <div className="w-full h-full bg-[#0275d8] rounded-[2rem] grid grid-cols-2 grid-rows-2 gap-4 p-6 shadow-2xl">
                        {[1,2,3,4].map(i => (
-                         <div key={i} className="bg-blue-900/40 rounded-full shadow-inner" />
+                         <div key={i} className="bg-black/20 rounded-full shadow-[inset_0_4px_10px_rgba(0,0,0,0.4)] border-2 border-[#0275d8]/50" />
                        ))}
                     </div>
                  </div>
 
-                 {/* Bottom Track */}
-                 <div className="col-span-3 row-span-6 grid grid-cols-3 grid-rows-6">
+                 {/* BOTTOM PATH (3x6) */}
+                 <div className="col-span-3 row-span-6 grid grid-cols-3 grid-rows-6 gap-1">
                     {Array.from({ length: 18 }).map((_, i) => (
                       <div key={i} className={cn(
-                        "border-[0.5px] border-black/10 rounded-sm flex items-center justify-center",
-                        i >= 1 && i <= 13 && (i % 3 === 1) ? "bg-blue-600" : "bg-[#9ccc65]"
+                        "rounded-md shadow-sm flex items-center justify-center border border-black/5",
+                        i >= 1 && i <= 13 && (i % 3 === 1) ? "bg-[#0275d8]" : "bg-[#9ccc65]"
                       )}>
-                        {i === 12 && <SafetySpot color="text-blue-800" />}
-                        {i === 13 && <SafetySpot />}
+                        {i === 12 && <SafetySpot type="star" color="text-[#0275d8]" />}
+                        {i === 13 && <SafetySpot type="slash" />}
                       </div>
                     ))}
                  </div>
 
-                 {/* Yellow House (Bottom Right) */}
-                 <div className="col-span-6 row-span-6 bg-[#8bc34a] rounded-3xl p-3 border-4 border-[#558b2f]/30">
-                    <div className="w-full h-full bg-yellow-500 rounded-2xl grid grid-cols-2 grid-rows-2 gap-2 p-4">
+                 {/* YELLOW HOUSE (6x6) */}
+                 <div className="col-span-6 row-span-6 bg-[#8bc34a] rounded-[2.5rem] p-4 border-4 border-[#558b2f]/20 shadow-inner relative">
+                    <div className="w-full h-full bg-[#fbc02d] rounded-[2rem] grid grid-cols-2 grid-rows-2 gap-4 p-6 shadow-2xl">
                        {[1,2,3,4].map(i => (
-                         <div key={i} className="bg-orange-900/40 rounded-full shadow-inner" />
+                         <div key={i} className="bg-black/20 rounded-full shadow-[inset_0_4px_10px_rgba(0,0,0,0.4)] border-2 border-[#fbc02d]/50" />
                        ))}
                     </div>
                  </div>
 
               </div>
 
-              {/* Bridges */}
-              <div className="absolute top-[40%] left-[38%]"><Bridge orientation="v" /></div>
-              <div className="absolute bottom-[40%] left-[38%]"><Bridge orientation="v" /></div>
-              <div className="absolute top-[38%] right-[40%]"><Bridge orientation="h" /></div>
-              <div className="absolute top-[38%] left-[40%]"><Bridge orientation="h" /></div>
+              {/* Wooden Bridges Architecture */}
+              <div className="absolute top-[40%] left-[38%] translate-x-[-50%]"><Bridge orientation="v" /></div>
+              <div className="absolute bottom-[40%] left-[38%] translate-x-[-50%]"><Bridge orientation="v" /></div>
+              <div className="absolute top-[38%] right-[40%] translate-y-[-50%]"><Bridge orientation="h" /></div>
+              <div className="absolute top-[38%] left-[40%] translate-y-[-50%]"><Bridge orientation="h" /></div>
 
            </div>
 
-           {/* User Profile Indicator (Matching SHUBH layout) */}
-           <div className="absolute bottom-10 left-10 flex items-center gap-3 bg-green-800/40 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 shadow-xl">
-              <Avatar className="h-12 w-12 border-2 border-[#00E5FF] shadow-lg">
+           {/* User Profile Identity Overlay (Bottom Left) */}
+           <div className="absolute bottom-10 left-10 flex items-center gap-3 bg-black/40 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/10 shadow-2xl animate-in slide-in-from-left-4 duration-700">
+              <Avatar className="h-14 w-14 border-4 border-[#00E5FF] shadow-[0_0_20px_rgba(0,229,255,0.4)]">
                  <AvatarImage src={userProfile?.avatarUrl} />
                  <AvatarFallback>U</AvatarFallback>
               </Avatar>
-              <div>
-                 <p className="text-white font-black text-sm uppercase italic tracking-tighter">{userProfile?.username || 'Ummy Player'}</p>
-                 <div className="flex items-center gap-1 opacity-60">
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[8px] font-bold text-white uppercase tracking-widest">In Frequency</span>
+              <div className="space-y-0.5">
+                 <p className="text-white font-black text-base uppercase italic tracking-tighter">{userProfile?.username || 'SHUBH'}</p>
+                 <div className="flex items-center gap-1.5">
+                    <div className="h-2 w-2 rounded-full bg-[#00E5FF] animate-pulse shadow-[0_0_10px_rgba(0,229,255,1)]" />
+                    <span className="text-[10px] font-black text-white/60 uppercase tracking-widest italic">Live Frequency</span>
                  </div>
               </div>
            </div>
 
         </main>
 
-        {/* High-Fidelity Footer Overlay */}
-        <footer className="relative z-50 p-6 flex justify-center">
-           <div className="bg-black/40 backdrop-blur-xl px-10 py-3 rounded-full border border-white/10 flex items-center gap-8 shadow-2xl">
-              <div className="flex flex-col items-center">
-                 <span className="text-[8px] font-black uppercase text-white/40 tracking-widest">Players</span>
-                 <div className="flex items-center gap-1.5 text-primary">
-                    <Users className="h-4 w-4" />
-                    <span className="text-sm font-black">4/4</span>
+        {/* High-Fidelity Interactive Footer */}
+        <footer className="relative z-50 p-10 flex justify-center">
+           <div className="bg-black/60 backdrop-blur-2xl px-12 py-4 rounded-full border border-white/10 flex items-center gap-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+              <div className="flex flex-col items-center gap-1">
+                 <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">Tribe Capacity</span>
+                 <div className="flex items-center gap-2 text-[#00E5FF]">
+                    <Users className="h-5 w-5" />
+                    <span className="text-lg font-black italic">4/4</span>
                  </div>
               </div>
-              <div className="h-8 w-px bg-white/10" />
-              <button onClick={handleToggleMic} className={cn(
-                "h-12 w-12 rounded-full flex items-center justify-center transition-all shadow-lg border-2",
-                isMuted ? "bg-rose-500 border-rose-400 text-white" : "bg-[#00E5FF] border-[#00E5FF] text-black scale-110"
-              )}>
-                {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+              
+              <div className="h-12 w-px bg-white/10" />
+              
+              <button 
+                onClick={handleToggleMic} 
+                className={cn(
+                  "h-16 w-16 rounded-full flex items-center justify-center transition-all shadow-2xl border-4 active:scale-90",
+                  isMuted 
+                    ? "bg-rose-600 border-rose-400 text-white" 
+                    : "bg-[#00E5FF] border-[#00E5FF] text-black scale-110 shadow-[0_0_30px_rgba(0,229,255,0.4)]"
+                )}
+              >
+                {isMuted ? <MicOff className="h-7 w-7" /> : <Mic className="h-7 w-7 animate-voice-wave" />}
               </button>
-              <div className="h-8 w-px bg-white/10" />
-              <div className="flex flex-col items-center">
-                 <span className="text-[8px] font-black uppercase text-white/40 tracking-widest">Mode</span>
-                 <Badge className="bg-yellow-500 text-black font-black uppercase text-[10px] italic">Quick</Badge>
+              
+              <div className="h-12 w-px bg-white/10" />
+              
+              <div className="flex flex-col items-center gap-1">
+                 <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">Game Type</span>
+                 <Badge className="bg-yellow-500 text-black font-black uppercase text-xs italic px-4 py-1 rounded-lg border-b-4 border-yellow-700">Quick Mode</Badge>
               </div>
            </div>
         </footer>
