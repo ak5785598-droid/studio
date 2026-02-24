@@ -9,11 +9,13 @@ const fontHeadline = Belleza({
   subsets: ['latin'],
   weight: ['400'],
   variable: '--font-headline',
+  display: 'swap',
 });
 
 const fontBody = Alegreya({
   subsets: ['latin'],
   variable: '--font-body',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
