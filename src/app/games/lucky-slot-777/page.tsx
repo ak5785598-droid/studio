@@ -331,9 +331,10 @@ export default function LuckySlot777Page() {
               <div className="absolute -inset-10 border-[16px] border-yellow-600/20 rounded-full shadow-[0_0_60px_rgba(234,179,8,0.2)]" />
               <div className="absolute -inset-6 border-[4px] border-yellow-500/40 rounded-full" />
               
+              {/* Spinning Container with Blur and Fast-Rotation Animation */}
               <div className={cn(
-                "relative w-full h-full rounded-full border-[8px] border-yellow-500 shadow-2xl transition-transform duration-[1500ms] cubic-bezier(0.15, 0, 0.15, 1) overflow-hidden",
-                gameState === 'spinning' && "animate-spin-slow"
+                "relative w-full h-full rounded-full border-[8px] border-yellow-500 shadow-2xl transition-all duration-[1500ms] cubic-bezier(0.15, 0, 0.15, 1) overflow-hidden",
+                gameState === 'spinning' && "animate-[spin_0.3s_linear_infinite] blur-[2px] scale-[1.02]"
               )}>
                  <svg viewBox="0 0 100 100" className="w-full h-full">
                     {WHEEL_DISTRIBUTION.map((id, i) => {
