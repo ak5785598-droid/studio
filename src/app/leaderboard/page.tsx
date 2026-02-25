@@ -147,9 +147,15 @@ export default function LeaderboardPage() {
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
-      const reset = new Date();
-      reset.setUTCHours(24, 0, 0, 0);
-      const diff = reset.getTime() - now.getTime();
+      // Target 12 AM GMT (UTC)
+      const nextReset = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + 1,
+        0, 0, 0
+      ));
+      
+      const diff = nextReset.getTime() - now.getTime();
       const h = Math.floor(diff / (1000 * 60 * 60));
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const s = Math.floor((diff % (1000 * 60)) / 1000);
@@ -195,7 +201,7 @@ export default function LeaderboardPage() {
                   <Trophy className="h-6 w-6 text-yellow-400" />
                 </button>
               </DialogTrigger>
-              <DialogContent className="bg-slate-900 border-none rounded-t-[3rem] text-white p-0 overflow-hidden sm:max-w-md animate-in slide-in-from-bottom-10 duration-500">
+              <DialogContent className="bg-slate-900 border-none rounded-t-[3rem] text-white p-0 overflow-hidden h-[85vh] sm:max-w-md animate-in slide-in-from-bottom-full duration-500">
                 <DialogHeader className="p-8 pb-4 text-center">
                   <DialogTitle className="text-3xl font-black uppercase italic flex items-center justify-center gap-3">
                     <Trophy className="h-8 w-8 text-yellow-400" />
@@ -203,10 +209,10 @@ export default function LeaderboardPage() {
                   </DialogTitle>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mt-2">Daily Throne Distribution</p>
                 </DialogHeader>
-                <div className="px-8 pb-12 space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar">
+                <div className="px-8 pb-12 space-y-4 h-full overflow-y-auto no-scrollbar">
                   <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 flex items-center gap-3 mb-4">
                     <Timer className="h-4 w-4 text-primary" />
-                    <p className="text-[10px] font-bold text-primary/80 uppercase">Cycle Resets in {timeLeft}</p>
+                    <p className="text-[10px] font-bold text-primary/80 uppercase">Reset in {timeLeft} (GMT)</p>
                   </div>
                   
                   <RewardItem rank="Top 1" amount="10,000" color="bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.4)]" />
@@ -215,15 +221,15 @@ export default function LeaderboardPage() {
                   <RewardItem rank="Top 4" amount="3,000" color="bg-slate-800 text-white" />
                   <RewardItem rank="Top 5-10" amount="1,000" color="bg-slate-900 text-white border border-white/10" />
 
-                  <div className="pt-6 border-t border-white/5 space-y-3">
+                  <div className="pt-6 border-t border-white/5 space-y-3 pb-20">
                     <div className="flex items-center gap-2">
                       <Info className="h-3 w-3 text-muted-foreground" />
                       <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Rules of the Throne</p>
                     </div>
                     <ul className="space-y-2">
-                      <li className="text-[10px] text-white/40 leading-relaxed">• Ranking is based on your total daily spending across all room frequencies.</li>
-                      <li className="text-[10px] text-white/40 leading-relaxed">• Rewards are automatically dispatched to your vault at 12:00 AM UTC daily.</li>
-                      <li className="text-[10px] text-white/40 leading-relaxed">• The leaderboard resets instantly upon reward delivery for the next 24-hour cycle.</li>
+                      <li className="text-[10px] text-white/40 leading-relaxed">• Ranking is based on your total daily spending across all frequencies.</li>
+                      <li className="text-[10px] text-white/40 leading-relaxed">• Rewards are dispatched to your vault at 12:00 AM GMT daily.</li>
+                      <li className="text-[10px] text-white/40 leading-relaxed">• The leaderboard resets instantly upon reward delivery for the next cycle.</li>
                     </ul>
                   </div>
                 </div>
@@ -242,12 +248,12 @@ export default function LeaderboardPage() {
                          <Zap className="h-4 w-4" /> Daily Rich Rewards
                       </div>
                       <div className="flex items-center gap-1.5 text-white/40 font-mono text-[10px]">
-                         <Timer className="h-3 w-3" /> {timeLeft}
+                         <Timer className="h-3 w-3" /> {timeLeft} (GMT)
                       </div>
                    </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                   <p className="text-[10px] text-white/60 font-medium">Top spenders at 12AM UTC receive exclusive coin batches:</p>
+                   <p className="text-[10px] text-white/60 font-medium">Top spenders at 12AM GMT receive exclusive coin batches:</p>
                    <div className="grid grid-cols-3 gap-2">
                       <div className="bg-white/5 p-2 rounded-xl border border-white/5 text-center">
                          <p className="text-[8px] font-black uppercase text-yellow-500">Top 1</p>
