@@ -51,7 +51,7 @@ export default function RoomsPage() {
 
   const { data: roomsData, isLoading: isRoomsLoading } = useCollection(roomsQuery);
 
-  // Fetch My Room: Always show owner's room in Mine tab, even if empty
+  // Fetch My Room: Always show owner's room in Mine tab, even if empty (Permanent)
   const myRoomQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(collection(firestore, 'chatRooms'), where('ownerId', '==', user.uid), limit(1));
@@ -242,7 +242,7 @@ export default function RoomsPage() {
                   <p className="text-gray-400 font-black uppercase text-xs">
                     {navTab === 'mine' ? 'Launch your own frequency' : 'No Frequencies Active'}
                   </p>
-                  {navTab === 'mine' && <CreateRoomDialog />}
+                  {navTab === 'mine' && !myRoomId && <CreateRoomDialog />}
                 </div>
               )}
             </div>

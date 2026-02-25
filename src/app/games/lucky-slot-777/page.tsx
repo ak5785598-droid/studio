@@ -123,18 +123,13 @@ export default function LuckySlot777Page() {
     const winItem = id === 'seven' ? { multiplier: 8 } : { multiplier: 2 };
     const winAmount = (myBets[id] || 0) * winItem.multiplier;
 
-    const mockWinners = [
-      { name: 'Slot_Master', win: Math.floor(Math.random() * 1000000) + 500000, avatar: 'https://picsum.photos/seed/sm/100' },
-      { name: 'Lucky_Roll', win: Math.floor(Math.random() * 500000) + 100000, avatar: 'https://picsum.photos/seed/lr/100' },
-      { name: 'Seven_Vibe', win: Math.floor(Math.random() * 200000) + 50000, avatar: 'https://picsum.photos/seed/sv/100' },
-    ];
+    const sessionWinners = [];
 
     if (winAmount > 0 && userProfile) {
-      mockWinners.push({ name: userProfile.username, win: winAmount, avatar: userProfile.avatarUrl, isMe: true });
+      sessionWinners.push({ name: userProfile.username, win: winAmount, avatar: userProfile.avatarUrl, isMe: true });
     }
 
-    const sortedWinners = mockWinners.sort((a, b) => b.win - a.win).slice(0, 3);
-    setWinners(sortedWinners);
+    setWinners(sessionWinners);
     setGameState('result');
 
     if (winAmount > 0 && currentUser && firestore) {
@@ -189,37 +184,19 @@ export default function LuckySlot777Page() {
                 <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter text-center">Round Winners</h2>
              </div>
              
-             <div className="flex items-end gap-4 px-6 w-full max-w-lg h-64">
-                {winners[1] && (
-                  <div className="flex-1 flex flex-col items-center gap-2 animate-in slide-in-from-bottom-10 duration-700 delay-100">
-                     <Avatar className="h-16 w-16 border-4 border-slate-300 shadow-xl"><AvatarImage src={winners[1].avatar}/><AvatarFallback>2</AvatarFallback></Avatar>
-                     <div className="w-full bg-slate-400/20 rounded-t-2xl border-x border-t border-slate-300 h-24 flex flex-col items-center justify-center">
-                        <span className="text-3xl">🥈</span>
-                        <p className="text-[10px] font-black text-white uppercase truncate px-2">{winners[1].name}</p>
-                        <p className="text-xs font-black text-yellow-500">+{winners[1].win.toLocaleString()}</p>
+             <div className="flex items-end justify-center gap-4 px-6 w-full max-w-lg h-64">
+                {winners.map((winner, idx) => (
+                  <div key={idx} className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-20 duration-1000">
+                     <Avatar className={cn("border-4 shadow-xl", idx === 0 ? "h-24 w-24 border-yellow-400" : "h-20 w-20 border-slate-300")}>
+                        <AvatarImage src={winner.avatar}/><AvatarFallback>{idx + 1}</AvatarFallback>
+                     </Avatar>
+                     <div className={cn("w-32 rounded-t-2xl border-x border-t flex flex-col items-center justify-center", idx === 0 ? "bg-yellow-500/20 border-yellow-400 h-32" : "bg-slate-400/20 border-slate-300 h-24")}>
+                        <span className="text-3xl">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</span>
+                        <p className="text-[10px] font-black text-white uppercase truncate px-2">{winner.name}</p>
+                        <p className="text-sm font-black text-yellow-500">+{winner.win.toLocaleString()}</p>
                      </div>
                   </div>
-                )}
-                {winners[0] && (
-                  <div className="flex-1 flex flex-col items-center gap-2 animate-in slide-in-from-bottom-20 duration-1000">
-                     <Avatar className="h-20 w-20 border-4 border-yellow-400 shadow-[0_0_30px_rgba(251,191,36,0.5)]"><AvatarImage src={winners[0].avatar}/><AvatarFallback>1</AvatarFallback></Avatar>
-                     <div className="w-full bg-yellow-500/20 rounded-t-2xl border-x border-t border-yellow-400 h-32 flex flex-col items-center justify-center">
-                        <span className="text-4xl">🥇</span>
-                        <p className="text-[10px] font-black text-white uppercase truncate px-2">{winners[0].name}</p>
-                        <p className="text-sm font-black text-yellow-500">+{winners[0].win.toLocaleString()}</p>
-                     </div>
-                  </div>
-                )}
-                {winners[2] && (
-                  <div className="flex-1 flex flex-col items-center gap-2 animate-in slide-in-from-bottom-10 duration-700 delay-200">
-                     <Avatar className="h-14 w-14 border-4 border-amber-700 shadow-xl"><AvatarImage src={winners[2].avatar}/><AvatarFallback>3</AvatarFallback></Avatar>
-                     <div className="w-full bg-amber-900/20 rounded-t-2xl border-x border-t border-amber-700 h-20 flex flex-col items-center justify-center">
-                        <span className="text-2xl">🥉</span>
-                        <p className="text-[8px] font-black text-white uppercase truncate px-2">{winners[2].name}</p>
-                        <p className="text-[10px] font-black text-yellow-500">+{winners[2].win.toLocaleString()}</p>
-                     </div>
-                  </div>
-                )}
+                ))}
              </div>
           </div>
         )}
