@@ -10,7 +10,7 @@ interface EmojiReactionOverlayProps {
 
 /**
  * Animated Emoji Reaction Overlay.
- * Displays an "acting" emoji that FULLY COVERS the user's avatar.
+ * Displays an "acting" emoji that FULLY COVERS the entire seat.
  * Mapped to the specific tribe set: 😀, 😂, 😘, 🥰, 😎, 🤗, 😡, 😭, 💋.
  */
 export function EmojiReactionOverlay({ emoji, size = 'md' }: EmojiReactionOverlayProps) {
@@ -42,19 +42,19 @@ export function EmojiReactionOverlay({ emoji, size = 'md' }: EmojiReactionOverla
   };
 
   const sizeClasses = {
-    sm: 'text-3xl',
-    md: 'text-5xl',
-    lg: 'text-6xl',
-    xl: 'text-8xl',
+    sm: 'text-5xl',
+    md: 'text-7xl',
+    lg: 'text-8xl',
+    xl: 'text-9xl',
   };
 
   return (
     <div className={cn(
-      "absolute inset-0 z-[60] flex items-center justify-center select-none rounded-full animate-in zoom-in duration-300",
-      "bg-black/60 backdrop-blur-[4px]"
+      "absolute inset-0 z-[100] flex items-center justify-center select-none rounded-[2rem] animate-in zoom-in duration-300",
+      "bg-black/80 backdrop-blur-md"
     )}>
       <span className={cn(
-        "drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]",
+        "drop-shadow-[0_0_30px_rgba(255,255,255,0.8)] leading-none",
         sizeClasses[size],
         getAnimationClass(emoji)
       )}>

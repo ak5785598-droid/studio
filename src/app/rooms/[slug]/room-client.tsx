@@ -85,7 +85,6 @@ import {
   getDocs,
   arrayUnion,
   arrayRemove,
-  addDoc
 } from 'firebase/firestore';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { useRouter } from 'next/navigation';
@@ -213,12 +212,10 @@ export function RoomClient({ room }: { room: Room }) {
   const handleSendEmoji = async (emoji: string) => {
     if (!currentUser || !firestore || !userProfile) return;
     
-    // Update Participant document for over-avatar animation
     if (currentUserParticipant) {
       const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
       updateDocumentNonBlocking(participantRef, { activeEmoji: emoji });
       
-      // Auto-clear emoji after 4s
       setTimeout(() => {
         updateDocumentNonBlocking(participantRef, { activeEmoji: null });
       }, 4000);
@@ -362,16 +359,6 @@ export function RoomClient({ room }: { room: Room }) {
 
   const leaveRoom = () => {
     if (firestore && currentUser && room.id) {
-      // Send leave message
-      addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
-        content: 'left the frequency',
-        senderId: currentUser.uid,
-        senderName: userProfile?.username || 'Tribe Member',
-        senderAvatar: userProfile?.avatarUrl || '',
-        chatRoomId: room.id,
-        timestamp: serverTimestamp(),
-        type: 'leave'
-      });
       deleteDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid));
     }
     setActiveRoom(null);
@@ -386,7 +373,7 @@ export function RoomClient({ room }: { room: Room }) {
   const takeSeat = (index: number) => {
     if (!firestore || !room.id || !currentUser || !userProfile) return;
     if (room.lockedSeats?.includes(index)) {
-      toast({ variant: 'destructive', title: 'Seat Locked' });
+      toast({ variant: 'destructive', title: 'Slot Locked' });
       return;
     }
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { 
@@ -484,7 +471,7 @@ export function RoomClient({ room }: { room: Room }) {
             </SheetTrigger>
             <SheetContent side="bottom" className="bg-slate-900 border-none rounded-t-[3rem] text-white p-0 overflow-hidden h-[70vh]">
                <SheetHeader className="p-8 pb-4">
-                  <SheetTitle className="text-2xl font-black uppercase italic text-center">Tribe Frequency Members</SheetTitle>
+                  <SheetTitle className="text-2xl font-black uppercase italic text-center">Frequency Members</SheetTitle>
                </SheetHeader>
                <ScrollArea className="h-full px-8 pb-20">
                   <div className="space-y-4">
@@ -500,11 +487,7 @@ export function RoomClient({ room }: { room: Room }) {
                               <div>
                                   <div className="flex items-center gap-2">
                                     <p className="font-bold text-sm">{p.name}</p>
-                                    {isPOwner ? (
-                                      <Crown className="h-3 w-3 text-yellow-500 fill-current" />
-                                    ) : isPMod ? (
-                                      <ShieldCheck className="h-3 w-3 text-blue-400 fill-current" />
-                                    ) : null}
+                                    {isPOwner ? <Crown className="h-3 w-3 text-yellow-500 fill-current" /> : isPMod ? <ShieldCheck className="h-3 w-3 text-blue-400 fill-current" /> : null}
                                   </div>
                                   <div className="flex items-center gap-2">
                                     {isPOwner && <Badge className="bg-yellow-500 text-black text-[8px] h-4">OWNER</Badge>}
@@ -559,7 +542,7 @@ export function RoomClient({ room }: { room: Room }) {
                     <AlertDialogHeader>
                       <AlertDialogTitle className="text-2xl font-black uppercase italic">Terminate Frequency?</AlertDialogTitle>
                       <AlertDialogDescription className="text-muted-foreground font-body text-base">
-                        This will permanently delete the tribe frequency. All tribe members will be disconnected instantly.
+                        This will permanently delete the tribe frequency.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -588,7 +571,7 @@ export function RoomClient({ room }: { room: Room }) {
             <Megaphone className="h-3 w-3 text-primary shrink-0" />
             <div className="flex-1 overflow-hidden whitespace-nowrap">
                <p className="text-[10px] font-black uppercase tracking-widest text-primary/80 animate-marquee inline-block">
-                  {room.announcement || 'Welcome to the frequency! Keep the vibes high and the respect higher.'}
+                  {room.announcement || 'Welcome to the frequency! Keep the vibes high.'}
                </p>
             </div>
          </div>
@@ -597,7 +580,8 @@ export function RoomClient({ room }: { room: Room }) {
       <ScrollArea className="relative z-10 flex-1 px-4" ref={scrollRef}>
         <div className="max-w-4xl mx-auto py-6 space-y-12 pb-32">
           <div className="flex justify-center">
-             <div className="flex flex-col items-center gap-3">
+             <div className="relative flex flex-col items-center gap-3 w-32 h-40">
+                <EmojiReactionOverlay emoji={hostParticipant?.activeEmoji} size="xl" />
                 <div className="relative">
                    {hostParticipant && !hostParticipant.isMuted && (
                       <div className={cn("absolute -inset-4 rounded-full border-2 animate-voice-wave", getWaveColor(hostParticipant.activeWave))} />
@@ -611,10 +595,7 @@ export function RoomClient({ room }: { room: Room }) {
                         )}
                       >
                         {hostParticipant ? (
-                          <>
-                            <EmojiReactionOverlay emoji={hostParticipant.activeEmoji} size="xl" />
-                            <Avatar className="h-full w-full p-1"><AvatarImage src={hostParticipant.avatarUrl} /><AvatarFallback>H</AvatarFallback></Avatar>
-                          </>
+                          <Avatar className="h-full w-full p-1"><AvatarImage src={hostParticipant.avatarUrl} /><AvatarFallback>H</AvatarFallback></Avatar>
                         ) : <Crown className="h-10 w-10 text-white/10" />}
                       </div>
                    </AvatarFrame>
@@ -630,7 +611,8 @@ export function RoomClient({ room }: { room: Room }) {
               const isLocked = room.lockedSeats?.includes(idx);
               const isMod = room.moderatorIds?.includes(occupant?.uid || '');
               return (
-                <div key={idx} className="flex flex-col items-center gap-2 group">
+                <div key={idx} className="relative flex flex-col items-center gap-2 group w-full h-24">
+                  <EmojiReactionOverlay emoji={occupant?.activeEmoji} size="md" />
                   <div className="relative">
                     {occupant && !occupant.isMuted && (
                        <div className={cn("absolute -inset-2 rounded-full border-2 animate-voice-wave", getWaveColor(occupant.activeWave))} />
@@ -645,10 +627,7 @@ export function RoomClient({ room }: { room: Room }) {
                         )}
                       >
                         {isLocked ? <Lock className="h-6 w-6 text-red-500/40" /> : occupant ? (
-                          <>
-                            <EmojiReactionOverlay emoji={occupant.activeEmoji} size="md" />
-                            <Avatar className="h-full w-full p-0.5"><AvatarImage src={occupant.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar>
-                          </>
+                          <Avatar className="h-full w-full p-0.5"><AvatarImage src={occupant.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar>
                         ) : <Mic className="h-6 w-6 text-white/20" />}
                       </div>
                     </AvatarFrame>

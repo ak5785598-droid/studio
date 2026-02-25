@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRoomContext } from '@/components/room-provider';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, doc } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,10 @@ import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
 
+/**
+ * High-Fidelity Compact Room Overlay.
+ * Designed to sit as a transparent layer at the top of full-screen games.
+ */
 export function CompactRoomView() {
   const { activeRoom, setIsMinimized } = useRoomContext();
   const { user: currentUser } = useUser();
@@ -37,8 +41,8 @@ export function CompactRoomView() {
   };
 
   return (
-    <div className="w-full bg-black/90 border-b border-white/10 flex flex-col h-[40vh] overflow-hidden relative z-50">
-      <div className="flex items-center justify-between p-3 border-b border-white/5 bg-black/40 backdrop-blur-md">
+    <div className="absolute top-0 left-0 right-0 z-[100] flex flex-col bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+      <div className="flex items-center justify-between p-3 pointer-events-auto">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => { setIsMinimized(false); router.push(`/rooms/${activeRoom.id}`); }} 
@@ -54,12 +58,12 @@ export function CompactRoomView() {
             </div>
           </div>
         </div>
-        <Badge variant="outline" className="text-[8px] border-primary/20 text-primary uppercase font-black px-2 py-0">Live Room</Badge>
+        <Badge variant="outline" className="text-[8px] border-primary/20 text-primary uppercase font-black px-2 py-0">Live Frequency</Badge>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-        <div className="grid grid-cols-4 gap-x-2 gap-y-6 max-w-md mx-auto">
-          {Array.from({ length: 12 }).map((_, i) => {
+      <div className="overflow-x-auto no-scrollbar p-2 pointer-events-auto">
+        <div className="flex gap-4 px-2 min-w-max pb-4">
+          {Array.from({ length: 13 }).map((_, i) => {
             const idx = i + 1; 
             const occupant = participants?.find(p => p.seatIndex === idx);
             const isLocked = activeRoom.lockedSeats?.includes(idx);
@@ -67,22 +71,23 @@ export function CompactRoomView() {
             const isOwner = occupant?.uid === activeRoom.ownerId;
 
             return (
-              <div key={idx} className="flex flex-col items-center gap-1.5">
+              <div key={idx} className="relative flex flex-col items-center gap-1 shrink-0 w-16 h-20">
+                <EmojiReactionOverlay emoji={occupant?.activeEmoji} size="sm" />
                 <div className="relative">
                   {occupant && !occupant.isMuted && (
-                    <div className={cn("absolute -inset-1.5 rounded-full border-2 animate-voice-wave", getWaveColor(occupant.activeWave))} />
+                    <div className={cn("absolute -inset-1 rounded-full border-2 animate-voice-wave", getWaveColor(occupant.activeWave))} />
                   )}
                   <AvatarFrame frameId={occupant?.activeFrame} size="sm">
                     <div className={cn(
-                      "h-12 w-12 rounded-full flex items-center justify-center transition-all bg-black/30 backdrop-blur-lg border-2",
+                      "h-12 w-12 rounded-full flex items-center justify-center transition-all bg-black/40 backdrop-blur-lg border-2",
                       occupant ? "border-primary shadow-lg" : "border-white/10",
                     )}>
                       {occupant ? (
-                        <>
-                          <EmojiReactionOverlay emoji={occupant.activeEmoji} size="sm" />
-                          <Avatar className="h-full w-full p-0.5"><AvatarImage src={occupant.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar>
-                        </>
-                      ) : <Mic className="h-4 w-4 text-white/10" />}
+                        <Avatar className="h-full w-full p-0.5">
+                          <AvatarImage src={occupant.avatarUrl} />
+                          <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      ) : isLocked ? <Crown className="h-4 w-4 text-red-500/20" /> : <Mic className="h-4 w-4 text-white/10" />}
                     </div>
                   </AvatarFrame>
                   {occupant?.isMuted && (
@@ -90,17 +95,13 @@ export function CompactRoomView() {
                       <MicOff className="h-2 w-2 text-white" />
                     </div>
                   )}
-                  {isOwner ? (
+                  {(isOwner || isMod) && (
                     <div className="absolute -top-0.5 -left-0.5 bg-yellow-500 rounded-full p-0.5 border border-black shadow-lg">
-                      <Crown className="h-2 w-2 text-black fill-current" />
+                      {isOwner ? <Crown className="h-2 w-2 text-black fill-current" /> : <ShieldCheck className="h-2 w-2 text-white fill-current" />}
                     </div>
-                  ) : isMod ? (
-                    <div className="absolute -top-0.5 -left-0.5 bg-blue-500 rounded-full p-0.5 border border-black shadow-lg">
-                      <ShieldCheck className="h-2 w-2 text-white fill-current" />
-                    </div>
-                  ) : null}
+                  )}
                 </div>
-                <span className="text-[7px] font-black uppercase text-white/60 truncate w-10 text-center">
+                <span className="text-[7px] font-black uppercase text-white/60 truncate w-14 text-center mt-1">
                   {occupant ? occupant.name : `Slot ${idx}`}
                 </span>
               </div>
