@@ -33,7 +33,8 @@
           "type": "object",
           "properties": {
             "followers": { "type": "number" },
-            "fans": { "type": "number" }
+            "fans": { "type": "number" },
+            "dailyFans": { "type": "number", "description": "Fans received in the current IST cycle." }
           }
         }
       }
@@ -50,7 +51,8 @@
         "stats": {
           "type": "object",
           "properties": {
-            "totalGifts": { "type": "number" }
+            "totalGifts": { "type": "number" },
+            "dailyGifts": { "type": "number", "description": "Gifts received in the current IST cycle." }
           }
         }
       }

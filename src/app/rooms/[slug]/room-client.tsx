@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -149,7 +150,7 @@ export function RoomClient({ room }: { room: Room }) {
 
   const currentUserParticipant = participants?.find(p => p.uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
-  const isMicOn = isInSeat && !currentUserParticipant?.isMuted;
+  const isMicOn = isInSeat && !currentUserParticipant?.isMmuted;
 
   const { remoteStreams } = useWebRTC(room.id, isInSeat, currentUserParticipant?.isMuted ?? true);
 
@@ -261,6 +262,7 @@ export function RoomClient({ room }: { room: Room }) {
     if (isSelfGifting) {
       walletUpdates['wallet.diamonds'] = increment(diamondReturn);
       walletUpdates['stats.fans'] = increment(gift.price);
+      walletUpdates['stats.dailyFans'] = increment(gift.price);
     }
 
     updateDocumentNonBlocking(userRef, walletUpdates);
@@ -268,6 +270,7 @@ export function RoomClient({ room }: { room: Room }) {
 
     updateDocumentNonBlocking(roomDocRef, { 
       'stats.totalGifts': increment(gift.price), 
+      'stats.dailyGifts': increment(gift.price),
       updatedAt: serverTimestamp() 
     });
 
@@ -276,6 +279,7 @@ export function RoomClient({ room }: { room: Room }) {
       const rpRef = doc(firestore, 'users', finalRecipient.uid, 'profile', finalRecipient.uid);
       const recipientUpdates = { 
         'stats.fans': increment(gift.price), 
+        'stats.dailyFans': increment(gift.price),
         'wallet.diamonds': increment(diamondReturn),
         updatedAt: serverTimestamp() 
       };

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
@@ -31,8 +32,9 @@ const RankingList = ({ items, type, isLoading }: any) => {
 
   const getValue = (item: any) => {
     if (type === 'rich') return item.wallet?.dailySpent || 0;
-    if (type === 'charm') return item.stats?.fans || 0;
-    return item.stats?.totalGifts || 0;
+    if (type === 'charm') return item.stats?.dailyFans || 0;
+    if (type === 'rooms') return item.stats?.dailyGifts || 0;
+    return 0;
   };
 
   const getDisplayName = (item: any) => {
@@ -154,17 +156,20 @@ const RankingList = ({ items, type, isLoading }: any) => {
   );
 };
 
-const RewardItem = ({ rank, amount, color }: { rank: string, amount: string, color: string }) => (
+const RewardItem = ({ rank, amount, color, emoji }: { rank: string, amount: string, color: string, emoji: string }) => (
   <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-white/5">
     <div className="flex items-center gap-3">
-      <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center font-black text-xs italic", color)}>
-        {rank}
+      <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center font-black text-lg", color)}>
+        {emoji}
       </div>
-      <p className="font-bold text-sm uppercase italic text-white/80">Daily Prize</p>
+      <div>
+        <p className="font-bold text-xs uppercase tracking-widest text-white/40">{rank}</p>
+        <p className="font-black text-sm uppercase italic text-white">Daily Prize</p>
+      </div>
     </div>
     <div className="flex items-center gap-2">
       <GoldCoinIcon className="h-5 w-5" />
-      <span className="font-black text-lg text-primary italic">{amount}</span>
+      <span className="font-black text-xl text-primary italic">{amount}</span>
     </div>
   </div>
 );
@@ -192,12 +197,9 @@ function LeaderboardContent() {
       // Target: Next 12:00 AM IST (GMT+5:30)
       // 12:00 AM IST is 18:30:00 UTC of the previous day.
       let target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 18, 30, 0));
-      
-      // If current UTC time is already past 18:30 UTC today, the next 12 AM IST is tomorrow's 18:30 UTC
       if (now.getTime() >= target.getTime()) {
         target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 18, 30, 0));
       }
-      
       const diff = target.getTime() - now.getTime();
       const h = Math.floor(diff / (1000 * 60 * 60));
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -216,12 +218,12 @@ function LeaderboardContent() {
 
   const charmUsersQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return query(collection(firestore, 'users'), orderBy('stats.fans', 'desc'), limit(50));
+    return query(collection(firestore, 'users'), orderBy('stats.dailyFans', 'desc'), limit(50));
   }, [firestore, user]);
 
   const roomsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return query(collection(firestore, 'chatRooms'), orderBy('stats.totalGifts', 'desc'), limit(50));
+    return query(collection(firestore, 'chatRooms'), orderBy('stats.dailyGifts', 'desc'), limit(50));
   }, [firestore, user]);
 
   const { data: richUsers, isLoading: isLoadingRich } = useCollection(richUsersQuery);
@@ -242,7 +244,6 @@ function LeaderboardContent() {
                 <button onClick={() => setRankingMode('rich')} className={cn("text-lg font-black uppercase italic tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'rich' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Rich</button>
                 <button onClick={() => setRankingMode('charm')} className={cn("text-lg font-black uppercase italic tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'charm' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Charm</button>
                 <button onClick={() => setRankingMode('rooms')} className={cn("text-lg font-black uppercase italic tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'rooms' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Room</button>
-                <button onClick={() => setRankingMode('games')} className={cn("text-lg font-black uppercase italic tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'games' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Game</button>
              </div>
              <Dialog>
                 <DialogTrigger asChild>
@@ -254,29 +255,31 @@ function LeaderboardContent() {
                   <DialogHeader className="p-8 pb-4 text-center">
                     <DialogTitle className="text-3xl font-black uppercase italic flex items-center justify-center gap-3">
                       <Trophy className="h-8 w-8 text-yellow-400" />
-                      Rich Rewards
+                      Daily Rewards
                     </DialogTitle>
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mt-2">Daily IST Throne Distribution</p>
                   </DialogHeader>
                   <div className="px-8 pb-12 space-y-4 h-full overflow-y-auto no-scrollbar">
                     <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 flex items-center gap-3 mb-4">
                       <Timer className="h-4 w-4 text-primary" />
-                      <p className="text-[10px] font-bold text-primary/80 uppercase">Reset in {timeLeft} (GMT+5:30)</p>
+                      <p className="text-[10px] font-bold text-primary/80 uppercase">Next IST Reset in {timeLeft}</p>
                     </div>
-                    <RewardItem rank="Top 1" amount="10,000" color="bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.4)]" />
-                    <RewardItem rank="Top 2" amount="8,000" color="bg-slate-300 text-black" />
-                    <RewardItem rank="Top 3" amount="5,000" color="bg-amber-700 text-white" />
-                    <RewardItem rank="Top 4" amount="3,000" color="bg-slate-800 text-white" />
-                    <RewardItem rank="Top 5-10" amount="1,000" color="bg-slate-900 text-white border border-white/10" />
+                    
+                    <RewardItem emoji="🥇" rank="Top 1" amount="10,000" color="bg-yellow-500/20" />
+                    <RewardItem emoji="🥈" rank="Top 2" amount="8,000" color="bg-slate-300/20" />
+                    <RewardItem emoji="🥉" rank="Top 3" amount="5,000" color="bg-amber-700/20" />
+                    <RewardItem emoji="🏅" rank="Top 4" amount="3,000" color="bg-slate-800/20" />
+                    <RewardItem emoji="🎗" rank="Top 5-10" amount="1,000" color="bg-slate-900/20 border border-white/5" />
+
                     <div className="pt-6 border-t border-white/5 space-y-3 pb-20">
                       <div className="flex items-center gap-2">
                         <Info className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Rules of the Throne</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Rules of the Daily Throne</p>
                       </div>
                       <ul className="space-y-2">
-                        <li className="text-[10px] text-white/40 leading-relaxed">• Ranking is based on your total daily spending across all frequencies.</li>
-                        <li className="text-[10px] text-white/40 leading-relaxed">• Rewards are dispatched to your vault at 12:00 AM IST daily.</li>
-                        <li className="text-[10px] text-white/40 leading-relaxed">• The leaderboard resets instantly upon reward delivery for the next cycle.</li>
+                        <li className="text-[10px] text-white/40 leading-relaxed">• Rewards apply to Rich, Charm, and Room categories.</li>
+                        <li className="text-[10px] text-white/40 leading-relaxed">• Dispatched daily at 12:00 AM IST (GMT+5:30).</li>
+                        <li className="text-[10px] text-white/40 leading-relaxed">• Counters reset instantly upon reward delivery.</li>
                       </ul>
                     </div>
                   </div>
@@ -302,7 +305,7 @@ function LeaderboardContent() {
 
         <div className="relative z-10 w-full py-2 bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent border-y border-yellow-500/10 flex justify-center items-center gap-2 mb-4">
            <Timer className="h-4 w-4 text-yellow-500" />
-           <span className="text-xs font-mono font-bold text-yellow-500 tracking-widest">{timeLeft} (GMT+5:30)</span>
+           <span className="text-xs font-mono font-bold text-yellow-500 tracking-widest">{timeLeft} (IST)</span>
         </div>
 
         <footer className="fixed bottom-0 left-0 right-0 z-[100] bg-gradient-to-b from-amber-900 to-black p-4 border-t border-yellow-500/30 shadow-[0_-10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl">

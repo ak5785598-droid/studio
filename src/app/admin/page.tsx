@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -42,92 +43,75 @@ export default function AdminPage() {
   }, [firestore]);
   const { data: logs } = useCollection(logsQuery);
 
-  const gamesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'games'), orderBy('title', 'asc'));
-  }, [firestore]);
-  const { data: games } = useCollection(gamesQuery);
-
   const isAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
 
-  const handleDistributeRichRewards = async () => {
+  const handleDistributeDailyRewards = async () => {
     if (!firestore || !isAdmin) return;
     setIsSaving(true);
     try {
-      // 1. Get Top 10 Spenders
-      const topSpendersQuery = query(
-        collection(firestore, 'users'),
-        where('wallet.dailySpent', '>', 0),
-        orderBy('wallet.dailySpent', 'desc'),
-        limit(10)
-      );
-      const snap = await getDocs(topSpendersQuery);
-      const spenders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      if (spenders.length === 0) {
-        toast({ variant: 'destructive', title: 'No Activity', description: 'No IST spending detected today.' });
-        return;
-      }
-
       const batch = writeBatch(firestore);
       const rewardConfig = [10000, 8000, 5000, 3000, 1000, 1000, 1000, 1000, 1000, 1000];
+      
+      const processRankings = async (colPath: string, field: string, type: 'User' | 'Room') => {
+        const q = query(
+          collection(firestore, colPath),
+          where(field, '>', 0),
+          orderBy(field, 'desc'),
+          limit(10)
+        );
+        const snap = await getDocs(q);
+        snap.docs.forEach((d, i) => {
+          const reward = rewardConfig[i] || 0;
+          const targetUid = type === 'User' ? d.id : d.data().ownerId;
+          if (!targetUid) return;
 
-      spenders.forEach((s: any, i) => {
-        const reward = rewardConfig[i] || 0;
-        const uRef = doc(firestore, 'users', s.id);
-        const pRef = doc(firestore, 'users', s.id, 'profile', s.id);
-        const notifRef = doc(collection(firestore, 'users', s.id, 'notifications'));
+          const uRef = doc(firestore, 'users', targetUid);
+          const pRef = doc(firestore, 'users', targetUid, 'profile', targetUid);
+          const notifRef = doc(collection(firestore, 'users', targetUid, 'notifications'));
 
-        batch.update(uRef, { 'wallet.coins': increment(reward) });
-        batch.update(pRef, { 'wallet.coins': increment(reward) });
-        batch.set(notifRef, {
-          title: 'Rich Rewards Distribution',
-          content: `Congratulations! You ranked Top ${i+1} in today's wealth race (IST Cycle). You've been rewarded ${reward.toLocaleString()} Gold Coins!`,
-          type: 'system',
-          timestamp: serverTimestamp(),
-          isRead: false
+          batch.update(uRef, { 'wallet.coins': increment(reward) });
+          batch.update(pRef, { 'wallet.coins': increment(reward) });
+          batch.set(notifRef, {
+            title: `Daily ${field.includes('Spent') ? 'Rich' : field.includes('Fans') ? 'Charm' : 'Room'} Reward`,
+            content: `Congratulations! You ranked Top ${i+1} in today's ${type === 'User' ? 'identity' : 'room'} race (IST Cycle). Rewarded ${reward.toLocaleString()} Coins!`,
+            type: 'system',
+            timestamp: serverTimestamp(),
+            isRead: false
+          });
         });
-      });
+      };
 
-      // 2. Reset dailySpent for ALL spenders
-      const allSpendersSnap = await getDocs(query(collection(firestore, 'users'), where('wallet.dailySpent', '>', 0)));
-      allSpendersSnap.docs.forEach(d => {
+      // 1. Process All 3 Categories
+      await processRankings('users', 'wallet.dailySpent', 'User');
+      await processRankings('users', 'stats.dailyFans', 'User');
+      await processRankings('chatRooms', 'stats.dailyGifts', 'Room');
+
+      // 2. Reset All Daily Counters
+      const spendersSnap = await getDocs(query(collection(firestore, 'users'), where('wallet.dailySpent', '>', 0)));
+      spendersSnap.docs.forEach(d => {
         batch.update(d.ref, { 'wallet.dailySpent': 0 });
         batch.update(doc(firestore, 'users', d.id, 'profile', d.id), { 'wallet.dailySpent': 0 });
+      });
+
+      const fansSnap = await getDocs(query(collection(firestore, 'users'), where('stats.dailyFans', '>', 0)));
+      fansSnap.docs.forEach(d => {
+        batch.update(d.ref, { 'stats.dailyFans': 0 });
+        batch.update(doc(firestore, 'users', d.id, 'profile', d.id), { 'stats.dailyFans': 0 });
+      });
+
+      const roomsSnap = await getDocs(query(collection(firestore, 'chatRooms'), where('stats.dailyGifts', '>', 0)));
+      roomsSnap.docs.forEach(d => {
+        batch.update(d.ref, { 'stats.dailyGifts': 0 });
       });
 
       // 3. Update Last Reset Timestamp
       batch.set(configRef!, { lastRewardReset: serverTimestamp() }, { merge: true });
 
       await batch.commit();
-      await logAdminAction('Daily Reward Distribution (IST)', 'tribe/economy', { recipients: spenders.length });
-      toast({ title: 'Rewards Dispatched', description: `Processed ${spenders.length} rankings for the IST cycle.` });
+      await logAdminAction('Global Daily Reset (IST)', 'tribe/economy', { categories: ['Rich', 'Charm', 'Room'] });
+      toast({ title: 'Daily Sweep Complete', description: 'Rewards dispatched and counters reset for the IST cycle.' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Distribution Failed', description: e.message });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleInitGames = async () => {
-    if (!firestore || !isAdmin) return;
-    setIsSaving(true);
-    try {
-      const gamesList = [
-        { title: 'Ludo Masters', slug: 'ludo', coverUrl: 'https://picsum.photos/seed/ludo-pro/600/600', cost: 0, imageHint: 'ludo board' },
-        { title: 'Fruit Party', slug: 'fruit-party', coverUrl: 'https://picsum.photos/seed/fruit-party/600/600', cost: 0, imageHint: 'vibrant fruits' },
-        { title: 'Wild Party', slug: 'forest-party', coverUrl: 'https://picsum.photos/seed/forest-party/600/600', cost: 0, imageHint: 'forest animals' },
-        { title: 'Lucky Slot 777', slug: 'lucky-slot-777', coverUrl: 'https://picsum.photos/seed/lucky777/600/600', cost: 0, imageHint: 'lucky 777 slot' },
-      ];
-
-      const batch = writeBatch(firestore);
-      gamesList.forEach(g => {
-        const gameRef = doc(collection(firestore, 'games'));
-        batch.set(gameRef, { ...g, createdAt: serverTimestamp() });
-      });
-      await batch.commit();
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Initialization Failed', description: e.message });
     } finally {
       setIsSaving(false);
     }
@@ -144,15 +128,7 @@ export default function AdminPage() {
         details,
         createdAt: serverTimestamp()
       });
-    } catch (e: any) {
-      if (e.code === 'permission-denied') {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'adminLogs',
-          operation: 'create',
-          requestResourceData: { action, targetId }
-        }));
-      }
-    }
+    } catch (e: any) {}
   };
 
   const handleSearchUsers = async () => {
@@ -167,13 +143,6 @@ export default function AdminPage() {
       );
       const snap = await getDocs(q);
       setFoundUsers(snap.docs.map(d => ({ ...d.data(), id: d.id })));
-    } catch (e: any) {
-      if (e.code === 'permission-denied') {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'users',
-          operation: 'list',
-        }));
-      }
     } finally {
       setIsSearching(false);
     }
@@ -203,32 +172,6 @@ export default function AdminPage() {
       snap.docs.forEach(d => batch.delete(d.ref));
       await batch.commit();
       await logAdminAction('Wipe All Rooms', 'collection/chatRooms', { count: snap.size });
-    } catch (e: any) {
-      if (e.code === 'permission-denied') {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'chatRooms',
-          operation: 'delete',
-        }));
-      }
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleResetCounters = async () => {
-    if (!firestore || !isAdmin) return;
-    setIsSaving(true);
-    try {
-      const countersRef = doc(firestore, 'appConfig', 'counters');
-      await setDoc(countersRef, { roomCounter: 0, userCounter: 1000 }, { merge: true });
-      await logAdminAction('Reset Counters', 'config/counters', {});
-    } catch (e: any) {
-      if (e.code === 'permission-denied') {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'appConfig/counters',
-          operation: 'update',
-        }));
-      }
     } finally {
       setIsSaving(false);
     }
@@ -254,7 +197,6 @@ export default function AdminPage() {
             <TabsTrigger value="overview" className="rounded-full px-6 font-black uppercase text-[10px]">Overview</TabsTrigger>
             <TabsTrigger value="rewards" className="rounded-full px-6 font-black uppercase text-[10px]">Rewards Hub</TabsTrigger>
             <TabsTrigger value="users" className="rounded-full px-6 font-black uppercase text-[10px]">Users</TabsTrigger>
-            <TabsTrigger value="games" className="rounded-full px-6 font-black uppercase text-[10px]">Games</TabsTrigger>
             <TabsTrigger value="config" className="rounded-full px-6 font-black uppercase text-[10px]">Config</TabsTrigger>
             <TabsTrigger value="logs" className="rounded-full px-6 font-black uppercase text-[10px]">Logs</TabsTrigger>
           </TabsList>
@@ -270,13 +212,13 @@ export default function AdminPage() {
              <Card className="rounded-[2.5rem] border-none shadow-xl bg-gradient-to-br from-yellow-500/10 to-transparent">
                 <CardHeader>
                    <CardTitle className="font-headline text-2xl uppercase italic flex items-center gap-2">
-                      <Gift className="h-6 w-6 text-yellow-500" /> Rich Rewards Hub
+                      <Gift className="h-6 w-6 text-yellow-500" /> Daily Rewards Hub
                    </CardTitle>
-                   <CardDescription>Dispatch daily coin rewards to the Top 10 spenders and reset the IST frequency.</CardDescription>
+                   <CardDescription>Execute reward distribution for Rich, Charm, and Room categories (IST Cycle).</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                    <div className="p-6 bg-white/5 rounded-3xl border-2 border-dashed border-yellow-500/20">
-                      <h3 className="font-black uppercase italic text-sm mb-4">Distribution Sequence (GMT+5:30):</h3>
+                      <h3 className="font-black uppercase italic text-sm mb-4">Daily Prize Frequency (IST):</h3>
                       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                          <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 1</p><p className="font-black text-yellow-500">10,000</p></div>
                          <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 2</p><p className="font-black text-slate-300">8,000</p></div>
@@ -286,14 +228,14 @@ export default function AdminPage() {
                       </div>
                    </div>
                    <Button 
-                      onClick={handleDistributeRichRewards} 
+                      onClick={handleDistributeDailyRewards} 
                       disabled={isSaving} 
                       className="w-full h-16 rounded-[1.5rem] bg-yellow-500 text-black font-black uppercase italic text-lg shadow-xl shadow-yellow-500/20 hover:scale-[1.02] transition-transform"
                    >
                       {isSaving ? <Loader className="animate-spin h-6 w-6 mr-2" /> : <CheckCircle2 className="h-6 w-6 mr-2" />}
-                      Execute Daily Distribution & Reset
+                      Distribute & Reset All Chronometers
                    </Button>
-                   <p className="text-center text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">Note: This action clears all "Daily Spent" counters across the tribe based on the 12AM IST cycle.</p>
+                   <p className="text-center text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">Clears Daily Spent, Daily Fans, and Daily Room Gifts across the tribe.</p>
                 </CardContent>
              </Card>
           </TabsContent>
@@ -327,63 +269,12 @@ export default function AdminPage() {
              </Card>
           </TabsContent>
 
-          <TabsContent value="games" className="space-y-6">
-             <Card className="rounded-[2rem] border-none shadow-xl">
-                <CardHeader className="flex flex-row items-center justify-between">
-                   <CardTitle className="font-headline uppercase italic">Game Frequency Hub</CardTitle>
-                   <Button onClick={handleInitGames} disabled={isSaving || (games && games.length > 0)} className="rounded-full h-10 px-6 font-black uppercase text-[10px] italic">
-                      <RefreshCw className="mr-2 h-4 w-4" /> Initialize Games
-                   </Button>
-                </CardHeader>
-                <CardContent>
-                   <div className="grid gap-4">
-                      {games?.map((g) => (
-                        <div key={g.id} className="p-4 bg-muted/20 rounded-2xl border flex items-center gap-4">
-                           <div className="h-14 w-14 rounded-xl overflow-hidden border-2 border-white">
-                              <img src={g.coverUrl} className="h-full w-full object-cover" alt={g.title} />
-                           </div>
-                           <div className="flex-1">
-                              <p className="font-black text-sm uppercase italic">{g.title}</p>
-                              <Badge variant="outline" className="text-[8px] h-4 mt-1 border-primary/20 text-primary uppercase font-black">{g.slug}</Badge>
-                           </div>
-                           <p className="text-[10px] font-bold text-muted-foreground">Skill: {g.cost === 0 ? 'Free' : 'High Stakes'}</p>
-                        </div>
-                      ))}
-                      {(!games || games.length === 0) && (
-                        <div className="py-10 text-center opacity-40 italic flex flex-col items-center gap-2">
-                           <Gamepad2 className="h-10 w-10" />
-                           <p className="text-[10px] font-black uppercase">No Dynamic Games Provisioned</p>
-                        </div>
-                      )}
-                   </div>
-                </CardContent>
-             </Card>
-          </TabsContent>
-
           <TabsContent value="config" className="space-y-6">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="rounded-[2rem] border-none shadow-xl">
-                   <CardHeader><CardTitle className="font-headline uppercase italic">System Toggles</CardTitle></CardHeader>
-                   <CardContent className="space-y-4">
-                      <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl">
-                         <div><Label className="font-black uppercase italic">Economy Engine</Label><p className="text-[10px] text-muted-foreground">Toggle coin spending.</p></div>
-                         <Switch checked={config?.economyEnabled ?? true} onCheckedChange={(val) => setDoc(configRef!, { economyEnabled: val }, { merge: true }).catch(e => {
-                            if (e.code === 'permission-denied') {
-                               errorEmitter.emit('permission-error', new FirestorePermissionError({
-                                  path: configRef!.path,
-                                  operation: 'update',
-                                  requestResourceData: { economyEnabled: val }
-                               }));
-                            }
-                         })} />
-                      </div>
-                   </CardContent>
-                </Card>
                 <Card className="rounded-[2rem] border-none shadow-xl">
                    <CardHeader><CardTitle className="font-headline uppercase italic text-destructive">Danger Zone</CardTitle></CardHeader>
                    <CardContent className="space-y-4">
                       <Button variant="destructive" className="w-full rounded-xl font-black uppercase italic" disabled={isSaving} onClick={handleClearAllRooms}><Trash2 className="mr-2 h-4 w-4" /> Wipe All Rooms</Button>
-                      <Button variant="outline" className="w-full rounded-xl font-black uppercase italic border-destructive text-destructive" disabled={isSaving} onClick={handleResetCounters}><RefreshCw className="mr-2 h-4 w-4" /> Reset ID Sequence</Button>
                    </CardContent>
                 </Card>
              </div>
