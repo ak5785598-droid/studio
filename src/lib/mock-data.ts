@@ -21,9 +21,9 @@ const games: Game[] = [
     id: 'g2', 
     title: 'Fruit Party', 
     slug: 'fruit-party', 
-    coverUrl: '', // Production: User/Admin must upload
+    coverUrl: 'https://images.unsplash.com/photo-1611080634139-6c8821f5f6ca?q=80&w=1000', 
     cost: 0, 
-    imageHint: 'vibrant fruits' 
+    imageHint: 'vibrant fruit party logo' 
   },
   { 
     id: 'g3', 

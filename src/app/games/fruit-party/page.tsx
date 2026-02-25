@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -23,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CompactRoomView } from '@/components/compact-room-view';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Image from 'next/image';
 
 const ITEMS = [
   { id: 'grapes_blue', emoji: '🍇', multiplier: 5, label: '5 times', color: 'blue' },
@@ -120,7 +120,7 @@ export default function FruitPartyPage() {
   }, [isMuted, isLaunching, initAudioContext]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLaunching(false), 2000);
+    const timer = setTimeout(() => setIsLaunching(false), 2500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -160,7 +160,6 @@ export default function FruitPartyPage() {
     const winItem = ITEMS.find(i => i.id === id);
     const winAmount = (myBets[id] || 0) * (winItem?.multiplier || 0);
     
-    // Real-Time Winner Logic: Remove Mock Prototypes
     const sessionWinners = [];
 
     if (winAmount > 0 && userProfile) {
@@ -209,12 +208,20 @@ export default function FruitPartyPage() {
 
   if (isLaunching) {
     return (
-      <div className="h-screen w-full bg-[#2D0B0B] flex flex-col items-center justify-center space-y-6">
-        <div className="text-9xl animate-bounce">🍓</div>
-        <h1 className="text-5xl font-black text-[#FFD600] uppercase italic tracking-tighter drop-shadow-2xl">Lucky Fruit</h1>
-        <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
-           <div className="h-full bg-[#FFD600] animate-shimmer" style={{ width: '60%' }} />
+      <div className="h-screen w-full bg-[#2D0B0B] flex flex-col items-center justify-center space-y-8 p-6">
+        <div className="relative w-64 h-64 animate-in zoom-in duration-1000">
+           <Image 
+             src="https://images.unsplash.com/photo-1611080634139-6c8821f5f6ca?q=80&w=1000" 
+             alt="Fruit Party Logo" 
+             fill 
+             className="object-contain drop-shadow-[0_0_40px_rgba(255,214,0,0.4)]"
+           />
         </div>
+        <h1 className="text-5xl font-black text-[#FFD600] uppercase italic tracking-tighter drop-shadow-2xl text-center">Lucky Fruit</h1>
+        <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden shadow-inner">
+           <div className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 animate-shimmer" style={{ width: '100%' }} />
+        </div>
+        <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.3em] animate-pulse">Syncing Arena...</p>
       </div>
     );
   }

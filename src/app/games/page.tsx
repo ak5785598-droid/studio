@@ -15,7 +15,7 @@ import { useGameLogoUpload } from '@/hooks/use-game-logo-upload';
 
 const FALLBACK_GAMES = [
   { id: 'fallback-ludo', title: 'Ludo Masters', slug: 'ludo', coverUrl: '', imageHint: 'ludo board' },
-  { id: 'fallback-fruit', title: 'Fruit Party', slug: 'fruit-party', coverUrl: '', imageHint: 'vibrant fruits' },
+  { id: 'fallback-fruit', title: 'Fruit Party', slug: 'fruit-party', coverUrl: 'https://images.unsplash.com/photo-1611080634139-6c8821f5f6ca?q=80&w=1000', imageHint: 'vibrant fruit party logo' },
   { id: 'fallback-wild', title: 'Wild Party', slug: 'forest-party', coverUrl: '', imageHint: 'forest animals' },
   { id: 'fallback-slot', title: 'Lucky Slot 777', slug: 'lucky-slot-777', coverUrl: '', imageHint: 'lucky 777 slot' },
   { id: 'fallback-teen', title: 'Dragon Battle', slug: 'teen-patti', coverUrl: '', imageHint: 'dragon cards' },
@@ -48,7 +48,6 @@ export default function GamesPage() {
   const { data: firestoreGames, isLoading: isGamesLoading } = useCollection(gamesQuery);
 
   const activeGames = useMemo(() => {
-    // High-Fidelity Merging: Keep all fallbacks but override with permanent Firestore updates
     return FALLBACK_GAMES.map(fb => {
       const match = firestoreGames?.find(g => g.slug === fb.slug || g.id === fb.id);
       return match ? { ...fb, ...match } : fb;
