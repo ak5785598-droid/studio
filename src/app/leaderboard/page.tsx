@@ -239,44 +239,6 @@ export default function LeaderboardPage() {
           </div>
         </header>
 
-        {rankingType === 'rich' && (
-          <div className="px-6 mb-6">
-             <Card className="bg-gradient-to-br from-yellow-500/20 to-transparent border-yellow-500/20 rounded-[2rem] overflow-hidden">
-                <CardHeader className="pb-2">
-                   <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-yellow-400 font-black uppercase italic text-xs">
-                         <Zap className="h-4 w-4" /> Daily Rich Rewards
-                      </div>
-                      <div className="flex items-center gap-1.5 text-white/40 font-mono text-[10px]">
-                         <Timer className="h-3 w-3" /> {timeLeft} (GMT)
-                      </div>
-                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                   <p className="text-[10px] text-white/60 font-medium">Top spenders at 12AM GMT receive exclusive coin batches:</p>
-                   <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-white/5 p-2 rounded-xl border border-white/5 text-center">
-                         <p className="text-[8px] font-black uppercase text-yellow-500">Top 1</p>
-                         <p className="text-xs font-black">10K <GoldCoinIcon className="h-2 w-2 inline" /></p>
-                      </div>
-                      <div className="bg-white/5 p-2 rounded-xl border border-white/5 text-center">
-                         <p className="text-[8px] font-black uppercase text-slate-300">Top 2</p>
-                         <p className="text-xs font-black">8K <GoldCoinIcon className="h-2 w-2 inline" /></p>
-                      </div>
-                      <div className="bg-white/5 p-2 rounded-xl border border-white/5 text-center">
-                         <p className="text-[8px] font-black uppercase text-amber-700">Top 3</p>
-                         <p className="text-xs font-black">5K <GoldCoinIcon className="h-2 w-2 inline" /></p>
-                      </div>
-                   </div>
-                   <div className="flex justify-between items-center px-2 pt-1 border-t border-white/5">
-                      <span className="text-[8px] font-black text-white/40 uppercase">Top 4: 3,000</span>
-                      <span className="text-[8px] font-black text-white/40 uppercase">Top 5-10: 1,000</span>
-                   </div>
-                </CardContent>
-             </Card>
-          </div>
-        )}
-
         <div className="px-6 space-y-8">
            <div className="flex justify-center gap-2 overflow-x-auto no-scrollbar py-2">
              <button onClick={() => setRankingMode('rich')} className={cn("px-6 py-2 rounded-xl font-black uppercase italic transition-all shrink-0", rankingType === 'rich' ? "bg-gradient-to-b from-yellow-100 to-yellow-500 text-black border-b-4 border-yellow-700" : "bg-white/5 text-white/40")}>Daily Rich</button>
