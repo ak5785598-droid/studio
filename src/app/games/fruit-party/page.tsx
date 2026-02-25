@@ -15,7 +15,8 @@ import {
   BarChart2,
   Clock,
   Loader,
-  Trophy
+  Trophy,
+  Crown
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';

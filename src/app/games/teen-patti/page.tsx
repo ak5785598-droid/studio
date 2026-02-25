@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -17,12 +18,14 @@ import {
   BarChart2,
   Maximize2,
   Settings,
-  RefreshCcw
+  RefreshCcw,
+  Crown
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CompactRoomView } from '@/components/compact-room-view';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const CHIPS = [
   { value: 5, color: 'bg-[#00E676]' }, // Green
@@ -54,6 +57,7 @@ export default function TeenPattiPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isLaunching, setIsLaunching] = useState(true);
   const [winner, setWinner] = useState<string | null>(null);
+  const [winners, setWinners] = useState<any[]>([]);
 
   useEffect(() => {
     if (isMuted || isLaunching) return;
@@ -62,7 +66,7 @@ export default function TeenPattiPage() {
     try {
       audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const masterGain = audioCtx.createGain();
-      masterGain.gain.value = 1.0; // FULL VOLUME AS REQUESTED
+      masterGain.gain.value = 1.0; 
       masterGain.connect(audioCtx.destination);
       let step = 0;
       const scheduleNextNote = () => {
@@ -71,8 +75,7 @@ export default function TeenPattiPage() {
         const osc = audioCtx.createOscillator();
         const noteGain = audioCtx.createGain();
         
-        // High-fidelity Sitar-Fusion synthesized sound
-        const frequencies = [146.83, 164.81, 174.61, 196.00, 220.00, 246.94]; // D3, E3, F3, G3, A3, B3 (Mixolydian-ish)
+        const frequencies = [146.83, 164.81, 174.61, 196.00, 220.00, 246.94]; // D3, E3, F3, G3, A3, B3
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(frequencies[step % frequencies.length], now);
         osc.frequency.exponentialRampToValueAtTime(frequencies[step % frequencies.length] * 0.5, now + 0.8);
@@ -120,12 +123,30 @@ export default function TeenPattiPage() {
 
   const showResult = (winId: string) => {
     setWinner(winId);
-    setGameState('result');
     setHistory(prev => [winId, ...prev].slice(0, 10));
     
     const winAmount = (myBets[winId] || 0) * 2.92;
+
+    const mockWinners = [
+      { name: 'Dragon_King', win: Math.floor(Math.random() * 100000) + 50000, avatar: 'https://picsum.photos/seed/dk/100' },
+      { name: 'Jade_Warrior', win: Math.floor(Math.random() * 50000) + 10000, avatar: 'https://picsum.photos/seed/jw/100' },
+      { name: 'Elite_Drag', win: Math.floor(Math.random() * 20000) + 5000, avatar: 'https://picsum.photos/seed/ed/100' },
+    ];
+
+    if (winAmount > 0 && userProfile) {
+      mockWinners.push({ name: userProfile.username, win: Math.floor(winAmount), avatar: userProfile.avatarUrl, isMe: true });
+    }
+
+    const sortedWinners = mockWinners.sort((a, b) => b.win - a.win).slice(0, 3);
+    setWinners(sortedWinners);
+    setGameState('result');
+    
     if (winAmount > 0 && currentUser && firestore) {
-      const updateData = { 'wallet.coins': increment(Math.floor(winAmount)), updatedAt: serverTimestamp() };
+      const updateData = { 
+        'wallet.coins': increment(Math.floor(winAmount)), 
+        'stats.dailyGameWins': increment(Math.floor(winAmount)),
+        updatedAt: serverTimestamp() 
+      };
       updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
       updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);
     }
@@ -134,6 +155,7 @@ export default function TeenPattiPage() {
       setMyBets({ A: 0, B: 0, C: 0 });
       setTotalPots({ A: 0, B: 0, C: 0 });
       setWinner(null);
+      setWinners([]);
       setGameState('betting');
       setTimeLeft(18);
     }, 5000);
@@ -155,10 +177,9 @@ export default function TeenPattiPage() {
 
   if (isLaunching) {
     return (
-      <div className="h-screen w-full bg-[#1a0a05] flex flex-col items-center justify-center space-y-6">
+      <div className="h-screen w-full bg-[#1a0a2e] flex flex-col items-center justify-center space-y-6">
         <div className="text-8xl animate-bounce">🐲</div>
         <h1 className="text-5xl font-black text-white uppercase italic tracking-tighter">Dragon Battle</h1>
-        <p className="text-[#FFD600] uppercase font-black tracking-widest text-[10px] animate-pulse">Loading Elite Arena...</p>
       </div>
     );
   }
@@ -168,10 +189,51 @@ export default function TeenPattiPage() {
       <div className="h-screen w-full bg-[#1a0a05] flex flex-col relative overflow-hidden font-headline animate-in fade-in duration-1000">
         <CompactRoomView />
 
+        {gameState === 'result' && winners.length > 0 && (
+          <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500">
+             <div className="relative mb-12">
+                <Crown className="absolute -top-12 left-1/2 -translate-x-1/2 h-16 w-16 text-yellow-400 animate-bounce" />
+                <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter text-center">Round Winners</h2>
+             </div>
+             
+             <div className="flex items-end gap-4 px-6 w-full max-w-lg h-64">
+                {winners[1] && (
+                  <div className="flex-1 flex flex-col items-center gap-2 animate-in slide-in-from-bottom-10 duration-700 delay-100">
+                     <Avatar className="h-16 w-16 border-4 border-slate-300 shadow-xl"><AvatarImage src={winners[1].avatar}/><AvatarFallback>2</AvatarFallback></Avatar>
+                     <div className="w-full bg-slate-400/20 rounded-t-2xl border-x border-t border-slate-300 h-24 flex flex-col items-center justify-center">
+                        <span className="text-3xl">🥈</span>
+                        <p className="text-[10px] font-black text-white uppercase truncate px-2">{winners[1].name}</p>
+                        <p className="text-xs font-black text-yellow-500">+{winners[1].win.toLocaleString()}</p>
+                     </div>
+                  </div>
+                )}
+                {winners[0] && (
+                  <div className="flex-1 flex flex-col items-center gap-2 animate-in slide-in-from-bottom-20 duration-1000">
+                     <Avatar className="h-20 w-20 border-4 border-yellow-400 shadow-[0_0_30px_rgba(251,191,36,0.5)]"><AvatarImage src={winners[0].avatar}/><AvatarFallback>1</AvatarFallback></Avatar>
+                     <div className="w-full bg-yellow-500/20 rounded-t-2xl border-x border-t border-yellow-400 h-32 flex flex-col items-center justify-center">
+                        <span className="text-4xl">🥇</span>
+                        <p className="text-[10px] font-black text-white uppercase truncate px-2">{winners[0].name}</p>
+                        <p className="text-sm font-black text-yellow-500">+{winners[0].win.toLocaleString()}</p>
+                     </div>
+                  </div>
+                )}
+                {winners[2] && (
+                  <div className="flex-1 flex flex-col items-center gap-2 animate-in slide-in-from-bottom-10 duration-700 delay-200">
+                     <Avatar className="h-14 w-14 border-4 border-amber-700 shadow-xl"><AvatarImage src={winners[2].avatar}/><AvatarFallback>3</AvatarFallback></Avatar>
+                     <div className="w-full bg-amber-900/20 rounded-t-2xl border-x border-t border-amber-700 h-20 flex flex-col items-center justify-center">
+                        <span className="text-2xl">🥉</span>
+                        <p className="text-[8px] font-black text-white uppercase truncate px-2">{winners[2].name}</p>
+                        <p className="text-[10px] font-black text-yellow-500">+{winners[2].win.toLocaleString()}</p>
+                     </div>
+                  </div>
+                )}
+             </div>
+          </div>
+        )}
+
         <div className="absolute inset-0 z-0">
            <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=80&w=2000" className="h-full w-full object-cover opacity-30 scale-110" alt="Vault" />
            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
-           <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[#FFD600]/10 to-transparent" />
         </div>
 
         <div className="flex-1 flex flex-col pt-32 pb-32 px-4 relative z-10 overflow-y-auto no-scrollbar">
