@@ -10,28 +10,34 @@ import {
   History,
   Trophy,
   X,
+  HelpCircle,
+  Settings,
+  FileText
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CompactRoomView } from '@/components/compact-room-view';
 
+// Image Order: 
+// [Orange, Tomato, Banana]
+// [Cherries, TIMER, Lemon]
+// [Grapes, Strawberry, Watermelon]
 const ITEMS = [
-  { id: 'orange', emoji: '🍊', multiplier: 5, label: '5 TIMES', pos: 0 },
-  { id: 'tomato', emoji: '🍅', multiplier: 5, label: '5 TIMES', pos: 1 },
-  { id: 'banana', emoji: '🍌', multiplier: 5, label: '5 TIMES', pos: 2 },
-  { id: 'cherries', emoji: '🍒', multiplier: 45, label: '45 TIMES', pos: 7 },
-  { id: 'lemon', emoji: '🍋', multiplier: 5, label: '5 TIMES', pos: 3 },
-  { id: 'grapes', emoji: '🍇', multiplier: 25, label: '25 TIMES', pos: 6 },
-  { id: 'strawberry', emoji: '🍓', multiplier: 15, label: '15 TIMES', pos: 5 },
-  { id: 'watermelon', emoji: '🍉', multiplier: 10, label: '10 TIMES', pos: 4 },
+  { id: 'orange', emoji: '🍊', multiplier: 5, label: '5 TIMES', gridPos: 0 },
+  { id: 'tomato', emoji: '🍅', multiplier: 5, label: '5 TIMES', gridPos: 1 },
+  { id: 'banana', emoji: '🍌', multiplier: 5, label: '5 TIMES', gridPos: 2 },
+  { id: 'cherries', emoji: '🍒', multiplier: 45, label: '45 TIMES', gridPos: 3 },
+  { id: 'lemon', emoji: '🍋', multiplier: 5, label: '5 TIMES', gridPos: 5 },
+  { id: 'grapes', emoji: '🍇', multiplier: 25, label: '25 TIMES', gridPos: 6 },
+  { id: 'strawberry', emoji: '🍓', multiplier: 15, label: '15 TIMES', gridPos: 7 },
+  { id: 'watermelon', emoji: '🍉', multiplier: 10, label: '10 TIMES', gridPos: 8 },
 ];
 
 const CHIPS = [
-  { value: 100, label: '100', color: 'bg-[#FF4D4D]' },
-  { value: 1000, label: '1K', color: 'bg-[#2ECC71]' },
-  { value: 10000, label: '10K', color: 'bg-[#F1C40F]' },
-  { value: 100000, label: '100K', color: 'bg-[#1ABC9C]' },
+  { value: 100, label: '100', color: 'from-[#FF4D4D] to-[#B22222]', top: 'bg-[#FF4D4D]' },
+  { value: 1000, label: '1K', color: 'from-[#2ECC71] to-[#1E8449]', top: 'bg-[#2ECC71]' },
+  { value: 10000, label: '10K', color: 'from-[#F1C40F] to-[#B7950B]', top: 'bg-[#F1C40F]' },
+  { value: 100000, label: '100K', color: 'from-[#1ABC9C] to-[#148F77]', top: 'bg-[#1ABC9C]' },
 ];
 
 export default function FruitPartyPage() {
@@ -49,7 +55,7 @@ export default function FruitPartyPage() {
   const [resultId, setResultId] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [isLaunching, setIsLaunching] = useState(true);
-  const [lastWinners, setLastWinners] = useState<any[]>([]);
+  const [lastWin, setLastWin] = useState(0);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLaunching(false), 1500);
@@ -70,15 +76,20 @@ export default function FruitPartyPage() {
   const startSpin = () => {
     setGameState('spinning');
     const targetIdx = Math.floor(Math.random() * ITEMS.length);
-    const totalSpins = 32 + targetIdx; 
-    let currentSpin = 0;
-    let speed = 50;
+    // Perimeter sequence: 0, 1, 2, 5, 8, 7, 6, 3
+    const perimeterOrder = [0, 1, 2, 5, 8, 7, 6, 3];
+    const targetGridPos = ITEMS[targetIdx].gridPos;
+    const targetOrderIdx = perimeterOrder.indexOf(targetGridPos);
+    
+    const totalSteps = 24 + targetOrderIdx; 
+    let currentStep = 0;
+    let speed = 60;
 
     const runChase = () => {
-      setHighlightIdx(currentSpin % ITEMS.length);
-      currentSpin++;
-      if (currentSpin < totalSpins) {
-        if (totalSpins - currentSpin < 10) speed += 40;
+      setHighlightIdx(perimeterOrder[currentStep % 8]);
+      currentStep++;
+      if (currentStep < totalSteps) {
+        if (totalSteps - currentStep < 8) speed += 40;
         setTimeout(runChase, speed);
       } else {
         setTimeout(() => showResult(ITEMS[targetIdx].id), 500);
@@ -90,15 +101,15 @@ export default function FruitPartyPage() {
   const showResult = (id: string) => {
     setGameState('result');
     setResultId(id);
-    setHistory(prev => [id, ...prev].slice(0, 12));
+    setHistory(prev => [id, ...prev].slice(0, 15));
     const winItem = ITEMS.find(i => i.id === id);
     const winAmount = (myBets[id] || 0) * (winItem?.multiplier || 0);
+    setLastWin(winAmount);
 
     if (winAmount > 0 && currentUser && firestore && userProfile) {
       const updateData = { 'wallet.coins': increment(winAmount), updatedAt: serverTimestamp() };
       updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
       updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);
-      setLastWinners([{ name: userProfile.username, amount: winAmount, avatar: userProfile.avatarUrl }]);
     }
 
     setTimeout(() => {
@@ -107,7 +118,7 @@ export default function FruitPartyPage() {
       setTimeLeft(20);
       setResultId(null);
       setHighlightIdx(null);
-      setLastWinners([]);
+      setLastWin(0);
     }, 5000);
   };
 
@@ -134,90 +145,162 @@ export default function FruitPartyPage() {
 
   return (
     <AppLayout fullScreen>
-      <div className="h-screen w-full bg-[#2D005E] flex flex-col items-center relative overflow-hidden font-headline">
+      <div className="h-screen w-full bg-[#9C27B0] flex flex-col items-center relative overflow-hidden font-headline">
         <CompactRoomView />
 
         <div className="flex-1 flex flex-col items-center w-full p-4 pt-32 pb-32 z-10 overflow-y-auto">
-          <header className="w-full flex items-center justify-between mb-4">
-             <div className="flex items-center gap-3">
-                <span className="text-white font-bold text-xs opacity-60 uppercase">ROUND: 311</span>
-                <div className="flex items-center gap-1 text-green-400 text-[10px] font-black">
+          {/* Header Row */}
+          <header className="w-full flex items-center justify-between mb-4 px-2">
+             <div className="flex items-center gap-4">
+                <span className="text-white font-black text-lg uppercase tracking-tight">ROUND: 311</span>
+                <div className="flex items-center gap-1 text-[#00E676] text-xs font-black">
                    <Zap className="h-3 w-3 fill-current" />
                    <span>60ms</span>
                 </div>
              </div>
-             <button onClick={() => router.back()} className="bg-white/10 p-1.5 rounded-full text-white"><X className="h-3 w-3" /></button>
+             <div className="flex items-center gap-2">
+                <button className="bg-white/20 p-1.5 rounded-full text-white"><FileText className="h-4 w-4" /></button>
+                <button className="bg-white/20 p-1.5 rounded-full text-white"><HelpCircle className="h-4 w-4" /></button>
+                <button className="bg-white/20 p-1.5 rounded-full text-white"><Settings className="h-4 w-4" /></button>
+                <button onClick={() => router.back()} className="bg-white/20 p-1.5 rounded-full text-white"><X className="h-4 w-4" /></button>
+             </div>
           </header>
 
-          <div className="w-full max-w-sm bg-[#FFD700] p-0.5 rounded-xl shadow-lg mb-6">
-             <div className="bg-[#4B0082] rounded-lg px-3 py-1.5 flex items-center justify-between">
+          {/* Stat Bar */}
+          <div className="w-full max-w-md bg-[#FFD600] p-1 rounded-xl shadow-lg mb-6">
+             <div className="bg-[#4A148C] rounded-lg px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                   <span className="text-[8px] font-black text-white/60 uppercase tracking-widest">Balance</span>
-                   <div className="flex items-center gap-1 text-white font-black text-xs">
-                      <div className="bg-yellow-500 rounded-full h-2.5 w-2.5 flex items-center justify-center text-[6px] text-black">S</div>
+                   <span className="text-xs font-black text-white uppercase">BALANCE:</span>
+                   <div className="flex items-center gap-1 text-white font-black text-lg">
+                      <div className="bg-yellow-500 rounded-full h-4 w-4 flex items-center justify-center text-[10px] text-black">S</div>
                       {(userProfile?.wallet?.coins || 0).toLocaleString()}
                    </div>
                 </div>
-                <button className="bg-[#F1C40F] p-1 rounded-md"><Trophy className="h-3 w-3 text-white" /></button>
+                <div className="flex items-center gap-2">
+                   <span className="text-xs font-black text-white uppercase">PROFIT:</span>
+                   <span className={cn("font-black text-lg", lastWin > 0 ? "text-green-400" : "text-white")}>{lastWin.toLocaleString()}</span>
+                   <div className="bg-[#FFD600] p-1.5 rounded-md ml-2 shadow-inner"><Trophy className="h-4 w-4 text-[#4A148C]" /></div>
+                </div>
              </div>
           </div>
 
-          <div className="relative w-full max-w-[300px] aspect-square bg-[#FFD700] p-1.5 rounded-[1.5rem] shadow-2xl border-b-[6px] border-[#B7950B]">
-             <div className="w-full h-full bg-[#4B0082] rounded-[1.2rem] grid grid-cols-3 grid-rows-3 gap-1.5 p-1.5">
-                {[0, 1, 2, 7, 8, 3, 6, 5, 4].map((gridPos, i) => {
-                  if (gridPos === 8) {
+          {/* Machine Grid with Light-bulb Border */}
+          <div className="relative w-full max-w-[340px] aspect-square bg-[#FFD600] p-3 rounded-[2rem] shadow-2xl border-b-[8px] border-[#B7950B]">
+             {/* Light Bulbs */}
+             <div className="absolute top-1.5 left-1/2 -translate-x-1/2 flex gap-4">
+                {[...Array(5)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />)}
+             </div>
+             <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-4">
+                {[...Array(5)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />)}
+             </div>
+             <div className="absolute left-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-4">
+                {[...Array(5)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />)}
+             </div>
+             <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-4">
+                {[...Array(5)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />)}
+             </div>
+
+             {/* Inner Grid */}
+             <div className="w-full h-full bg-[#311B92] rounded-[1.5rem] grid grid-cols-3 grid-rows-3 gap-2 p-2">
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((gridIndex) => {
+                  if (gridIndex === 4) {
                     return (
-                      <div key="center" className="bg-[#1A0033] rounded-xl flex items-center justify-center border-2 border-[#B7950B] shadow-inner relative overflow-hidden">
-                         {gameState === 'betting' ? <div className="text-3xl font-black text-[#FFD700] italic">{timeLeft}</div> : <div className="text-4xl animate-pulse">{ITEMS.find(item => item.id === (resultId || ITEMS[highlightIdx || 0].id))?.emoji}</div>}
+                      <div key="center" className="bg-[#1A0033] rounded-2xl flex items-center justify-center border-4 border-[#B7950B] shadow-inner relative overflow-hidden">
+                         {gameState === 'betting' ? (
+                           <div className="text-5xl font-black text-[#FFD600] italic font-mono drop-shadow-[0_0_10px_rgba(255,214,0,0.5)]">{timeLeft}</div>
+                         ) : (
+                           <div className="text-5xl animate-in zoom-in duration-300 drop-shadow-[0_0_15px_white]">
+                             {ITEMS.find(it => it.gridPos === (highlightIdx ?? perimeterOrder[0]))?.emoji || resultId && ITEMS.find(it => it.id === resultId)?.emoji}
+                           </div>
+                         )}
                       </div>
                     );
                   }
-                  const item = ITEMS[gridPos < 8 ? gridPos : i];
-                  const isHighlighted = highlightIdx === gridPos;
+                  
+                  const item = ITEMS.find(it => it.gridPos === gridIndex);
+                  const isHighlighted = highlightIdx === gridIndex;
                   const isWinner = resultId === item?.id;
                   const hasBet = item ? !!myBets[item.id] : false;
 
                   return (
-                    <button key={gridPos} onClick={() => item && handlePlaceBet(item.id)} disabled={gameState !== 'betting'} className={cn("relative rounded-xl flex flex-col items-center justify-center p-1 transition-all bg-gradient-to-b from-[#6A0DAD] to-[#4B0082] border border-white/5", isHighlighted && "ring-2 ring-[#FFD700] z-10 scale-105 shadow-xl", isWinner && "ring-2 ring-white animate-pulse z-20", hasBet && "border-[#FFD700]", gameState !== 'betting' && !isHighlighted && "opacity-60")}>
-                      <span className="text-2xl mb-0.5">{item?.emoji}</span>
-                      <span className="text-[6px] font-black text-white/80 uppercase tracking-tighter leading-none">{item?.label}</span>
-                      {hasBet && <div className="absolute top-0.5 right-0.5 bg-[#FFD700] text-black text-[6px] font-black px-1 rounded-full border border-white">{(myBets[item!.id] >= 1000 ? `${(myBets[item!.id] / 1000).toFixed(0)}K` : myBets[item!.id])}</div>}
+                    <button 
+                      key={gridIndex} 
+                      onClick={() => item && handlePlaceBet(item.id)} 
+                      disabled={gameState !== 'betting'} 
+                      className={cn(
+                        "relative rounded-2xl flex flex-col items-center justify-center p-1 transition-all bg-gradient-to-b from-[#AB47BC] to-[#7B1FA2] border-2 border-white/10 shadow-lg active:scale-95",
+                        isHighlighted && "ring-4 ring-[#FFD600] z-10 scale-105 shadow-[0_0_20px_#FFD600]",
+                        isWinner && "ring-4 ring-white animate-pulse z-20",
+                        gameState !== 'betting' && !isHighlighted && "opacity-60"
+                      )}
+                    >
+                      <span className="text-4xl mb-1">{item?.emoji}</span>
+                      <span className="text-[10px] font-black text-white uppercase tracking-tighter leading-none">{item?.label}</span>
+                      {hasBet && (
+                        <div className="absolute -top-2 -right-2 bg-[#FFD600] text-black text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-white shadow-xl">
+                          {(myBets[item!.id] >= 1000 ? `${(myBets[item!.id] / 1000).toFixed(0)}K` : myBets[item!.id])}
+                        </div>
+                      )}
                     </button>
                   );
                 })}
              </div>
           </div>
 
-          <div className="w-full max-w-sm fixed bottom-0 left-0 right-0 z-[110]">
-             <div className="relative bg-[#FFD700] h-20 rounded-t-[2.5rem] flex items-center justify-center gap-3 px-4 pt-2 shadow-2xl">
-                {CHIPS.map(chip => (
-                  <button key={chip.value} onClick={() => setSelectedChip(chip.value)} className={cn("h-11 w-11 rounded-full transition-all border-b-2 border-t flex flex-col items-center justify-center shadow-lg", chip.color, selectedChip === chip.value ? "scale-110 -translate-y-1 ring-2 ring-white" : "opacity-80")}>
-                    <span className="text-[8px] font-black italic text-white">{chip.label}</span>
-                  </button>
-                ))}
-             </div>
-             <div className="bg-[#1A0033] w-full h-10 flex items-center gap-2 px-4 border-t border-[#FFD700]/20 overflow-x-auto no-scrollbar">
-                <History className="h-3 w-3 text-[#FFD700]" />
-                <div className="flex gap-1.5">
-                   {history.slice(0, 8).map((id, i) => (
-                     <div key={i} className="h-6 w-6 bg-white/5 rounded-md flex items-center justify-center text-sm">{ITEMS.find(it => it.id === id)?.emoji}</div>
+          {/* Tiered Chip Console */}
+          <div className="w-full max-w-md mt-10 relative">
+             <div className="bg-[#4A148C] rounded-t-[3rem] p-6 pb-12 border-t-4 border-[#FFD600]">
+                <div className="flex items-center justify-center gap-4 px-2">
+                   {CHIPS.map(chip => (
+                     <button 
+                       key={chip.value} 
+                       onClick={() => setSelectedChip(chip.value)} 
+                       className={cn(
+                         "group relative transition-all duration-200",
+                         selectedChip === chip.value ? "scale-110 -translate-y-2" : "hover:-translate-y-1"
+                       )}
+                     >
+                        {/* 3D Button Style */}
+                        <div className={cn("w-16 h-16 rounded-full bg-gradient-to-b shadow-2xl flex items-center justify-center", chip.color)}>
+                           <div className={cn("w-12 h-12 rounded-full border-2 border-white/30 flex flex-col items-center justify-center", chip.top)}>
+                              <div className="bg-yellow-500 rounded-full h-3 w-3 flex items-center justify-center text-[6px] text-black mb-0.5">S</div>
+                              <span className="text-xs font-black text-white leading-none">{chip.label}</span>
+                           </div>
+                        </div>
+                        {selectedChip === chip.value && (
+                          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-white rounded-full animate-pulse" />
+                        )}
+                     </button>
                    ))}
+                </div>
+             </div>
+             {/* Bottom Scroll History */}
+             <div className="bg-[#1A0033] w-full h-12 flex items-center gap-3 px-6 border-t-2 border-[#FFD600]/20 overflow-hidden">
+                <History className="h-4 w-4 text-[#FFD600] shrink-0" />
+                <div className="flex gap-2 animate-marquee whitespace-nowrap">
+                   {history.length > 0 ? history.map((id, i) => (
+                     <div key={i} className="h-8 w-8 bg-white/5 rounded-lg flex items-center justify-center text-xl shrink-0">
+                       {ITEMS.find(it => it.id === id)?.emoji}
+                     </div>
+                   )) : (
+                     <p className="text-[10px] text-white/40 font-black uppercase">Wait for next frequency result...</p>
+                   )}
                 </div>
              </div>
           </div>
         </div>
 
-        {gameState === 'result' && lastWinners.length > 0 && (
-          <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center animate-in fade-in duration-500 bg-black/80 backdrop-blur-md">
-             <Trophy className="h-16 w-16 text-[#FFD700] mx-auto animate-bounce mb-4" />
-             <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Big Win!</h2>
-             <div className="bg-[#4B0082] p-4 rounded-[1.5rem] border-2 border-[#FFD700] shadow-2xl min-w-[200px] text-center">
-                <Avatar className="h-16 w-16 mx-auto border-2 border-white mb-2"><AvatarImage src={lastWinners[0].avatar} /><AvatarFallback>U</AvatarFallback></Avatar>
-                <p className="text-white font-black text-sm uppercase truncate">{lastWinners[0].name}</p>
-                <p className="text-xl font-black text-[#FFD700] italic">+{lastWinners[0].amount.toLocaleString()}</p>
-             </div>
-          </div>
-        )}
+        <style jsx global>{`
+          .animate-marquee {
+            display: inline-flex;
+            animation: marquee 20s linear infinite;
+          }
+          @keyframes marquee {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+          }
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+        `}</style>
       </div>
     </AppLayout>
   );
