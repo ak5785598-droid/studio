@@ -2,12 +2,12 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { ChatRoomCard } from '@/components/chat-room-card';
-import { Search, Loader, Flame, Crown, Heart, Users, Home, Plus, Star } from 'lucide-react';
+import { Loader, Flame, Crown, Heart, Users, Home, Plus, Star } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
+import { UserSearchDialog } from '@/components/user-search-dialog';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, limit, orderBy, where } from 'firebase/firestore';
-import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,7 +17,6 @@ import { useToast } from '@/hooks/use-toast';
 /**
  * High-Fidelity Discovery Hub.
  * Features real-time presence-based visibility and dedicated "Mine" command center.
- * Prototype images removed from banners and cards.
  */
 export default function RoomsPage() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -117,7 +116,7 @@ export default function RoomsPage() {
               <button onClick={() => setNavTab('mine')} className={cn("text-2xl font-black transition-all", navTab === 'mine' ? "text-gray-900" : "text-gray-300")}>Mine</button>
             </div>
             <div className="flex items-center gap-4">
-               <button className="p-1 hover:scale-110 active:scale-90 transition-all"><Search className="h-6 w-6 text-gray-800" /></button>
+               <UserSearchDialog />
                {myRoomId ? (
                  <Link href={`/rooms/${myRoomId}`} className="p-1 hover:scale-110 active:scale-90 transition-all"><Home className="h-6 w-6 text-gray-800" /></Link>
                ) : (
