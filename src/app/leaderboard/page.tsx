@@ -196,6 +196,7 @@ function LeaderboardContent() {
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
+      // Calculate target 00:00 IST (18:30 UTC previous day)
       let target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 18, 30, 0));
       if (now.getTime() >= target.getTime()) {
         target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 18, 30, 0));
@@ -227,9 +228,9 @@ function LeaderboardContent() {
   }, [firestore, user]);
 
   const roomsQuery = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
+    if (!firestore) return null;
     return query(collection(firestore, 'chatRooms'), orderBy('stats.dailyGifts', 'desc'), limit(50));
-  }, [firestore, user]);
+  }, [firestore]);
 
   const { data: richUsers, isLoading: isLoadingRich } = useCollection(richUsersQuery);
   const { data: charmUsers, isLoading: isLoadingCharm } = useCollection(charmUsersQuery);
@@ -274,11 +275,11 @@ function LeaderboardContent() {
                       <p className="text-[10px] font-bold text-primary/80 uppercase">Next IST Reset in {timeLeft}</p>
                     </div>
                     
-                    <RewardItem emoji="🥇" rank="Top 1" amount="10,000" color="bg-yellow-500/20" />
-                    <RewardItem emoji="🥈" rank="Top 2" amount="8,000" color="bg-slate-300/20" />
-                    <RewardItem emoji="🥉" rank="Top 3" amount="5,000" color="bg-amber-700/20" />
-                    <RewardItem emoji="🏅" rank="Top 4" amount="3,000" color="bg-slate-800/20" />
-                    <RewardItem emoji="🎗" rank="Top 5-10" amount="1,000" color="bg-slate-900/20 border border-white/5" />
+                    <RewardItem emoji="🥇" rank="Top 1" amount="100,000" color="bg-yellow-500/20" />
+                    <RewardItem emoji="🥈" rank="Top 2" amount="80,000" color="bg-slate-300/20" />
+                    <RewardItem emoji="🥉" rank="Top 3" amount="50,000" color="bg-amber-700/20" />
+                    <RewardItem emoji="🏅" rank="Top 4" amount="35,000" color="bg-slate-800/20" />
+                    <RewardItem emoji="🎗" rank="Top 5-10" amount="20,000" color="bg-slate-900/20 border border-white/5" />
 
                     <div className="pt-6 border-t border-white/5 space-y-3 pb-20">
                       <div className="flex items-center gap-2">
@@ -286,9 +287,11 @@ function LeaderboardContent() {
                         <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Rules of the Daily Throne</p>
                       </div>
                       <ul className="space-y-2">
-                        <li className="text-[10px] text-white/40 leading-relaxed">• Rewards apply to all categories.</li>
-                        <li className="text-[10px] text-white/40 leading-relaxed">• Dispatched daily at 12:00 AM IST (GMT+5:30).</li>
-                        <li className="text-[10px] text-white/40 leading-relaxed">• Game wins reset instantly upon delivery.</li>
+                        <li className="text-[10px] text-white/40 leading-relaxed">• 1. The leaderboard will automatically reset after the distribution of rewards.</li>
+                        <li className="text-[10px] text-white/40 leading-relaxed">• 2. The daily ranking is updated at 00:00 (GMT+5:30) the following day.</li>
+                        <li className="text-[10px] text-white/40 leading-relaxed">• 3. The weekly ranking is updated at 00:00 (GMT+5:30) every Monday.</li>
+                        <li className="text-[10px] text-white/40 leading-relaxed">• 4. The monthly ranking is updated at 00:00 (GMT+5:30) on the 1st day of each month.</li>
+                        <li className="text-[10px] text-white/40 leading-relaxed">• 5. Rewards for the previous period are automatically distributed when the rankings are updated.</li>
                       </ul>
                     </div>
                   </div>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -7,17 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirestore, useDoc, useUser, useUserProfile, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
-import { doc, setDoc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch } from 'firebase/firestore';
-import { Shield, Loader, Search, ClipboardList, TrendingUp, AlertTriangle, Trash2, RefreshCw, Gamepad2, Gift, CheckCircle2 } from 'lucide-react';
+import { doc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch } from 'firebase/firestore';
+import { Shield, Loader, Search, ClipboardList, Gift, CheckCircle2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -50,7 +45,8 @@ export default function AdminPage() {
     setIsSaving(true);
     try {
       const batch = writeBatch(firestore);
-      const rewardConfig = [10000, 8000, 5000, 3000, 1000, 1000, 1000, 1000, 1000, 1000];
+      // TOP 1: 100K, TOP 2: 80K, TOP 3: 50K, TOP 4: 35K, TOP 5-10: 20K
+      const rewardConfig = [100000, 80000, 50000, 35000, 20000, 20000, 20000, 20000, 20000, 20000];
       
       const processRankings = async (colPath: string, field: string, type: 'User' | 'Room') => {
         const q = query(
@@ -69,13 +65,13 @@ export default function AdminPage() {
           const pRef = doc(firestore, 'users', targetUid, 'profile', targetUid);
           const notifRef = doc(collection(firestore, 'users', targetUid, 'notifications'));
 
-          const categoryName = field.includes('Spent') ? 'rich' : field.includes('Fans') ? 'charm' : 'room';
+          const categoryName = field.includes('Spent') ? 'Rich' : field.includes('Fans') ? 'Charm' : 'Room';
 
           batch.update(uRef, { 'wallet.coins': increment(reward) });
           batch.update(pRef, { 'wallet.coins': increment(reward) });
           batch.set(notifRef, {
-            title: `Official ${categoryName.charAt(0).toUpperCase() + categoryName.slice(1)} Reward`,
-            content: `You receive....${categoryName} rewards______\n_______${reward.toLocaleString()} Coins...... ..... \n\nRegard UMMY OFFICIAL TEAM`,
+            title: `Official ${categoryName} Reward Distribution`,
+            content: `Congratulations! Based on the latest IST ranking cycle, you have been awarded ${reward.toLocaleString()} Gold Coins for your performance in the ${categoryName} category.\n\nKeep vibing!\n- UMMY OFFICIAL TEAM`,
             type: 'system',
             timestamp: serverTimestamp(),
             isRead: false
@@ -83,12 +79,12 @@ export default function AdminPage() {
         });
       };
 
-      // 1. Process All 3 Categories
+      // 1. Process All Categories
       await processRankings('users', 'wallet.dailySpent', 'User');
       await processRankings('users', 'stats.dailyFans', 'User');
       await processRankings('chatRooms', 'stats.dailyGifts', 'Room');
 
-      // 2. Reset All Daily Counters
+      // 2. Reset All Daily Counters (Production Reset)
       const spendersSnap = await getDocs(query(collection(firestore, 'users'), where('wallet.dailySpent', '>', 0)));
       spendersSnap.docs.forEach(d => {
         batch.update(d.ref, { 'wallet.dailySpent': 0 });
@@ -110,7 +106,7 @@ export default function AdminPage() {
       batch.set(configRef!, { lastRewardReset: serverTimestamp() }, { merge: true });
 
       await batch.commit();
-      await logAdminAction('Global Daily Reset (IST)', 'tribe/economy', { categories: ['Rich', 'Charm', 'Room'] });
+      await logAdminAction('High-Tier Daily Reset (IST)', 'tribe/economy', { rewards: '100K-20K Range' });
       toast({ title: 'Daily Sweep Complete', description: 'Rewards dispatched and messages sent from Official Team.' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Distribution Failed', description: e.message });
@@ -165,20 +161,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleClearAllRooms = async () => {
-    if (!firestore || !isAdmin) return;
-    setIsSaving(true);
-    try {
-      const snap = await getDocs(collection(firestore, 'chatRooms'));
-      const batch = writeBatch(firestore);
-      snap.docs.forEach(d => batch.delete(d.ref));
-      await batch.commit();
-      await logAdminAction('Wipe All Rooms', 'collection/chatRooms', { count: snap.size });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   if (!isAdmin) return <AppLayout><div className="flex h-[50vh] items-center justify-center text-destructive"><Shield className="h-12 w-12 mr-2" /> Unauthorized</div></AppLayout>;
 
   return (
@@ -189,7 +171,7 @@ export default function AdminPage() {
              <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20"><Shield className="h-8 w-8 text-white" /></div>
              <div>
                 <h1 className="text-4xl font-bold uppercase italic tracking-tighter">Ummy Command Center</h1>
-                <p className="text-muted-foreground">System-wide authority and IST audit oversight.</p>
+                <p className="text-muted-foreground">High-Tier Reward Oversight (IST Frequency).</p>
              </div>
           </div>
         </header>
@@ -199,13 +181,12 @@ export default function AdminPage() {
             <TabsTrigger value="overview" className="rounded-full px-6 font-black uppercase text-[10px]">Overview</TabsTrigger>
             <TabsTrigger value="rewards" className="rounded-full px-6 font-black uppercase text-[10px]">Rewards Hub</TabsTrigger>
             <TabsTrigger value="users" className="rounded-full px-6 font-black uppercase text-[10px]">Users</TabsTrigger>
-            <TabsTrigger value="config" className="rounded-full px-6 font-black uppercase text-[10px]">Config</TabsTrigger>
             <TabsTrigger value="logs" className="rounded-full px-6 font-black uppercase text-[10px]">Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Economy Status</CardTitle></CardHeader><CardContent><p className="text-3xl font-black uppercase italic">{config?.economyEnabled ? 'Active' : 'Paused'}</p></CardContent></Card>
+                <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Economy Status</CardTitle></CardHeader><CardContent><p className="text-3xl font-black uppercase italic">Active</p></CardContent></Card>
                 <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Last Reset (IST)</CardTitle></CardHeader><CardContent><p className="text-3xl font-black uppercase italic">{config?.lastRewardReset ? format(config.lastRewardReset.toDate(), 'MMM d, HH:mm') : 'Pending'}</p></CardContent></Card>
              </div>
           </TabsContent>
@@ -214,19 +195,19 @@ export default function AdminPage() {
              <Card className="rounded-[2.5rem] border-none shadow-xl bg-gradient-to-br from-yellow-500/10 to-transparent">
                 <CardHeader>
                    <CardTitle className="font-headline text-2xl uppercase italic flex items-center gap-2">
-                      <Gift className="h-6 w-6 text-yellow-500" /> Daily Rewards Hub
+                      <Gift className="h-6 w-6 text-yellow-500" /> High-Tier Distribution
                    </CardTitle>
-                   <CardDescription>Execute reward distribution for Rich, Charm, and Room categories (IST Cycle).</CardDescription>
+                   <CardDescription>Dispatch rewards for Rich, Charm, and Room categories based on current IST rankings.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                    <div className="p-6 bg-white/5 rounded-3xl border-2 border-dashed border-yellow-500/20">
-                      <h3 className="font-black uppercase italic text-sm mb-4">Daily Prize Frequency (IST):</h3>
+                      <h3 className="font-black uppercase italic text-sm mb-4">Current Reward Config:</h3>
                       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                         <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 1</p><p className="font-black text-yellow-500">10,000</p></div>
-                         <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 2</p><p className="font-black text-slate-300">8,000</p></div>
-                         <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 3</p><p className="font-black text-amber-700">5,000</p></div>
-                         <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 4</p><p className="font-black">3,000</p></div>
-                         <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 5-10</p><p className="font-black">1,000</p></div>
+                         <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 1</p><p className="font-black text-yellow-500">100,000</p></div>
+                         <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 2</p><p className="font-black text-slate-300">80,000</p></div>
+                         <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 3</p><p className="font-black text-amber-700">50,000</p></div>
+                         <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 4</p><p className="font-black">35,000</p></div>
+                         <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 5-10</p><p className="font-black">20,000</p></div>
                       </div>
                    </div>
                    <Button 
@@ -235,9 +216,9 @@ export default function AdminPage() {
                       className="w-full h-16 rounded-[1.5rem] bg-yellow-500 text-black font-black uppercase italic text-lg shadow-xl shadow-yellow-500/20 hover:scale-[1.02] transition-transform"
                    >
                       {isSaving ? <Loader className="animate-spin h-6 w-6 mr-2" /> : <CheckCircle2 className="h-6 w-6 mr-2" />}
-                      Distribute & Reset All Chronometers
+                      Distribute & Send Official Notifications
                    </Button>
-                   <p className="text-center text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">Clears Daily Spent, Daily Fans, and Daily Room Gifts across the tribe.</p>
+                   <p className="text-center text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">Clears daily spent, fans, and gifts across the social graph.</p>
                 </CardContent>
              </Card>
           </TabsContent>
@@ -269,17 +250,6 @@ export default function AdminPage() {
                    </div>
                 </CardContent>
              </Card>
-          </TabsContent>
-
-          <TabsContent value="config" className="space-y-6">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="rounded-[2rem] border-none shadow-xl">
-                   <CardHeader><CardTitle className="font-headline uppercase italic text-destructive">Danger Zone</CardTitle></CardHeader>
-                   <CardContent className="space-y-4">
-                      <Button variant="destructive" className="w-full rounded-xl font-black uppercase italic" disabled={isSaving} onClick={handleClearAllRooms}><Trash2 className="mr-2 h-4 w-4" /> Wipe All Rooms</Button>
-                   </CardContent>
-                </Card>
-             </div>
           </TabsContent>
 
           <TabsContent value="logs">
