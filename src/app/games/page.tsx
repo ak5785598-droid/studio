@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useMemo, useEffect } from 'react';
@@ -15,7 +16,7 @@ import { useGameLogoUpload } from '@/hooks/use-game-logo-upload';
 
 const FALLBACK_GAMES = [
   { id: 'fallback-ludo', title: 'Ludo Masters', slug: 'ludo', coverUrl: '', imageHint: 'ludo board' },
-  { id: 'fallback-fruit', title: 'Fruit Party', slug: 'fruit-party', coverUrl: 'https://images.unsplash.com/photo-1611080634139-6c8821f5f6ca?q=80&w=1000', imageHint: 'vibrant fruit party logo' },
+  { id: 'fallback-fruit', title: 'Fruit Party', slug: 'fruit-party', coverUrl: 'https://images.unsplash.com/photo-1611080634139-6c8821f5f6ca?q=80&w=1000', imageHint: 'fruit party' },
   { id: 'fallback-wild', title: 'Wild Party', slug: 'forest-party', coverUrl: '', imageHint: 'forest animals' },
   { id: 'fallback-slot', title: 'Lucky Slot 777', slug: 'lucky-slot-777', coverUrl: '', imageHint: 'lucky 777 slot' },
   { id: 'fallback-teen', title: 'Dragon Battle', slug: 'teen-patti', coverUrl: '', imageHint: 'dragon cards' },
@@ -117,6 +118,7 @@ export default function GamesPage() {
                                alt={game.title} 
                                fill 
                                className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+                               data-ai-hint={game.imageHint}
                              />
                            ) : (
                              <GameControllerIcon className="h-16 w-16 text-white/20 group-hover:text-purple-500 transition-colors" />

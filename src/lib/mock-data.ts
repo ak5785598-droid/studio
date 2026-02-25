@@ -1,3 +1,4 @@
+
 import type { User, Room, Game, CoinPackage, Task } from './types';
 
 /**
@@ -23,7 +24,7 @@ const games: Game[] = [
     slug: 'fruit-party', 
     coverUrl: 'https://images.unsplash.com/photo-1611080634139-6c8821f5f6ca?q=80&w=1000', 
     cost: 0, 
-    imageHint: 'vibrant fruit party logo' 
+    imageHint: 'fruit party' 
   },
   { 
     id: 'g3', 

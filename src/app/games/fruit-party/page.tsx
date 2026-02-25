@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -215,6 +216,7 @@ export default function FruitPartyPage() {
              alt="Fruit Party Logo" 
              fill 
              className="object-contain drop-shadow-[0_0_40px_rgba(255,214,0,0.4)]"
+             data-ai-hint="fruit party"
            />
         </div>
         <h1 className="text-5xl font-black text-[#FFD600] uppercase italic tracking-tighter drop-shadow-2xl text-center">Lucky Fruit</h1>
