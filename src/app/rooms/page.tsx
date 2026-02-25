@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ChatRoomCard } from '@/components/chat-room-card';
 import { Search, Loader, Flame, Crown, Heart, Users, Home, Plus, Star } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -8,7 +8,7 @@ import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, limit, orderBy, where } from 'firebase/firestore';
 import Image from 'next/image';
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -17,12 +17,25 @@ import Link from 'next/link';
  * High-Fidelity Discovery Hub.
  * Matches reference image exactly with Ranking Cards and Chatroom/Mine tabs.
  * Cards are now clickable links to the full Leaderboard.
+ * Banner features a real-time 5-second auto-scroll engine.
  */
 export default function RoomsPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const firestore = useFirestore();
   const [activeTab, setActiveTab] = useState('All');
   const [navTab, setNavTab] = useState<'chatroom' | 'mine'>('chatroom');
+  const [api, setApi] = useState<CarouselApi>();
+
+  // Auto-scroll logic: 5-second frequency
+  useEffect(() => {
+    if (!api) return;
+
+    const intervalId = setInterval(() => {
+      api.scrollNext();
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [api]);
 
   // Fetch rooms
   const allRoomsQuery = useMemoFirebase(() => {
@@ -41,13 +54,13 @@ export default function RoomsPage() {
 
   const topCharmQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'users'), orderBy('stats.fans', 'desc'), limit(3));
+    return query(collection(firestore, 'users'), orderBy('stats.dailyFans', 'desc'), limit(3));
   }, [firestore]);
   const { data: topCharm } = useCollection(topCharmQuery);
 
   const topRoomsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'chatRooms'), orderBy('stats.totalGifts', 'desc'), limit(3));
+    return query(collection(firestore, 'chatRooms'), orderBy('stats.dailyGifts', 'desc'), limit(3));
   }, [firestore]);
   const { data: topRoomsRanking } = useCollection(topRoomsQuery);
 
@@ -113,9 +126,9 @@ export default function RoomsPage() {
         </header>
 
         <div className="px-4 space-y-6">
-          {/* Main Contest Banner */}
+          {/* Main Contest Banner - Auto-Scrolling every 5 seconds */}
           <div className="w-full overflow-hidden rounded-[2rem] shadow-xl">
-            <Carousel className="w-full" opts={{ loop: true }}>
+            <Carousel setApi={setApi} className="w-full" opts={{ loop: true }}>
               <CarouselContent>
                 {[1, 2, 3].map((i) => (
                   <CarouselItem key={i}>
