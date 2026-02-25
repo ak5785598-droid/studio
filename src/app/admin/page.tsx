@@ -14,6 +14,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 
+/**
+ * Ummy Command Center - High-Tier Reward Oversight.
+ * Implements atomic distribution and subsequent leaderboard reset protocol.
+ */
 export default function AdminPage() {
   const firestore = useFirestore();
   const { user } = useUser();
@@ -45,7 +49,7 @@ export default function AdminPage() {
     setIsSaving(true);
     try {
       const batch = writeBatch(firestore);
-      // TOP 1: 100K, TOP 2: 80K, TOP 3: 50K, TOP 4: 35K, TOP 5-10: 20K
+      // Prize Map: Top 1: 100K, Top 2: 80K, Top 3: 50K, Top 4: 35K, Top 5-10: 20K
       const rewardConfig = [100000, 80000, 50000, 35000, 20000, 20000, 20000, 20000, 20000, 20000];
       
       const processRankings = async (colPath: string, field: string, type: 'User' | 'Room') => {
@@ -67,8 +71,11 @@ export default function AdminPage() {
 
           const categoryName = field.includes('Spent') ? 'Rich' : field.includes('Fans') ? 'Charm' : 'Room';
 
+          // 1. Update Wallets
           batch.update(uRef, { 'wallet.coins': increment(reward) });
           batch.update(pRef, { 'wallet.coins': increment(reward) });
+          
+          // 2. Official Notification Delivery
           batch.set(notifRef, {
             title: `Official ${categoryName} Reward Distribution`,
             content: `Congratulations! Based on the latest IST ranking cycle, you have been awarded ${reward.toLocaleString()} Gold Coins for your performance in the ${categoryName} category.\n\nKeep vibing!\n- UMMY OFFICIAL TEAM`,
@@ -79,12 +86,12 @@ export default function AdminPage() {
         });
       };
 
-      // 1. Process All Categories
+      // Execute Sweep for all major categories
       await processRankings('users', 'wallet.dailySpent', 'User');
       await processRankings('users', 'stats.dailyFans', 'User');
       await processRankings('chatRooms', 'stats.dailyGifts', 'Room');
 
-      // 2. Reset All Daily Counters (Production Reset)
+      // MANDATORY RESET: Clear all daily counters across the social graph
       const spendersSnap = await getDocs(query(collection(firestore, 'users'), where('wallet.dailySpent', '>', 0)));
       spendersSnap.docs.forEach(d => {
         batch.update(d.ref, { 'wallet.dailySpent': 0 });
@@ -102,12 +109,12 @@ export default function AdminPage() {
         batch.update(d.ref, { 'stats.dailyGifts': 0 });
       });
 
-      // 3. Update Last Reset Timestamp
+      // Update Global Reset Log
       batch.set(configRef!, { lastRewardReset: serverTimestamp() }, { merge: true });
 
       await batch.commit();
-      await logAdminAction('High-Tier Daily Reset (IST)', 'tribe/economy', { rewards: '100K-20K Range' });
-      toast({ title: 'Daily Sweep Complete', description: 'Rewards dispatched and messages sent from Official Team.' });
+      await logAdminAction('High-Tier Daily Distribution & Reset (IST)', 'tribe/economy', { rewards: '100K-20K Range' });
+      toast({ title: 'Daily Sweep & Reset Complete', description: 'Rewards dispatched and leaderboard reset for the new cycle.' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Distribution Failed', description: e.message });
     } finally {
@@ -171,7 +178,7 @@ export default function AdminPage() {
              <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20"><Shield className="h-8 w-8 text-white" /></div>
              <div>
                 <h1 className="text-4xl font-bold uppercase italic tracking-tighter">Ummy Command Center</h1>
-                <p className="text-muted-foreground">High-Tier Reward Oversight (IST Frequency).</p>
+                <p className="text-muted-foreground">Elite Rewards & Official IST Distribution.</p>
              </div>
           </div>
         </header>
@@ -181,13 +188,13 @@ export default function AdminPage() {
             <TabsTrigger value="overview" className="rounded-full px-6 font-black uppercase text-[10px]">Overview</TabsTrigger>
             <TabsTrigger value="rewards" className="rounded-full px-6 font-black uppercase text-[10px]">Rewards Hub</TabsTrigger>
             <TabsTrigger value="users" className="rounded-full px-6 font-black uppercase text-[10px]">Users</TabsTrigger>
-            <TabsTrigger value="logs" className="rounded-full px-6 font-black uppercase text-[10px]">Logs</TabsTrigger>
+            <TabsTrigger value="logs" className="rounded-full px-6 font-black uppercase text-[10px]">Audit Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Economy Status</CardTitle></CardHeader><CardContent><p className="text-3xl font-black uppercase italic">Active</p></CardContent></Card>
-                <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Last Reset (IST)</CardTitle></CardHeader><CardContent><p className="text-3xl font-black uppercase italic">{config?.lastRewardReset ? format(config.lastRewardReset.toDate(), 'MMM d, HH:mm') : 'Pending'}</p></CardContent></Card>
+                <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Last Distribution (IST)</CardTitle></CardHeader><CardContent><p className="text-3xl font-black uppercase italic">{config?.lastRewardReset ? format(config.lastRewardReset.toDate(), 'MMM d, HH:mm') : 'Pending'}</p></CardContent></Card>
              </div>
           </TabsContent>
 
@@ -195,13 +202,13 @@ export default function AdminPage() {
              <Card className="rounded-[2.5rem] border-none shadow-xl bg-gradient-to-br from-yellow-500/10 to-transparent">
                 <CardHeader>
                    <CardTitle className="font-headline text-2xl uppercase italic flex items-center gap-2">
-                      <Gift className="h-6 w-6 text-yellow-500" /> High-Tier Distribution
+                      <Gift className="h-6 w-6 text-yellow-500" /> Daily Throne Distribution
                    </CardTitle>
-                   <CardDescription>Dispatch rewards for Rich, Charm, and Room categories based on current IST rankings.</CardDescription>
+                   <CardDescription>Dispatch high-tier rewards and reset all leaderboard counters atomically.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                    <div className="p-6 bg-white/5 rounded-3xl border-2 border-dashed border-yellow-500/20">
-                      <h3 className="font-black uppercase italic text-sm mb-4">Current Reward Config:</h3>
+                      <h3 className="font-black uppercase italic text-sm mb-4">Official Reward Config:</h3>
                       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                          <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 1</p><p className="font-black text-yellow-500">100,000</p></div>
                          <div className="text-center"><p className="text-[10px] font-bold opacity-40 uppercase">Top 2</p><p className="font-black text-slate-300">80,000</p></div>
@@ -216,9 +223,9 @@ export default function AdminPage() {
                       className="w-full h-16 rounded-[1.5rem] bg-yellow-500 text-black font-black uppercase italic text-lg shadow-xl shadow-yellow-500/20 hover:scale-[1.02] transition-transform"
                    >
                       {isSaving ? <Loader className="animate-spin h-6 w-6 mr-2" /> : <CheckCircle2 className="h-6 w-6 mr-2" />}
-                      Distribute & Send Official Notifications
+                      Distribute, Reset & Send Official Messages
                    </Button>
-                   <p className="text-center text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">Clears daily spent, fans, and gifts across the social graph.</p>
+                   <p className="text-center text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">Clears daily spent, fans, and gifts across the entire social graph.</p>
                 </CardContent>
              </Card>
           </TabsContent>

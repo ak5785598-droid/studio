@@ -168,7 +168,7 @@ const RewardItem = ({ rank, amount, color, emoji }: { rank: string, amount: stri
       </div>
       <div>
         <p className="font-bold text-xs uppercase tracking-widest text-white/40">{rank}</p>
-        <p className="font-black text-sm uppercase italic text-white">Daily Prize</p>
+        <p className="font-black text-sm uppercase italic text-white">Prize Pool</p>
       </div>
     </div>
     <div className="flex items-center gap-2">
@@ -267,12 +267,12 @@ function LeaderboardContent() {
                       <Trophy className="h-8 w-8 text-yellow-400" />
                       Daily Rewards
                     </DialogTitle>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mt-2">Daily IST Throne Distribution</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mt-2">IST Throne Distribution Protocol</p>
                   </DialogHeader>
                   <div className="px-8 pb-12 space-y-4 h-full overflow-y-auto no-scrollbar">
                     <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 flex items-center gap-3 mb-4">
                       <Timer className="h-4 w-4 text-primary" />
-                      <p className="text-[10px] font-bold text-primary/80 uppercase">Next IST Reset in {timeLeft}</p>
+                      <p className="text-[10px] font-bold text-primary/80 uppercase">Next Reset in {timeLeft} (IST)</p>
                     </div>
                     
                     <RewardItem emoji="🥇" rank="Top 1" amount="100,000" color="bg-yellow-500/20" />
@@ -284,14 +284,14 @@ function LeaderboardContent() {
                     <div className="pt-6 border-t border-white/5 space-y-3 pb-20">
                       <div className="flex items-center gap-2">
                         <Info className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Rules of the Daily Throne</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Official Throne Rules</p>
                       </div>
-                      <ul className="space-y-2">
-                        <li className="text-[10px] text-white/40 leading-relaxed">• 1. The leaderboard will automatically reset after the distribution of rewards.</li>
-                        <li className="text-[10px] text-white/40 leading-relaxed">• 2. The daily ranking is updated at 00:00 (GMT+5:30) the following day.</li>
-                        <li className="text-[10px] text-white/40 leading-relaxed">• 3. The weekly ranking is updated at 00:00 (GMT+5:30) every Monday.</li>
-                        <li className="text-[10px] text-white/40 leading-relaxed">• 4. The monthly ranking is updated at 00:00 (GMT+5:30) on the 1st day of each month.</li>
-                        <li className="text-[10px] text-white/40 leading-relaxed">• 5. Rewards for the previous period are automatically distributed when the rankings are updated.</li>
+                      <ul className="space-y-3">
+                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">1.</span> The leaderboard will automatically reset after the distribution of rewards.</li>
+                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">2.</span> The daily ranking is updated at 00:00 (GMT+5:30) the following day.</li>
+                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">3.</span> The weekly ranking is updated at 00:00 (GMT+5:30) every Monday.</li>
+                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">4.</span> The monthly ranking is updated at 00:00 (GMT+5:30) on the 1st day of each month.</li>
+                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">5.</span> Rewards for the previous period are automatically distributed when the daily, weekly, and monthly rankings are updated.</li>
                       </ul>
                     </div>
                   </div>
