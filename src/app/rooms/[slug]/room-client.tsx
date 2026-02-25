@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -29,6 +28,7 @@ import {
   Gamepad2,
   ShieldCheck,
   Smile,
+  Camera,
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -92,6 +92,7 @@ import { useRoomContext } from '@/components/room-provider';
 import { GiftAnimationOverlay } from '@/components/gift-animation-overlay';
 import { useWebRTC } from '@/hooks/use-webrtc';
 import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
+import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
 
 const AVAILABLE_GIFTS: Gift[] = [
   { id: 'rose', name: 'Rose', emoji: '🌹', price: 10, animationType: 'pulse' },
@@ -128,12 +129,14 @@ export function RoomClient({ room }: { room: Room }) {
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
   
   const scrollRef = useRef<HTMLDivElement>(null);
+  const roomDpInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const router = useRouter();
   const { user: currentUser } = useUser();
   const { userProfile } = useUserProfile(currentUser?.uid);
   const { setIsMinimized, setActiveRoom } = useRoomContext();
   const firestore = useFirestore();
+  const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(room.id);
 
   const isGlobalAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
   const isOwner = currentUser?.uid === room.id || currentUser?.uid === room.ownerId;
@@ -205,6 +208,13 @@ export function RoomClient({ room }: { room: Room }) {
     });
     setMessageText('');
     setIsSending(false);
+  };
+
+  const handleRoomDpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadRoomImage(file);
+    }
   };
 
   const handleSendEmoji = async (emoji: string) => {
@@ -446,13 +456,23 @@ export function RoomClient({ room }: { room: Room }) {
           <button onClick={minimizeRoom} className="bg-white/10 p-2 rounded-full mr-1 hover:bg-white/20 transition-all">
              <ChevronDown className="h-5 w-5" />
           </button>
-          <Sheet>
-            <SheetTrigger asChild>
-              <div className="flex items-center gap-3 cursor-pointer group">
-                <Avatar className="h-12 w-12 rounded-xl border-2 border-primary/50 shadow-lg group-hover:scale-105 transition-transform">
-                  <AvatarImage src={room.coverUrl} />
-                  <AvatarFallback>UM</AvatarFallback>
-                </Avatar>
+          <div className="flex items-center gap-3 cursor-pointer group">
+            <div className="relative group/avatar">
+              <Avatar className="h-12 w-12 rounded-xl border-2 border-primary/50 shadow-lg group-hover/avatar:scale-105 transition-transform">
+                <AvatarImage src={room.coverUrl} />
+                <AvatarFallback>UM</AvatarFallback>
+              </Avatar>
+              {(isOwner || isGlobalAdmin) && (
+                <div 
+                  className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); roomDpInputRef.current?.click(); }}
+                >
+                  {isRoomImageUploading ? <Loader className="h-4 w-4 animate-spin text-white" /> : <Camera className="h-4 w-4 text-white" />}
+                </div>
+              )}
+            </div>
+            <Sheet>
+              <SheetTrigger asChild>
                 <div>
                   <h1 className="font-black text-xl tracking-tight uppercase italic">{room.title}</h1>
                   <div className="flex items-center gap-2 text-[10px] font-bold text-white/60 uppercase">
@@ -463,43 +483,43 @@ export function RoomClient({ room }: { room: Room }) {
                     </div>
                   </div>
                 </div>
-              </div>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="bg-slate-900 border-none rounded-t-[3rem] text-white p-0 overflow-hidden h-[70vh]">
-               <SheetHeader className="p-8 pb-4">
-                  <SheetTitle className="text-2xl font-black uppercase italic text-center">Frequency Members</SheetTitle>
-               </SheetHeader>
-               <ScrollArea className="h-full px-8 pb-20">
-                  <div className="space-y-4">
-                     {participants?.map((p) => {
-                       const isPMod = room.moderatorIds?.includes(p.uid);
-                       const isPOwner = p.uid === room.ownerId;
-                       return (
-                        <div key={p.uid} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                            <div className="flex items-center gap-4">
-                              <AvatarFrame frameId={p.activeFrame} size="sm">
-                                  <Avatar><AvatarImage src={p.avatarUrl} /><AvatarFallback>{p.name.charAt(0)}</AvatarFallback></Avatar>
-                              </AvatarFrame>
-                              <div>
-                                  <div className="flex items-center gap-2">
-                                    <p className="font-bold text-sm">{p.name}</p>
-                                    {isPOwner ? <Crown className="h-3 w-3 text-yellow-500 fill-current" /> : isPMod ? <ShieldCheck className="h-3 w-3 text-blue-400 fill-current" /> : null}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    {isPOwner && <Badge className="bg-yellow-500 text-black text-[8px] h-4">OWNER</Badge>}
-                                    {isPMod && <Badge className="bg-blue-500 text-[8px] h-4">MOD</Badge>}
-                                    {p.seatIndex > 0 && <Badge variant="outline" className="text-[8px] h-4 text-primary border-primary/20">SEAT {p.seatIndex}</Badge>}
-                                  </div>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="bg-slate-900 border-none rounded-t-[3rem] text-white p-0 overflow-hidden h-[70vh]">
+                 <SheetHeader className="p-8 pb-4">
+                    <SheetTitle className="text-2xl font-black uppercase italic text-center">Frequency Members</SheetTitle>
+                 </SheetHeader>
+                 <ScrollArea className="h-full px-8 pb-20">
+                    <div className="space-y-4">
+                       {participants?.map((p) => {
+                         const isPMod = room.moderatorIds?.includes(p.uid);
+                         const isPOwner = p.uid === room.ownerId;
+                         return (
+                          <div key={p.uid} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                              <div className="flex items-center gap-4">
+                                <AvatarFrame frameId={p.activeFrame} size="sm">
+                                    <Avatar><AvatarImage src={p.avatarUrl} /><AvatarFallback>{p.name.charAt(0)}</AvatarFallback></Avatar>
+                                </AvatarFrame>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-bold text-sm">{p.name}</p>
+                                      {isPOwner ? <Crown className="h-3 w-3 text-yellow-500 fill-current" /> : isPMod ? <ShieldCheck className="h-3 w-3 text-blue-400 fill-current" /> : null}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {isPOwner && <Badge className="bg-yellow-500 text-black text-[8px] h-4">OWNER</Badge>}
+                                      {isPMod && <Badge className="bg-blue-500 text-[8px] h-4">MOD</Badge>}
+                                      {p.seatIndex > 0 && <Badge variant="outline" className="text-[8px] h-4 text-primary border-primary/20">SEAT {p.seatIndex}</Badge>}
+                                    </div>
+                                </div>
                               </div>
-                            </div>
-                            {p.isMuted && <MicOff className="h-4 w-4 text-red-500/50" />}
-                        </div>
-                       );
-                     })}
-                  </div>
-               </ScrollArea>
-            </SheetContent>
-          </Sheet>
+                              {p.isMuted && <MicOff className="h-4 w-4 text-red-500/50" />}
+                          </div>
+                         );
+                       })}
+                    </div>
+                 </ScrollArea>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
         <div className="flex gap-2">
           <DropdownMenu>
@@ -513,6 +533,9 @@ export function RoomClient({ room }: { room: Room }) {
               <DropdownMenuSeparator />
               {canManageRoom && (
                 <>
+                  <DropdownMenuItem onClick={() => roomDpInputRef.current?.click()} className="text-primary font-bold">
+                    <Camera className="mr-2 h-4 w-4" /> Change Room DP
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleClearChat} className="text-destructive">
                     <Trash2 className="mr-2 h-4 w-4" /> Clear Chat
                   </DropdownMenuItem>
@@ -858,6 +881,7 @@ export function RoomClient({ room }: { room: Room }) {
           </div>
         </DialogContent>
       </Dialog>
+      <input type="file" ref={roomDpInputRef} onChange={handleRoomDpChange} className="hidden" accept="image/*" />
     </div>
   );
 }

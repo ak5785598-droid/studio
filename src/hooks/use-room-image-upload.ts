@@ -1,11 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useStorage, useFirestore, useUser } from '@/firebase';
+import { useStorage, useFirestore, useUser, updateDocumentNonBlocking } from '@/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from './use-toast';
 
+/**
+ * Hook to handle room image uploads to Firebase Storage and update Firestore.
+ * Synchronized with Ummy production non-blocking protocol.
+ */
 export function useRoomImageUpload(roomId: string) {
   const storage = useStorage();
   const firestore = useFirestore();
@@ -18,7 +22,7 @@ export function useRoomImageUpload(roomId: string) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'You must be the owner to upload a room picture.',
+        description: 'Authorization context missing.',
       });
       return;
     }
@@ -36,20 +40,26 @@ export function useRoomImageUpload(roomId: string) {
       // 3. Get the download URL
       const downloadURL = await getDownloadURL(uploadResult.ref);
 
-      // 4. Update Firestore room document
+      // 4. Update Firestore room document (Non-Blocking)
       const roomRef = doc(firestore, 'chatRooms', roomId);
-      await updateDoc(roomRef, { coverUrl: downloadURL });
+      
+      const updateData = { 
+        coverUrl: downloadURL,
+        updatedAt: serverTimestamp()
+      };
+
+      updateDocumentNonBlocking(roomRef, updateData);
 
       toast({
-        title: 'Room Updated!',
-        description: 'The room image has been changed successfully.',
+        title: 'Room DP Updated!',
+        description: 'The frequency visual identity has been synchronized across the tribe.',
       });
     } catch (error: any) {
       console.error('Error uploading room image:', error);
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: error.message || 'Could not upload the new image.',
+        description: error.message || 'Could not upload the new image. Check owner permissions.',
       });
     } finally {
       setIsUploading(false);
