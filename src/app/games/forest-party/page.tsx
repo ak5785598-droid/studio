@@ -52,7 +52,7 @@ export default function WildPartyPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isLaunching, setIsLaunching] = useState(true);
 
-  // Audio utility
+  // Audio utility: Bet Sound
   const playBetSound = useCallback(() => {
     if (isMuted) return;
     try {
@@ -70,6 +70,53 @@ export default function WildPartyPage() {
       oscillator.stop(audioCtx.currentTime + 0.1);
     } catch (e) {}
   }, [isMuted]);
+
+  // Background Music Engine: Savannah Rhythm
+  useEffect(() => {
+    if (isMuted || isLaunching) return;
+    
+    let audioCtx: AudioContext | null = null;
+    let timer: any = null;
+
+    try {
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.03; // Very low ambient volume
+      masterGain.connect(audioCtx.destination);
+
+      let nextNoteTime = audioCtx.currentTime;
+      const scheduleNextNote = () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const noteGain = audioCtx.createGain();
+        
+        // Pentatonic scale for a natural forest feel
+        const notes = [130.81, 146.83, 164.81, 196.00, 220.00]; 
+        const freq = notes[Math.floor(Math.random() * notes.length)];
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, nextNoteTime);
+        
+        noteGain.gain.setValueAtTime(0.1, nextNoteTime);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, nextNoteTime + 0.8);
+        
+        osc.connect(noteGain);
+        noteGain.connect(masterGain);
+        
+        osc.start(nextNoteTime);
+        osc.stop(nextNoteTime + 0.8);
+        
+        nextNoteTime += 0.8;
+      };
+
+      timer = setInterval(scheduleNextNote, 800);
+    } catch (e) {}
+
+    return () => {
+      if (timer) clearInterval(timer);
+      if (audioCtx) audioCtx.close();
+    };
+  }, [isMuted, isLaunching]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLaunching(false), 2000);
@@ -195,7 +242,8 @@ export default function WildPartyPage() {
                     return (
                       <div key={animal.id} className="absolute w-14 h-14 flex items-center justify-center" style={{ top: '50%', left: '50%', transform: `translate(-50%, -50%) rotate(${angle}deg) translate(95px)` }}>
                         <div className={cn("w-full h-full rounded-full flex items-center justify-center border-2 border-white/10 bg-black/20 backdrop-blur-sm")}>
-                           <span className="text-2xl" style={{ transform: `rotate(${-angle - rotation}deg)` }}>{animal.emoji}</span>
+                           {/* Animal stays upright relative to the starting position but rotates with the wheel physically */}
+                           <span className="text-2xl" style={{ transform: `rotate(${-angle}deg)` }}>{animal.emoji}</span>
                         </div>
                       </div>
                     );

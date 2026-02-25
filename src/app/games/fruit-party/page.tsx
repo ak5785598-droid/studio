@@ -12,7 +12,9 @@ import {
   X,
   HelpCircle,
   Settings,
-  FileText
+  FileText,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -52,9 +54,11 @@ export default function FruitPartyPage() {
   const [history, setHistory] = useState<string[]>([]);
   const [isLaunching, setIsLaunching] = useState(true);
   const [lastWin, setLastWin] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
 
-  // Audio utility
+  // Audio utility: Bet Sound
   const playBetSound = useCallback(() => {
+    if (isMuted) return;
     try {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioCtx.createOscillator();
@@ -69,7 +73,52 @@ export default function FruitPartyPage() {
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + 0.05);
     } catch (e) {}
-  }, []);
+  }, [isMuted]);
+
+  // Background Music Engine: Arcade Pulse
+  useEffect(() => {
+    if (isMuted || isLaunching) return;
+    
+    let audioCtx: AudioContext | null = null;
+    let timer: any = null;
+
+    try {
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.02; // Very low ambient volume
+      masterGain.connect(audioCtx.destination);
+
+      let step = 0;
+      const scheduleNextNote = () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const noteGain = audioCtx.createGain();
+        
+        // Upbeat rhythmic pulse
+        const freq = step % 4 === 0 ? 440 : 330;
+        
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        
+        noteGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        
+        osc.connect(noteGain);
+        noteGain.connect(masterGain);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+        step++;
+      };
+
+      timer = setInterval(scheduleNextNote, 250);
+    } catch (e) {}
+
+    return () => {
+      if (timer) clearInterval(timer);
+      if (audioCtx) audioCtx.close();
+    };
+  }, [isMuted, isLaunching]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLaunching(false), 1500);
@@ -174,8 +223,10 @@ export default function FruitPartyPage() {
                 </div>
              </div>
              <div className="flex items-center gap-2">
+                <button onClick={() => setIsMuted(!isMuted)} className="bg-white/20 p-1.5 rounded-full text-white hover:bg-white/40 transition-all">
+                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </button>
                 <button className="bg-white/20 p-1.5 rounded-full text-white hover:bg-white/40 transition-all"><FileText className="h-4 w-4" /></button>
-                <button className="bg-white/20 p-1.5 rounded-full text-white hover:bg-white/40 transition-all"><HelpCircle className="h-4 w-4" /></button>
                 <button className="bg-white/20 p-1.5 rounded-full text-white hover:bg-white/40 transition-all"><Settings className="h-4 w-4" /></button>
                 <button onClick={() => router.back()} className="bg-white/20 p-1.5 rounded-full text-white hover:bg-white/40 transition-all"><X className="h-4 w-4" /></button>
              </div>

@@ -9,6 +9,8 @@ import {
   Zap,
   History,
   X,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -36,9 +38,11 @@ export default function LuckySlot777Page() {
   const [rotation, setRotation] = useState(0);
   const [history, setHistory] = useState<string[]>([]);
   const [isLaunching, setIsLaunching] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
 
-  // Audio utility
+  // Audio utility: Bet Sound
   const playBetSound = useCallback(() => {
+    if (isMuted) return;
     try {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioCtx.createOscillator();
@@ -53,7 +57,48 @@ export default function LuckySlot777Page() {
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + 0.08);
     } catch (e) {}
-  }, []);
+  }, [isMuted]);
+
+  // Background Music Engine: Casino Vibe
+  useEffect(() => {
+    if (isMuted || isLaunching) return;
+    
+    let audioCtx: AudioContext | null = null;
+    let timer: any = null;
+
+    try {
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.02; // Very low ambient volume
+      masterGain.connect(audioCtx.destination);
+
+      const scheduleNextNote = () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const noteGain = audioCtx.createGain();
+        
+        // Deep low-frequency drone with rhythmic ping
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+        
+        noteGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        noteGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.2);
+        
+        osc.connect(noteGain);
+        noteGain.connect(masterGain);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.2);
+      };
+
+      timer = setInterval(scheduleNextNote, 1200);
+    } catch (e) {}
+
+    return () => {
+      if (timer) clearInterval(timer);
+      if (audioCtx) audioCtx.close();
+    };
+  }, [isMuted, isLaunching]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLaunching(false), 1500);
@@ -132,7 +177,12 @@ export default function LuckySlot777Page() {
                     ))}
                  </div>
               </div>
-              <button onClick={() => router.back()} className="bg-white/10 p-1.5 rounded-full text-white hover:bg-white/20 transition-all"><X className="h-4 w-4" /></button>
+              <div className="flex gap-2">
+                <button onClick={() => setIsMuted(!isMuted)} className="bg-white/10 p-1.5 rounded-full text-white hover:bg-white/20 transition-all">
+                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </button>
+                <button onClick={() => router.back()} className="bg-white/10 p-1.5 rounded-full text-white hover:bg-white/20 transition-all"><X className="h-4 w-4" /></button>
+              </div>
            </header>
 
            <div className="relative w-64 h-64 flex items-center justify-center scale-110 mt-10">
