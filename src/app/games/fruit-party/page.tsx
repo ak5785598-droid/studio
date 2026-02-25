@@ -56,26 +56,26 @@ export default function FruitPartyPage() {
   const [lastWin, setLastWin] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Audio utility: Bet Sound
+  // Audio utility: Bold Bet Sound
   const playBetSound = useCallback(() => {
     if (isMuted) return;
     try {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.05);
-      gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.05);
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.08);
+      gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
       oscillator.connect(gainNode);
       gainNode.connect(audioCtx.destination);
       oscillator.start();
-      oscillator.stop(audioCtx.currentTime + 0.05);
+      oscillator.stop(audioCtx.currentTime + 0.08);
     } catch (e) {}
   }, [isMuted]);
 
-  // Background Music Engine: Arcade Pulse
+  // Background Music Engine: Arcade Symphony (High Volume & Driving)
   useEffect(() => {
     if (isMuted || isLaunching) return;
     
@@ -85,33 +85,35 @@ export default function FruitPartyPage() {
     try {
       audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.02; // Very low ambient volume
+      masterGain.gain.value = 0.35; // Bold master volume
       masterGain.connect(audioCtx.destination);
 
       let step = 0;
       const scheduleNextNote = () => {
         if (!audioCtx) return;
+        const now = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const noteGain = audioCtx.createGain();
         
-        // Upbeat rhythmic pulse
-        const freq = step % 4 === 0 ? 440 : 330;
+        // High-energy arpeggiated sequence
+        const arpeggio = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+        const freq = arpeggio[step % 4];
         
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, now);
         
-        noteGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        noteGain.gain.setValueAtTime(0.1, now);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
         
         osc.connect(noteGain);
         noteGain.connect(masterGain);
         
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.15);
         step++;
       };
 
-      timer = setInterval(scheduleNextNote, 250);
+      timer = setInterval(scheduleNextNote, 150);
     } catch (e) {}
 
     return () => {
@@ -250,19 +252,6 @@ export default function FruitPartyPage() {
           </div>
 
           <div className="relative w-full max-w-[340px] aspect-square bg-[#FFD600] p-3 rounded-[2rem] shadow-2xl border-b-[8px] border-[#B7950B] animate-in zoom-in">
-             <div className="absolute top-1.5 left-1/2 -translate-x-1/2 flex gap-4">
-                {[...Array(5)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />)}
-             </div>
-             <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-4">
-                {[...Array(5)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />)}
-             </div>
-             <div className="absolute left-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-4">
-                {[...Array(5)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />)}
-             </div>
-             <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-4">
-                {[...Array(5)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />)}
-             </div>
-
              <div className="w-full h-full bg-[#311B92] rounded-[1.5rem] grid grid-cols-3 grid-rows-3 gap-2 p-2">
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((gridIndex) => {
                   if (gridIndex === 4) {
@@ -342,7 +331,7 @@ export default function FruitPartyPage() {
                        {ITEMS.find(it => it.id === id)?.emoji}
                      </div>
                    )) : (
-                     <p className="text-[10px] text-white/40 font-black uppercase">Wait for next frequency result...</p>
+                     <p className="text-[10px] text-white/40 font-black uppercase">Wait for result...</p>
                    )}
                 </div>
              </div>

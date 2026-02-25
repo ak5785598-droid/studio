@@ -40,26 +40,26 @@ export default function LuckySlot777Page() {
   const [isLaunching, setIsLaunching] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Audio utility: Bet Sound
+  // Audio utility: Punchy Bet Sound
   const playBetSound = useCallback(() => {
     if (isMuted) return;
     try {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
-      oscillator.type = 'square';
+      oscillator.type = 'triangle';
       oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.08);
-      gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.08);
+      oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
       oscillator.connect(gainNode);
       gainNode.connect(audioCtx.destination);
       oscillator.start();
-      oscillator.stop(audioCtx.currentTime + 0.08);
+      oscillator.stop(audioCtx.currentTime + 0.1);
     } catch (e) {}
   }, [isMuted]);
 
-  // Background Music Engine: Casino Vibe
+  // Background Music Engine: Neon Groove (High Volume & Chill)
   useEffect(() => {
     if (isMuted || isLaunching) return;
     
@@ -69,29 +69,35 @@ export default function LuckySlot777Page() {
     try {
       audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.02; // Very low ambient volume
+      masterGain.gain.value = 0.35; // Bold master volume
       masterGain.connect(audioCtx.destination);
 
+      let step = 0;
       const scheduleNextNote = () => {
         if (!audioCtx) return;
+        const now = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const noteGain = audioCtx.createGain();
         
-        // Deep low-frequency drone with rhythmic ping
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+        // Chill Neon-Wave Bassline
+        const bass = [110.00, 110.00, 130.81, 146.83]; // A2, A2, C3, D3
+        const freq = bass[step % 4];
         
-        noteGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        noteGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.2);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        
+        noteGain.gain.setValueAtTime(0.2, now);
+        noteGain.gain.linearRampToValueAtTime(0, now + 0.8);
         
         osc.connect(noteGain);
         noteGain.connect(masterGain);
         
-        osc.start();
-        osc.stop(audioCtx.currentTime + 1.2);
+        osc.start(now);
+        osc.stop(now + 0.8);
+        step++;
       };
 
-      timer = setInterval(scheduleNextNote, 1200);
+      timer = setInterval(scheduleNextNote, 800);
     } catch (e) {}
 
     return () => {

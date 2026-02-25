@@ -52,7 +52,7 @@ export default function WildPartyPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isLaunching, setIsLaunching] = useState(true);
 
-  // Audio utility: Bet Sound
+  // Audio utility: Crisp Bet Sound
   const playBetSound = useCallback(() => {
     if (isMuted) return;
     try {
@@ -60,9 +60,9 @@ export default function WildPartyPage() {
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
       oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
-      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
       oscillator.connect(gainNode);
       gainNode.connect(audioCtx.destination);
@@ -71,7 +71,7 @@ export default function WildPartyPage() {
     } catch (e) {}
   }, [isMuted]);
 
-  // Background Music Engine: Savannah Rhythm
+  // Background Music Engine: Savannah Groove 2.0 (High Volume & Melodic)
   useEffect(() => {
     if (isMuted || isLaunching) return;
     
@@ -81,35 +81,39 @@ export default function WildPartyPage() {
     try {
       audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.03; // Very low ambient volume
+      masterGain.gain.value = 0.4; // High master volume
       masterGain.connect(audioCtx.destination);
 
-      let nextNoteTime = audioCtx.currentTime;
+      let step = 0;
       const scheduleNextNote = () => {
         if (!audioCtx) return;
+        const now = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const noteGain = audioCtx.createGain();
         
-        // Pentatonic scale for a natural forest feel
-        const notes = [130.81, 146.83, 164.81, 196.00, 220.00]; 
-        const freq = notes[Math.floor(Math.random() * notes.length)];
+        // Melodic Pentatonic Bassline
+        const bassNotes = [65.41, 73.42, 82.41, 98.00, 110.00]; // C2, D2, E2, G2, A2
+        const melodyNotes = [261.63, 293.66, 329.63, 392.00, 440.00]; // C4, D4, E4, G4, A4
         
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, nextNoteTime);
+        const isBass = step % 2 === 0;
+        const freq = isBass ? bassNotes[step % 5] : melodyNotes[Math.floor(Math.random() * 5)];
         
-        noteGain.gain.setValueAtTime(0.1, nextNoteTime);
-        noteGain.gain.exponentialRampToValueAtTime(0.001, nextNoteTime + 0.8);
+        osc.type = isBass ? 'triangle' : 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        
+        noteGain.gain.setValueAtTime(isBass ? 0.3 : 0.1, now);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
         
         osc.connect(noteGain);
         noteGain.connect(masterGain);
         
-        osc.start(nextNoteTime);
-        osc.stop(nextNoteTime + 0.8);
+        osc.start(now);
+        osc.stop(now + 0.6);
         
-        nextNoteTime += 0.8;
+        step++;
       };
 
-      timer = setInterval(scheduleNextNote, 800);
+      timer = setInterval(scheduleNextNote, 400);
     } catch (e) {}
 
     return () => {
@@ -242,7 +246,6 @@ export default function WildPartyPage() {
                     return (
                       <div key={animal.id} className="absolute w-14 h-14 flex items-center justify-center" style={{ top: '50%', left: '50%', transform: `translate(-50%, -50%) rotate(${angle}deg) translate(95px)` }}>
                         <div className={cn("w-full h-full rounded-full flex items-center justify-center border-2 border-white/10 bg-black/20 backdrop-blur-sm")}>
-                           {/* Animal stays upright relative to the starting position but rotates with the wheel physically */}
                            <span className="text-2xl" style={{ transform: `rotate(${-angle}deg)` }}>{animal.emoji}</span>
                         </div>
                       </div>
