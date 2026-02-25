@@ -88,8 +88,6 @@ import {
 import { AvatarFrame } from '@/components/avatar-frame';
 import { useRouter } from 'next/navigation';
 import { useRoomContext } from '@/components/room-provider';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { GiftAnimationOverlay } from '@/components/gift-animation-overlay';
 import { useWebRTC } from '@/hooks/use-webrtc';
 import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
@@ -235,7 +233,7 @@ export function RoomClient({ room }: { room: Room }) {
   const handleSendGift = async (gift: Gift) => {
     if (!currentUser || !firestore || !userProfile) return;
     if ((userProfile.wallet?.coins || 0) < gift.price) {
-      toast({ variant: 'destructive', title: 'Insufficient Coins', description: 'Head to the Boutique to top up.' });
+      toast({ variant: 'destructive', title: 'Insufficient Coins' });
       return;
     }
 
@@ -303,14 +301,10 @@ export function RoomClient({ room }: { room: Room }) {
 
   const handleClearChat = async () => {
     if (!canManageRoom || !firestore || !room.id) return;
-    try {
-      const snap = await getDocs(collection(firestore, 'chatRooms', room.id, 'messages'));
-      const batch = writeBatch(firestore);
-      snap.docs.forEach(d => batch.delete(d.ref));
-      await batch.commit();
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Clear Failed', description: e.message });
-    }
+    const snap = await getDocs(collection(firestore, 'chatRooms', room.id, 'messages'));
+    const batch = writeBatch(firestore);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    batch.commit();
   };
 
   const handleDeleteRoom = async () => {
@@ -406,7 +400,7 @@ export function RoomClient({ room }: { room: Room }) {
       return;
     }
     if (currentUserParticipant?.isSilenced) {
-      toast({ variant: 'destructive', title: 'Silenced', description: 'An admin has muted your microphone.' });
+      toast({ variant: 'destructive', title: 'Silenced', description: 'Admin restricted.' });
       return;
     }
     const nextMuteState = !currentUserParticipant?.isMuted;
@@ -436,7 +430,7 @@ export function RoomClient({ room }: { room: Room }) {
 
       <div className="absolute inset-0 z-0 opacity-60">
         <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 via-blue-900/40 to-black z-10" />
-        <img src="https://images.unsplash.com/photo-1464802686167-b939a67e06a1?q=80&w=2070&auto=format&fit=crop" className="h-full w-full object-cover scale-110" alt="Room Vibe" />
+        <img src="https://images.unsplash.com/photo-1464802686167-b939a67e06a1?q=80&w=2070" className="h-full w-full object-cover scale-110" alt="Room Vibe" />
       </div>
 
       <header className="relative z-50 flex items-center justify-between p-6 pb-2">
@@ -473,7 +467,7 @@ export function RoomClient({ room }: { room: Room }) {
                        const isPMod = room.moderatorIds?.includes(p.uid);
                        const isPOwner = p.uid === room.ownerId;
                        return (
-                        <div key={p.uid} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 animate-in slide-in-from-bottom-2 duration-300">
+                        <div key={p.uid} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
                             <div className="flex items-center gap-4">
                               <AvatarFrame frameId={p.activeFrame} size="sm">
                                   <Avatar><AvatarImage src={p.avatarUrl} /><AvatarFallback>{p.name.charAt(0)}</AvatarFallback></Avatar>

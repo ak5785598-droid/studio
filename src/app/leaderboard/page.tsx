@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useCollection, useFirestore, useMemoFirebase, useUser, useUserProfile } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
-import { Crown, TrendingUp, Loader, ChevronLeft, Trophy, Info, HelpCircle, Timer } from 'lucide-react';
+import { Crown, TrendingUp, Loader, ChevronLeft, Trophy, Info, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -49,9 +49,7 @@ const RankingList = ({ items, type, isLoading }: any) => {
 
   return (
     <div className="space-y-4 animate-in fade-in duration-1000 relative pb-32">
-      {/* High-Fidelity Podiums */}
       <div className="relative pt-10 pb-6 flex flex-col items-center">
-        {/* Rank 1: Winged Throne */}
         {top1 && (
           <Link href={getProfileLink(top1.id)} className="relative z-20 flex flex-col items-center mb-8 group active:scale-95 transition-transform">
              <div className="relative">
@@ -87,7 +85,6 @@ const RankingList = ({ items, type, isLoading }: any) => {
           </Link>
         )}
 
-        {/* Rank 2 & 3 side by side */}
         <div className="flex items-end justify-center gap-4 w-full max-w-md px-4">
            {top2 && (
              <Link href={getProfileLink(top2.id)} className="flex-1 bg-gradient-to-b from-blue-900/40 to-black/60 rounded-[2.5rem] border-2 border-blue-500/30 p-6 flex flex-col items-center gap-3 shadow-xl backdrop-blur-md active:scale-95 transition-transform">
@@ -128,7 +125,6 @@ const RankingList = ({ items, type, isLoading }: any) => {
         </div>
       </div>
 
-      {/* Scrolling List */}
       <div className="rounded-t-[3.5rem] bg-gradient-to-b from-[#151515] to-black border-t border-white/5 shadow-2xl overflow-hidden mt-8">
         <CardContent className="p-0">
           {others.map((item, index) => (
@@ -185,6 +181,11 @@ function LeaderboardContent() {
   const [timePeriod, setTimePeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [timeLeft, setTimeLeft] = useState('');
 
+  // Synchronize state with URL params
+  useEffect(() => {
+    if (initialType) setRankingMode(initialType);
+  }, [initialType]);
+
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
@@ -237,7 +238,9 @@ function LeaderboardContent() {
              </div>
              <Dialog>
                 <DialogTrigger asChild>
-                   <button className="bg-yellow-500/20 p-1 rounded-full border border-yellow-500/40"><HelpCircle className="h-6 w-6 text-yellow-500" /></button>
+                   <button className="bg-yellow-500/20 p-1 rounded-full border border-yellow-500/40 animate-pulse shadow-[0_0_15px_rgba(234,179,8,0.3)]">
+                      <Trophy className="h-6 w-6 text-yellow-500" />
+                   </button>
                 </DialogTrigger>
                 <DialogContent className="bg-slate-900 border-none rounded-t-[3rem] text-white p-0 overflow-hidden h-[85vh] sm:max-w-md animate-in slide-in-from-bottom-full duration-500">
                   <DialogHeader className="p-8 pb-4 text-center">
