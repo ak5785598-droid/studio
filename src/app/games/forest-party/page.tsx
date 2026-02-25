@@ -64,24 +64,6 @@ export default function WildPartyPage() {
     return audioCtxRef.current;
   }, []);
 
-  const playBetSound = useCallback(() => {
-    if (isMuted) return;
-    try {
-      const ctx = initAudioContext();
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(1200, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1);
-      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      oscillator.start();
-      oscillator.stop(ctx.currentTime + 0.1);
-    } catch (e) {}
-  }, [isMuted, initAudioContext]);
-
   useEffect(() => {
     if (isMuted || isLaunching) return;
     
@@ -198,7 +180,7 @@ export default function WildPartyPage() {
       return;
     }
     
-    playBetSound();
+    initAudioContext();
     const updateData = { 'wallet.coins': increment(-selectedChip), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);
@@ -288,12 +270,12 @@ export default function WildPartyPage() {
               </div>
               <div className="flex gap-1.5 px-2 overflow-x-auto no-scrollbar">
                  {CHIPS.map(chip => (
-                   <button key={chip.value} onClick={() => { setSelectedChip(chip.value); playBetSound(); }} className={cn("h-9 w-9 rounded-full flex items-center justify-center transition-all border-2 shrink-0", selectedChip === chip.value ? "bg-slate-900 border-white scale-110 shadow-[0_0_10px_white]" : "bg-black/40 border-white/10 text-white/60 hover:bg-black/60")}>
+                   <button key={chip.value} onClick={() => { setSelectedChip(chip.value); initAudioContext(); }} className={cn("h-9 w-9 rounded-full flex items-center justify-center transition-all border-2 shrink-0", selectedChip === chip.value ? "bg-slate-900 border-white scale-110 shadow-[0_0_10px_white]" : "bg-black/40 border-white/10 text-white/60 hover:bg-black/60")}>
                       <span className="text-[7px] font-black italic">{chip.label}</span>
                    </button>
                  ))}
               </div>
-              <button className="h-12 w-12 bg-orange-500 rounded-full flex items-center justify-center shadow-lg border-2 border-orange-400 active:scale-90 transition-all hover:bg-orange-400" onClick={() => { setMyBets({}); playBetSound(); }}><span className="text-[8px] font-black text-white uppercase leading-none">Rep</span></button>
+              <button className="h-12 w-12 bg-orange-500 rounded-full flex items-center justify-center shadow-lg border-2 border-orange-400 active:scale-90 transition-all hover:bg-orange-400" onClick={() => { setMyBets({}); initAudioContext(); }}><span className="text-[8px] font-black text-white uppercase leading-none">Rep</span></button>
            </div>
         </main>
 

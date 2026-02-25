@@ -55,24 +55,6 @@ export default function TeenPattiPage() {
   const [isLaunching, setIsLaunching] = useState(true);
   const [winner, setWinner] = useState<string | null>(null);
 
-  const playBetSound = useCallback(() => {
-    if (isMuted) return;
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
-      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      oscillator.start();
-      oscillator.stop(audioCtx.currentTime + 0.1);
-    } catch (e) {}
-  }, [isMuted]);
-
   useEffect(() => {
     if (isMuted || isLaunching) return;
     let audioCtx: AudioContext | null = null;
@@ -88,18 +70,23 @@ export default function TeenPattiPage() {
         const now = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const noteGain = audioCtx.createGain();
-        const frequencies = [146.83, 164.81, 174.61, 196.00]; // D3, E3, F3, G3
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(frequencies[step % 4], now);
-        noteGain.gain.setValueAtTime(0.15, now);
+        
+        // High-fidelity Sitar-Fusion synthesized sound
+        const frequencies = [146.83, 164.81, 174.61, 196.00, 220.00, 246.94]; // D3, E3, F3, G3, A3, B3 (Mixolydian-ish)
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(frequencies[step % frequencies.length], now);
+        osc.frequency.exponentialRampToValueAtTime(frequencies[step % frequencies.length] * 0.5, now + 0.8);
+        
+        noteGain.gain.setValueAtTime(0.2, now);
         noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+        
         osc.connect(noteGain);
         noteGain.connect(masterGain);
         osc.start(now);
         osc.stop(now + 0.8);
         step++;
       };
-      timer = setInterval(scheduleNextNote, 800);
+      timer = setInterval(scheduleNextNote, 600);
     } catch (e) {}
     return () => {
       if (timer) clearInterval(timer);
@@ -158,7 +145,7 @@ export default function TeenPattiPage() {
       toast({ variant: 'destructive', title: 'Insufficient Coins' });
       return;
     }
-    playBetSound();
+    
     const updateData = { 'wallet.coins': increment(-selectedChip), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);
@@ -181,7 +168,6 @@ export default function TeenPattiPage() {
       <div className="h-screen w-full bg-[#1a0a05] flex flex-col relative overflow-hidden font-headline animate-in fade-in duration-1000">
         <CompactRoomView />
 
-        {/* Golden Vault Backdrop */}
         <div className="absolute inset-0 z-0">
            <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=80&w=2000" className="h-full w-full object-cover opacity-30 scale-110" alt="Vault" />
            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
@@ -204,7 +190,6 @@ export default function TeenPattiPage() {
               </div>
            </header>
 
-           {/* Cards Layout & Multipliers */}
            <div className="grid grid-cols-3 gap-4 mb-6 px-2 animate-in slide-in-from-top-10 duration-700">
               {['A', 'B', 'C'].map((id) => (
                 <div key={id} className="space-y-1 relative">
@@ -231,7 +216,6 @@ export default function TeenPattiPage() {
               ))}
            </div>
 
-           {/* Characters Section */}
            <div className="relative flex items-center justify-between px-2 mb-8">
               {DRAGONS.map((drag, i) => (
                 <div key={drag.id} className={cn("flex flex-col items-center transition-all duration-500", winner === drag.id ? "scale-125 z-20" : "scale-100 z-10 opacity-90")}>
@@ -244,7 +228,6 @@ export default function TeenPattiPage() {
               ))}
            </div>
 
-           {/* Betting Pods - Dark Rectangles */}
            <div className="grid grid-cols-3 gap-3 px-2">
               {['A', 'B', 'C'].map((id) => (
                 <button 
@@ -271,7 +254,6 @@ export default function TeenPattiPage() {
            </div>
         </div>
 
-        {/* Production Footer Dashboard */}
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-[110] animate-in slide-in-from-bottom-10">
            <div className="bg-black/60 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] p-3 flex items-center justify-between shadow-2xl">
               <div className="flex flex-col items-start px-2">
@@ -288,7 +270,7 @@ export default function TeenPattiPage() {
                  {CHIPS.map(chip => (
                    <button 
                      key={chip.value} 
-                     onClick={() => { setSelectedChip(chip.value); playBetSound(); }} 
+                     onClick={() => { setSelectedChip(chip.value); }} 
                      className={cn(
                        "h-10 w-10 rounded-full flex items-center justify-center transition-all border-2 border-white/20 shrink-0",
                        selectedChip === chip.value ? "border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.5)] " + chip.color : "bg-black/40" + " " + chip.color + " opacity-60"

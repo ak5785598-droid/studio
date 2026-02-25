@@ -40,24 +40,6 @@ export default function LuckySlot777Page() {
   const [isLaunching, setIsLaunching] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
 
-  const playBetSound = useCallback(() => {
-    if (isMuted) return;
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      oscillator.type = 'triangle';
-      oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1);
-      gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      oscillator.start();
-      oscillator.stop(audioCtx.currentTime + 0.1);
-    } catch (e) {}
-  }, [isMuted]);
-
   useEffect(() => {
     if (isMuted || isLaunching) return;
     
@@ -149,7 +131,6 @@ export default function LuckySlot777Page() {
       return;
     }
     
-    playBetSound();
     const updateData = { 'wallet.coins': increment(-selectedChip), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);
@@ -228,12 +209,12 @@ export default function LuckySlot777Page() {
               </div>
               <div className="flex gap-1.5 px-2">
                  {CHIPS.map(chip => (
-                   <button key={chip.value} onClick={() => { setSelectedChip(chip.value); playBetSound(); }} className={cn("h-9 w-9 rounded-full flex items-center justify-center transition-all border-2", selectedChip === chip.value ? chip.color + " border-white scale-110 shadow-[0_0_10px_white]" : "bg-black/40 border-white/10 hover:bg-white/10")}>
+                   <button key={chip.value} onClick={() => { setSelectedChip(chip.value); }} className={cn("h-9 w-9 rounded-full flex items-center justify-center transition-all border-2", selectedChip === chip.value ? chip.color + " border-white scale-110 shadow-[0_0_10px_white]" : "bg-black/40 border-white/10 hover:bg-white/10")}>
                       <span className="text-[7px] font-black text-white italic">{chip.label}</span>
                    </button>
                  ))}
               </div>
-              <button className="h-12 w-12 rounded-full bg-purple-600 border-2 border-purple-400 flex items-center justify-center active:scale-90 hover:bg-purple-500 shadow-xl transition-all" onClick={playBetSound}><GoldCoinIcon className="h-6 w-6" /></button>
+              <button className="h-12 w-12 rounded-full bg-purple-600 border-2 border-purple-400 flex items-center justify-center active:scale-90 hover:bg-purple-500 shadow-xl transition-all"><GoldCoinIcon className="h-6 w-6" /></button>
            </div>
         </div>
         <style jsx global>{`.clip-path-triangle { clip-path: polygon(50% 100%, 0 0, 100% 0); }`}</style>

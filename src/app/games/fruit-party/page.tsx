@@ -67,24 +67,6 @@ export default function FruitPartyPage() {
     return audioCtxRef.current;
   }, []);
 
-  const playBetSound = useCallback(() => {
-    if (isMuted) return;
-    try {
-      const ctx = initAudioContext();
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      oscillator.type = 'square';
-      oscillator.frequency.setValueAtTime(800, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.08);
-      gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      oscillator.start();
-      oscillator.stop(ctx.currentTime + 0.08);
-    } catch (e) {}
-  }, [isMuted, initAudioContext]);
-
   useEffect(() => {
     if (isMuted || isLaunching) return;
     
@@ -157,7 +139,6 @@ export default function FruitPartyPage() {
 
     const runChase = () => {
       setHighlightIdx(perimeterOrder[currentStep % 8]);
-      playBetSound(); 
       currentStep++;
       if (currentStep < totalSteps) {
         if (totalSteps - currentStep < 10) speed += 30;
@@ -200,7 +181,7 @@ export default function FruitPartyPage() {
       return;
     }
     
-    playBetSound();
+    initAudioContext();
     const updateData = { 'wallet.coins': increment(-selectedChip), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);
@@ -309,7 +290,7 @@ export default function FruitPartyPage() {
                    {CHIPS.map(chip => (
                      <button 
                        key={chip.value} 
-                       onClick={() => { setSelectedChip(chip.value); playBetSound(); }} 
+                       onClick={() => { setSelectedChip(chip.value); initAudioContext(); }} 
                        className={cn(
                          "group relative transition-all duration-200",
                          selectedChip === chip.value ? "scale-110 -translate-y-2" : "hover:-translate-y-1"
