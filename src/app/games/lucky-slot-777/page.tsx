@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useUser, useFirestore, useUserProfile, updateDocumentNonBlocking } from '@/firebase';
@@ -34,9 +34,26 @@ export default function LuckySlot777Page() {
   const [selectedChip, setSelectedChip] = useState(100);
   const [myBets, setMyBets] = useState<Record<string, number>>({});
   const [rotation, setRotation] = useState(0);
-  const [spinningIndex, setSpinningIndex] = useState(0);
   const [history, setHistory] = useState<string[]>([]);
   const [isLaunching, setIsLaunching] = useState(true);
+
+  // Audio utility
+  const playBetSound = useCallback(() => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.08);
+      gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.08);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.08);
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLaunching(false), 1500);
@@ -83,6 +100,8 @@ export default function LuckySlot777Page() {
       toast({ variant: 'destructive', title: 'Insufficient Coins' });
       return;
     }
+    
+    playBetSound();
     const updateData = { 'wallet.coins': increment(-selectedChip), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);
@@ -100,7 +119,7 @@ export default function LuckySlot777Page() {
 
   return (
     <AppLayout fullScreen>
-      <div className="h-screen w-full bg-[#1a0a2e] flex flex-col relative overflow-hidden font-headline">
+      <div className="h-screen w-full bg-[#1a0a2e] flex flex-col relative overflow-hidden font-headline animate-in fade-in duration-700">
         <CompactRoomView />
 
         <div className="flex-1 flex flex-col items-center pt-32 pb-32 px-4 z-10 overflow-y-auto">
@@ -109,16 +128,16 @@ export default function LuckySlot777Page() {
                  <History className="h-3 w-3 text-yellow-500" />
                  <div className="flex gap-1">
                     {history.slice(0, 6).map((id, i) => (
-                      <span key={i} className="text-xs">{id === 'seven' ? '7️⃣' : (id === 'peach' ? '🍑' : '🍉')}</span>
+                      <span key={i} className="text-xs animate-in zoom-in">{id === 'seven' ? '7️⃣' : (id === 'peach' ? '🍑' : '🍉')}</span>
                     ))}
                  </div>
               </div>
-              <button onClick={() => router.back()} className="bg-white/10 p-1.5 rounded-full text-white"><X className="h-4 w-4" /></button>
+              <button onClick={() => router.back()} className="bg-white/10 p-1.5 rounded-full text-white hover:bg-white/20 transition-all"><X className="h-4 w-4" /></button>
            </header>
 
            <div className="relative w-64 h-64 flex items-center justify-center scale-110 mt-10">
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center">
-                 <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-purple-900 rotate-45 border-2 border-yellow-500" />
+                 <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-purple-900 rotate-45 border-2 border-yellow-500 animate-pulse" />
                  <div className="w-4 h-6 bg-yellow-500 clip-path-triangle -mt-1 shadow-lg" />
               </div>
               <div className={cn("relative w-full h-full rounded-full border-[8px] border-yellow-500 shadow-2xl", gameState === 'spinning' ? "transition-transform duration-[5000ms] cubic-bezier(0.15, 0, 0.15, 1)" : "transition-none")} style={{ transform: `rotate(${rotation}deg)` }}>
@@ -134,34 +153,34 @@ export default function LuckySlot777Page() {
                     })}
                  </svg>
               </div>
-              <div className="absolute z-20 w-20 h-24 bg-black rounded-full shadow-2xl flex flex-col items-center justify-center border-[4px] border-yellow-500">
-                 <span className="text-3xl font-black text-white italic">{gameState === 'betting' ? timeLeft : '🎰'}</span>
+              <div className="absolute z-20 w-20 h-24 bg-black rounded-full shadow-2xl flex flex-col items-center justify-center border-[4px] border-yellow-500 overflow-hidden">
+                 <span className="text-3xl font-black text-white italic animate-in zoom-in">{gameState === 'betting' ? timeLeft : '🎰'}</span>
               </div>
            </div>
 
            <div className="w-full max-w-sm grid grid-cols-3 gap-3 px-2 mt-12">
               {['peach', 'seven', 'watermelon'].map(id => (
-                <button key={id} onClick={() => handlePlaceBet(id)} disabled={gameState !== 'betting'} className={cn("relative h-32 rounded-2xl border-2 transition-all flex flex-col items-center justify-center bg-gradient-to-b from-[#4a1d96] to-[#2d0b5a]", myBets[id] && "border-yellow-400 ring-2 ring-yellow-400/20")}>
+                <button key={id} onClick={() => handlePlaceBet(id)} disabled={gameState !== 'betting'} className={cn("relative h-32 rounded-2xl border-2 transition-all flex flex-col items-center justify-center bg-gradient-to-b from-[#4a1d96] to-[#2d0b5a] hover:scale-105 active:scale-95", myBets[id] && "border-yellow-400 ring-2 ring-yellow-400/20 shadow-[0_0_20px_rgba(251,191,36,0.3)]")}>
                    <span className="text-4xl mb-1">{id === 'seven' ? '777' : (id === 'peach' ? '🍑' : '🍉')}</span>
                    <span className="text-xl font-black text-yellow-400 italic">{id === 'seven' ? 'x8' : 'x2'}</span>
-                   {myBets[id] && <div className="absolute top-1 right-1 text-[8px] font-black text-white bg-black/40 px-1.5 rounded-full">{(myBets[id] / 1000).toFixed(0)}K</div>}
+                   {myBets[id] && <div className="absolute top-1 right-1 text-[8px] font-black text-white bg-black/40 px-1.5 rounded-full animate-in zoom-in">{(myBets[id] / 1000).toFixed(0)}K</div>}
                 </button>
               ))}
            </div>
 
-           <div className="w-full max-w-sm fixed bottom-4 left-1/2 -translate-x-1/2 z-[110] bg-black/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-3 flex items-center justify-between shadow-2xl">
+           <div className="w-full max-w-sm fixed bottom-4 left-1/2 -translate-x-1/2 z-[110] bg-black/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-3 flex items-center justify-between shadow-2xl animate-in slide-in-from-bottom-10">
               <div className="flex items-center gap-2 bg-white/5 px-3 h-10 rounded-full">
                  <Zap className="h-3 w-3 text-yellow-400 fill-current" />
                  <span className="text-xs font-black text-white italic">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
               </div>
               <div className="flex gap-1.5 px-2">
                  {CHIPS.map(chip => (
-                   <button key={chip.value} onClick={() => setSelectedChip(chip.value)} className={cn("h-9 w-9 rounded-full flex items-center justify-center transition-all border-2", selectedChip === chip.value ? chip.color + " border-white scale-110" : "bg-black/40 border-white/10")}>
+                   <button key={chip.value} onClick={() => { setSelectedChip(chip.value); playBetSound(); }} className={cn("h-9 w-9 rounded-full flex items-center justify-center transition-all border-2", selectedChip === chip.value ? chip.color + " border-white scale-110 shadow-[0_0_10px_white]" : "bg-black/40 border-white/10 hover:bg-white/10")}>
                       <span className="text-[7px] font-black text-white italic">{chip.label}</span>
                    </button>
                  ))}
               </div>
-              <button className="h-12 w-12 rounded-full bg-purple-600 border-2 border-purple-400 flex items-center justify-center active:scale-90"><Zap className="h-5 w-5 text-white" /></button>
+              <button className="h-12 w-12 rounded-full bg-purple-600 border-2 border-purple-400 flex items-center justify-center active:scale-90 hover:bg-purple-500 shadow-xl transition-all" onClick={playBetSound}><Zap className="h-5 w-5 text-white" /></button>
            </div>
         </div>
         <style jsx global>{`.clip-path-triangle { clip-path: polygon(50% 100%, 0 0, 100% 0); }`}</style>

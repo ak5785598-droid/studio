@@ -87,6 +87,16 @@
   animation: glow-pulse 2s infinite;
 }
 
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
 @keyframes voice-wave {
   0% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 0 0 currentColor; }
   70% { transform: scale(1.4); opacity: 0; box-shadow: 0 0 0 15px transparent; }

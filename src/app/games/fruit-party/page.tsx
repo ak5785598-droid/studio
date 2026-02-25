@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useUser, useFirestore, useUserProfile, updateDocumentNonBlocking } from '@/firebase';
@@ -18,10 +18,6 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CompactRoomView } from '@/components/compact-room-view';
 
-// Image Order: 
-// [Orange, Tomato, Banana]
-// [Cherries, TIMER, Lemon]
-// [Grapes, Strawberry, Watermelon]
 const ITEMS = [
   { id: 'orange', emoji: '🍊', multiplier: 5, label: '5 TIMES', gridPos: 0 },
   { id: 'tomato', emoji: '🍅', multiplier: 5, label: '5 TIMES', gridPos: 1 },
@@ -57,6 +53,24 @@ export default function FruitPartyPage() {
   const [isLaunching, setIsLaunching] = useState(true);
   const [lastWin, setLastWin] = useState(0);
 
+  // Audio utility
+  const playBetSound = useCallback(() => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.05);
+      gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.05);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.05);
+    } catch (e) {}
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => setIsLaunching(false), 1500);
     return () => clearTimeout(timer);
@@ -76,20 +90,20 @@ export default function FruitPartyPage() {
   const startSpin = () => {
     setGameState('spinning');
     const targetIdx = Math.floor(Math.random() * ITEMS.length);
-    // Perimeter sequence: 0, 1, 2, 5, 8, 7, 6, 3
     const perimeterOrder = [0, 1, 2, 5, 8, 7, 6, 3];
     const targetGridPos = ITEMS[targetIdx].gridPos;
     const targetOrderIdx = perimeterOrder.indexOf(targetGridPos);
     
-    const totalSteps = 24 + targetOrderIdx; 
+    const totalSteps = 32 + targetOrderIdx; 
     let currentStep = 0;
-    let speed = 60;
+    let speed = 50;
 
     const runChase = () => {
       setHighlightIdx(perimeterOrder[currentStep % 8]);
+      playBetSound(); // Small tick sound for highlight
       currentStep++;
       if (currentStep < totalSteps) {
-        if (totalSteps - currentStep < 8) speed += 40;
+        if (totalSteps - currentStep < 10) speed += 30;
         setTimeout(runChase, speed);
       } else {
         setTimeout(() => showResult(ITEMS[targetIdx].id), 500);
@@ -128,6 +142,8 @@ export default function FruitPartyPage() {
       toast({ variant: 'destructive', title: 'Insufficient Coins' });
       return;
     }
+    
+    playBetSound();
     const updateData = { 'wallet.coins': increment(-selectedChip), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);
@@ -145,11 +161,10 @@ export default function FruitPartyPage() {
 
   return (
     <AppLayout fullScreen>
-      <div className="h-screen w-full bg-[#9C27B0] flex flex-col items-center relative overflow-hidden font-headline">
+      <div className="h-screen w-full bg-[#9C27B0] flex flex-col items-center relative overflow-hidden font-headline animate-in fade-in duration-700">
         <CompactRoomView />
 
         <div className="flex-1 flex flex-col items-center w-full p-4 pt-32 pb-32 z-10 overflow-y-auto">
-          {/* Header Row */}
           <header className="w-full flex items-center justify-between mb-4 px-2">
              <div className="flex items-center gap-4">
                 <span className="text-white font-black text-lg uppercase tracking-tight">ROUND: 311</span>
@@ -159,34 +174,31 @@ export default function FruitPartyPage() {
                 </div>
              </div>
              <div className="flex items-center gap-2">
-                <button className="bg-white/20 p-1.5 rounded-full text-white"><FileText className="h-4 w-4" /></button>
-                <button className="bg-white/20 p-1.5 rounded-full text-white"><HelpCircle className="h-4 w-4" /></button>
-                <button className="bg-white/20 p-1.5 rounded-full text-white"><Settings className="h-4 w-4" /></button>
-                <button onClick={() => router.back()} className="bg-white/20 p-1.5 rounded-full text-white"><X className="h-4 w-4" /></button>
+                <button className="bg-white/20 p-1.5 rounded-full text-white hover:bg-white/40 transition-all"><FileText className="h-4 w-4" /></button>
+                <button className="bg-white/20 p-1.5 rounded-full text-white hover:bg-white/40 transition-all"><HelpCircle className="h-4 w-4" /></button>
+                <button className="bg-white/20 p-1.5 rounded-full text-white hover:bg-white/40 transition-all"><Settings className="h-4 w-4" /></button>
+                <button onClick={() => router.back()} className="bg-white/20 p-1.5 rounded-full text-white hover:bg-white/40 transition-all"><X className="h-4 w-4" /></button>
              </div>
           </header>
 
-          {/* Stat Bar */}
-          <div className="w-full max-w-md bg-[#FFD600] p-1 rounded-xl shadow-lg mb-6">
+          <div className="w-full max-w-md bg-[#FFD600] p-1 rounded-xl shadow-lg mb-6 animate-in slide-in-from-top-4">
              <div className="bg-[#4A148C] rounded-lg px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                   <span className="text-xs font-black text-white uppercase">BALANCE:</span>
+                   <span className="text-xs font-black text-white uppercase opacity-60">BALANCE:</span>
                    <div className="flex items-center gap-1 text-white font-black text-lg">
                       <div className="bg-yellow-500 rounded-full h-4 w-4 flex items-center justify-center text-[10px] text-black">S</div>
                       {(userProfile?.wallet?.coins || 0).toLocaleString()}
                    </div>
                 </div>
                 <div className="flex items-center gap-2">
-                   <span className="text-xs font-black text-white uppercase">PROFIT:</span>
-                   <span className={cn("font-black text-lg", lastWin > 0 ? "text-green-400" : "text-white")}>{lastWin.toLocaleString()}</span>
+                   <span className="text-xs font-black text-white uppercase opacity-60">PROFIT:</span>
+                   <span className={cn("font-black text-lg transition-colors", lastWin > 0 ? "text-green-400" : "text-white")}>{lastWin.toLocaleString()}</span>
                    <div className="bg-[#FFD600] p-1.5 rounded-md ml-2 shadow-inner"><Trophy className="h-4 w-4 text-[#4A148C]" /></div>
                 </div>
              </div>
           </div>
 
-          {/* Machine Grid with Light-bulb Border */}
-          <div className="relative w-full max-w-[340px] aspect-square bg-[#FFD600] p-3 rounded-[2rem] shadow-2xl border-b-[8px] border-[#B7950B]">
-             {/* Light Bulbs */}
+          <div className="relative w-full max-w-[340px] aspect-square bg-[#FFD600] p-3 rounded-[2rem] shadow-2xl border-b-[8px] border-[#B7950B] animate-in zoom-in">
              <div className="absolute top-1.5 left-1/2 -translate-x-1/2 flex gap-4">
                 {[...Array(5)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />)}
              </div>
@@ -200,17 +212,16 @@ export default function FruitPartyPage() {
                 {[...Array(5)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />)}
              </div>
 
-             {/* Inner Grid */}
              <div className="w-full h-full bg-[#311B92] rounded-[1.5rem] grid grid-cols-3 grid-rows-3 gap-2 p-2">
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((gridIndex) => {
                   if (gridIndex === 4) {
                     return (
                       <div key="center" className="bg-[#1A0033] rounded-2xl flex items-center justify-center border-4 border-[#B7950B] shadow-inner relative overflow-hidden">
                          {gameState === 'betting' ? (
-                           <div className="text-5xl font-black text-[#FFD600] italic font-mono drop-shadow-[0_0_10px_rgba(255,214,0,0.5)]">{timeLeft}</div>
+                           <div className="text-5xl font-black text-[#FFD600] italic font-mono drop-shadow-[0_0_10px_rgba(255,214,0,0.5)] animate-in zoom-in">{timeLeft}</div>
                          ) : (
                            <div className="text-5xl animate-in zoom-in duration-300 drop-shadow-[0_0_15px_white]">
-                             {ITEMS.find(it => it.gridPos === (highlightIdx ?? perimeterOrder[0]))?.emoji || resultId && ITEMS.find(it => it.id === resultId)?.emoji}
+                             {ITEMS.find(it => it.gridPos === (highlightIdx ?? -1))?.emoji || (resultId && ITEMS.find(it => it.id === resultId)?.emoji)}
                            </div>
                          )}
                       </div>
@@ -228,7 +239,7 @@ export default function FruitPartyPage() {
                       onClick={() => item && handlePlaceBet(item.id)} 
                       disabled={gameState !== 'betting'} 
                       className={cn(
-                        "relative rounded-2xl flex flex-col items-center justify-center p-1 transition-all bg-gradient-to-b from-[#AB47BC] to-[#7B1FA2] border-2 border-white/10 shadow-lg active:scale-95",
+                        "relative rounded-2xl flex flex-col items-center justify-center p-1 transition-all bg-gradient-to-b from-[#AB47BC] to-[#7B1FA2] border-2 border-white/10 shadow-lg active:scale-95 hover:scale-105",
                         isHighlighted && "ring-4 ring-[#FFD600] z-10 scale-105 shadow-[0_0_20px_#FFD600]",
                         isWinner && "ring-4 ring-white animate-pulse z-20",
                         gameState !== 'betting' && !isHighlighted && "opacity-60"
@@ -237,7 +248,7 @@ export default function FruitPartyPage() {
                       <span className="text-4xl mb-1">{item?.emoji}</span>
                       <span className="text-[10px] font-black text-white uppercase tracking-tighter leading-none">{item?.label}</span>
                       {hasBet && (
-                        <div className="absolute -top-2 -right-2 bg-[#FFD600] text-black text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-white shadow-xl">
+                        <div className="absolute -top-2 -right-2 bg-[#FFD600] text-black text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-white shadow-xl animate-in zoom-in">
                           {(myBets[item!.id] >= 1000 ? `${(myBets[item!.id] / 1000).toFixed(0)}K` : myBets[item!.id])}
                         </div>
                       )}
@@ -247,20 +258,18 @@ export default function FruitPartyPage() {
              </div>
           </div>
 
-          {/* Tiered Chip Console */}
-          <div className="w-full max-w-md mt-10 relative">
+          <div className="w-full max-w-md mt-10 relative animate-in slide-in-from-bottom-10">
              <div className="bg-[#4A148C] rounded-t-[3rem] p-6 pb-12 border-t-4 border-[#FFD600]">
                 <div className="flex items-center justify-center gap-4 px-2">
                    {CHIPS.map(chip => (
                      <button 
                        key={chip.value} 
-                       onClick={() => setSelectedChip(chip.value)} 
+                       onClick={() => { setSelectedChip(chip.value); playBetSound(); }} 
                        className={cn(
                          "group relative transition-all duration-200",
                          selectedChip === chip.value ? "scale-110 -translate-y-2" : "hover:-translate-y-1"
                        )}
                      >
-                        {/* 3D Button Style */}
                         <div className={cn("w-16 h-16 rounded-full bg-gradient-to-b shadow-2xl flex items-center justify-center", chip.color)}>
                            <div className={cn("w-12 h-12 rounded-full border-2 border-white/30 flex flex-col items-center justify-center", chip.top)}>
                               <div className="bg-yellow-500 rounded-full h-3 w-3 flex items-center justify-center text-[6px] text-black mb-0.5">S</div>
@@ -274,7 +283,6 @@ export default function FruitPartyPage() {
                    ))}
                 </div>
              </div>
-             {/* Bottom Scroll History */}
              <div className="bg-[#1A0033] w-full h-12 flex items-center gap-3 px-6 border-t-2 border-[#FFD600]/20 overflow-hidden">
                 <History className="h-4 w-4 text-[#FFD600] shrink-0" />
                 <div className="flex gap-2 animate-marquee whitespace-nowrap">
