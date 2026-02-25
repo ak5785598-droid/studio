@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -61,7 +60,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
   Sheet,
@@ -215,7 +213,6 @@ export function RoomClient({ room }: { room: Room }) {
     const file = e.target.files?.[0];
     if (file) {
       uploadRoomImage(file);
-      // Reset input value to allow the same file to be re-selected if necessary
       e.target.value = '';
     }
   };
@@ -359,7 +356,6 @@ export function RoomClient({ room }: { room: Room }) {
   const kickParticipant = (uid: string) => {
     if (!canManageRoom || !firestore || !room.id) return;
     deleteDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid));
-    // Decrement count when kicking
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { participantCount: increment(-1) });
     setIsActionMenuOpen(false);
   };
@@ -367,7 +363,6 @@ export function RoomClient({ room }: { room: Room }) {
   const leaveRoom = () => {
     if (firestore && currentUser && room.id) {
       deleteDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid));
-      // Decrement count when leaving
       updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { participantCount: increment(-1) });
     }
     setActiveRoom(null);
@@ -462,10 +457,10 @@ export function RoomClient({ room }: { room: Room }) {
           <div className="flex items-center gap-3 cursor-pointer group">
             <div className="relative group/avatar">
               <Avatar className="h-12 w-12 rounded-xl border-2 border-primary/50 shadow-lg group-hover/avatar:scale-105 transition-transform">
-                <AvatarImage src={room.coverUrl} />
+                <AvatarImage key={room.coverUrl} src={room.coverUrl} />
                 <AvatarFallback>UM</AvatarFallback>
               </Avatar>
-              {(isOwner || isGlobalAdmin) && (
+              {canManageRoom && (
                 <div 
                   className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer z-20"
                   onClick={(e) => { e.stopPropagation(); roomDpInputRef.current?.click(); }}
