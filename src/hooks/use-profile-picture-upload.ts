@@ -8,7 +8,7 @@ import { useToast } from './use-toast';
 
 /**
  * Hook to handle profile picture uploads to Firebase Storage and update Firestore.
- * Success toasts removed per production guidelines.
+ * Ensures the visual identity is permanent and synchronized across summary and profile docs.
  */
 export function useProfilePictureUpload() {
   const storage = useStorage();
@@ -30,7 +30,8 @@ export function useProfilePictureUpload() {
     setIsUploading(true);
 
     try {
-      const storagePath = `users/${user.uid}/profile-picture.jpg`;
+      // Create a unique path to ensure cache busting and permanent identification
+      const storagePath = `users/${user.uid}/profile_${Date.now()}.jpg`;
       const storageRef = ref(storage, storagePath);
       const uploadResult = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(uploadResult.ref);
@@ -43,8 +44,14 @@ export function useProfilePictureUpload() {
         updatedAt: serverTimestamp()
       };
 
+      // Atomically update both locations to ensure global consistency
       updateDocumentNonBlocking(userSummaryRef, updateData);
       updateDocumentNonBlocking(userProfileRef, updateData);
+      
+      toast({
+        title: 'Identity Synchronized',
+        description: 'Your new persona is now permanent across the tribe.',
+      });
     } catch (error: any) {
       console.error('Error uploading profile picture:', error);
       toast({

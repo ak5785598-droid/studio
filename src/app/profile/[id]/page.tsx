@@ -76,6 +76,13 @@ export default function ProfilePage() {
     if (!isAuthLoading && !currentUser) router.replace('/login');
   }, [currentUser, isAuthLoading, router]);
 
+  // Clear local preview once the global profile URL updates to ensure permanence
+  useEffect(() => {
+    if (!isUploading) {
+      setLocalAvatarPreview(null);
+    }
+  }, [isUploading]);
+
   const isOwnProfile = currentUser?.uid === profileId;
   const isFollowing = myProfile?.tags?.includes(`following:${profileId}`);
 
@@ -156,7 +163,7 @@ export default function ProfilePage() {
             <div className="relative group shrink-0">
               <AvatarFrame frameId={profile.inventory?.activeFrame} size="xl">
                 <Avatar className="h-28 w-28 border-4 border-white shadow-xl">
-                  <AvatarImage src={localAvatarPreview || profile.avatarUrl} />
+                  <AvatarImage key={profile.avatarUrl} src={localAvatarPreview || profile.avatarUrl} />
                   <AvatarFallback className="text-4xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
               </AvatarFrame>

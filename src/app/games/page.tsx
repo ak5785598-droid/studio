@@ -33,7 +33,7 @@ export default function GamesPage() {
   useEffect(() => {
     const counts: Record<string, number> = {};
     FALLBACK_GAMES.forEach(g => {
-      counts[g.id] = Math.floor(Math.random() * 500) + 100;
+      counts[g.slug] = Math.floor(Math.random() * 500) + 100;
     });
     setLiveCounts(counts);
   }, []);
@@ -48,8 +48,11 @@ export default function GamesPage() {
   const { data: firestoreGames, isLoading: isGamesLoading } = useCollection(gamesQuery);
 
   const activeGames = useMemo(() => {
-    if (firestoreGames && firestoreGames.length > 0) return firestoreGames;
-    return FALLBACK_GAMES;
+    // High-Fidelity Merging: Keep all fallbacks but override with permanent Firestore updates
+    return FALLBACK_GAMES.map(fb => {
+      const match = firestoreGames?.find(g => g.slug === fb.slug || g.id === fb.id);
+      return match ? { ...fb, ...match } : fb;
+    });
   }, [firestoreGames]);
 
   const handleLogoChangeClick = (e: React.MouseEvent, gameId: string) => {
@@ -105,7 +108,7 @@ export default function GamesPage() {
                <div className="flex justify-center py-20"><Loader className="animate-spin text-primary h-10 w-10" /></div>
              ) : (
                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                  {activeGames.map((game, i) => (
+                  {activeGames.map((game) => (
                     <div key={game.id} className="group relative flex flex-col">
                       <Link href={`/games/${game.slug}`} className="block">
                         <div className="relative aspect-square w-full rounded-[2.5rem] overflow-hidden border-2 border-white/5 shadow-xl transition-all duration-500 group-hover:border-purple-500 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] group-hover:-translate-y-2 bg-gradient-to-br from-white/5 to-white/10 flex items-center justify-center">
@@ -132,7 +135,7 @@ export default function GamesPage() {
 
                            <div className="absolute bottom-4 right-4 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
                               <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                              <span className="text-[10px] font-black text-white/80">{(liveCounts[game.id] || 100).toLocaleString()}</span>
+                              <span className="text-[10px] font-black text-white/80">{(liveCounts[game.slug] || 100).toLocaleString()}</span>
                            </div>
                         </div>
                         
