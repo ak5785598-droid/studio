@@ -7,11 +7,11 @@ import { useUser, useFirestore, useUserProfile, updateDocumentNonBlocking } from
 import { doc, increment, serverTimestamp } from 'firebase/firestore';
 import { 
   ChevronLeft, 
-  Zap,
   Volume2,
   VolumeX,
   History,
 } from 'lucide-react';
+import { GoldCoinIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -91,7 +91,6 @@ export default function WildPartyPage() {
         const osc = audioCtx.createOscillator();
         const noteGain = audioCtx.createGain();
         
-        // Melodic Pentatonic Bassline
         const bassNotes = [65.41, 73.42, 82.41, 98.00, 110.00]; // C2, D2, E2, G2, A2
         const melodyNotes = [261.63, 293.66, 329.63, 392.00, 440.00]; // C4, D4, E4, G4, A4
         
@@ -276,7 +275,7 @@ export default function WildPartyPage() {
 
            <div className="w-full max-w-sm bg-[#1a0a05] rounded-[2rem] border-2 border-[#3d1a05] p-3 flex items-center justify-between shadow-2xl fixed bottom-4 left-1/2 -translate-x-1/2 z-[110] animate-in slide-in-from-bottom-10">
               <div className="flex items-center gap-2 bg-black/40 px-4 h-10 rounded-full border border-white/5">
-                 <Zap className="h-3 w-3 text-yellow-500 fill-current" />
+                 <GoldCoinIcon className="h-4 w-4" />
                  <span className="text-sm font-black text-white italic">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
               </div>
               <div className="flex gap-1.5 px-2 overflow-x-auto no-scrollbar">

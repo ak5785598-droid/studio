@@ -4,7 +4,8 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Gem, ShoppingBag, Sparkles, MessageSquare, Mic2, Star, Loader, ChevronLeft, Crown, Check } from 'lucide-react';
+import { ShoppingBag, Sparkles, MessageSquare, Mic2, Star, Loader, ChevronLeft, Crown, Check } from 'lucide-react';
+import { GoldCoinIcon } from '@/components/icons';
 import { useUser, useFirestore, useUserProfile, updateDocumentNonBlocking } from '@/firebase';
 import { doc, arrayUnion, increment, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -101,7 +102,7 @@ export default function StorePage() {
              </div>
           </div>
           <div className="bg-gradient-to-br from-primary/20 to-primary/5 px-8 py-4 rounded-[2rem] border-2 border-primary/20 flex items-center gap-4 shadow-xl">
-            <Gem className="h-8 w-8 text-primary drop-shadow-sm" />
+            <GoldCoinIcon className="h-10 w-10" />
             <div className="flex flex-col">
               <span className="text-3xl font-black text-primary">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
               <span className="text-[10px] uppercase font-black tracking-widest text-primary/60">Current Balance</span>
@@ -150,7 +151,7 @@ export default function StorePage() {
                       </CardHeader>
                       <CardFooter className="flex flex-col gap-4 p-8 pt-4">
                         <div className="flex items-center gap-1 font-black text-2xl text-primary italic">
-                          <Gem className="h-5 w-5" />
+                          <GoldCoinIcon className="h-6 w-6" />
                           {item.price.toLocaleString()}
                         </div>
                         {isOwned ? (

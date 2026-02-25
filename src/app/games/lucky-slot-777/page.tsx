@@ -6,12 +6,12 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { useUser, useFirestore, useUserProfile, updateDocumentNonBlocking } from '@/firebase';
 import { doc, increment, serverTimestamp } from 'firebase/firestore';
 import { 
-  Zap,
   History,
   X,
   Volume2,
   VolumeX
 } from 'lucide-react';
+import { GoldCoinIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CompactRoomView } from '@/components/compact-room-view';
@@ -40,7 +40,6 @@ export default function LuckySlot777Page() {
   const [isLaunching, setIsLaunching] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Audio utility: Punchy Bet Sound
   const playBetSound = useCallback(() => {
     if (isMuted) return;
     try {
@@ -59,7 +58,6 @@ export default function LuckySlot777Page() {
     } catch (e) {}
   }, [isMuted]);
 
-  // Background Music Engine: Neon Groove (High Volume & Chill)
   useEffect(() => {
     if (isMuted || isLaunching) return;
     
@@ -69,7 +67,7 @@ export default function LuckySlot777Page() {
     try {
       audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.35; // Bold master volume
+      masterGain.gain.value = 0.35; 
       masterGain.connect(audioCtx.destination);
 
       let step = 0;
@@ -79,7 +77,6 @@ export default function LuckySlot777Page() {
         const osc = audioCtx.createOscillator();
         const noteGain = audioCtx.createGain();
         
-        // Chill Neon-Wave Bassline
         const bass = [110.00, 110.00, 130.81, 146.83]; // A2, A2, C3, D3
         const freq = bass[step % 4];
         
@@ -226,7 +223,7 @@ export default function LuckySlot777Page() {
 
            <div className="w-full max-w-sm fixed bottom-4 left-1/2 -translate-x-1/2 z-[110] bg-black/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-3 flex items-center justify-between shadow-2xl animate-in slide-in-from-bottom-10">
               <div className="flex items-center gap-2 bg-white/5 px-3 h-10 rounded-full">
-                 <Zap className="h-3 w-3 text-yellow-400 fill-current" />
+                 <GoldCoinIcon className="h-4 w-4" />
                  <span className="text-xs font-black text-white italic">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
               </div>
               <div className="flex gap-1.5 px-2">
@@ -236,7 +233,7 @@ export default function LuckySlot777Page() {
                    </button>
                  ))}
               </div>
-              <button className="h-12 w-12 rounded-full bg-purple-600 border-2 border-purple-400 flex items-center justify-center active:scale-90 hover:bg-purple-500 shadow-xl transition-all" onClick={playBetSound}><Zap className="h-5 w-5 text-white" /></button>
+              <button className="h-12 w-12 rounded-full bg-purple-600 border-2 border-purple-400 flex items-center justify-center active:scale-90 hover:bg-purple-500 shadow-xl transition-all" onClick={playBetSound}><GoldCoinIcon className="h-6 w-6" /></button>
            </div>
         </div>
         <style jsx global>{`.clip-path-triangle { clip-path: polygon(50% 100%, 0 0, 100% 0); }`}</style>

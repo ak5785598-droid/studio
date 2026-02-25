@@ -18,7 +18,6 @@ import {
   Trash2,
   LogOut,
   UserPlus,
-  Zap,
   Megaphone,
   UserCheck,
   Ban,
@@ -27,10 +26,10 @@ import {
   User as UserIcon,
   RefreshCw,
   Gamepad2,
-  Star,
   ShieldCheck,
   Smile,
 } from 'lucide-react';
+import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -60,7 +59,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
   Sheet,
@@ -72,7 +70,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useUserProfile, setDocumentNonBlocking, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useUserProfile, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { 
   collection, 
   serverTimestamp, 
@@ -226,7 +224,7 @@ export function RoomClient({ room }: { room: Room }) {
       senderId: currentUser.uid,
       senderName: userProfile.username || 'User',
       senderAvatar: userProfile.avatarUrl || '',
-      chatRoomId: room.id,
+      chatRoomId: room.id, 
       timestamp: serverTimestamp(),
       type: 'emoji'
     });
@@ -533,18 +531,18 @@ export function RoomClient({ room }: { room: Room }) {
               
               {(isOwner || isGlobalAdmin) && (
                 <AlertDialog>
-                  <AlertDialogTrigger asChild>
+                  <DialogTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive font-black">
                       <AlertTriangle className="mr-2 h-4 w-4" /> Terminate Frequency
                     </DropdownMenuItem>
-                  </AlertDialogTrigger>
+                  </DialogTrigger>
                   <AlertDialogContent className="bg-white text-black border-none rounded-[2rem]">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="text-2xl font-black uppercase italic">Terminate Frequency?</AlertDialogTitle>
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-black uppercase italic">Terminate Frequency?</DialogTitle>
                       <AlertDialogDescription className="text-muted-foreground font-body text-base">
                         This will permanently delete the tribe frequency.
                       </AlertDialogDescription>
-                    </AlertDialogHeader>
+                    </DialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
                       <AlertDialogAction onClick={handleDeleteRoom} className="bg-destructive text-white rounded-full">
@@ -775,14 +773,14 @@ export function RoomClient({ room }: { room: Room }) {
                             <span className="text-4xl group-hover:scale-125 transition-transform duration-300">{g.emoji}</span>
                             <div className="text-center">
                                <p className="text-[10px] font-black uppercase truncate w-20">{g.name}</p>
-                               <div className="flex items-center justify-center gap-1 text-[10px] font-black text-primary"><Zap className="h-3 w-3 fill-current" />{g.price}</div>
+                               <div className="flex items-center justify-center gap-1 text-[10px] font-black text-primary"><GoldCoinIcon className="h-3 w-3" />{g.price}</div>
                             </div>
                          </button>
                        ))}
                     </div>
                     <div className="bg-secondary/30 p-4 rounded-2xl flex items-center justify-between shadow-inner">
                        <span className="text-xs font-black uppercase opacity-60">Your Balance</span>
-                       <div className="flex items-center gap-2 font-black text-primary italic text-xl"><Zap className="h-5 w-5 fill-current" />{userProfile?.wallet?.coins || 0}</div>
+                       <div className="flex items-center gap-2 font-black text-primary italic text-xl"><GoldCoinIcon className="h-5 w-5" />{userProfile?.wallet?.coins || 0}</div>
                     </div>
                  </div>
               </DialogContent>

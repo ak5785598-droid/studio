@@ -6,16 +6,15 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { useUser, useFirestore, useUserProfile, updateDocumentNonBlocking } from '@/firebase';
 import { doc, increment, serverTimestamp } from 'firebase/firestore';
 import { 
-  Zap,
   History,
   Trophy,
   X,
-  HelpCircle,
   Settings,
   FileText,
   Volume2,
   VolumeX
 } from 'lucide-react';
+import { GoldCoinIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CompactRoomView } from '@/components/compact-room-view';
@@ -56,7 +55,6 @@ export default function FruitPartyPage() {
   const [lastWin, setLastWin] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Audio utility: Bold Bet Sound
   const playBetSound = useCallback(() => {
     if (isMuted) return;
     try {
@@ -75,7 +73,6 @@ export default function FruitPartyPage() {
     } catch (e) {}
   }, [isMuted]);
 
-  // Background Music Engine: Arcade Symphony (High Volume & Driving)
   useEffect(() => {
     if (isMuted || isLaunching) return;
     
@@ -85,7 +82,7 @@ export default function FruitPartyPage() {
     try {
       audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.35; // Bold master volume
+      masterGain.gain.value = 0.35; 
       masterGain.connect(audioCtx.destination);
 
       let step = 0;
@@ -95,7 +92,6 @@ export default function FruitPartyPage() {
         const osc = audioCtx.createOscillator();
         const noteGain = audioCtx.createGain();
         
-        // High-energy arpeggiated sequence
         const arpeggio = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
         const freq = arpeggio[step % 4];
         
@@ -151,7 +147,7 @@ export default function FruitPartyPage() {
 
     const runChase = () => {
       setHighlightIdx(perimeterOrder[currentStep % 8]);
-      playBetSound(); // Small tick sound for highlight
+      playBetSound(); 
       currentStep++;
       if (currentStep < totalSteps) {
         if (totalSteps - currentStep < 10) speed += 30;
@@ -220,7 +216,6 @@ export default function FruitPartyPage() {
              <div className="flex items-center gap-4">
                 <span className="text-white font-black text-lg uppercase tracking-tight">ROUND: 311</span>
                 <div className="flex items-center gap-1 text-[#00E676] text-xs font-black">
-                   <Zap className="h-3 w-3 fill-current" />
                    <span>60ms</span>
                 </div>
              </div>
@@ -239,7 +234,7 @@ export default function FruitPartyPage() {
                 <div className="flex items-center gap-2">
                    <span className="text-xs font-black text-white uppercase opacity-60">BALANCE:</span>
                    <div className="flex items-center gap-1 text-white font-black text-lg">
-                      <div className="bg-yellow-500 rounded-full h-4 w-4 flex items-center justify-center text-[10px] text-black">S</div>
+                      <GoldCoinIcon className="h-5 w-5" />
                       {(userProfile?.wallet?.coins || 0).toLocaleString()}
                    </div>
                 </div>
@@ -312,7 +307,7 @@ export default function FruitPartyPage() {
                      >
                         <div className={cn("w-16 h-16 rounded-full bg-gradient-to-b shadow-2xl flex items-center justify-center", chip.color)}>
                            <div className={cn("w-12 h-12 rounded-full border-2 border-white/30 flex flex-col items-center justify-center", chip.top)}>
-                              <div className="bg-yellow-500 rounded-full h-3 w-3 flex items-center justify-center text-[6px] text-black mb-0.5">S</div>
+                              <GoldCoinIcon className="h-4 w-4 mb-0.5" />
                               <span className="text-xs font-black text-white leading-none">{chip.label}</span>
                            </div>
                         </div>

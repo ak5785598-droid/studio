@@ -1,7 +1,8 @@
 import { getDailyTasks, getAchievementTasks } from '@/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Gem, CheckCircle, Sparkles, Trophy, Star } from 'lucide-react';
+import { ClipboardList, CheckCircle, Sparkles, Trophy, Star } from 'lucide-react';
+import { GoldCoinIcon } from '@/components/icons';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Progress } from '@/components/ui/progress';
@@ -68,7 +69,7 @@ export default function TasksPage() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1 text-primary font-bold">
-                          <Gem className="h-4 w-4" />
+                          <GoldCoinIcon className="h-4 w-4" />
                           <span>+{task.coinReward}</span>
                       </div>
                       {task.isCompleted ? (
@@ -102,7 +103,7 @@ export default function TasksPage() {
                       <p className="text-sm text-muted-foreground">{task.description}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <div className="flex items-center gap-1 text-primary font-bold bg-primary/10 px-2 py-0.5 rounded text-xs">
-                            <Gem className="h-3 w-3" />
+                            <GoldCoinIcon className="h-3 w-3" />
                             <span>+{task.coinReward} Coins</span>
                         </div>
                       </div>

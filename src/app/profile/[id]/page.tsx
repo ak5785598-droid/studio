@@ -9,7 +9,6 @@ import { notFound, useParams, useRouter } from 'next/navigation';
 import { 
   Loader, 
   Camera, 
-  Gem, 
   Trophy, 
   ChevronRight, 
   LogOut, 
@@ -19,12 +18,12 @@ import {
   Shirt, 
   Sparkles, 
   Store, 
-  Zap,
   ChevronLeft,
   UserPlus,
   UserCheck,
   RefreshCw
 } from 'lucide-react';
+import { GoldCoinIcon } from '@/components/icons';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useUser, useUserProfile, useProfilePictureUpload, useAuth, updateDocumentNonBlocking } from '@/firebase';
 import { cn } from '@/lib/utils';
@@ -113,7 +112,6 @@ export default function ProfilePage() {
     toast({ title: 'Wallet Refilled!', description: '100,000,000 Gold Coins added to your vault.' });
   };
 
-  // Wait for both auth and profile to resolve
   const isWaiting = isAuthLoading || isProfileLoading;
 
   if (isWaiting) {
@@ -127,7 +125,6 @@ export default function ProfilePage() {
     );
   }
 
-  // Handle newly logged in users who are still initializing
   if (!profile && isOwnProfile) {
     return (
       <AppLayout>
@@ -216,7 +213,7 @@ export default function ProfilePage() {
             )}
           </div>
           <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
-            <MenuItem icon={Gem} label="Gold Coins" extra={(profile.wallet?.coins || 0).toLocaleString()} iconColor="text-yellow-500" router={router} />
+            <MenuItem icon={GoldCoinIcon} label="Gold Coins" extra={(profile.wallet?.coins || 0).toLocaleString()} iconColor="text-yellow-500" router={router} />
             <MenuItem icon={Sparkles} label="Blue Diamonds" extra={(profile.wallet?.diamonds || 0).toLocaleString()} iconColor="text-blue-500" router={router} />
             <MenuItem icon={Store} label="Ummy Boutique" href="/store" iconColor="text-orange-500" router={router} />
             <MenuItem icon={Trophy} label="Tribe Level" href="/leaderboard" extra={`Level ${profile.level?.rich || 1}`} iconColor="text-yellow-600" router={router} />
