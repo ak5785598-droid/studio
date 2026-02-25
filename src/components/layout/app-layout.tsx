@@ -44,7 +44,6 @@ const MineIcon = (props: any) => (
 const navItems = [
   { href: "/rooms", label: "Rooms", icon: CastleIcon },
   { href: "/messages", label: "Message", icon: ScrollIcon },
-  { href: "/leaderboard", label: "Ranking", icon: Trophy },
   { href: "/profile", label: "Mine", icon: MineIcon },
 ];
 
