@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, runTransaction, doc } from 'firebase/firestore';
-import { Plus, Loader } from 'lucide-react';
+import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, serverTimestamp, runTransaction, doc, query, where, getDocs } from 'firebase/firestore';
+import { Plus, Loader, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -29,8 +29,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
- * Dialog component for creating a new voice chat room.
- * Success is indicated by automatic redirection per guidelines.
+ * Enhanced Creation Dialog.
+ * Enforces "One Room Per User" constraint.
  */
 export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -50,9 +50,25 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
 
     setIsSubmitting(true);
 
-    const countersRef = doc(firestore, 'appConfig', 'counters');
-
     try {
+      // 1. Production Constraint: One Room Only
+      const q = query(collection(firestore, 'chatRooms'), where('ownerId', '==', user.uid));
+      const snap = await getDocs(q);
+      
+      if (!snap.empty) {
+        toast({ 
+          variant: 'destructive', 
+          title: 'Limit Reached', 
+          description: 'One user can create only one voice chat room.' 
+        });
+        const existingId = snap.docs[0].id;
+        router.push(`/rooms/${existingId}`);
+        setOpen(false);
+        return;
+      }
+
+      const countersRef = doc(firestore, 'appConfig', 'counters');
+
       const roomNumber = await runTransaction(firestore, async (transaction) => {
         const countersSnap = await transaction.get(countersRef);
         let nextRoomNum = 100000;
@@ -102,25 +118,25 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {iconOnly ? (
-          <button className="bg-primary text-black p-1 rounded-full shadow-lg hover:scale-110 transition-transform flex items-center justify-center border-2 border-white ring-2 ring-primary/20">
-            <Plus className="h-3 w-3" />
+          <button className="bg-primary text-black p-1.5 rounded-xl shadow-lg hover:scale-110 transition-transform flex items-center justify-center border-2 border-white">
+            <Plus className="h-4 w-4" />
           </button>
         ) : (
-          <Button className="gap-2 rounded-full font-black uppercase italic tracking-widest text-xs px-6 shadow-lg shadow-primary/20">
+          <Button className="gap-2 rounded-full font-black uppercase italic tracking-widest text-[10px] px-6 shadow-md h-10">
             <Plus className="h-4 w-4" />
-            Create Room
+            Create
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] rounded-t-[2.5rem] border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[425px] rounded-t-[2.5rem] border-none shadow-2xl bg-white text-black p-0 overflow-hidden">
         <form onSubmit={handleSubmit}>
-          <DialogHeader className="p-4 text-center">
-            <DialogTitle className="font-headline text-3xl uppercase italic tracking-tighter">Start a Tribe</DialogTitle>
-            <DialogDescription className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-              Define your frequency and gather your tribe.
+          <DialogHeader className="p-8 pb-0 text-center">
+            <DialogTitle className="font-headline text-3xl uppercase italic tracking-tighter">Launch Tribe</DialogTitle>
+            <DialogDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mt-2">
+              Limit: One Frequency per Member
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-6 py-8 px-4">
+          <div className="grid gap-6 py-8 px-8">
             <div className="grid gap-2">
               <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Room Name</Label>
               <Input
@@ -157,16 +173,9 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
               </Select>
             </div>
           </div>
-          <DialogFooter className="p-4 pt-0">
+          <DialogFooter className="p-8 pt-0">
             <Button type="submit" className="w-full h-16 text-xl font-black uppercase italic rounded-3xl shadow-xl shadow-primary/20" disabled={isSubmitting || !name || !topic}>
-              {isSubmitting ? (
-                <>
-                  <Loader className="mr-2 h-6 w-6 animate-spin" />
-                  Syncing...
-                </>
-              ) : (
-                'Launch Frequency'
-              )}
+              {isSubmitting ? <Loader className="mr-2 h-6 w-6 animate-spin" /> : 'Start Frequency'}
             </Button>
           </DialogFooter>
         </form>

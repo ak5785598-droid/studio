@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, Zap, Mail, Crown } from "lucide-react";
+import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, Zap, Mail, Crown, ScrollText } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -23,10 +23,28 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { FloatingRoomBar } from "../floating-room-bar";
 
+const CastleIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M2 22V7l2-2V2h3v3l2-2v4l2-2v4l2-2v4l2-2v4l2-2v3l3 3v15H2zm4-4h2v-2H6v2zm0-4h2v-2H6v2zm0-4h2V8H6v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V8h-2v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V8h-2v2z" />
+  </svg>
+);
+
+const ScrollIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V7h10v2z" />
+  </svg>
+);
+
+const MineIcon = (props: any) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M5 16L3 5l5.5 5L12 2l3.5 8L21 5l-2 11H5zm14 3c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2v-1h16v1z" />
+  </svg>
+);
+
 const navItems = [
-  { href: "/rooms", label: "Home", icon: Home },
-  { href: "/messages", label: "Message", icon: MessageSquare },
-  { href: "/profile", label: "Me", icon: User },
+  { href: "/rooms", label: "Rooms", icon: CastleIcon },
+  { href: "/messages", label: "Message", icon: ScrollIcon },
+  { href: "/profile", label: "Mine", icon: MineIcon },
 ];
 
 const sidebarItems = [
@@ -75,7 +93,6 @@ export function AppLayout({
     );
   }
 
-  // Pure clean layout for immersive games
   if (fullScreen) {
     return (
       <div className="min-h-screen w-full bg-black font-headline overflow-hidden relative">
@@ -152,48 +169,29 @@ export function AppLayout({
 
         <div className="flex flex-1 flex-col overflow-hidden relative">
           <SidebarInset className="bg-background">
-            <main className="flex-1 overflow-y-auto h-screen pb-28 md:pb-4">
+            <main className="flex-1 overflow-y-auto h-screen pb-28 md:pb-4 bg-white">
               {children}
             </main>
           </SidebarInset>
 
-          {/* Floating Minimized Room Bar */}
           <FloatingRoomBar />
 
-          {/* Bottom Mobile Navigation - Yari Elite Style */}
+          {/* High-Fidelity Bottom Navigation */}
           {!hideSidebarOnMobile && (
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-2 flex justify-between items-center z-[70] rounded-t-[2.5rem] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] h-20">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-50 px-8 py-2 flex justify-between items-center z-[70] h-20 shadow-[0_-10px_40px_rgba(0,0,0,0.03)]">
               {navItems.map((item) => {
-                const active = pathname === item.href || (item.href === '/profile' && pathname.startsWith('/profile'));
+                const active = pathname === item.href || (item.href === '/profile' && pathname.startsWith('/profile')) || (item.href === '/rooms' && pathname.startsWith('/rooms'));
                 return (
                   <Link 
                     key={item.label} 
                     href={item.href} 
                     className={cn(
-                      "flex flex-col items-center gap-1 transition-all relative",
-                      active ? "text-[#D4E100] scale-110" : "text-gray-400"
+                      "flex flex-col items-center gap-1.5 transition-all",
+                      active ? "text-gray-900" : "text-gray-300"
                     )}
                   >
-                    <div className={cn(
-                      "p-1 rounded-full transition-colors",
-                      active && "bg-yellow-50"
-                    )}>
-                      {item.label === 'Home' ? (
-                         <div className="relative">
-                            <div className={cn(
-                              "h-8 w-8 rounded-xl flex items-center justify-center transition-all",
-                              active ? "bg-[#D4E100] text-white shadow-md" : "bg-gray-100 text-gray-400"
-                            )}>
-                               <UmmyLogoIcon className="h-5 w-5" />
-                            </div>
-                         </div>
-                      ) : (
-                        <div className="relative">
-                           <item.icon className={cn("h-7 w-7", active ? "stroke-[3px]" : "stroke-2")} />
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-tight">{item.label}</span>
+                    <item.icon className={cn("h-7 w-7", active ? "scale-110" : "scale-100")} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
                   </Link>
                 );
               })}
