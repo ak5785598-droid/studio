@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -30,8 +31,9 @@ export function useRoomImageUpload(roomId: string) {
     setIsUploading(true);
 
     try {
-      // 1. Create a storage reference
-      const storagePath = `chatRooms/${roomId}/cover.jpg`;
+      // 1. Create a unique storage reference to avoid browser caching issues
+      const fileExtension = file.name.split('.').pop() || 'jpg';
+      const storagePath = `chatRooms/${roomId}/cover_${Date.now()}.${fileExtension}`;
       const storageRef = ref(storage, storagePath);
 
       // 2. Upload the file

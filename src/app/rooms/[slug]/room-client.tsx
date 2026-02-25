@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -139,7 +140,7 @@ export function RoomClient({ room }: { room: Room }) {
   const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(room.id);
 
   const isGlobalAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
-  const isOwner = currentUser?.uid === room.id || currentUser?.uid === room.ownerId;
+  const isOwner = currentUser?.uid === room.ownerId;
   const isModerator = room.moderatorIds?.includes(currentUser?.uid || '');
   const canManageRoom = isGlobalAdmin || isOwner || isModerator;
 
@@ -214,6 +215,8 @@ export function RoomClient({ room }: { room: Room }) {
     const file = e.target.files?.[0];
     if (file) {
       uploadRoomImage(file);
+      // Reset input value to allow the same file to be re-selected if necessary
+      e.target.value = '';
     }
   };
 
@@ -464,7 +467,7 @@ export function RoomClient({ room }: { room: Room }) {
               </Avatar>
               {(isOwner || isGlobalAdmin) && (
                 <div 
-                  className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer"
+                  className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer z-20"
                   onClick={(e) => { e.stopPropagation(); roomDpInputRef.current?.click(); }}
                 >
                   {isRoomImageUploading ? <Loader className="h-4 w-4 animate-spin text-white" /> : <Camera className="h-4 w-4 text-white" />}
