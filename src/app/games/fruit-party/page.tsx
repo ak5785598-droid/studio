@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -288,7 +287,7 @@ export default function FruitPartyPage() {
               )}
            </div>
         </div>
-        <div className="absolute top-44 right-4 z-40 opacity-80 animate-in slide-in-from-right-4 duration-1000">
+        <div className="absolute top-44 right-4 z-40 opacity-80 animate-in slide-in-from-right-4 duration-1000 flex flex-col items-center gap-2">
            <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-white/20 bg-white/5 p-2">
               {specialPlatter && (
                 <img 
@@ -298,6 +297,12 @@ export default function FruitPartyPage() {
                   data-ai-hint={specialPlatter.imageHint} 
                 />
               )}
+           </div>
+           <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-lg">
+              <span className="text-lg">🍓</span>
+              <span className="text-lg">🍌</span>
+              <span className="text-lg">🍉</span>
+              <span className="text-lg">🍊</span>
            </div>
         </div>
 
