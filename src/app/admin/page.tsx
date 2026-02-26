@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 
 /**
  * Ummy Command Center - High-Tier Reward Oversight.
- * Implements atomic distribution and subsequent leaderboard reset protocol.
+ * Implements atomic distribution and subsequent leaderboard reset protocol based on 11:59:59 IST cycles.
  */
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -70,7 +70,7 @@ export default function AdminPage() {
           const pRef = doc(firestore, 'users', targetUid, 'profile', targetUid);
           const notifRef = doc(collection(firestore, 'users', targetUid, 'notifications'));
 
-          const categoryName = field.includes('Spent') ? 'Rich' : field.includes('Fans') ? 'Charm' : 'Room';
+          const categoryName = field.includes('Spent') ? 'Rich' : field.includes('Fans') ? 'Charm' : field.includes('Game') ? 'Game' : 'Room';
 
           // 1. Update Wallets
           batch.update(uRef, { 'wallet.coins': increment(reward) });
@@ -79,7 +79,7 @@ export default function AdminPage() {
           // 2. Official Notification Delivery
           batch.set(notifRef, {
             title: `Official ${categoryName} Reward Distribution`,
-            content: `Congratulations! Based on the latest IST ranking cycle, you have been awarded ${reward.toLocaleString()} Gold Coins for your performance in the ${categoryName} category.\n\nKeep vibing!\n- UMMY OFFICIAL TEAM`,
+            content: `Congratulations! Based on the latest 11:59:59 IST ranking cycle, you have been awarded ${reward.toLocaleString()} Gold Coins for your performance in the ${categoryName} category.\n\nKeep vibing!\n- UMMY OFFICIAL TEAM`,
             type: 'system',
             timestamp: serverTimestamp(),
             isRead: false
@@ -90,9 +90,10 @@ export default function AdminPage() {
       // Execute Sweep for all major categories
       await processRankings('users', 'wallet.dailySpent', 'User');
       await processRankings('users', 'stats.dailyFans', 'User');
+      await processRankings('users', 'stats.dailyGameWins', 'User');
       await processRankings('chatRooms', 'stats.dailyGifts', 'Room');
 
-      // MANDATORY RESET: Clear all daily counters across the social graph
+      // MANDATORY RESET: Clear all daily counters across the social graph after distribution
       const spendersSnap = await getDocs(query(collection(firestore, 'users'), where('wallet.dailySpent', '>', 0)));
       spendersSnap.docs.forEach(d => {
         batch.update(d.ref, { 'wallet.dailySpent': 0 });
@@ -105,6 +106,12 @@ export default function AdminPage() {
         batch.update(doc(firestore, 'users', d.id, 'profile', d.id), { 'stats.dailyFans': 0 });
       });
 
+      const winsSnap = await getDocs(query(collection(firestore, 'users'), where('stats.dailyGameWins', '>', 0)));
+      winsSnap.docs.forEach(d => {
+        batch.update(d.ref, { 'stats.dailyGameWins': 0 });
+        batch.update(doc(firestore, 'users', d.id, 'profile', d.id), { 'stats.dailyGameWins': 0 });
+      });
+
       const roomsSnap = await getDocs(query(collection(firestore, 'chatRooms'), where('stats.dailyGifts', '>', 0)));
       roomsSnap.docs.forEach(d => {
         batch.update(d.ref, { 'stats.dailyGifts': 0 });
@@ -114,8 +121,8 @@ export default function AdminPage() {
       batch.set(configRef!, { lastRewardReset: serverTimestamp() }, { merge: true });
 
       await batch.commit();
-      await logAdminAction('High-Tier Daily Distribution & Reset (IST)', 'tribe/economy', { rewards: '100K-20K Range' });
-      toast({ title: 'Daily Sweep & Reset Complete', description: 'Rewards dispatched and leaderboard reset for the new cycle.' });
+      await logAdminAction('Official 11:59:59 IST Distribution & Reset', 'tribe/economy', { rewards: 'Top 10 Tiered' });
+      toast({ title: 'Daily Sweep & Reset Complete', description: 'Rewards dispatched and leaderboard reset for the new IST cycle.' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Distribution Failed', description: e.message });
     } finally {
@@ -179,7 +186,7 @@ export default function AdminPage() {
              <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20"><Shield className="h-8 w-8 text-white" /></div>
              <div>
                 <h1 className="text-4xl font-bold uppercase italic tracking-tighter">Ummy Command Center</h1>
-                <p className="text-muted-foreground">Elite Rewards & Official IST Distribution.</p>
+                <p className="text-muted-foreground">Elite Rewards & Official 11:59:59 IST Distribution.</p>
              </div>
           </div>
         </header>
@@ -205,7 +212,7 @@ export default function AdminPage() {
                    <CardTitle className="font-headline text-2xl uppercase italic flex items-center gap-2">
                       <Gift className="h-6 w-6 text-yellow-500" /> Daily Throne Distribution
                    </CardTitle>
-                   <CardDescription>Dispatch high-tier rewards and reset all leaderboard counters atomically.</CardDescription>
+                   <CardDescription>Dispatch high-tier rewards and reset all leaderboard counters atomically after 11:59:59 IST.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                    <div className="p-6 bg-white/5 rounded-3xl border-2 border-dashed border-yellow-500/20">
@@ -226,7 +233,7 @@ export default function AdminPage() {
                       {isSaving ? <Loader className="animate-spin h-6 w-6 mr-2" /> : <CheckCircle2 className="h-6 w-6 mr-2" />}
                       Distribute, Reset & Send Official Messages
                    </Button>
-                   <p className="text-center text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">Clears daily spent, fans, and gifts across the entire social graph.</p>
+                   <p className="text-center text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">Clears daily spent, fans, wins, and gifts across the entire social graph.</p>
                 </CardContent>
              </Card>
           </TabsContent>

@@ -198,7 +198,8 @@ function LeaderboardContent() {
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
-      // Calculate target 00:00 IST (18:30 UTC previous day)
+      // TARGET: 11:59:59 PM IST (which is 18:29:59 UTC)
+      // Rollover technically occurs at 00:00:00 IST the next day (18:30:00 UTC)
       let target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 18, 30, 0));
       if (now.getTime() >= target.getTime()) {
         target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 18, 30, 0));
@@ -291,9 +292,9 @@ function LeaderboardContent() {
                       </div>
                       <ul className="space-y-3">
                         <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">1.</span> The leaderboard will automatically reset after the distribution of rewards.</li>
-                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">2.</span> The daily ranking is updated at 00:00 (GMT+5:30) the following day.</li>
-                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">3.</span> The weekly ranking is updated at 00:00 (GMT+5:30) every Monday.</li>
-                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">4.</span> The monthly ranking is updated at 00:00 (GMT+5:30) on the 1st day of each month.</li>
+                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">2.</span> The daily ranking is updated at 11:59:59 (GMT+5:30) the following day.</li>
+                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">3.</span> The weekly ranking is updated at 11:59:59 (GMT+5:30) every Monday.</li>
+                        <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">4.</span> The monthly ranking is updated at 11:59:59 (GMT+5:30) on the 1st day of each month.</li>
                         <li className="text-[10px] text-white/60 leading-relaxed"><span className="text-yellow-500 mr-1">5.</span> Rewards for the previous period are automatically distributed when the daily, weekly, and monthly rankings are updated.</li>
                       </ul>
                     </div>
