@@ -5,12 +5,11 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirestore, useDoc, useUser, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch } from 'firebase/firestore';
-import { Shield, Loader, Search, ClipboardList, Gift, CheckCircle2, Trash2 } from 'lucide-react';
+import { Shield, Loader, Search, ClipboardList, Gift, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
@@ -70,11 +69,9 @@ export default function AdminPage() {
           const pRef = doc(firestore, 'users', targetUid, 'profile', targetUid);
           const notifRef = doc(collection(firestore, 'users', targetUid, 'notifications'));
 
-          // 1. Update Wallets
           batch.update(uRef, { 'wallet.coins': increment(reward) });
           batch.update(pRef, { 'wallet.coins': increment(reward) });
           
-          // 2. Official Notification Delivery - Updated with standard wording
           batch.set(notifRef, {
             title: `Official Notice`,
             content: `Notice.. You receive ${reward.toLocaleString()} coins..... Best regard Ummy official`,
@@ -85,13 +82,11 @@ export default function AdminPage() {
         });
       };
 
-      // Execute Sweep for all major categories
       await processRankings('users', 'wallet.dailySpent', 'User');
       await processRankings('users', 'stats.dailyFans', 'User');
       await processRankings('users', 'stats.dailyGameWins', 'User');
       await processRankings('chatRooms', 'stats.dailyGifts', 'Room');
 
-      // MANDATORY RESET: Clear all daily counters across the social graph after distribution
       const spendersSnap = await getDocs(query(collection(firestore, 'users'), where('wallet.dailySpent', '>', 0)));
       spendersSnap.docs.forEach(d => {
         batch.update(d.ref, { 'wallet.dailySpent': 0 });
@@ -115,7 +110,6 @@ export default function AdminPage() {
         batch.update(d.ref, { 'stats.dailyGifts': 0 });
       });
 
-      // Update Global Reset Log
       batch.set(configRef!, { lastRewardReset: serverTimestamp() }, { merge: true });
 
       await batch.commit();
@@ -169,7 +163,6 @@ export default function AdminPage() {
       updateDocumentNonBlocking(userRef, updateData);
       updateDocumentNonBlocking(profileRef, updateData);
       
-      // Also send notice for manual adjustments
       const notifRef = doc(collection(firestore, 'users', targetUserId, 'notifications'));
       const adjustBatch = writeBatch(firestore);
       adjustBatch.set(notifRef, {

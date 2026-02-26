@@ -9,7 +9,7 @@ import { doc, setDoc, serverTimestamp, collection, getDoc, increment } from 'fir
 /**
  * Maintains Firestore presence while a room is active.
  * Production Ready: Manages participantCount atomically.
- * Sole owner of room participantCount management to ensure discovery visibility.
+ * Sole owner of room participantCount management to ensure real-time discovery synchronization.
  */
 export function RoomPresenceManager() {
   const { activeRoom } = useRoomContext();

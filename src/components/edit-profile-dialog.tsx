@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
 import { doc, serverTimestamp } from 'firebase/firestore';
-import { Pen, Loader, Camera, Globe, User2 } from 'lucide-react';
+import { Pen, Loader, Camera } from 'lucide-react';
 import {
   Dialog,
   DialogContent,

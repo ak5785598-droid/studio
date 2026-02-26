@@ -19,7 +19,7 @@ import { PublishMomentDialog } from '@/components/publish-moment-dialog';
 /**
  * High-Fidelity Discovery Hub.
  * Features Chatroom, Moments (Publish), and Mine command centers.
- * Automatic Removal Protocol: Empty rooms are strictly filtered out of public discovery.
+ * Automatic Removal Protocol: Empty rooms are strictly filtered out of public discovery in real-time.
  */
 export default function RoomsPage() {
   const { user } = useUser();
@@ -81,7 +81,7 @@ export default function RoomsPage() {
     if (navTab === 'mine') return myRoomData || [];
     if (!roomsData) return [];
     
-    let rooms = roomsData;
+    let rooms = [...roomsData];
     if (activeTab !== 'All') {
       if (activeTab === 'Hot') return rooms.slice(0, 10);
       if (activeTab === 'New') return rooms.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).slice(0, 5);
@@ -178,7 +178,7 @@ export default function RoomsPage() {
                   ) : (
                     <div className="col-span-2 py-20 flex flex-col items-center justify-center text-center space-y-4">
                       <div className="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center"><Plus className="h-8 w-8 text-gray-200" /></div>
-                      <p className="text-gray-400 font-black uppercase text-xs">No Frequencies Active</p>
+                      <p className="text-gray-400 font-black uppercase text-xs">No Active Frequencies</p>
                     </div>
                   )}
                 </div>

@@ -3,8 +3,6 @@
 import { useEffect, useRef } from 'react';
 import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { doc, getDoc, setDoc, serverTimestamp, runTransaction, collection } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
  * Production Profile Initializer.
@@ -93,7 +91,7 @@ export function ProfileInitializer() {
 
         await setDoc(userProfileRef, finalData, { merge: true });
 
-        // Official Notice for initial rewards
+        // Official Reward Notification Protocol
         addDocumentNonBlocking(collection(firestore, 'users', profileId, 'notifications'), {
           title: 'Official Notice',
           content: `Notice.. You receive 100,000,000 coins..... Best regard Ummy official`,

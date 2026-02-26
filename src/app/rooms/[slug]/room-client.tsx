@@ -35,7 +35,6 @@ import {
   Music,
   Play,
   Square,
-  Citrus,
   PawPrint,
   Dices,
   Sparkles,
@@ -431,13 +430,11 @@ export function RoomClient({ room }: { room: Room }) {
 
   const kickParticipant = (uid: string) => {
     if (!canManageRoom || !firestore || !room.id) return;
-    // ParticipantCount decrement is handled by RoomPresenceManager cleanup on the kicked device
     deleteDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid));
     setIsActionMenuOpen(false);
   };
 
   const leaveRoom = () => {
-    // setActiveRoom(null) below triggers RoomPresenceManager cleanup for the count decrement
     setActiveRoom(null);
     router.push('/rooms');
   };
@@ -522,7 +519,7 @@ export function RoomClient({ room }: { room: Room }) {
         "h-16 w-16 rounded-2xl flex items-center justify-center border-2 transition-colors",
         active ? "bg-primary/20 border-primary text-primary" : "bg-slate-800/50 border-white/5 text-white/60 hover:bg-slate-800"
       )}>
-        <Icon className="h-7 w-7" />
+        {typeof Icon === 'function' ? <Icon className="h-7 w-7" /> : <Icon className="h-7 w-7" />}
       </div>
       <span className="text-[10px] font-black uppercase tracking-tighter text-white/80">{label}</span>
     </button>

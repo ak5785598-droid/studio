@@ -7,15 +7,12 @@ import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, increment, serverTimestamp } from 'firebase/firestore';
 import { 
-  History,
   X,
   Volume2,
   VolumeX,
   HelpCircle,
   BarChart2,
   Trophy,
-  Crown,
-  ChevronLeft,
   Maximize2,
   MoreHorizontal,
   ChevronDown

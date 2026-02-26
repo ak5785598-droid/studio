@@ -6,7 +6,6 @@ import { CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Crown, TrendingUp, Loader, ChevronLeft, Trophy, Info, Timer, User as UserIcon, Castle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -199,7 +198,6 @@ function LeaderboardContent() {
     const updateTimer = () => {
       const now = new Date();
       // TARGET: 11:59:59 PM IST (which is 18:29:59 UTC)
-      // Rollover technically occurs at 00:00:00 IST the next day (18:30:00 UTC)
       let target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 18, 30, 0));
       if (now.getTime() >= target.getTime()) {
         target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 18, 30, 0));
@@ -270,7 +268,7 @@ function LeaderboardContent() {
                       <Trophy className="h-8 w-8 text-yellow-400" />
                       Daily Rewards
                     </DialogTitle>
-                    <DialogDescription className="sr-only">Details about daily reward distribution and rankings.</DialogDescription>
+                    <DialogDescription className="sr-only">Official Throne Rules and prize distribution protocol.</DialogDescription>
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mt-2">IST Throne Distribution Protocol</p>
                   </DialogHeader>
                   <div className="px-8 pb-12 space-y-4 h-full overflow-y-auto no-scrollbar">
