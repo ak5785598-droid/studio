@@ -24,19 +24,19 @@ export default function Home() {
     if (!isLoading) {
       if (user) {
         // High-speed navigation attempt
-        router.push('/rooms');
+        router.replace('/rooms');
         // Aggressive Hard Redirection fallback for Android Chrome
         const hardTimer = setTimeout(() => {
           window.location.replace('/rooms');
-        }, 1000);
+        }, 800);
         return () => clearTimeout(hardTimer);
       } else {
         // High-speed navigation attempt
-        router.push('/login');
+        router.replace('/login');
         // Aggressive Hard Redirection fallback for Android Chrome
         const hardTimer = setTimeout(() => {
           window.location.replace('/login');
-        }, 1000);
+        }, 800);
         return () => clearTimeout(hardTimer);
       }
     }

@@ -6,7 +6,7 @@ import { doc, getDoc, setDoc, serverTimestamp, runTransaction, collection } from
 
 /**
  * Production Profile Initializer.
- * Assigns a unique sequential 6-digit numeric ID (e.g. 562980) starting from 100,000.
+ * Assigns a unique sequential 6-digit numeric ID (e.g. 100001) starting from 100,000.
  * Provision 100M coins and Official tags instantly.
  */
 export function ProfileInitializer() {
