@@ -9,7 +9,8 @@ import { Play, Sparkles, Zap, Flame, Star, Trophy, Users, Camera, Loader, Plus }
 import { AppLayout } from "@/components/layout/app-layout";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { useCollection, useFirestore, useUser, useMemoFirebase, useUserProfile } from '@/firebase';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useUserProfile } from '@/hooks/use-user-profile';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useGameLogoUpload } from '@/hooks/use-game-logo-upload';
 import type { Game } from '@/lib/types';
