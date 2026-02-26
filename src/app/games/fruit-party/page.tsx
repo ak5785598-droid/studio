@@ -74,6 +74,24 @@ export default function FruitPartyPage() {
     return audioCtxRef.current;
   }, []);
 
+  const playBetSound = useCallback(() => {
+    if (isMuted) return;
+    const ctx = initAudioContext();
+    if (!ctx) return;
+    
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1800, ctx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.1);
+  }, [isMuted, initAudioContext]);
+
   useEffect(() => {
     const timer = setTimeout(() => setIsLaunching(false), 2000);
     return () => clearTimeout(timer);
@@ -117,11 +135,9 @@ export default function FruitPartyPage() {
     const winAmount = (myBets[id] || 0) * (winItem?.multiplier || 0);
 
     const sessionWinners = [];
+    // Strict Real-Time Logic: Only show actual user if they won
     if (winAmount > 0 && userProfile) {
       sessionWinners.push({ name: userProfile.username, win: winAmount, avatar: userProfile.avatarUrl, isMe: true });
-    } else {
-      // Mock winners for visual fidelity if user didn't win
-      sessionWinners.push({ name: 'Tribe_Master', win: 5000, avatar: 'https://picsum.photos/seed/winner1/200/200' });
     }
 
     setWinners(sessionWinners);
@@ -154,7 +170,7 @@ export default function FruitPartyPage() {
       return;
     }
     
-    initAudioContext();
+    playBetSound();
     const updateData = { 'wallet.coins': increment(-selectedChip), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);
@@ -170,6 +186,7 @@ export default function FruitPartyPage() {
       return;
     }
 
+    playBetSound();
     const updateData = { 'wallet.coins': increment(-totalCost), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);

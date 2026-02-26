@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useUser, useFirestore, useUserProfile, updateDocumentNonBlocking } from '@/firebase';
@@ -43,6 +43,36 @@ export default function LuckySlot777Page() {
   const [isLaunching, setIsLaunching] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [winners, setWinners] = useState<any[]>([]);
+
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const initAudioContext = useCallback(() => {
+    if (!audioCtxRef.current && typeof window !== 'undefined') {
+      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioCtxRef.current?.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+    return audioCtxRef.current;
+  }, []);
+
+  const playBetSound = useCallback(() => {
+    if (isMuted) return;
+    const ctx = initAudioContext();
+    if (!ctx) return;
+    
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1800, ctx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.1);
+  }, [isMuted, initAudioContext]);
 
   useEffect(() => {
     if (isMuted || isLaunching) return;
@@ -124,11 +154,9 @@ export default function LuckySlot777Page() {
     const winAmount = (myBets[id] || 0) * winItem.multiplier;
 
     const sessionWinners = [];
-
+    // Strict Real-Time Logic: Only show the actual user win
     if (winAmount > 0 && userProfile) {
       sessionWinners.push({ name: userProfile.username, win: winAmount, avatar: userProfile.avatarUrl, isMe: true });
-    } else {
-      sessionWinners.push({ name: 'Casino_Pro', win: 15000, avatar: 'https://picsum.photos/seed/winner3/200/200' });
     }
 
     setWinners(sessionWinners);
@@ -159,6 +187,7 @@ export default function LuckySlot777Page() {
       return;
     }
     
+    playBetSound();
     const updateData = { 'wallet.coins': increment(-selectedChip), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid), updateData);
     updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), updateData);
