@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -25,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CompactRoomView } from '@/components/compact-room-view';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const CHIPS = [
   { value: 5, color: 'bg-[#00E676]' }, 
@@ -35,9 +37,9 @@ const CHIPS = [
 ];
 
 const DRAGONS = [
-  { id: 'A', name: 'Jade Dragon', emoji: '🐲', color: '#4ade80', image: 'https://picsum.photos/seed/drag-jade/400/400' },
-  { id: 'B', name: 'Ruby Dragon', emoji: '🐉', color: '#f87171', image: 'https://picsum.photos/seed/drag-ruby/400/400' },
-  { id: 'C', name: 'Azure Dragon', emoji: '🦕', color: '#60a5fa', image: 'https://picsum.photos/seed/drag-azure/400/400' },
+  { id: 'A', name: 'Jade Dragon', emoji: '🐲', color: '#4ade80', imageId: 'dragon-jade' },
+  { id: 'B', name: 'Ruby Dragon', emoji: '🐉', color: '#f87171', imageId: 'dragon-ruby' },
+  { id: 'C', name: 'Azure Dragon', emoji: '🦕', color: '#60a5fa', imageId: 'dragon-azure' },
 ];
 
 export default function TeenPattiPage() {
@@ -226,6 +228,8 @@ export default function TeenPattiPage() {
     );
   }
 
+  const backgroundAsset = PlaceHolderImages.find(img => img.id === 'teen-patti-bg');
+
   return (
     <AppLayout fullScreen>
       <div className="h-screen w-full bg-[#1a0a05] flex flex-col relative overflow-hidden font-headline animate-in fade-in duration-1000">
@@ -255,7 +259,14 @@ export default function TeenPattiPage() {
         )}
 
         <div className="absolute inset-0 z-0">
-           <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=80&w=2000" className="h-full w-full object-cover opacity-30 scale-110" alt="Vault" />
+           {backgroundAsset && (
+             <img 
+               src={backgroundAsset.imageUrl} 
+               className="h-full w-full object-cover opacity-30 scale-110" 
+               alt={backgroundAsset.description} 
+               data-ai-hint={backgroundAsset.imageHint}
+             />
+           )}
            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
         </div>
 
@@ -297,15 +308,25 @@ export default function TeenPattiPage() {
            </div>
 
            <div className="relative flex items-center justify-between px-2 mb-8">
-              {DRAGONS.map((drag) => (
-                <div key={drag.id} className={cn("flex flex-col items-center transition-all duration-500", winner === drag.id ? "scale-125 z-20" : "scale-100 z-10 opacity-90")}>
-                   <span className="text-5xl font-serif text-[#FFD600] italic mb-2 drop-shadow-lg font-bold">{drag.id}</span>
-                   <div className="relative group">
-                      {winner === drag.id && <div className="absolute -inset-4 bg-[#FFD600]/20 rounded-full blur-2xl animate-pulse" />}
-                      <img src={drag.image} className="h-32 w-32 object-contain drop-shadow-[0_0_30px_rgba(0,0,0,0.8)]" alt={drag.name} />
-                   </div>
-                </div>
-              ))}
+              {DRAGONS.map((drag) => {
+                const asset = PlaceHolderImages.find(img => img.id === drag.imageId);
+                return (
+                  <div key={drag.id} className={cn("flex flex-col items-center transition-all duration-500", winner === drag.id ? "scale-125 z-20" : "scale-100 z-10 opacity-90")}>
+                    <span className="text-5xl font-serif text-[#FFD600] italic mb-2 drop-shadow-lg font-bold">{drag.id}</span>
+                    <div className="relative group">
+                        {winner === drag.id && <div className="absolute -inset-4 bg-[#FFD600]/20 rounded-full blur-2xl animate-pulse" />}
+                        {asset && (
+                          <img 
+                            src={asset.imageUrl} 
+                            className="h-32 w-32 object-contain drop-shadow-[0_0_30px_rgba(0,0,0,0.8)]" 
+                            alt={drag.name} 
+                            data-ai-hint={asset.imageHint}
+                          />
+                        )}
+                    </div>
+                  </div>
+                );
+              })}
            </div>
 
            <div className="grid grid-cols-3 gap-3 px-2">

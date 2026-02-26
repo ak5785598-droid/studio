@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -20,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CompactRoomView } from '@/components/compact-room-view';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const ANIMALS = [
   { id: 'lion', emoji: '🦁', multiplier: 45, label: 'x45', pos: 'top-left' },
@@ -215,6 +217,8 @@ export default function WildPartyPage() {
     );
   }
 
+  const backgroundAsset = PlaceHolderImages.find(img => img.id === 'wild-party-bg');
+
   return (
     <AppLayout fullScreen>
       <div className="h-screen w-full bg-[#1a3a1a] flex flex-col relative overflow-hidden font-headline text-white">
@@ -244,7 +248,14 @@ export default function WildPartyPage() {
         )}
 
         <div className="absolute inset-0 z-0">
-           <img src="https://picsum.photos/seed/forest-ruins/1200/2400" className="h-full w-full object-cover opacity-40 scale-110" alt="Wild Forest" data-ai-hint="deep forest" />
+           {backgroundAsset && (
+             <img 
+               src={backgroundAsset.imageUrl} 
+               className="h-full w-full object-cover opacity-40 scale-110" 
+               alt={backgroundAsset.description} 
+               data-ai-hint={backgroundAsset.imageHint} 
+             />
+           )}
            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
         </div>
 

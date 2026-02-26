@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -24,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CompactRoomView } from '@/components/compact-room-view';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const ITEMS = [
   { id: 'strawberry', emoji: '🍓', multiplier: 5, label: 'Win 5 times', pos: 'top' },
@@ -219,6 +221,9 @@ export default function FruitPartyPage() {
     );
   }
 
+  const specialChicken = PlaceHolderImages.find(img => img.id === 'fruit-party-special-chicken');
+  const specialPlatter = PlaceHolderImages.find(img => img.id === 'fruit-party-special-platter');
+
   return (
     <AppLayout fullScreen>
       <div className="h-[100dvh] w-full bg-[#58319d] flex flex-col relative overflow-hidden font-headline text-white">
@@ -273,12 +278,26 @@ export default function FruitPartyPage() {
 
         <div className="absolute top-44 left-4 z-40 opacity-80 animate-in slide-in-from-left-4 duration-1000">
            <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-white/20 bg-white/5 p-2">
-              <img src="https://picsum.photos/seed/fruit-roast/200/200" alt="Special Item" className="object-contain" data-ai-hint="roast chicken" />
+              {specialChicken && (
+                <img 
+                  src={specialChicken.imageUrl} 
+                  alt={specialChicken.description} 
+                  className="object-contain" 
+                  data-ai-hint={specialChicken.imageHint} 
+                />
+              )}
            </div>
         </div>
         <div className="absolute top-44 right-4 z-40 opacity-80 animate-in slide-in-from-right-4 duration-1000">
            <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-white/20 bg-white/5 p-2">
-              <img src="https://picsum.photos/seed/fruit-plate/200/200" alt="Special Item" className="object-contain" data-ai-hint="fruit platter" />
+              {specialPlatter && (
+                <img 
+                  src={specialPlatter.imageUrl} 
+                  alt={specialPlatter.description} 
+                  className="object-contain" 
+                  data-ai-hint={specialPlatter.imageHint} 
+                />
+              )}
            </div>
         </div>
 

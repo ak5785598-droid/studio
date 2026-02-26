@@ -78,6 +78,48 @@
       "description": "Profile header background",
       "imageUrl": "https://picsum.photos/seed/profilebg/1200/300",
       "imageHint": "abstract gradient"
+    },
+    {
+      "id": "wild-party-bg",
+      "description": "Deep forest ruins background for Wild Party",
+      "imageUrl": "https://picsum.photos/seed/forest-ruins/1200/2400",
+      "imageHint": "deep forest"
+    },
+    {
+      "id": "fruit-party-special-chicken",
+      "description": "Roast chicken special item for Fruit Party",
+      "imageUrl": "https://picsum.photos/seed/fruit-roast/200/200",
+      "imageHint": "roast chicken"
+    },
+    {
+      "id": "fruit-party-special-platter",
+      "description": "Fruit platter special item for Fruit Party",
+      "imageUrl": "https://picsum.photos/seed/fruit-plate/200/200",
+      "imageHint": "fruit platter"
+    },
+    {
+      "id": "dragon-jade",
+      "description": "Jade Dragon mythic character",
+      "imageUrl": "https://picsum.photos/seed/drag-jade/400/400",
+      "imageHint": "jade dragon"
+    },
+    {
+      "id": "dragon-ruby",
+      "description": "Ruby Dragon mythic character",
+      "imageUrl": "https://picsum.photos/seed/drag-ruby/400/400",
+      "imageHint": "ruby dragon"
+    },
+    {
+      "id": "dragon-azure",
+      "description": "Azure Dragon mythic character",
+      "imageUrl": "https://picsum.photos/seed/drag-azure/400/400",
+      "imageHint": "azure dragon"
+    },
+    {
+      "id": "teen-patti-bg",
+      "description": "Vault background for Dragon Battle",
+      "imageUrl": "https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=80&w=2000",
+      "imageHint": "vault room"
     }
   ]
 }
