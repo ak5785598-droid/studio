@@ -38,6 +38,8 @@ import {
   Citrus,
   PawPrint,
   Dices,
+  Sparkles,
+  Car,
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
