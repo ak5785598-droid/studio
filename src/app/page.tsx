@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,7 +10,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 
 /**
  * Root Application Entry / Splash Screen.
- * Optimized for high-speed Android redirection and mobile network resilience.
+ * Optimized for high-speed redirection to the Ummy Discovery Hub.
  */
 export default function Home() {
   const router = useRouter();
@@ -30,8 +31,8 @@ export default function Home() {
       if (user) {
         router.replace('/rooms');
       } else {
-        // Short delay for visual polish before login redirect
-        const timer = setTimeout(() => router.replace('/login'), 800);
+        // Delay for visual polish before login redirect
+        const timer = setTimeout(() => router.replace('/login'), 1000);
         return () => clearTimeout(timer);
       }
     }
