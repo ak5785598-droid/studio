@@ -23,19 +23,23 @@ export default function Home() {
 
     if (!isLoading) {
       if (user) {
-        // High-speed navigation attempt
+        // Attempt immediate client-side navigation
         router.replace('/rooms');
-        // Aggressive Hard Redirection fallback for Android Chrome
+        // Aggressive Hard Redirection fallback for Android Chrome - forces browser to commit
         const hardTimer = setTimeout(() => {
-          window.location.replace('/rooms');
+          if (window.location.pathname === '/') {
+            window.location.replace('/rooms');
+          }
         }, 800);
         return () => clearTimeout(hardTimer);
       } else {
-        // High-speed navigation attempt
+        // Attempt immediate client-side navigation
         router.replace('/login');
         // Aggressive Hard Redirection fallback for Android Chrome
         const hardTimer = setTimeout(() => {
-          window.location.replace('/login');
+          if (window.location.pathname === '/') {
+            window.location.replace('/login');
+          }
         }, 800);
         return () => clearTimeout(hardTimer);
       }

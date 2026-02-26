@@ -5,31 +5,37 @@ import { doc } from 'firebase/firestore';
 
 export interface UserProfile {
     id: string;
+    specialId: string;
     username: string;
     avatarUrl: string;
     bio?: string;
     email: string;
     interests?: string[];
-    coins?: number;
-    details?: {
-      gender?: string;
-      hometown?: string;
-      age?: number;
-    };
     wallet?: {
       coins: number;
       diamonds: number;
+      totalSpent: number;
+      dailySpent: number;
     };
     stats?: {
       followers: number;
       fans: number;
+      dailyFans: number;
+      dailyGameWins?: number;
     };
     level?: {
       rich: number;
       charm: number;
     };
-    frame?: string;
+    inventory?: {
+      activeFrame?: string;
+      activeBubble?: string;
+      activeWave?: string;
+      ownedItems: string[];
+    };
     tags?: string[];
+    createdAt?: any;
+    updatedAt?: any;
 }
 
 /**

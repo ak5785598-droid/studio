@@ -21,6 +21,7 @@ export function RoomPresenceManager() {
   const hasIncrementedCount = useRef<string | null>(null);
 
   useEffect(() => {
+    // Identity Sync Check: Wait until user AND userProfile are both synchronized from social graph
     if (!firestore || !activeRoom?.id || !user || !userProfile) {
       return;
     }

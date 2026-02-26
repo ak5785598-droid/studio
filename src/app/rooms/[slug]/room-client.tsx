@@ -40,7 +40,7 @@ import {
   Sparkles,
   Car,
 } from 'lucide-react';
-import { GoldCoinIcon } from '@/components/icons';
+import { GoldCoinIcon, UmmyLogoIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
