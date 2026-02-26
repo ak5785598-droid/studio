@@ -299,16 +299,16 @@ export default function FruitPartyPage() {
               )}
            </div>
            <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-lg">
-              <span className="text-lg">🍓</span>
-              <span className="text-lg">🍌</span>
-              <span className="text-lg">🍉</span>
               <span className="text-lg">🍊</span>
+              <span className="text-lg">🍉</span>
+              <span className="text-lg">🍌</span>
+              <span className="text-lg">🍓</span>
            </div>
         </div>
 
         <main className="flex-1 relative z-10 flex flex-col items-center justify-center p-4">
            
-           <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
+           <div className="relative w-full max-sm aspect-square flex items-center justify-center">
               <div className="absolute inset-0 border-[6px] border-white/10 rounded-full m-12" />
               
               <div className="relative z-20 w-36 h-36 bg-[#4c1d95] rounded-full shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center border-[6px] border-[#7c3aed] p-4 text-center">
