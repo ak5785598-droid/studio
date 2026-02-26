@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     {
@@ -47,6 +48,12 @@
       "description": "Vault background for Dragon Battle",
       "imageUrl": "https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=80&w=2000",
       "imageHint": "vault room"
+    },
+    {
+      "id": "slot-host",
+      "description": "Glamorous host for Lucky Slot",
+      "imageUrl": "https://images.unsplash.com/photo-1539109132314-34a959df99b3?q=80&w=1000",
+      "imageHint": "glamorous woman"
     }
   ]
 }
