@@ -95,6 +95,7 @@ import {
   getDocs,
   arrayUnion,
   arrayRemove,
+  onSnapshot
 } from 'firebase/firestore';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { useRouter } from 'next/navigation';
@@ -157,10 +158,6 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
   const firestore = useFirestore();
   const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(initialRoom.id);
 
-  // Real-time room doc for settings like music and chat mute
-  const roomRef = useMemoFirebase(() => initialRoom.id ? doc(firestore!, 'chatRooms', initialRoom.id) : null, [firestore, initialRoom.id]);
-  const { data: roomDoc } = useCollection(useMemoFirebase(() => query(collection(firestore!, 'chatRooms'), orderBy('createdAt')), [firestore])) as any;
-  // Note: using useDoc for single room instead of query for better consistency
   const [room, setRoom] = useState<any>(initialRoom);
   
   useEffect(() => {
@@ -225,14 +222,11 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
     }
   }, [activeMessages]);
 
-  // Sync Room Music
   useEffect(() => {
     if (roomAudioRef.current) {
       if (room.currentMusicUrl) {
         roomAudioRef.current.src = room.currentMusicUrl;
-        roomAudioRef.current.play().catch(() => {
-          // Auto-play might be blocked until user interaction
-        });
+        roomAudioRef.current.play().catch(() => {});
       } else {
         roomAudioRef.current.pause();
         roomAudioRef.current.src = '';
@@ -516,7 +510,6 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
         <RemoteAudio key={peerId} stream={stream} />
       ))}
 
-      {/* High-Fidelity Emerald Geometric Theme */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-[#065f46] via-[#022c22] to-black z-10 opacity-95" />
         <Image 
