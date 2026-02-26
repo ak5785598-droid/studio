@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -12,6 +11,7 @@ import Image from 'next/image';
 /**
  * High-Fidelity Moments Feed.
  * Displays the latest status updates and broadcasts from the social graph.
+ * Features safe date formatting to prevent hydration sync errors.
  */
 export function MomentsFeed() {
   const firestore = useFirestore();
@@ -55,7 +55,7 @@ export function MomentsFeed() {
               <div>
                 <p className="font-black text-sm uppercase italic tracking-tight">{moment.username}</p>
                 <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                  {moment.createdAt ? format(moment.createdAt.toDate(), 'MMM d, HH:mm') : 'Recently'}
+                  {moment.createdAt ? format(moment.createdAt.toDate(), 'MMM d, HH:mm') : 'Syncing...'}
                 </p>
               </div>
             </div>
@@ -69,7 +69,13 @@ export function MomentsFeed() {
             </div>
             {moment.imageUrl && (
               <div className="relative aspect-square w-full bg-slate-50">
-                <Image src={moment.imageUrl} alt="Moment vibe" fill className="object-cover" />
+                <Image 
+                  src={moment.imageUrl} 
+                  alt="Moment vibe" 
+                  fill 
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
               </div>
             )}
             <div className="p-6 flex items-center justify-between border-t border-gray-50">

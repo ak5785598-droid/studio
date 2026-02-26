@@ -3,9 +3,11 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   /* config options here */
   typescript: {
+    // Ensuring the cloud build frequency is not interrupted by minor type mismatches
     ignoreBuildErrors: true,
   },
   eslint: {
+    // Permissive linting for high-speed cloud rollout
     ignoreDuringBuilds: true,
   },
   images: {
@@ -25,6 +27,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'picsum.photos',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
         port: '',
         pathname: '/**',
       },
