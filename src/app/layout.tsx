@@ -38,6 +38,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: '#FFCC00',
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -56,7 +57,7 @@ export default function RootLayout({
       </head>
       <body
         className={cn(
-          'min-h-screen bg-background antialiased touch-manipulation',
+          'min-h-screen bg-background antialiased touch-manipulation overscroll-none',
           fontHeadline.variable,
           fontBody.variable
         )}

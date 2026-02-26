@@ -1,19 +1,20 @@
 {
-  "name": "Ummy - Connecting Vibe",
+  "name": "Ummy",
   "short_name": "Ummy",
-  "description": "Find your tribe on the Ummy frequency.",
+  "description": "Connect Your Tribe",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFCC00",
   "theme_color": "#FFCC00",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://studio-7826224327-e0efc.web.app/icon-192x192.png",
+      "src": "https://picsum.photos/seed/ummy-icon/192/192",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://studio-7826224327-e0efc.web.app/icon-512x512.png",
+      "src": "https://picsum.photos/seed/ummy-icon/512/512",
       "sizes": "512x512",
       "type": "image/png"
     }
