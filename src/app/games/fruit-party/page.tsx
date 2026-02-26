@@ -221,7 +221,7 @@ export default function FruitPartyPage() {
 
   return (
     <AppLayout fullScreen>
-      <div className="h-screen w-full bg-[#58319d] flex flex-col relative overflow-hidden font-headline text-white">
+      <div className="h-[100dvh] w-full bg-[#58319d] flex flex-col relative overflow-hidden font-headline text-white">
         <CompactRoomView />
 
         {gameState === 'result' && winners.length > 0 && (
@@ -248,9 +248,10 @@ export default function FruitPartyPage() {
           </div>
         )}
 
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
-           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/mandala.png')] bg-center opacity-30" />
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-white/10 to-transparent" />
+        <div className="absolute inset-0 z-0 pointer-events-none">
+           <div className="absolute inset-0 bg-gradient-to-b from-[#58319d] to-[#311b92]" />
+           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/mandala.png')] opacity-10" />
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-white/5 to-transparent" />
         </div>
 
         <div className="relative z-50 flex items-center justify-between p-4 pt-32">
@@ -270,10 +271,21 @@ export default function FruitPartyPage() {
            </div>
         </div>
 
+        <div className="absolute top-44 left-4 z-40 opacity-80 animate-in slide-in-from-left-4 duration-1000">
+           <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-white/20 bg-white/5 p-2">
+              <img src="https://picsum.photos/seed/fruit-roast/200/200" alt="Special Item" className="object-contain" data-ai-hint="roast chicken" />
+           </div>
+        </div>
+        <div className="absolute top-44 right-4 z-40 opacity-80 animate-in slide-in-from-right-4 duration-1000">
+           <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-white/20 bg-white/5 p-2">
+              <img src="https://picsum.photos/seed/fruit-plate/200/200" alt="Special Item" className="object-contain" data-ai-hint="fruit platter" />
+           </div>
+        </div>
+
         <main className="flex-1 relative z-10 flex flex-col items-center justify-center p-4">
            
            <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
-              <div className="absolute inset-0 border-4 border-white/5 rounded-full m-10" />
+              <div className="absolute inset-0 border-[6px] border-white/10 rounded-full m-12" />
               
               <div className="relative z-20 w-36 h-36 bg-[#4c1d95] rounded-full shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center border-[6px] border-[#7c3aed] p-4 text-center">
                  <span className="text-7xl font-black text-yellow-400 italic leading-none drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">
@@ -285,9 +297,15 @@ export default function FruitPartyPage() {
               </div>
 
               <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" viewBox="0 0 100 100">
-                 {Array.from({length: 8}).map((_, i) => (
-                   <line key={i} x1="50" y1="50" x2="50" y2="5" transform={`rotate(${i * 45} 50 50)`} stroke="white" strokeWidth="0.5" />
-                 ))}
+                 {Array.from({length: 8}).map((_, i) => {
+                   const angle = i * 45;
+                   return (
+                     <g key={i} transform={`rotate(${angle} 50 50)`}>
+                        <line x1="50" y1="50" x2="50" y2="10" stroke="white" strokeWidth="0.5" />
+                        <circle cx="50" cy="10" r="1.5" fill="#facc15" className="animate-pulse" />
+                     </g>
+                   );
+                 })}
               </svg>
 
               {ITEMS.map((item, idx) => (
@@ -309,10 +327,10 @@ export default function FruitPartyPage() {
                   )}
                 >
                    <div className={cn(
-                     "h-20 w-20 rounded-2xl flex flex-col items-center justify-center p-1 transition-all border-2",
+                     "h-24 w-24 rounded-2xl flex flex-col items-center justify-center p-1 transition-all border-2",
                      highlightIdx === idx ? "bg-[#7c3aed] border-yellow-400" : "bg-black/30 border-white/5 group-hover:bg-black/40"
                    )}>
-                      <span className="text-4xl drop-shadow-md">{item.emoji}</span>
+                      <span className="text-5xl drop-shadow-md">{item.emoji}</span>
                       <span className="text-[8px] font-black text-white/60 uppercase mt-1 leading-tight">{item.label}</span>
                    </div>
                    {myBets[item.id] > 0 && (
@@ -330,18 +348,26 @@ export default function FruitPartyPage() {
         <footer className="relative z-50 p-4 pb-10 space-y-4">
            <div className="max-w-md mx-auto bg-[#7c3aed]/40 backdrop-blur-xl rounded-[2rem] p-4 border border-white/10 shadow-2xl">
               <div className="flex items-center justify-between mb-4 px-2">
-                 <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 px-4 py-1.5 rounded-xl flex items-center gap-2 shadow-lg">
+                 <div className="bg-gradient-to-r from-[#ffd54f] to-[#ffca28] px-4 py-1.5 rounded-xl flex items-center gap-2 shadow-lg">
                     <GoldCoinIcon className="h-4 w-4" />
                     <span className="text-sm font-black text-black">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
-                    <button className="text-black/40"><History className="h-3 w-3" /></button>
+                    <button className="text-black/40 ml-1"><RefreshCcwIcon className="h-3 w-3" /></button>
                  </div>
+                 <p className="text-[10px] font-black uppercase text-white/60 italic">Choose wager then food</p>
                  <button onClick={handleRepeat} className="bg-white/10 px-6 py-1.5 rounded-xl font-black uppercase text-xs hover:bg-white/20 active:scale-95 transition-all">Repeat</button>
               </div>
               <div className="flex justify-between gap-2">
                  {CHIPS.map(chip => (
-                   <button key={chip.value} onClick={() => setSelectedChip(chip.value)} className={cn("flex-1 h-16 rounded-2xl flex flex-col items-center justify-center transition-all border-2 relative", selectedChip === chip.value ? "bg-white border-white text-[#7c3aed] scale-105 z-10 shadow-xl" : "bg-white/5 border-white/5 text-white/40")}>
-                      <GoldCoinIcon className={cn("h-4 w-4 mb-1", selectedChip === chip.value ? "text-[#7c3aed]" : "text-yellow-500")} />
-                      <span className="text-xs font-black italic">{chip.label}</span>
+                   <button 
+                    key={chip.value} 
+                    onClick={() => setSelectedChip(chip.value)} 
+                    className={cn(
+                      "flex-1 h-20 rounded-2xl flex flex-col items-center justify-center transition-all border-2 relative", 
+                      selectedChip === chip.value ? "bg-white border-white text-[#7c3aed] scale-105 z-10 shadow-xl" : "bg-white/5 border-white/5 text-white/40"
+                    )}
+                   >
+                      <GoldCoinIcon className={cn("h-5 w-5 mb-1", selectedChip === chip.value ? "text-[#7c3aed]" : "text-yellow-500")} />
+                      <span className="text-sm font-black italic">{chip.label}</span>
                    </button>
                  ))}
               </div>
@@ -363,5 +389,27 @@ export default function FruitPartyPage() {
         <style jsx global>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
       </div>
     </AppLayout>
+  );
+}
+
+function RefreshCcwIcon(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+      <path d="M16 21v-5h5" />
+    </svg>
   );
 }
