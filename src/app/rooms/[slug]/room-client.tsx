@@ -35,6 +35,11 @@ import {
   Music,
   Play,
   Square,
+  Swords,
+  Flame,
+  Car,
+  Sparkles,
+  VolumeX,
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -147,6 +152,11 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
   
+  // Local toggles based on picture
+  const [showGiftEffects, setShowGiftEffects] = useState(true);
+  const [showEntryEffects, setShowEntryEffects] = useState(true);
+  const [isMusicMenuOpen, setIsMusicMenuOpen] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const roomDpInputRef = useRef<HTMLInputElement>(null);
   const roomAudioRef = useRef<HTMLAudioElement>(null);
@@ -209,12 +219,13 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
   }, [firestoreMessages]);
 
   useEffect(() => {
+    if (!showGiftEffects) return;
     const lastMsg = firestoreMessages?.[firestoreMessages.length - 1];
     if (lastMsg?.type === 'gift' && lastMsg.giftId) {
       setActiveGiftAnimation(null);
       setTimeout(() => setActiveGiftAnimation(lastMsg.giftId), 50);
     }
-  }, [firestoreMessages]);
+  }, [firestoreMessages, showGiftEffects]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -368,7 +379,7 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
     const batch = writeBatch(firestore);
     snap.docs.forEach(d => batch.delete(d.ref));
     batch.commit();
-    toast({ title: 'Chat Cleared', description: 'All messages have been purged from the frequency.' });
+    toast({ title: 'Frequency Cleaned', description: 'All public messages have been purged.' });
   };
 
   const toggleRoomMessages = () => {
@@ -501,6 +512,25 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
     }
   };
 
+  const ToolTile = ({ icon: Icon, label, active, onClick, disabled }: any) => (
+    <button 
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "flex flex-col items-center gap-2 transition-all active:scale-95",
+        disabled && "opacity-30 grayscale cursor-not-allowed"
+      )}
+    >
+      <div className={cn(
+        "h-16 w-16 rounded-2xl flex items-center justify-center border-2 transition-colors",
+        active ? "bg-primary/20 border-primary text-primary" : "bg-slate-800/50 border-white/5 text-white/60 hover:bg-slate-800"
+      )}>
+        <Icon className="h-7 w-7" />
+      </div>
+      <span className="text-[10px] font-black uppercase tracking-tighter text-white/80">{label}</span>
+    </button>
+  );
+
   return (
     <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl border border-white/5 animate-in fade-in duration-700">
       <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
@@ -598,25 +628,15 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="bg-white/10 p-2 rounded-full backdrop-blur-md hover:bg-white/20 transition-colors">
-                <Settings className="h-5 w-5" />
+                <Share2 className="h-5 w-5" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-slate-900 border-white/10 text-white w-56">
-              <DropdownMenuLabel>Room Control</DropdownMenuLabel>
+              <DropdownMenuLabel>Tribe Sync</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {canManageRoom && (
-                <>
-                  <DropdownMenuItem onClick={() => roomDpInputRef.current?.click()} className="text-primary font-bold">
-                    <Camera className="mr-2 h-4 w-4" /> Change Room DP
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleClearChat} className="text-destructive">
-                    <Trash2 className="mr-2 h-4 w-4" /> Clear Chat
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { const link = `${window.location.origin}/rooms/${room.id}`; navigator.clipboard.writeText(link); }}>
-                    <UserPlus className="mr-2 h-4 w-4" /> Invite Tribe
-                  </DropdownMenuItem>
-                </>
-              )}
+              <DropdownMenuItem onClick={() => { const link = `${window.location.origin}/rooms/${room.id}`; navigator.clipboard.writeText(link); toast({ title: 'Link Copied' }); }}>
+                <UserPlus className="mr-2 h-4 w-4" /> Invite Tribe
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => {}}>
                 <Share2 className="mr-2 h-4 w-4" /> Share Room
               </DropdownMenuItem>
@@ -794,13 +814,6 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
               {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
             </Button>
             
-            <Button 
-              onClick={() => router.push('/games')}
-              className="rounded-full h-12 w-12 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30 shadow-lg shadow-blue-500/10 transition-all hover:scale-110"
-            >
-              <Gamepad2 className="h-6 w-6" />
-            </Button>
-
             <Dialog open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
               <DialogTrigger asChild>
                 <Button className="rounded-full h-12 w-12 bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30 shadow-lg transition-all hover:scale-110">
@@ -898,70 +911,100 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
                    <Settings className="h-6 w-6" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden">
+              <DialogContent className="sm:max-w-md bg-[#0a0a0a] text-white p-0 rounded-t-[3rem] border-none overflow-hidden h-[85vh] animate-in slide-in-from-bottom-full duration-500">
                  <DialogHeader className="p-8 pb-4 text-center">
-                    <DialogTitle className="text-2xl font-black uppercase italic">Frequency Settings</DialogTitle>
-                    <DialogDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Manage real-time room controls and entertainment.</DialogDescription>
+                    <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Frequency Portal</DialogTitle>
+                    <DialogDescription className="sr-only">Interactive dashboard for room entertainment and management tools.</DialogDescription>
                  </DialogHeader>
-                 <div className="p-8 pt-4 space-y-8">
-                    <div className="space-y-4">
-                       <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-gray-100">
-                          <div className="flex items-center gap-3">
-                             <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                                {room.isChatMuted ? <MessageSquareOff className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
-                             </div>
-                             <div>
-                                <p className="text-sm font-bold uppercase tracking-tight">Room Messages</p>
-                                <p className="text-[10px] text-muted-foreground uppercase">{room.isChatMuted ? 'Disabled' : 'Enabled'}</p>
-                             </div>
+                 
+                 <ScrollArea className="h-full px-8 pb-32">
+                    <div className="space-y-10">
+                       <section className="space-y-4">
+                          <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white/40 ml-2">Room Play</h3>
+                          <div className="grid grid-cols-4 gap-4">
+                             <ToolTile icon={Swords} label="Battle" onClick={() => router.push('/games/teen-patti')} />
+                             <ToolTile icon={Flame} label="Calculator" onClick={() => router.push('/games/teen-patti')} />
+                             <ToolTile icon={GoldCoinIcon} label="Lucky Bag" onClick={() => router.push('/store')} />
                           </div>
-                          <Switch 
-                            checked={!room.isChatMuted} 
-                            onCheckedChange={toggleRoomMessages} 
-                            disabled={!canManageRoom}
-                          />
-                       </div>
+                       </section>
 
-                       <button 
-                         onClick={handleClearChat}
-                         disabled={!canManageRoom}
-                         className="w-full flex items-center justify-between p-4 bg-red-50 rounded-2xl border border-red-100 text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50"
-                       >
-                          <div className="flex items-center gap-3">
-                             <div className="h-10 w-10 bg-red-500/10 rounded-xl flex items-center justify-center">
-                                <Trash2 className="h-5 w-5" />
-                             </div>
-                             <p className="text-sm font-bold uppercase tracking-tight">Clear All Chat</p>
+                       <section className="space-y-4">
+                          <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white/40 ml-2">Tools</h3>
+                          <div className="grid grid-cols-4 gap-4">
+                             <ToolTile 
+                               icon={isMicOn ? Mic : MicOff} 
+                               label="Voice" 
+                               active={isMicOn} 
+                               onClick={handleMicToggle} 
+                               disabled={!isInSeat}
+                             />
+                             <ToolTile 
+                               icon={GiftIcon} 
+                               label="Gift Effect" 
+                               active={showGiftEffects} 
+                               onClick={() => setShowGiftEffects(!showGiftEffects)} 
+                             />
+                             <ToolTile 
+                               icon={Sparkles} 
+                               label="Lucky Gift" 
+                               onClick={() => setIsGiftPickerOpen(true)} 
+                             />
+                             <ToolTile 
+                               icon={Car} 
+                               label="Entry Effect" 
+                               active={showEntryEffects} 
+                               onClick={() => setShowEntryEffects(!showEntryEffects)} 
+                             />
+                             <ToolTile 
+                               icon={Trash2} 
+                               label="Clean" 
+                               onClick={handleClearChat} 
+                               disabled={!canManageRoom}
+                             />
+                             <ToolTile 
+                               icon={room.isChatMuted ? MessageSquareOff : MessageSquare} 
+                               label="Public Msg" 
+                               active={!room.isChatMuted} 
+                               onClick={toggleRoomMessages} 
+                               disabled={!canManageRoom}
+                             />
+                             <ToolTile 
+                               icon={Music} 
+                               label="Music" 
+                               active={!!room.currentMusicUrl} 
+                               onClick={() => setIsMusicMenuOpen(!isMusicMenuOpen)} 
+                             />
                           </div>
-                          <ChevronDown className="h-4 w-4 -rotate-90 opacity-40" />
-                       </button>
-                    </div>
+                       </section>
 
-                    <div className="space-y-4">
-                       <div className="flex items-center gap-2 px-2">
-                          <Music className="h-4 w-4 text-primary" />
-                          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Room Radio</h3>
-                       </div>
-                       <div className="grid grid-cols-2 gap-3">
-                          {MUSIC_TRACKS.map(track => (
-                            <button 
-                              key={track.id} 
-                              onClick={() => handleToggleMusic(track.url)}
-                              disabled={!canManageRoom}
-                              className={cn(
-                                "p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all active:scale-95",
-                                room.currentMusicUrl === track.url 
-                                  ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" 
-                                  : "bg-secondary/30 border-transparent hover:border-primary/20"
-                              )}
-                            >
-                               {room.currentMusicUrl === track.url ? <Square className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 fill-current" />}
-                               <span className="text-[10px] font-black uppercase truncate w-full text-center">{track.name}</span>
-                            </button>
-                          ))}
-                       </div>
+                       {isMusicMenuOpen && (
+                         <div className="bg-white/5 rounded-[2rem] p-6 border border-white/10 animate-in zoom-in-95 duration-300">
+                            <div className="flex items-center gap-2 mb-4">
+                               <Music className="h-4 w-4 text-primary" />
+                               <h4 className="text-[10px] font-black uppercase tracking-widest text-primary/80">Room Radio</h4>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                               {MUSIC_TRACKS.map(track => (
+                                 <button 
+                                   key={track.id} 
+                                   onClick={() => handleToggleMusic(track.url)}
+                                   disabled={!canManageRoom}
+                                   className={cn(
+                                     "p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all active:scale-95",
+                                     room.currentMusicUrl === track.url 
+                                       ? "bg-primary border-primary text-black shadow-lg shadow-primary/20" 
+                                       : "bg-slate-800/50 border-transparent text-white/60 hover:border-primary/20"
+                                   )}
+                                 >
+                                    {room.currentMusicUrl === track.url ? <Square className="h-5 w-5 fill-current" /> : <Play className="h-5 w-5 fill-current" />}
+                                    <span className="text-[10px] font-black uppercase truncate w-full text-center">{track.name}</span>
+                                 </button>
+                               ))}
+                            </div>
+                         </div>
+                       )}
                     </div>
-                 </div>
+                 </ScrollArea>
               </DialogContent>
             </Dialog>
           </div>
