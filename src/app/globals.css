@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%; /* Light Grey */
+    --background: 48 100% 50%; /* Primary Brand Yellow as default background to prevent flashes */
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;

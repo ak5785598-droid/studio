@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -61,7 +60,7 @@ export default function RootLayout({
       </head>
       <body
         className={cn(
-          'min-h-[100dvh] bg-background antialiased touch-manipulation overscroll-none overflow-hidden select-none',
+          'min-h-[100dvh] bg-[#FFCC00] antialiased touch-manipulation overscroll-none overflow-hidden select-none',
           fontHeadline.variable,
           fontBody.variable
         )}

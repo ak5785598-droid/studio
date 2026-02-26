@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, Zap, Mail, Crown, ScrollText, Trophy, Gamepad2 } from "lucide-react";
@@ -54,7 +53,6 @@ const GameNavIcon = (props: any) => (
   </svg>
 );
 
-// High-Fidelity Production Navigation Set
 const navItems = [
   { href: "/rooms", label: "Rooms", icon: CastleIcon },
   { href: "/messages", label: "Message", icon: ScrollIcon },
@@ -102,8 +100,8 @@ export function AppLayout({
 
   if (isUserLoading) {
     return (
-      <div className="flex h-[100dvh] w-full items-center justify-center bg-background">
-        <UmmyLogoIcon className="h-12 w-12 text-primary animate-pulse" />
+      <div className="flex h-[100dvh] w-full items-center justify-center bg-[#FFCC00]">
+        <UmmyLogoIcon className="h-12 w-12 text-white animate-pulse" />
       </div>
     );
   }
@@ -120,7 +118,7 @@ export function AppLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-[100dvh] w-full bg-background font-headline overflow-hidden relative">
+      <div className="flex min-h-[100dvh] w-full bg-[#FFCC00] font-headline overflow-hidden relative">
         <Sidebar className="hidden md:flex">
           <SidebarHeader>
             <div className="flex items-center gap-2 p-2" aria-label="Ummy Home">
@@ -182,9 +180,9 @@ export function AppLayout({
           </SidebarFooter>
         </Sidebar>
 
-        <div className="flex flex-1 flex-col overflow-hidden relative">
-          <SidebarInset className="bg-background">
-            <main className="flex-1 overflow-y-auto h-[100dvh] pb-28 md:pb-4 bg-white">
+        <div className="flex flex-1 flex-col overflow-hidden relative bg-[#FFCC00]">
+          <SidebarInset className="bg-[#FFCC00]">
+            <main className="flex-1 overflow-y-auto h-[100dvh] pb-28 md:pb-4 bg-white rounded-t-[2.5rem] md:rounded-none">
               {children}
             </main>
           </SidebarInset>
