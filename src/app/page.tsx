@@ -10,7 +10,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 /**
  * Root Application Gateway / Splash Screen.
  * Re-engineered for absolute Android mobile stability.
- * Uses aggressive hard redirection to bypass client-side routing hangs.
+ * Uses aggressive dual-layer redirection to bypass hydration loops.
  */
 export default function Home() {
   const { user, isLoading } = useUser();
@@ -23,20 +23,20 @@ export default function Home() {
 
     if (!isLoading) {
       if (user) {
-        // Fast navigation attempt
+        // High-speed navigation attempt
         router.push('/rooms');
-        // Aggressive Hard Redirection fallback
+        // Aggressive Hard Redirection fallback for Android Chrome
         const hardTimer = setTimeout(() => {
           window.location.replace('/rooms');
-        }, 800);
+        }, 1000);
         return () => clearTimeout(hardTimer);
       } else {
-        // Fast navigation attempt
+        // High-speed navigation attempt
         router.push('/login');
-        // Aggressive Hard Redirection fallback
+        // Aggressive Hard Redirection fallback for Android Chrome
         const hardTimer = setTimeout(() => {
           window.location.replace('/login');
-        }, 800);
+        }, 1000);
         return () => clearTimeout(hardTimer);
       }
     }

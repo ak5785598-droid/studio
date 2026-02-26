@@ -3,7 +3,8 @@
 import { AppLayout } from '@/components/layout/app-layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, MessageCircle, UserPlus, Star, ShieldCheck, ChevronRight, Search, Loader } from 'lucide-react';
-import { useUser, useUserProfile, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
+import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
+import { useUserProfile } from '@/hooks/use-user-profile';
 import Link from 'next/link';
 import { UmmyLogoIcon } from '@/components/icons';
 import { collection, query, orderBy } from 'firebase/firestore';

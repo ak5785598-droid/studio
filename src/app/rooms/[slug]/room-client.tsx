@@ -139,13 +139,13 @@ function RemoteAudio({ stream }: { stream: MediaStream }) {
 
 /**
  * High-Fidelity Mixed Fruit Icon.
- * Displays 🍊🍌🍉🍓 in a nice game icon grid.
+ * Displays 🍊🍉🍌🍓 in a professional game icon grid.
  */
 const FruitMixIcon = ({ className }: { className?: string }) => (
   <div className={cn("grid grid-cols-2 gap-0.5 items-center justify-center p-0.5", className)}>
     <span className="text-[10px] leading-none">🍊</span>
-    <span className="text-[10px] leading-none">🍌</span>
     <span className="text-[10px] leading-none">🍉</span>
+    <span className="text-[10px] leading-none">🍌</span>
     <span className="text-[10px] leading-none">🍓</span>
   </div>
 );

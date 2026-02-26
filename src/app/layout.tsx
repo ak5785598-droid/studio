@@ -21,6 +21,7 @@ const fontBody = Alegreya({
 export const metadata: Metadata = {
   title: 'Ummy - Connect Your Tribe',
   description: 'Elite real-time social voice chat frequency.',
+  manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -52,12 +53,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="bg-[#FFCC00] h-full w-full">
-      <head>
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="theme-color" content="#FFCC00" />
-      </head>
       <body
         className={cn(
           'min-h-[100dvh] bg-[#FFCC00] antialiased touch-manipulation overscroll-none overflow-hidden select-none',
