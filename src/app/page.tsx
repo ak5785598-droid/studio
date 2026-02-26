@@ -11,39 +11,37 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 /**
  * Root Application Entry / Splash Screen.
  * Optimized for high-speed redirection to the Ummy Discovery Hub.
+ * Optimized for Android: Renders background immediately to prevent white-screen flash.
  */
 export default function Home() {
   const router = useRouter();
   const { user, isLoading } = useUser();
-  const [mounted, setMounted] = useState(false);
   const [showFailSafe, setShowFailSafe] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     // Fail-safe: If network synchronization is slow on mobile, show manual entry after 3s
-    const failSafeTimer = setTimeout(() => setShowFailSafe(true), 3000);
-    return () => clearTimeout(failSafeTimer);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoading && mounted) {
-      // Execute immediate redirect upon auth resolution
+    const failSafeTimer = setTimeout(() => setShowFailSafe(true), 3500);
+    
+    if (!isLoading) {
       if (user) {
         router.replace('/rooms');
       } else {
-        // Delay for visual polish before login redirect
-        const timer = setTimeout(() => router.replace('/login'), 1000);
-        return () => clearTimeout(timer);
+        // Small delay for branding, then to login
+        const timer = setTimeout(() => router.replace('/login'), 1500);
+        return () => {
+          clearTimeout(timer);
+          clearTimeout(failSafeTimer);
+        };
       }
     }
-  }, [isLoading, user, router, mounted]);
+    
+    return () => clearTimeout(failSafeTimer);
+  }, [isLoading, user, router]);
 
   const handleManualEntry = () => {
     if (user) router.push('/rooms');
     else router.push('/login');
   };
-
-  if (!mounted) return null;
 
   return (
     <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-[#FFCC00] overflow-hidden relative font-headline select-none touch-none">
