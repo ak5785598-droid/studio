@@ -41,23 +41,10 @@ const MineIcon = (props: any) => (
   </svg>
 );
 
-const RankingIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-  </svg>
-);
-
-const GameNavIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
-  </svg>
-);
-
+// Streamlined bottom navigation items
 const navItems = [
   { href: "/rooms", label: "Rooms", icon: CastleIcon },
   { href: "/messages", label: "Message", icon: ScrollIcon },
-  { href: "/games", label: "Games", icon: GameNavIcon },
-  { href: "/leaderboard", label: "Rankings", icon: RankingIcon },
   { href: "/profile", label: "Mine", icon: MineIcon },
 ];
 
@@ -189,11 +176,11 @@ export function AppLayout({
 
           <FloatingRoomBar />
 
-          {/* High-Fidelity Universal Bottom Navigation */}
+          {/* High-Fidelity Universal Bottom Navigation - Streamlined */}
           {!hideSidebarOnMobile && (
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-50 px-4 py-2 flex justify-between items-center z-[70] h-20 shadow-[0_-10px_40px_rgba(0,0,0,0.03)]">
               {navItems.map((item) => {
-                const active = pathname === item.href || (item.href === '/profile' && pathname.startsWith('/profile')) || (item.href === '/rooms' && pathname.startsWith('/rooms')) || (item.href === '/leaderboard' && pathname.startsWith('/leaderboard')) || (item.href === '/games' && pathname.startsWith('/games'));
+                const active = pathname === item.href || (item.href === '/profile' && pathname.startsWith('/profile')) || (item.href === '/rooms' && pathname.startsWith('/rooms')) || (item.href === '/messages' && pathname.startsWith('/messages'));
                 return (
                   <Link 
                     key={item.label} 
