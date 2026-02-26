@@ -10,7 +10,7 @@ import { ArrowRight } from 'lucide-react';
 
 /**
  * Root Application Entry / Splash Screen.
- * Featuring cinematic reveal animations and fail-safe mobile transitions.
+ * Optimized for Android dynamic viewports and mobile networks.
  */
 export default function Home() {
   const router = useRouter();

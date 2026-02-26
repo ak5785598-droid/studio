@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,6 +19,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 
+/**
+ * Universal Identity Portal.
+ * Optimized for high-speed Android Google Sign-In.
+ */
 export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
@@ -113,14 +118,14 @@ export default function LoginPage() {
 
   if (isUserLoading || user) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#FFCC00]">
+      <div className="flex h-[100dvh] w-full items-center justify-center bg-[#FFCC00]">
         <UmmyLogoIcon className="h-24 w-24 animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-6 text-foreground font-sans">
+    <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-background p-6 text-foreground font-sans overflow-hidden">
       <div id="recaptcha-container"></div>
       
       <div className="flex flex-col items-center text-center space-y-4 mb-12 animate-in fade-in duration-1000">
@@ -139,19 +144,14 @@ export default function LoginPage() {
         {phoneLoginStep === 'number' ? (
            <>
             <div className="space-y-3">
-                <div className="relative">
-                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                   <Input
-                      type="tel"
-                      placeholder="e.g. +91 9876543210"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      disabled={isSigningIn}
-                      className="h-14 pl-10 text-lg rounded-2xl border-2 focus:border-[#FFCC00] transition-all"
-                   />
-                </div>
-                <Button onClick={handlePhoneSignIn} disabled={isSigningIn || !phoneNumber} className="w-full h-14 text-lg font-black uppercase italic rounded-2xl bg-[#FFCC00] text-white hover:bg-[#FFCC00]/90 shadow-xl shadow-yellow-500/20">
-                    {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Join the Frequency'}
+                <Button
+                  variant="outline"
+                  className="w-full h-16 justify-center gap-4 bg-white text-black hover:bg-gray-50 border-2 rounded-[1.5rem] font-black uppercase italic transition-all shadow-xl shadow-gray-100"
+                  onClick={handleGoogleSignIn}
+                  disabled={isSigningIn}
+                >
+                  <FcGoogle className="h-7 w-7" />
+                  Continue with Google
                 </Button>
             </div>
 
@@ -161,15 +161,22 @@ export default function LoginPage() {
               <span className="flex-1 border-t border-gray-100" />
             </div>
 
-            <Button
-              variant="outline"
-              className="w-full h-14 justify-center gap-4 bg-white text-black hover:bg-gray-50 border-2 rounded-2xl font-black uppercase italic transition-all"
-              onClick={handleGoogleSignIn}
-              disabled={isSigningIn}
-            >
-              <FcGoogle className="h-6 w-6" />
-              Sign in with Google
-            </Button>
+            <div className="space-y-3">
+                <div className="relative">
+                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                   <Input
+                      type="tel"
+                      placeholder="Phone Number"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      disabled={isSigningIn}
+                      className="h-14 pl-10 text-lg rounded-2xl border-2 focus:border-[#FFCC00] transition-all"
+                   />
+                </div>
+                <Button onClick={handlePhoneSignIn} disabled={isSigningIn || !phoneNumber} className="w-full h-14 text-sm font-black uppercase italic rounded-2xl bg-[#FFCC00] text-white">
+                    {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'SMS Code'}
+                </Button>
+            </div>
           </>
         ) : (
              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
