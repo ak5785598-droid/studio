@@ -18,11 +18,13 @@ export type User = {
     followers?: number;
     fans?: number;
     totalGifts?: number;
+    dailyGameWins?: number;
   };
   wallet?: {
     coins: number;
     diamonds: number;
     totalSpent: number;
+    dailySpent: number;
   };
   inventory?: {
     activeFrame?: string;
@@ -70,17 +72,13 @@ export type Room = {
   moderatorIds?: string[];
   lockedSeats?: number[];
   createdAt: any;
+  participantCount?: number;
+  isChatMuted?: boolean;
+  currentMusicUrl?: string | null;
   stats?: {
     totalGifts: number;
+    dailyGifts: number;
   };
-};
-
-export type Gift = {
-  id: string;
-  name: string;
-  emoji: string;
-  price: number;
-  animationType: 'pulse' | 'bounce' | 'spin' | 'zoom';
 };
 
 export type Game = {

@@ -1,15 +1,15 @@
-
 'use client';
 
 import { useState } from 'react';
 import { useStorage, useFirestore, useUser } from '@/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useToast } from './use-toast';
+import type { Game } from '@/lib/types';
 
 /**
  * Hook to handle game logo/cover uploads to Firebase Storage and update Firestore.
- * Requires Admin permissions.
+ * Uses setDoc with merge to support creating documents for fallback games.
  */
 export function useGameLogoUpload() {
   const storage = useStorage();
@@ -18,7 +18,7 @@ export function useGameLogoUpload() {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
-  const uploadGameLogo = async (gameId: string, file: File) => {
+  const uploadGameLogo = async (game: Game, file: File) => {
     if (!user || !storage || !firestore) {
       toast({
         variant: 'destructive',
@@ -31,22 +31,27 @@ export function useGameLogoUpload() {
     setIsUploading(true);
 
     try {
-      // 1. Upload to Storage with unique timestamp
+      // 1. Upload to Storage with unique timestamp to bypass cache
       const timestamp = Date.now();
-      const storagePath = `games/${gameId}/logo_${timestamp}.jpg`;
+      const fileExtension = file.name.split('.').pop() || 'jpg';
+      const storagePath = `games/${game.id}/logo_${timestamp}.${fileExtension}`;
       const storageRef = ref(storage, storagePath);
       const uploadResult = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(uploadResult.ref);
 
       // 2. Update Firestore Game document
-      const gameRef = doc(firestore, 'games', gameId);
+      // Use setDoc with merge to handle games that don't have a doc yet (fallbacks)
+      const gameRef = doc(firestore, 'games', game.id);
       
       const updateData = { 
+        id: game.id,
+        title: game.title,
+        slug: game.slug,
         coverUrl: downloadURL,
         updatedAt: serverTimestamp()
       };
 
-      await updateDoc(gameRef, updateData);
+      await setDoc(gameRef, updateData, { merge: true });
 
       toast({
         title: 'Game Logo Updated!',

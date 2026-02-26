@@ -140,7 +140,7 @@ function RemoteAudio({ stream }: { stream: MediaStream }) {
   return <audio ref={audioRef} autoPlay className="hidden" />;
 }
 
-export function RoomClient({ room: initialRoom }: { room: Room }) {
+export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
@@ -152,7 +152,6 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
   
-  // Local toggles based on picture
   const [showGiftEffects, setShowGiftEffects] = useState(true);
   const [showEntryEffects, setShowEntryEffects] = useState(true);
   const [isMusicMenuOpen, setIsMusicMenuOpen] = useState(false);
@@ -166,17 +165,7 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
   const { userProfile } = useUserProfile(currentUser?.uid);
   const { setIsMinimized, setActiveRoom } = useRoomContext();
   const firestore = useFirestore();
-  const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(initialRoom.id);
-
-  const [room, setRoom] = useState<any>(initialRoom);
-  
-  useEffect(() => {
-    if (!firestore || !initialRoom.id) return;
-    const unsub = onSnapshot(doc(firestore, 'chatRooms', initialRoom.id), (snap) => {
-      if (snap.exists()) setRoom({ ...snap.data(), id: snap.id });
-    });
-    return () => unsub();
-  }, [firestore, initialRoom.id]);
+  const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(room.id);
 
   const isGlobalAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
   const isOwner = currentUser?.uid === room.ownerId;
@@ -193,8 +182,7 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
 
   const currentUserParticipant = participants?.find(p => p.uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
-  const isMicOn = isInSeat && !currentUserParticipant?.isMuted;
-
+  
   const { remoteStreams } = useWebRTC(room.id, isInSeat, currentUserParticipant?.isMuted ?? true);
 
   const messagesQuery = useMemoFirebase(() => {
@@ -810,8 +798,8 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
             <button type="submit" disabled={isSending || !messageText.trim() || (room.isChatMuted && !canManageRoom)} className="text-white hover:text-primary transition-colors"><Send className="h-5 w-5" /></button>
           </form>
           <div className="flex items-center gap-2">
-            <Button onClick={handleMicToggle} className={cn("rounded-full h-12 w-12 transition-all shadow-lg", isInSeat ? (isMicOn ? "bg-primary text-black scale-110" : "bg-white/10 text-white/40") : "bg-white/5")}>
-              {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+            <Button onClick={handleMicToggle} className={cn("rounded-full h-12 w-12 transition-all shadow-lg", isInSeat ? (!currentUserParticipant?.isMuted ? "bg-primary text-black scale-110" : "bg-white/10 text-white/40") : "bg-white/5")}>
+              {!currentUserParticipant?.isMuted && isInSeat ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
             </Button>
             
             <Dialog open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
@@ -932,9 +920,9 @@ export function RoomClient({ room: initialRoom }: { room: Room }) {
                           <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white/40 ml-2">Tools</h3>
                           <div className="grid grid-cols-4 gap-4">
                              <ToolTile 
-                               icon={isMicOn ? Mic : MicOff} 
+                               icon={!currentUserParticipant?.isMuted && isInSeat ? Mic : MicOff} 
                                label="Voice" 
-                               active={isMicOn} 
+                               active={!currentUserParticipant?.isMuted && isInSeat} 
                                onClick={handleMicToggle} 
                                disabled={!isInSeat}
                              />

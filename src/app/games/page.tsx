@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useMemo, useEffect } from 'react';
@@ -13,13 +12,14 @@ import { Badge } from "@/components/ui/badge";
 import { useCollection, useFirestore, useUser, useMemoFirebase, useUserProfile } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useGameLogoUpload } from '@/hooks/use-game-logo-upload';
+import type { Game } from '@/lib/types';
 
-const FALLBACK_GAMES = [
-  { id: 'fallback-ludo', title: 'Ludo Masters', slug: 'ludo', coverUrl: '', imageHint: 'ludo board' },
-  { id: 'fallback-fruit', title: 'Fruit Party', slug: 'fruit-party', coverUrl: 'https://images.unsplash.com/photo-1611080634139-6c8821f5f6ca?q=80&w=1000', imageHint: 'fruit party' },
-  { id: 'fallback-wild', title: 'Wild Party', slug: 'forest-party', coverUrl: '', imageHint: 'forest animals' },
-  { id: 'fallback-slot', title: 'Lucky Slot 777', slug: 'lucky-slot-777', coverUrl: '', imageHint: 'lucky 777 slot' },
-  { id: 'fallback-teen', title: 'Dragon Battle', slug: 'teen-patti', coverUrl: '', imageHint: 'dragon cards' },
+const FALLBACK_GAMES: Game[] = [
+  { id: 'fallback-ludo', title: 'Ludo Masters', slug: 'ludo', coverUrl: '', cost: 0, imageHint: 'ludo board' },
+  { id: 'fallback-fruit', title: 'Fruit Party', slug: 'fruit-party', coverUrl: 'https://images.unsplash.com/photo-1611080634139-6c8821f5f6ca?q=80&w=1000', cost: 0, imageHint: 'fruit party' },
+  { id: 'fallback-wild', title: 'Wild Party', slug: 'forest-party', coverUrl: '', cost: 0, imageHint: 'forest animals' },
+  { id: 'fallback-slot', title: 'Lucky Slot 777', slug: 'lucky-slot-777', coverUrl: '', cost: 0, imageHint: 'lucky 777 slot' },
+  { id: 'fallback-teen', title: 'Dragon Battle', slug: 'teen-patti', coverUrl: '', cost: 0, imageHint: 'dragon cards' },
 ];
 
 export default function GamesPage() {
@@ -65,7 +65,10 @@ export default function GamesPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && selectedGameId) {
-      uploadGameLogo(selectedGameId, file);
+      const game = activeGames.find(g => g.id === selectedGameId);
+      if (game) {
+        uploadGameLogo(game, file);
+      }
     }
   };
 
