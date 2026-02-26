@@ -9,8 +9,8 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 
 /**
  * Root Application Entry / Splash Screen.
- * Re-engineered for high-speed Android redirection.
- * Eliminates hydration blocks to prevent white-screen hangs on mobile.
+ * Optimized for high-speed Android redirection.
+ * Renders the brand environment immediately to prevent white-screen hangs.
  */
 export default function Home() {
   const router = useRouter();
@@ -18,13 +18,18 @@ export default function Home() {
   const [showFailSafe, setShowFailSafe] = useState(false);
 
   useEffect(() => {
-    // Fail-safe: If synchronization is slow on mobile networks, show manual entry after 2.5s
-    const failSafeTimer = setTimeout(() => setShowFailSafe(true), 2500);
+    // Aggressive fail-safe: If synchronization is slow on mobile networks, show manual entry after 2s
+    const failSafeTimer = setTimeout(() => setShowFailSafe(true), 2000);
     
     if (!isLoading) {
       if (user) {
         // Immediate redirection for authenticated tribe members
         router.replace('/rooms');
+        // Secondary hard redirection for stubborn mobile routers
+        const hardSync = setTimeout(() => {
+          if (window.location.pathname === '/') window.location.href = '/rooms';
+        }, 1500);
+        return () => clearTimeout(hardSync);
       } else {
         // Snappy branding delay for new identities
         const timer = setTimeout(() => router.replace('/login'), 800);
