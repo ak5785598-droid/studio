@@ -51,7 +51,6 @@ const navItems = [
 const sidebarItems = [
   { href: "/rooms", label: "Home", icon: Home },
   { href: "/messages", label: "Messages", icon: Mail },
-  { href: "/match", label: "Vibe Match", icon: Zap },
   { href: "/store", label: "Boutique", icon: ShoppingBag },
   { href: "/leaderboard", label: "Rankings", icon: Crown },
   { href: "/tasks", label: "Task Center", icon: ShieldCheck },
@@ -64,7 +63,7 @@ export function AppLayout({
   fullScreen = false
 }: { 
   children: React.ReactNode; 
-  hideSidebarOnMobile?: boolean;
+  hideSidebarOnMobile?: boolean; 
   fullScreen?: boolean;
 }) {
   const pathname = usePathname();

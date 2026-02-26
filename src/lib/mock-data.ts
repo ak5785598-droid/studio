@@ -3,8 +3,7 @@ import type { User, Room, Game, CoinPackage, Task } from './types';
 
 /**
  * Production Data Source.
- * All mock users, rooms, and prototype games have been permanently removed.
- * coverUrl fields for games set to empty strings; users/admins must upload them.
+ * All demonstration mock data has been permanently purged.
  */
 const users: User[] = [];
 const rooms: Room[] = []; 
@@ -14,7 +13,7 @@ const games: Game[] = [
     id: 'g1', 
     title: 'Ludo Masters', 
     slug: 'ludo', 
-    coverUrl: '', // Production: User/Admin must upload
+    coverUrl: '', 
     cost: 0, 
     imageHint: 'ludo board' 
   },
@@ -30,7 +29,7 @@ const games: Game[] = [
     id: 'g3', 
     title: 'Wild Party', 
     slug: 'forest-party', 
-    coverUrl: '', // Production: User/Admin must upload
+    coverUrl: '', 
     cost: 0, 
     imageHint: 'forest animals' 
   },
@@ -38,7 +37,7 @@ const games: Game[] = [
     id: 'g4', 
     title: 'Lucky Slot 777', 
     slug: 'lucky-slot-777', 
-    coverUrl: '', // Production: User/Admin must upload
+    coverUrl: '', 
     cost: 0, 
     imageHint: 'lucky 777 slot' 
   },
@@ -46,7 +45,7 @@ const games: Game[] = [
     id: 'g5', 
     title: 'Dragon Battle', 
     slug: 'teen-patti', 
-    coverUrl: '', // Production: User/Admin must upload
+    coverUrl: '', 
     cost: 0, 
     imageHint: 'dragon card' 
   },
@@ -59,12 +58,12 @@ const coinPackages: CoinPackage[] = [
 ];
 
 const dailyTasks: Task[] = [
-  { id: 'dt1', title: 'Daily Check-in', description: 'Enter any frequency today.', coinReward: 10, isCompleted: false, cta: { label: 'Explore', href: '/rooms' } },
-  { id: 'dt2', title: 'Vibe Contributor', description: 'Send a gift to any host.', coinReward: 50, isCompleted: false, cta: { label: 'Go', href: '/rooms' } },
+  { id: 'dt1', title: 'Daily Check-in', description: 'Access any frequency today.', coinReward: 10, isCompleted: false, cta: { label: 'Explore', href: '/rooms' } },
+  { id: 'dt2', title: 'Tribe Support', description: 'Send a gift to any host.', coinReward: 50, isCompleted: false, cta: { label: 'Go', href: '/rooms' } },
 ];
 
 const achievementTasks: Task[] = [
-  { id: 'at1', title: 'Tribe Founder', description: 'Create your very first frequency.', coinReward: 500, isCompleted: false, cta: { label: 'Create', href: '/rooms' } },
+  { id: 'at1', title: 'Official Host', description: 'Launch your first frequency.', coinReward: 500, isCompleted: false, cta: { label: 'Launch', href: '/rooms' } },
 ];
 
 export const getPopularRooms = (): Room[] => rooms;
