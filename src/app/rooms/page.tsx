@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import { ChatRoomCard } from '@/components/chat-room-card';
-import { Loader, Flame, Crown, Heart, Users, Home, Plus, Star, Camera } from 'lucide-react';
+import { Loader, Flame, Crown, Heart, Users, Home, Plus, Star } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { UserSearchDialog } from '@/components/user-search-dialog';
@@ -20,10 +19,10 @@ import { PublishMomentDialog } from '@/components/publish-moment-dialog';
 /**
  * High-Fidelity Discovery Hub.
  * Features Chatroom, Moments (Publish), and Mine command centers.
- * Automatic Removal Protocol: Empty rooms are filtered out of public discovery in real-time.
+ * Automatic Removal Protocol: Empty rooms are strictly filtered out of public discovery.
  */
 export default function RoomsPage() {
-  const { user, isLoading: isUserLoading } = useUser();
+  const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('All');
@@ -38,7 +37,7 @@ export default function RoomsPage() {
     return () => clearInterval(intervalId);
   }, [api]);
 
-  // Production Discovery Query: Only show rooms where participantCount > 0
+  // Production Discovery Query: Strictly filter rooms with participantCount > 0
   const roomsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(
@@ -51,7 +50,7 @@ export default function RoomsPage() {
 
   const { data: roomsData, isLoading: isRoomsLoading } = useCollection(roomsQuery);
 
-  // Identity Hub Query: Always show the user's own room regardless of activity
+  // Identity Hub Query: Always show user's own room regardless of count
   const myRoomQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(collection(firestore, 'chatRooms'), where('ownerId', '==', user.uid), limit(1));
@@ -79,15 +78,10 @@ export default function RoomsPage() {
   const { data: topRoomsRanking } = useCollection(topRoomsQuery);
 
   const filteredRooms = useMemo(() => {
-    if (navTab === 'mine') {
-      return myRoomData || [];
-    }
-    
+    if (navTab === 'mine') return myRoomData || [];
     if (!roomsData) return [];
     
-    // Explicit client-side safety filter for participantCount
-    let rooms = roomsData.filter(r => (r.participantCount || 0) > 0);
-    
+    let rooms = roomsData;
     if (activeTab !== 'All') {
       if (activeTab === 'Hot') return rooms.slice(0, 10);
       if (activeTab === 'New') return rooms.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).slice(0, 5);

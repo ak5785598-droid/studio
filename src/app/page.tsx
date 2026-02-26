@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { UmmyLogoIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -13,24 +12,20 @@ import { ArrowRight, Loader2 } from 'lucide-react';
  * Uses hard redirection to bypass client-side routing hangs.
  */
 export default function Home() {
-  const router = useRouter();
   const { user, isLoading } = useUser();
   const [showFailSafe, setShowFailSafe] = useState(false);
 
   useEffect(() => {
-    // Fail-safe: If auto-redirection doesn't trigger within 1.5s, show manual entry
-    const timer = setTimeout(() => setShowFailSafe(true), 1500);
+    // Fail-safe: If auto-redirection doesn't trigger within 2s, show manual entry
+    const timer = setTimeout(() => setShowFailSafe(true), 2000);
 
     if (!isLoading) {
       if (user) {
         // Aggressive Hard Redirection for authenticated members
-        window.location.href = '/rooms';
+        window.location.replace('/rooms');
       } else {
         // Redirection to Login for new identities
-        const loginTimer = setTimeout(() => {
-          window.location.href = '/login';
-        }, 1000);
-        return () => clearTimeout(loginTimer);
+        window.location.replace('/login');
       }
     }
 
@@ -38,11 +33,10 @@ export default function Home() {
   }, [isLoading, user]);
 
   const handleManualEntry = () => {
-    // Manual force entry protocol
     if (user) {
-      window.location.href = '/rooms';
+      window.location.replace('/rooms');
     } else {
-      window.location.href = '/login';
+      window.location.replace('/login');
     }
   };
 

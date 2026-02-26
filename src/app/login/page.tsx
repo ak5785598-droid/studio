@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { UmmyLogoIcon } from '@/components/icons';
 import { FcGoogle } from 'react-icons/fc';
 import { Loader, Phone, ShieldCheck } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
 import {
   GoogleAuthProvider,
@@ -20,10 +19,9 @@ import Link from 'next/link';
 
 /**
  * Universal Identity Portal.
- * Optimized for high-speed Android Google Sign-In.
+ * Optimized for high-speed Android Google Sign-In with hard-redirection.
  */
-export default function LoginPage() {
-  const router = useRouter();
+export function LoginPage() {
   const auth = useAuth();
   const { user, isLoading: isUserLoading } = useUser();
   const { toast } = useToast();
@@ -40,7 +38,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (!isUserLoading && user) {
       // Hard redirect to ensure browser commits navigation on mobile
-      window.location.href = '/rooms';
+      window.location.replace('/rooms');
     }
   }, [user, isUserLoading]);
 
@@ -49,17 +47,10 @@ export default function LoginPage() {
     setIsSigningIn(true);
     try {
       const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
+      provider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, provider);
-      // Success will trigger the useEffect above
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Sign In Failed',
-        description: error.message || 'Could not sign in with Google.',
-      });
+      toast({ variant: 'destructive', title: 'Sign In Failed', description: error.message });
     } finally {
       setIsSigningIn(false);
     }
@@ -67,35 +58,21 @@ export default function LoginPage() {
   
   const handlePhoneSignIn = async () => {
     if (!auth) return;
-    
     if (phoneNumber.replace(/\D/g, '').length < 10) {
-      toast({
-        variant: 'destructive',
-        title: 'Invalid Number',
-        description: 'Please enter a full phone number with country code.',
-      });
+      toast({ variant: 'destructive', title: 'Invalid Number', description: 'Enter full phone number.' });
       return;
     }
-
     setIsSigningIn(true);
     try {
       if (!(window as any).recaptchaVerifier) {
-        (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          size: 'invisible',
-        });
+        (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
       }
-      
       const verifier = (window as any).recaptchaVerifier;
-      const formattedNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
-      const result = await signInWithPhoneNumber(auth, formattedNumber, verifier);
+      const result = await signInWithPhoneNumber(auth, phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`, verifier);
       setConfirmationResult(result);
       setPhoneLoginStep('code');
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Failed to Send Code',
-        description: error.message,
-      });
+      toast({ variant: 'destructive', title: 'SMS Failed', description: error.message });
     } finally {
       setIsSigningIn(false);
     }
@@ -107,11 +84,7 @@ export default function LoginPage() {
     try {
       await confirmationResult.confirm(verificationCode);
     } catch (error: any) {
-        toast({
-            variant: 'destructive',
-            title: 'Invalid Code',
-            description: 'The verification code is incorrect.',
-        });
+        toast({ variant: 'destructive', title: 'Invalid Code', description: 'Incorrect verification code.' });
     } finally {
         setIsSigningIn(false);
     }
@@ -130,34 +103,22 @@ export default function LoginPage() {
       <div id="recaptcha-container"></div>
       
       <div className="flex flex-col items-center text-center space-y-4 mb-12 animate-in fade-in duration-1000">
-        <div className="relative">
-           <UmmyLogoIcon className="h-32 w-32 relative z-10 drop-shadow-xl" />
-        </div>
-        <h1 className="font-headline text-6xl font-black italic uppercase tracking-tighter text-[#FFCC00] drop-shadow-sm mt-4">
-          Ummy
-        </h1>
-        <p className="text-muted-foreground font-body text-lg uppercase tracking-widest opacity-60">
-        Welcome to Ummy Chat
-        </p>
+        <UmmyLogoIcon className="h-32 w-32 drop-shadow-xl" />
+        <h1 className="font-headline text-6xl font-black italic uppercase tracking-tighter text-[#FFCC00] mt-4">Ummy</h1>
+        <p className="text-muted-foreground font-body text-lg uppercase tracking-widest opacity-60">Welcome to Ummy Chat</p>
       </div>
 
       <div className="w-full max-sm space-y-6">
         {phoneLoginStep === 'number' ? (
            <>
-            <div className="space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full h-16 justify-center gap-4 bg-white text-black hover:bg-gray-50 border-2 rounded-[1.5rem] font-black uppercase italic transition-all shadow-xl shadow-gray-100"
-                  onClick={handleGoogleSignIn}
-                  disabled={isSigningIn}
-                >
-                  <FcGoogle className="h-7 w-7" />
-                  Login with Google
-                  <button className="bg-black text-white p-3 rounded-xl mt-4">
-  Enter Chat
-</button>
-                </Button>
-            </div>
+            <Button
+              variant="outline"
+              className="w-full h-16 justify-center gap-4 bg-white text-black border-2 rounded-[1.5rem] font-black uppercase italic shadow-xl shadow-gray-100"
+              onClick={handleGoogleSignIn}
+              disabled={isSigningIn}
+            >
+              <FcGoogle className="h-7 w-7" /> Login with Google
+            </Button>
 
             <div className="relative flex items-center gap-4 py-2">
               <span className="flex-1 border-t border-gray-100" />
@@ -168,41 +129,24 @@ export default function LoginPage() {
             <div className="space-y-3">
                 <div className="relative">
                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                   <Input
-                      type="tel"
-                      placeholder="Phone Number"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      disabled={isSigningIn}
-                      className="h-14 pl-10 text-lg rounded-2xl border-2 focus:border-[#FFCC00] transition-all"
-                   />
+                   <Input type="tel" placeholder="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} disabled={isSigningIn} className="h-14 pl-10 text-lg rounded-2xl border-2" />
                 </div>
                 <Button onClick={handlePhoneSignIn} disabled={isSigningIn || !phoneNumber} className="w-full h-14 text-sm font-black uppercase italic rounded-2xl bg-[#FFCC00] text-white">
-                    {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'SMS Code'}
+                    {isSigningIn ? <Loader className="animate-spin" /> : 'SMS Code'}
                 </Button>
             </div>
           </>
         ) : (
-             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
                 <div className="text-center space-y-1">
-                   <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Identity Sync</p>
-                   <p className="text-xs text-muted-foreground">Sent to {phoneNumber}</p>
+                   <p className="text-sm font-bold text-muted-foreground uppercase">Identity Sync</p>
+                   <p className="text-xs text-muted-foreground">{phoneNumber}</p>
                 </div>
-                <Input
-                    type="text"
-                    placeholder="000000"
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                    disabled={isSigningIn}
-                    className="h-16 text-center text-3xl font-black tracking-[0.5em] rounded-2xl border-2 focus:border-[#FFCC00]"
-                    maxLength={6}
-                />
+                <Input type="text" placeholder="000000" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} disabled={isSigningIn} className="h-16 text-center text-3xl font-black tracking-[0.5em] rounded-2xl border-2" maxLength={6} />
                 <Button onClick={handleVerifyCode} disabled={isSigningIn || !verificationCode} className="w-full h-14 text-lg font-black uppercase italic rounded-2xl bg-[#FFCC00] text-white">
-                    {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Enter Frequency'}
+                    {isSigningIn ? <Loader className="animate-spin" /> : 'Enter Frequency'}
                 </Button>
-                <button onClick={() => setPhoneLoginStep('number')} className="w-full text-muted-foreground font-black uppercase text-[10px] tracking-widest hover:text-foreground transition-colors">
-                    Wrong Number?
-                </button>
+                <button onClick={() => setPhoneLoginStep('number')} className="w-full text-muted-foreground font-black uppercase text-[10px] tracking-widest">Wrong Number?</button>
             </div>
         )}
       </div>
@@ -212,10 +156,10 @@ export default function LoginPage() {
             <ShieldCheck className="h-4 w-4 text-[#FFCC00]" />
             <span>End-to-End Frequency Encryption</span>
          </div>
-         <p className="text-[10px] text-muted-foreground leading-relaxed max-w-[200px]">
-            By continuing, you join the official Ummy tribe. <Link href="/terms" className="underline font-bold text-foreground">Terms & Privacy</Link>.
-         </p>
+         <p className="text-[10px] text-muted-foreground max-w-[200px]">By continuing, you join the tribe. <Link href="/terms" className="underline font-bold">Terms & Privacy</Link>.</p>
       </div>
     </div>
   );
 }
+
+export default LoginPage;
