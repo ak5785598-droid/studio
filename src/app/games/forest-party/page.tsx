@@ -131,7 +131,6 @@ export default function WildPartyPage() {
     const winAmount = (myBets[id] || 0) * (winItem?.multiplier || 0);
 
     const sessionWinners = [];
-    // Strict Real-Time Logic: Only show the user if they actually won in this session
     if (winAmount > 0 && userProfile) {
       sessionWinners.push({ name: userProfile.username, win: winAmount, avatar: userProfile.avatarUrl, isMe: true });
     }
@@ -204,7 +203,6 @@ export default function WildPartyPage() {
       <div className="h-screen w-full bg-[#1a3a1a] flex flex-col relative overflow-hidden font-headline text-white">
         <CompactRoomView />
 
-        {/* Real-Time Winning Overlay */}
         {gameState === 'result' && winners.length > 0 && (
           <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500 p-6">
              <div className="relative mb-12 flex flex-col items-center gap-4">
@@ -301,9 +299,12 @@ export default function WildPartyPage() {
                          {animal.label}
                       </div>
                    </div>
-                   <div className="mt-1 bg-black/60 backdrop-blur-md px-3 py-0.5 rounded-full border border-white/10">
-                      <p className="text-[8px] font-black uppercase tracking-widest text-white/60">Total <span className="text-yellow-500">{myBets[animal.id] || 0}</span></p>
-                   </div>
+                   {myBets[animal.id] > 0 && (
+                     <div className="mt-1 bg-black/60 backdrop-blur-md px-3 py-0.5 rounded-full border border-white/10 flex items-center gap-1.5 animate-in zoom-in">
+                        <GoldCoinIcon className="h-2.5 w-2.5" />
+                        <p className="text-[8px] font-black uppercase tracking-widest text-white/60">Total <span className="text-yellow-500">{myBets[animal.id] || 0}</span></p>
+                     </div>
+                   )}
                 </button>
               ))}
            </div>

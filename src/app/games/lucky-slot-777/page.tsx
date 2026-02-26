@@ -154,7 +154,6 @@ export default function LuckySlot777Page() {
     const winAmount = (myBets[id] || 0) * winItem.multiplier;
 
     const sessionWinners = [];
-    // Strict Real-Time Logic: Only show the actual user win
     if (winAmount > 0 && userProfile) {
       sessionWinners.push({ name: userProfile.username, win: winAmount, avatar: userProfile.avatarUrl, isMe: true });
     }
@@ -208,7 +207,6 @@ export default function LuckySlot777Page() {
       <div className="h-screen w-full bg-[#1a0a2e] flex flex-col relative overflow-hidden font-headline animate-in fade-in duration-700">
         <CompactRoomView />
 
-        {/* Real-Time Result Overlay */}
         {gameState === 'result' && winners.length > 0 && (
           <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500">
              <div className="relative mb-12 flex flex-col items-center gap-4">
@@ -275,6 +273,12 @@ export default function LuckySlot777Page() {
                 <button key={id} onClick={() => handlePlaceBet(id)} disabled={gameState !== 'betting'} className={cn("relative h-32 rounded-2xl border-2 transition-all flex flex-col items-center justify-center bg-gradient-to-b from-[#4a1d96] to-[#2d0b5a] hover:scale-105 active:scale-95", myBets[id] && "border-yellow-400 ring-2 ring-yellow-400/20 shadow-[0_0_20px_rgba(251,191,36,0.3)]")}>
                    <span className="text-4xl mb-1">{id === 'seven' ? '777' : (id === 'peach' ? '🍑' : '🍉')}</span>
                    <span className="text-xl font-black text-yellow-400 italic">{id === 'seven' ? 'x8' : 'x2'}</span>
+                   {myBets[id] > 0 && (
+                     <div className="absolute top-2 right-2 bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-black text-[8px] flex items-center gap-1 animate-in zoom-in shadow-lg">
+                        <GoldCoinIcon className="h-2 w-2" />
+                        {myBets[id].toLocaleString()}
+                     </div>
+                   )}
                 </button>
               ))}
            </div>

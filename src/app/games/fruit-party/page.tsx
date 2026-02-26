@@ -135,7 +135,6 @@ export default function FruitPartyPage() {
     const winAmount = (myBets[id] || 0) * (winItem?.multiplier || 0);
 
     const sessionWinners = [];
-    // Strict Real-Time Logic: Only show actual user if they won
     if (winAmount > 0 && userProfile) {
       sessionWinners.push({ name: userProfile.username, win: winAmount, avatar: userProfile.avatarUrl, isMe: true });
     }
@@ -208,7 +207,6 @@ export default function FruitPartyPage() {
       <div className="h-screen w-full bg-[#58319d] flex flex-col relative overflow-hidden font-headline text-white">
         <CompactRoomView />
 
-        {/* Real-Time Result Overlay */}
         {gameState === 'result' && winners.length > 0 && (
           <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500 p-6">
              <div className="relative mb-12 flex flex-col items-center gap-4">
@@ -233,13 +231,11 @@ export default function FruitPartyPage() {
           </div>
         )}
 
-        {/* Mandala Background Pattern Overlay */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/mandala.png')] bg-center opacity-30" />
            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-white/10 to-transparent" />
         </div>
 
-        {/* Top Navigation */}
         <div className="relative z-50 flex items-center justify-between p-4 pt-32">
            <div className="flex gap-1">
               <button className="bg-white/10 p-1.5 rounded-full"><Maximize2 className="h-4 w-4" /></button>
@@ -257,7 +253,6 @@ export default function FruitPartyPage() {
            </div>
         </div>
 
-        {/* Ferris Wheel Betting Circle */}
         <main className="flex-1 relative z-10 flex flex-col items-center justify-center p-4">
            
            <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
@@ -304,7 +299,8 @@ export default function FruitPartyPage() {
                       <span className="text-[8px] font-black text-white/60 uppercase mt-1 leading-tight">{item.label}</span>
                    </div>
                    {myBets[item.id] > 0 && (
-                     <div className="mt-1 bg-yellow-400 text-black px-2 py-0.5 rounded-full font-black text-[8px] shadow-lg animate-in zoom-in">
+                     <div className="mt-1 bg-yellow-400 text-black px-2 py-0.5 rounded-full font-black text-[8px] shadow-lg animate-in zoom-in flex items-center gap-1">
+                        <GoldCoinIcon className="h-2 w-2" />
                         {myBets[item.id]}
                      </div>
                    )}
@@ -314,7 +310,6 @@ export default function FruitPartyPage() {
 
         </main>
 
-        {/* Footer Interaction Hub */}
         <footer className="relative z-50 p-4 pb-10 space-y-4">
            <div className="max-w-md mx-auto bg-[#7c3aed]/40 backdrop-blur-xl rounded-[2rem] p-4 border border-white/10 shadow-2xl">
               <div className="flex items-center justify-between mb-4 px-2">
