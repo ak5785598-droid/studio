@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -11,7 +10,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 /**
  * Root Application Entry / Splash Screen.
  * Re-engineered for high-speed Android redirection.
- * Removes hydration blocks to prevent white-screen hangs on mobile.
+ * Eliminates hydration blocks to prevent white-screen hangs on mobile.
  */
 export default function Home() {
   const router = useRouter();
@@ -24,9 +23,10 @@ export default function Home() {
     
     if (!isLoading) {
       if (user) {
+        // Immediate redirection for authenticated tribe members
         router.replace('/rooms');
       } else {
-        // Snappy branding delay for new users
+        // Snappy branding delay for new identities
         const timer = setTimeout(() => router.replace('/login'), 800);
         return () => {
           clearTimeout(timer);

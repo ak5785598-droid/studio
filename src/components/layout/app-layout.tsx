@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, Zap, Mail, Crown, ScrollText, Trophy, Gamepad2 } from "lucide-react";
+import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, Mail, Crown, Gamepad2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ import { FloatingRoomBar } from "../floating-room-bar";
 
 const CastleIcon = (props: any) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M2 22V7l2-2V2h3v3l2-2v4l2-2v4l2-2v4l2-2v4l2-2v4l2-2v3l3 3v15H2zm4-4h2v-2H6v2zm0-4h2v-2H6v2zm0-4h2V8H6v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V8h-2v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V8h-2v2z" />
+    <path d="M2 22V7l2-2V2h3v3l2-2v4l2-2v4l2-2v4l2-2v4l2-2v4l2-2v4l2-2v3l3 3v15H2zm4-4h2v-2H6v2zm0-4h2v-2H6v2zm0-4h2V8H6v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V8h-2v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V8h-2v2z" />
   </svg>
 );
 
@@ -41,7 +41,10 @@ const MineIcon = (props: any) => (
   </svg>
 );
 
-// Streamlined bottom navigation items
+/**
+ * Universal Tribe Navigation.
+ * Optimized for high-fidelity discovery on Android and Desktop.
+ */
 const navItems = [
   { href: "/rooms", label: "Rooms", icon: CastleIcon },
   { href: "/messages", label: "Message", icon: ScrollIcon },
@@ -53,7 +56,6 @@ const sidebarItems = [
   { href: "/messages", label: "Messages", icon: Mail },
   { href: "/store", label: "Boutique", icon: ShoppingBag },
   { href: "/leaderboard", label: "Rankings", icon: Crown },
-  { href: "/tasks", label: "Task Center", icon: ShieldCheck },
   { href: "/games", label: "Game Zone", icon: GameControllerIcon },
 ];
 
@@ -176,7 +178,6 @@ export function AppLayout({
 
           <FloatingRoomBar />
 
-          {/* High-Fidelity Universal Bottom Navigation - Streamlined */}
           {!hideSidebarOnMobile && (
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-50 px-4 py-2 flex justify-between items-center z-[70] h-20 shadow-[0_-10px_40px_rgba(0,0,0,0.03)]">
               {navItems.map((item) => {
