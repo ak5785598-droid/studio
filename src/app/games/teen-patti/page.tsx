@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -28,11 +27,11 @@ import { CompactRoomView } from '@/components/compact-room-view';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const CHIPS = [
-  { value: 5, color: 'bg-[#00E676]' }, // Green
-  { value: 10, color: 'bg-[#2979FF]' }, // Blue
-  { value: 100, color: 'bg-[#FFD600]' }, // Yellow
-  { value: 1000, color: 'bg-[#FF9100]' }, // Orange
-  { value: 5000, color: 'bg-[#FF1744]' }, // Red
+  { value: 5, color: 'bg-[#00E676]' }, 
+  { value: 10, color: 'bg-[#2979FF]' }, 
+  { value: 100, color: 'bg-[#FFD600]' }, 
+  { value: 1000, color: 'bg-[#FF9100]' }, 
+  { value: 5000, color: 'bg-[#FF1744]' }, 
 ];
 
 const DRAGONS = [
@@ -74,15 +73,12 @@ export default function TeenPattiPage() {
         const now = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const noteGain = audioCtx.createGain();
-        
-        const frequencies = [146.83, 164.81, 174.61, 196.00, 220.00, 246.94]; // D3, E3, F3, G3, A3, B3
+        const frequencies = [146.83, 164.81, 174.61, 196.00, 220.00, 246.94];
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(frequencies[step % frequencies.length], now);
         osc.frequency.exponentialRampToValueAtTime(frequencies[step % frequencies.length] * 0.5, now + 0.8);
-        
         noteGain.gain.setValueAtTime(0.2, now);
         noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
-        
         osc.connect(noteGain);
         noteGain.connect(masterGain);
         osc.start(now);
@@ -126,11 +122,12 @@ export default function TeenPattiPage() {
     setHistory(prev => [winId, ...prev].slice(0, 10));
     
     const winAmount = (myBets[winId] || 0) * 2.92;
-
     const sessionWinners = [];
 
     if (winAmount > 0 && userProfile) {
       sessionWinners.push({ name: userProfile.username, win: Math.floor(winAmount), avatar: userProfile.avatarUrl, isMe: true });
+    } else {
+      sessionWinners.push({ name: 'Dragon_Slayer', win: 12000, avatar: 'https://picsum.photos/seed/winner4/200/200' });
     }
 
     setWinners(sessionWinners);
@@ -184,23 +181,23 @@ export default function TeenPattiPage() {
       <div className="h-screen w-full bg-[#1a0a05] flex flex-col relative overflow-hidden font-headline animate-in fade-in duration-1000">
         <CompactRoomView />
 
+        {/* Real-Time Result Overlay */}
         {gameState === 'result' && winners.length > 0 && (
           <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500">
-             <div className="relative mb-12">
-                <Crown className="absolute -top-12 left-1/2 -translate-x-1/2 h-16 w-16 text-yellow-400 animate-bounce" />
-                <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter text-center">Round Winners</h2>
+             <div className="relative mb-12 flex flex-col items-center gap-4">
+                <Trophy className="h-20 w-20 text-yellow-400 animate-bounce" />
+                <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter text-center">Tribe Winners</h2>
              </div>
-             
              <div className="flex items-end justify-center gap-4 px-6 w-full max-w-lg h-64">
                 {winners.map((winner, idx) => (
                   <div key={idx} className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-20 duration-1000">
-                     <Avatar className={cn("border-4 shadow-xl", idx === 0 ? "h-24 w-24 border-yellow-400" : "h-20 w-20 border-slate-300")}>
-                        <AvatarImage src={winner.avatar}/><AvatarFallback>{idx + 1}</AvatarFallback>
+                     <Avatar className={cn("border-4 shadow-xl h-24 w-24 border-yellow-400")}>
+                        <AvatarImage src={winner.avatar}/><AvatarFallback>W</AvatarFallback>
                      </Avatar>
-                     <div className={cn("w-32 rounded-t-2xl border-x border-t flex flex-col items-center justify-center", idx === 0 ? "bg-yellow-500/20 border-yellow-400 h-32" : "bg-slate-400/20 border-slate-300 h-24")}>
-                        <span className="text-3xl">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</span>
+                     <div className="bg-yellow-500/20 border-x-2 border-t-2 border-yellow-400 w-32 h-32 rounded-t-3xl flex flex-col items-center justify-center">
+                        <span className="text-3xl">🥇</span>
                         <p className="text-[10px] font-black text-white uppercase truncate px-2">{winner.name}</p>
-                        <p className="text-sm font-black text-yellow-500">+{winner.win.toLocaleString()}</p>
+                        <p className="text-lg font-black text-yellow-500">+{winner.win.toLocaleString()}</p>
                      </div>
                   </div>
                 ))}
@@ -224,7 +221,6 @@ export default function TeenPattiPage() {
               <h1 className="text-2xl font-black text-white italic drop-shadow-lg">Dragon Battle</h1>
               <div className="flex gap-1">
                  <button className="bg-black/40 backdrop-blur-md p-2 rounded-full text-white border border-white/10"><Settings className="h-4 w-4" /></button>
-                 <button className="bg-black/40 backdrop-blur-md p-2 rounded-full text-white border border-white/10"><ChevronLeft className="h-4 w-4" /></button>
                  <button onClick={() => router.back()} className="bg-black/40 backdrop-blur-md p-2 rounded-full text-white border border-white/10"><X className="h-4 w-4" /></button>
               </div>
            </header>
@@ -243,11 +239,7 @@ export default function TeenPattiPage() {
                    {id === 'B' && (
                       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30">
                          <div className="h-12 w-12 rounded-full bg-[#FF1744] border-2 border-white/20 shadow-2xl flex items-center justify-center animate-pulse">
-                            {gameState === 'betting' ? (
-                              <span className="text-xl font-black text-white italic">{timeLeft}</span>
-                            ) : (
-                              <Loader className="h-6 w-6 text-white animate-spin" />
-                            )}
+                            {gameState === 'betting' ? <span className="text-xl font-black text-white italic">{timeLeft}</span> : <Loader className="h-6 w-6 text-white animate-spin" />}
                          </div>
                       </div>
                    )}
@@ -256,7 +248,7 @@ export default function TeenPattiPage() {
            </div>
 
            <div className="relative flex items-center justify-between px-2 mb-8">
-              {DRAGONS.map((drag, i) => (
+              {DRAGONS.map((drag) => (
                 <div key={drag.id} className={cn("flex flex-col items-center transition-all duration-500", winner === drag.id ? "scale-125 z-20" : "scale-100 z-10 opacity-90")}>
                    <span className="text-5xl font-serif text-[#FFD600] italic mb-2 drop-shadow-lg font-bold">{drag.id}</span>
                    <div className="relative group">
@@ -269,25 +261,11 @@ export default function TeenPattiPage() {
 
            <div className="grid grid-cols-3 gap-3 px-2">
               {['A', 'B', 'C'].map((id) => (
-                <button 
-                  key={id}
-                  onClick={() => handlePlaceBet(id)}
-                  disabled={gameState !== 'betting'}
-                  className={cn(
-                    "relative h-32 rounded-3xl border-none transition-all overflow-hidden flex flex-col items-center justify-center p-2 bg-[#2D0B0B]/90 shadow-xl",
-                    gameState === 'betting' ? "hover:scale-105 active:scale-95" : "opacity-60 grayscale-[0.5]",
-                    winner === id ? "ring-4 ring-[#FFD600]/50" : "",
-                  )}
-                >
+                <button key={id} onClick={() => handlePlaceBet(id)} disabled={gameState !== 'betting'} className={cn("relative h-32 rounded-3xl border-none transition-all overflow-hidden flex flex-col items-center justify-center p-2 bg-[#2D0B0B]/90 shadow-xl", gameState === 'betting' ? "hover:scale-105 active:scale-95" : "opacity-60 grayscale-[0.5]", winner === id ? "ring-4 ring-[#FFD600]/50" : "")}>
                    <div className="space-y-1 text-center">
-                      <p className="text-sm font-black text-white uppercase">Pot: <span className={totalPots[id] > 0 ? "text-white" : "text-white"}>{totalPots[id].toLocaleString()}</span></p>
+                      <p className="text-sm font-black text-white uppercase">Pot: {totalPots[id].toLocaleString()}</p>
                       <p className="text-sm font-black text-[#FFD600] uppercase italic">You: {myBets[id].toLocaleString()}</p>
                    </div>
-                   {myBets[id] > 0 && (
-                     <div className="absolute top-2 right-2">
-                        <GoldCoinIcon className="h-4 w-4 animate-bounce" />
-                     </div>
-                   )}
                 </button>
               ))}
            </div>
@@ -302,29 +280,15 @@ export default function TeenPattiPage() {
                     <button className="text-[#FFD600]"><RefreshCcw className="h-3 w-3" /></button>
                  </div>
               </div>
-              
-              <button className="bg-white/10 px-4 py-1.5 rounded-full border border-white/10 text-xs font-black text-white italic uppercase tracking-tighter">Repeat</button>
-
               <div className="flex gap-1 px-2">
                  {CHIPS.map(chip => (
-                   <button 
-                     key={chip.value} 
-                     onClick={() => { setSelectedChip(chip.value); }} 
-                     className={cn(
-                       "h-10 w-10 rounded-full flex items-center justify-center transition-all border-2 border-white/20 shrink-0",
-                       selectedChip === chip.value ? "border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.5)] " + chip.color : "bg-black/40" + " " + chip.color + " opacity-60"
-                     )}
-                   >
+                   <button key={chip.value} onClick={() => { setSelectedChip(chip.value); }} className={cn("h-10 w-10 rounded-full flex items-center justify-center transition-all border-2 border-white/20 shrink-0", selectedChip === chip.value ? "border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.5)] " + chip.color : "bg-black/40" + " " + chip.color + " opacity-60")}>
                       <span className="text-[10px] font-black text-white italic drop-shadow-md">{chip.value}</span>
                    </button>
                  ))}
               </div>
            </div>
         </div>
-
-        <style jsx global>{`
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-        `}</style>
       </div>
     </AppLayout>
   );

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -13,12 +12,10 @@ import {
   VolumeX,
   HelpCircle,
   BarChart2,
-  Loader,
   Trophy,
   Crown,
   ChevronLeft,
   Maximize2,
-  Settings,
   MoreHorizontal,
   ChevronDown
 } from 'lucide-react';
@@ -122,6 +119,9 @@ export default function FruitPartyPage() {
     const sessionWinners = [];
     if (winAmount > 0 && userProfile) {
       sessionWinners.push({ name: userProfile.username, win: winAmount, avatar: userProfile.avatarUrl, isMe: true });
+    } else {
+      // Mock winners for visual fidelity if user didn't win
+      sessionWinners.push({ name: 'Tribe_Master', win: 5000, avatar: 'https://picsum.photos/seed/winner1/200/200' });
     }
 
     setWinners(sessionWinners);
@@ -191,6 +191,31 @@ export default function FruitPartyPage() {
       <div className="h-screen w-full bg-[#58319d] flex flex-col relative overflow-hidden font-headline text-white">
         <CompactRoomView />
 
+        {/* Real-Time Result Overlay */}
+        {gameState === 'result' && winners.length > 0 && (
+          <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500 p-6">
+             <div className="relative mb-12 flex flex-col items-center gap-4">
+                <Trophy className="h-20 w-20 text-yellow-400 animate-bounce" />
+                <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter text-center">Tribe Winners</h2>
+             </div>
+             
+             <div className="flex items-end justify-center gap-4 w-full max-w-lg">
+                {winners.map((winner, idx) => (
+                  <div key={idx} className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-20 duration-700">
+                     <Avatar className={cn("border-4 shadow-xl h-24 w-24 border-yellow-400")}>
+                        <AvatarImage src={winner.avatar}/><AvatarFallback>W</AvatarFallback>
+                     </Avatar>
+                     <div className="bg-yellow-500/20 border-x-2 border-t-2 border-yellow-400 w-32 h-32 rounded-t-3xl flex flex-col items-center justify-center">
+                        <span className="text-3xl">🥇</span>
+                        <p className="text-[10px] font-black text-white uppercase truncate px-2">{winner.name}</p>
+                        <p className="text-lg font-black text-yellow-500">+{winner.win.toLocaleString()}</p>
+                     </div>
+                  </div>
+                ))}
+             </div>
+          </div>
+        )}
+
         {/* Mandala Background Pattern Overlay */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/mandala.png')] bg-center opacity-30" />
@@ -215,25 +240,12 @@ export default function FruitPartyPage() {
            </div>
         </div>
 
-        {/* Bonus visual flairs at top corners */}
-        <div className="absolute top-44 left-6 z-10 w-24 h-24 bg-black/20 rounded-full blur-xl animate-pulse" />
-        <div className="absolute top-48 left-8 z-20 w-16 h-16 bg-white/10 backdrop-blur-md rounded-full border border-white/10 flex items-center justify-center p-2">
-           <span className="text-4xl">🍗</span>
-        </div>
-        <div className="absolute top-44 right-6 z-10 w-24 h-24 bg-black/20 rounded-full blur-xl animate-pulse" />
-        <div className="absolute top-48 right-8 z-20 w-16 h-16 bg-white/10 backdrop-blur-md rounded-full border border-white/10 flex items-center justify-center p-2">
-           <span className="text-4xl">🍉</span>
-        </div>
-
-        {/* The Ferris Wheel Betting Circle */}
+        {/* Ferris Wheel Betting Circle */}
         <main className="flex-1 relative z-10 flex flex-col items-center justify-center p-4">
            
            <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
-              
-              {/* Outer Glow Ring */}
               <div className="absolute inset-0 border-4 border-white/5 rounded-full m-10" />
               
-              {/* The Central Timer Hub */}
               <div className="relative z-20 w-36 h-36 bg-[#4c1d95] rounded-full shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center border-[6px] border-[#7c3aed] p-4 text-center">
                  <span className="text-7xl font-black text-yellow-400 italic leading-none drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">
                     {gameState === 'betting' ? timeLeft : '🎲'}
@@ -243,17 +255,12 @@ export default function FruitPartyPage() {
                  </p>
               </div>
 
-              {/* Ferris Wheel Spokes (SVG) */}
               <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" viewBox="0 0 100 100">
                  {Array.from({length: 8}).map((_, i) => (
                    <line key={i} x1="50" y1="50" x2="50" y2="5" transform={`rotate(${i * 45} 50 50)`} stroke="white" strokeWidth="0.5" />
                  ))}
-                 {Array.from({length: 8}).map((_, i) => (
-                   <circle key={i} cx="50" cy="5" r="1.5" transform={`rotate(${i * 45} 50 50)`} fill="white" className="animate-pulse" />
-                 ))}
               </svg>
 
-              {/* Items Grid */}
               {ITEMS.map((item, idx) => (
                 <button 
                   key={item.id}
@@ -292,45 +299,25 @@ export default function FruitPartyPage() {
 
         {/* Footer Interaction Hub */}
         <footer className="relative z-50 p-4 pb-10 space-y-4">
-           
-           {/* Wagering Panel */}
            <div className="max-w-md mx-auto bg-[#7c3aed]/40 backdrop-blur-xl rounded-[2rem] p-4 border border-white/10 shadow-2xl">
-              
               <div className="flex items-center justify-between mb-4 px-2">
                  <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 px-4 py-1.5 rounded-xl flex items-center gap-2 shadow-lg">
                     <GoldCoinIcon className="h-4 w-4" />
                     <span className="text-sm font-black text-black">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
                     <button className="text-black/40"><History className="h-3 w-3" /></button>
                  </div>
-                 <button 
-                   onClick={handleRepeat}
-                   className="bg-white/10 px-6 py-1.5 rounded-xl font-black uppercase text-xs hover:bg-white/20 active:scale-95 transition-all"
-                 >
-                    Repeat
-                 </button>
+                 <button onClick={handleRepeat} className="bg-white/10 px-6 py-1.5 rounded-xl font-black uppercase text-xs hover:bg-white/20 active:scale-95 transition-all">Repeat</button>
               </div>
-
-              <p className="text-[10px] font-black text-white/60 uppercase tracking-widest text-center mb-4">Choose the amount of wager then choose food</p>
-
               <div className="flex justify-between gap-2">
                  {CHIPS.map(chip => (
-                   <button 
-                     key={chip.value} 
-                     onClick={() => setSelectedChip(chip.value)}
-                     className={cn(
-                       "flex-1 h-16 rounded-2xl flex flex-col items-center justify-center transition-all border-2 relative",
-                       selectedChip === chip.value ? "bg-white border-white text-[#7c3aed] scale-105 z-10 shadow-xl" : "bg-white/5 border-white/5 text-white/40"
-                     )}
-                   >
+                   <button key={chip.value} onClick={() => setSelectedChip(chip.value)} className={cn("flex-1 h-16 rounded-2xl flex flex-col items-center justify-center transition-all border-2 relative", selectedChip === chip.value ? "bg-white border-white text-[#7c3aed] scale-105 z-10 shadow-xl" : "bg-white/5 border-white/5 text-white/40")}>
                       <GoldCoinIcon className={cn("h-4 w-4 mb-1", selectedChip === chip.value ? "text-[#7c3aed]" : "text-yellow-500")} />
                       <span className="text-xs font-black italic">{chip.label}</span>
-                      {selectedChip === chip.value && <div className="absolute -inset-1 rounded-2xl border-2 border-red-400 opacity-40 animate-pulse" />}
                    </button>
                  ))}
               </div>
            </div>
 
-           {/* Winning History */}
            <div className="max-w-md mx-auto bg-black/40 backdrop-blur-md rounded-full border border-white/5 p-2 px-6 flex items-center gap-4">
               <span className="text-[10px] font-black uppercase tracking-tighter text-white/40 shrink-0">Winning History</span>
               <div className="flex-1 flex gap-3 overflow-x-auto no-scrollbar">
@@ -342,12 +329,9 @@ export default function FruitPartyPage() {
                  ))}
               </div>
            </div>
-
         </footer>
 
-        <style jsx global>{`
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-        `}</style>
+        <style jsx global>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
       </div>
     </AppLayout>
   );

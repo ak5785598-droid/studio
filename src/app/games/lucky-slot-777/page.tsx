@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -11,7 +10,8 @@ import {
   X,
   Volume2,
   VolumeX,
-  Crown
+  Crown,
+  Trophy
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
@@ -127,6 +127,8 @@ export default function LuckySlot777Page() {
 
     if (winAmount > 0 && userProfile) {
       sessionWinners.push({ name: userProfile.username, win: winAmount, avatar: userProfile.avatarUrl, isMe: true });
+    } else {
+      sessionWinners.push({ name: 'Casino_Pro', win: 15000, avatar: 'https://picsum.photos/seed/winner3/200/200' });
     }
 
     setWinners(sessionWinners);
@@ -177,23 +179,24 @@ export default function LuckySlot777Page() {
       <div className="h-screen w-full bg-[#1a0a2e] flex flex-col relative overflow-hidden font-headline animate-in fade-in duration-700">
         <CompactRoomView />
 
+        {/* Real-Time Result Overlay */}
         {gameState === 'result' && winners.length > 0 && (
           <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500">
-             <div className="relative mb-12">
-                <Crown className="absolute -top-12 left-1/2 -translate-x-1/2 h-16 w-16 text-yellow-400 animate-bounce" />
-                <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter text-center">Round Winners</h2>
+             <div className="relative mb-12 flex flex-col items-center gap-4">
+                <Trophy className="h-20 w-20 text-yellow-400 animate-bounce" />
+                <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter text-center">Tribe Winners</h2>
              </div>
              
              <div className="flex items-end justify-center gap-4 px-6 w-full max-w-lg h-64">
                 {winners.map((winner, idx) => (
                   <div key={idx} className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-20 duration-1000">
-                     <Avatar className={cn("border-4 shadow-xl", idx === 0 ? "h-24 w-24 border-yellow-400" : "h-20 w-20 border-slate-300")}>
-                        <AvatarImage src={winner.avatar}/><AvatarFallback>{idx + 1}</AvatarFallback>
+                     <Avatar className={cn("border-4 shadow-xl h-24 w-24 border-yellow-400")}>
+                        <AvatarImage src={winner.avatar}/><AvatarFallback>W</AvatarFallback>
                      </Avatar>
-                     <div className={cn("w-32 rounded-t-2xl border-x border-t flex flex-col items-center justify-center", idx === 0 ? "bg-yellow-500/20 border-yellow-400 h-32" : "bg-slate-400/20 border-slate-300 h-24")}>
-                        <span className="text-3xl">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</span>
+                     <div className="bg-yellow-500/20 border-x-2 border-t-2 border-yellow-400 w-32 h-32 rounded-t-3xl flex flex-col items-center justify-center">
+                        <span className="text-3xl">🥇</span>
                         <p className="text-[10px] font-black text-white uppercase truncate px-2">{winner.name}</p>
-                        <p className="text-sm font-black text-yellow-500">+{winner.win.toLocaleString()}</p>
+                        <p className="text-lg font-black text-yellow-500">+{winner.win.toLocaleString()}</p>
                      </div>
                   </div>
                 ))}
@@ -220,10 +223,6 @@ export default function LuckySlot777Page() {
            </header>
 
            <div className="relative w-64 h-64 flex items-center justify-center scale-110 mt-10">
-              <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center">
-                 <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-purple-900 rotate-45 border-2 border-yellow-500 animate-pulse" />
-                 <div className="w-4 h-6 bg-yellow-500 clip-path-triangle -mt-1 shadow-lg" />
-              </div>
               <div className={cn("relative w-full h-full rounded-full border-[8px] border-yellow-500 shadow-2xl", gameState === 'spinning' ? "transition-transform duration-[5000ms] cubic-bezier(0.15, 0, 0.15, 1)" : "transition-none")} style={{ transform: `rotate(${rotation}deg)` }}>
                  <svg viewBox="0 0 100 100" className="w-full h-full rounded-full">
                     {WHEEL_DISTRIBUTION.map((id, i) => {
@@ -247,7 +246,6 @@ export default function LuckySlot777Page() {
                 <button key={id} onClick={() => handlePlaceBet(id)} disabled={gameState !== 'betting'} className={cn("relative h-32 rounded-2xl border-2 transition-all flex flex-col items-center justify-center bg-gradient-to-b from-[#4a1d96] to-[#2d0b5a] hover:scale-105 active:scale-95", myBets[id] && "border-yellow-400 ring-2 ring-yellow-400/20 shadow-[0_0_20px_rgba(251,191,36,0.3)]")}>
                    <span className="text-4xl mb-1">{id === 'seven' ? '777' : (id === 'peach' ? '🍑' : '🍉')}</span>
                    <span className="text-xl font-black text-yellow-400 italic">{id === 'seven' ? 'x8' : 'x2'}</span>
-                   {myBets[id] && <div className="absolute top-1 right-1 text-[8px] font-black text-white bg-black/40 px-1.5 rounded-full animate-in zoom-in">{(myBets[id] / 1000).toFixed(0)}K</div>}
                 </button>
               ))}
            </div>
@@ -259,15 +257,14 @@ export default function LuckySlot777Page() {
               </div>
               <div className="flex gap-1.5 px-2">
                  {CHIPS.map(chip => (
-                   <button key={chip.value} onClick={() => { setSelectedChip(chip.value); }} className={cn("h-9 w-9 rounded-full flex items-center justify-center transition-all border-2", selectedChip === chip.value ? chip.color + " border-white scale-110 shadow-[0_0_10px_white]" : "bg-black/40 border-white/10 hover:bg-white/10")}>
+                   <button key={chip.value} onClick={() => setSelectedChip(chip.value)} className={cn("h-9 w-9 rounded-full flex items-center justify-center transition-all border-2", selectedChip === chip.value ? chip.color + " border-white scale-110 shadow-[0_0_10px_white]" : "bg-black/40 border-white/10")}>
                       <span className="text-[7px] font-black text-white italic">{chip.label}</span>
                    </button>
                  ))}
               </div>
-              <button className="h-12 w-12 rounded-full bg-purple-600 border-2 border-purple-400 flex items-center justify-center active:scale-90 hover:bg-purple-500 shadow-xl transition-all"><GoldCoinIcon className="h-6 w-6" /></button>
+              <button className="h-12 w-12 rounded-full bg-purple-600 border-2 border-purple-400 flex items-center justify-center active:scale-90 shadow-xl transition-all"><GoldCoinIcon className="h-6 w-6" /></button>
            </div>
         </div>
-        <style jsx global>{`.clip-path-triangle { clip-path: polygon(50% 100%, 0 0, 100% 0); }`}</style>
       </div>
     </AppLayout>
   );

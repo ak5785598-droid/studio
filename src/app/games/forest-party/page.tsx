@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -116,6 +115,8 @@ export default function WildPartyPage() {
     const sessionWinners = [];
     if (winAmount > 0 && userProfile) {
       sessionWinners.push({ name: userProfile.username, win: winAmount, avatar: userProfile.avatarUrl, isMe: true });
+    } else {
+      sessionWinners.push({ name: 'Jungle_King', win: 8000, avatar: 'https://picsum.photos/seed/winner2/200/200' });
     }
 
     setWinners(sessionWinners);
@@ -185,19 +186,35 @@ export default function WildPartyPage() {
       <div className="h-screen w-full bg-[#1a3a1a] flex flex-col relative overflow-hidden font-headline text-white">
         <CompactRoomView />
 
-        {/* Deep Forest Background */}
+        {/* Real-Time Winning Overlay */}
+        {gameState === 'result' && winners.length > 0 && (
+          <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500 p-6">
+             <div className="relative mb-12 flex flex-col items-center gap-4">
+                <Trophy className="h-20 w-20 text-yellow-400 animate-bounce" />
+                <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter text-center">Tribe Winners</h2>
+             </div>
+             <div className="flex items-end justify-center gap-4 w-full max-w-lg">
+                {winners.map((winner, idx) => (
+                  <div key={idx} className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-20 duration-700">
+                     <Avatar className={cn("border-4 shadow-xl h-24 w-24 border-yellow-400")}>
+                        <AvatarImage src={winner.avatar}/><AvatarFallback>W</AvatarFallback>
+                     </Avatar>
+                     <div className="bg-yellow-500/20 border-x-2 border-t-2 border-yellow-400 w-32 h-32 rounded-t-3xl flex flex-col items-center justify-center">
+                        <span className="text-3xl">🥇</span>
+                        <p className="text-[10px] font-black text-white uppercase truncate px-2">{winner.name}</p>
+                        <p className="text-lg font-black text-yellow-500">+{winner.win.toLocaleString()}</p>
+                     </div>
+                  </div>
+                ))}
+             </div>
+          </div>
+        )}
+
         <div className="absolute inset-0 z-0">
-           <img 
-             src="https://picsum.photos/seed/forest-ruins/1200/2400" 
-             className="h-full w-full object-cover opacity-40 scale-110" 
-             alt="Wild Forest" 
-             data-ai-hint="deep forest"
-           />
+           <img src="https://picsum.photos/seed/forest-ruins/1200/2400" className="h-full w-full object-cover opacity-40 scale-110" alt="Wild Forest" data-ai-hint="deep forest" />
            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
-           <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-green-500/10 rounded-full blur-[100px] animate-pulse" />
         </div>
 
-        {/* Top Navigation */}
         <div className="relative z-50 flex items-center justify-between p-4 pt-32">
            <div className="flex gap-2">
               <button onClick={() => router.back()} className="bg-yellow-500 p-2 rounded-full text-black shadow-lg"><ChevronLeft className="h-5 w-5" /></button>
@@ -213,7 +230,6 @@ export default function WildPartyPage() {
            </div>
         </div>
 
-        {/* History Line */}
         <div className="relative z-50 px-4 py-2">
            <div className="bg-black/40 backdrop-blur-md rounded-full border border-white/10 p-1 flex items-center gap-2 overflow-x-auto no-scrollbar">
               {history.map((id, i) => (
@@ -227,12 +243,8 @@ export default function WildPartyPage() {
            </div>
         </div>
 
-        {/* Octagonal Betting Area */}
         <main className="flex-1 relative z-10 flex flex-col items-center justify-center py-10 px-4">
-           
            <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
-              
-              {/* Central Status */}
               <div className="relative z-20 w-40 h-40 bg-gradient-to-b from-yellow-300 to-yellow-600 rounded-full shadow-2xl flex flex-col items-center justify-center border-4 border-white/20 p-4 text-center">
                  <p className="text-[10px] font-black uppercase text-black/60 leading-tight">
                     {gameState === 'betting' ? 'Select Animal now' : 'Spinning...'}
@@ -242,7 +254,6 @@ export default function WildPartyPage() {
                  </span>
               </div>
 
-              {/* Animal Tiles Grid */}
               {ANIMALS.map((animal, idx) => (
                 <button 
                   key={animal.id}
@@ -278,13 +289,10 @@ export default function WildPartyPage() {
                 </button>
               ))}
            </div>
-
         </main>
 
-        {/* Bottom Bar */}
         <footer className="relative z-50 p-4 pb-10 bg-gradient-to-t from-black via-black/80 to-transparent">
            <div className="max-w-md mx-auto space-y-4">
-              
               <div className="flex items-center justify-between">
                  <div className="flex items-center gap-2 bg-black/60 px-4 py-2 rounded-full border border-white/10">
                     <GoldCoinIcon className="h-5 w-5" />
@@ -294,63 +302,20 @@ export default function WildPartyPage() {
                     <Users className="h-6 w-6" />
                  </button>
               </div>
-
               <div className="bg-[#3d2b1f] p-3 rounded-[2.5rem] border-4 border-[#5d4037] shadow-2xl flex items-center justify-between gap-2 overflow-hidden">
                  <div className="flex gap-2 flex-1 overflow-x-auto no-scrollbar">
                     {CHIPS.map(chip => (
-                      <button 
-                        key={chip.value} 
-                        onClick={() => setSelectedChip(chip.value)}
-                        className={cn(
-                          "h-12 w-12 rounded-full flex items-center justify-center transition-all border-4 shrink-0 shadow-lg relative",
-                          selectedChip === chip.value ? "border-white scale-110 z-10" : "border-black/20 opacity-60",
-                          chip.color
-                        )}
-                      >
+                      <button key={chip.value} onClick={() => setSelectedChip(chip.value)} className={cn("h-12 w-12 rounded-full flex items-center justify-center transition-all border-4 shrink-0 shadow-lg relative", selectedChip === chip.value ? "border-white scale-110 z-10" : "border-black/20 opacity-60", chip.color)}>
                          <span className="text-[10px] font-black text-white italic drop-shadow-md">{chip.label}</span>
-                         {selectedChip === chip.value && <div className="absolute inset-0 rounded-full border-2 border-white/40 animate-ping" />}
                       </button>
                     ))}
                  </div>
-                 <button 
-                   onClick={handleRepeat}
-                   className="bg-gradient-to-b from-orange-400 to-orange-600 px-6 h-12 rounded-full font-black uppercase italic text-xs shadow-xl shadow-orange-500/20 active:scale-90 transition-all border-2 border-white/20"
-                 >
-                    Repeat
-                 </button>
+                 <button onClick={handleRepeat} className="bg-gradient-to-b from-orange-400 to-orange-600 px-6 h-12 rounded-full font-black uppercase italic text-xs shadow-xl shadow-orange-500/20 active:scale-90 transition-all border-2 border-white/20">Repeat</button>
               </div>
-
            </div>
         </footer>
 
-        {/* Result Overlay */}
-        {gameState === 'result' && winners.length > 0 && (
-          <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500 p-6">
-             <div className="relative mb-12 flex flex-col items-center gap-4">
-                <Trophy className="h-20 w-20 text-yellow-400 animate-bounce" />
-                <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter text-center">Tribe Winners</h2>
-             </div>
-             
-             <div className="flex items-end justify-center gap-4 w-full max-w-lg">
-                {winners.map((winner, idx) => (
-                  <div key={idx} className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-20 duration-700">
-                     <Avatar className={cn("border-4 shadow-xl h-24 w-24 border-yellow-400")}>
-                        <AvatarImage src={winner.avatar}/><AvatarFallback>W</AvatarFallback>
-                     </Avatar>
-                     <div className="bg-yellow-500/20 border-x-2 border-t-2 border-yellow-400 w-32 h-32 rounded-t-3xl flex flex-col items-center justify-center">
-                        <span className="text-3xl">🥇</span>
-                        <p className="text-[10px] font-black text-white uppercase truncate px-2">{winner.name}</p>
-                        <p className="text-lg font-black text-yellow-500">+{winner.win.toLocaleString()}</p>
-                     </div>
-                  </div>
-                ))}
-             </div>
-          </div>
-        )}
-
-        <style jsx global>{`
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-        `}</style>
+        <style jsx global>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
       </div>
     </AppLayout>
   );
