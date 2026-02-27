@@ -289,10 +289,10 @@ export default function TeenPattiPalacePage() {
                 const asset = PlaceHolderImages.find(img => img.id === s.characterId);
                 return (
                   <div key={s.id} className="relative w-1/3 h-full flex flex-col justify-end group">
-                     {/* 3D Character Visual Stand */}
+                     {/* 3D Character Visual Stand - Positioned above and behind the box */}
                      <div className={cn(
-                       "absolute bottom-24 left-1/2 -translate-x-1/2 w-56 h-80 transition-all duration-1000 pointer-events-none transform-gpu flex items-end justify-center",
-                       winner === s.id ? "scale-115 z-20" : "scale-100 z-10 opacity-90 grayscale-[0.1]"
+                       "absolute bottom-[120px] left-1/2 -translate-x-1/2 w-64 h-96 transition-all duration-1000 pointer-events-none transform-gpu flex items-end justify-center",
+                       winner === s.id ? "scale-110 z-20 brightness-110" : "scale-100 z-10 opacity-80"
                      )}>
                         {asset && (
                           <img 
@@ -302,6 +302,10 @@ export default function TeenPattiPalacePage() {
                             data-ai-hint={asset.imageHint}
                           />
                         )}
+                        {/* Winner Glow */}
+                        {winner === s.id && (
+                          <div className="absolute inset-0 bg-yellow-500/20 blur-3xl rounded-full -z-10 animate-pulse" />
+                        )}
                      </div>
 
                      {/* Glass Betting Box */}
@@ -309,25 +313,27 @@ export default function TeenPattiPalacePage() {
                        onClick={() => handlePlaceBet(s.id)}
                        disabled={gameState !== 'betting'}
                        className={cn(
-                         "relative h-32 rounded-2xl border-2 transition-all duration-300 p-3 bg-black/50 backdrop-blur-md flex flex-col justify-between overflow-hidden active:scale-95 active:bg-yellow-500/10 z-30 shadow-2xl",
+                         "relative h-36 rounded-2xl border-2 transition-all duration-300 p-4 bg-black/40 backdrop-blur-md flex flex-col justify-between overflow-hidden active:scale-95 z-30 shadow-2xl",
                          s.color,
                          winner === s.id ? "border-yellow-500 ring-4 ring-yellow-500/20" : "hover:border-white/20"
                        )}
                      >
                         {/* Realistic Coin Scatter Simulation */}
                         <div className="absolute inset-0 flex flex-wrap items-end justify-center p-2 opacity-80 pointer-events-none gap-0.5 overflow-hidden">
-                           {Array.from({ length: Math.min(25, Math.ceil((totalPots[s.id] || 0) / 100)) }).map((_, i) => (
+                           {Array.from({ length: Math.min(30, Math.ceil((totalPots[s.id] || 0) / 50)) }).map((_, i) => (
                              <GoldCoinIcon 
                                key={i} 
-                               className="h-3 w-3 text-yellow-500 filter drop-shadow-sm animate-in zoom-in slide-in-from-top-4" 
-                               style={{ animationDelay: `${i * 0.05}s` }}
+                               className="h-3.5 w-3.5 text-yellow-500 filter drop-shadow-sm animate-in zoom-in slide-in-from-top-4" 
+                               style={{ animationDelay: `${i * 0.03}s` }}
                              />
                            ))}
                         </div>
 
-                        <div className="mt-auto relative z-40 text-center sm:text-left">
-                           <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">Pot: <span className="text-white">{totalPots[s.id].toLocaleString()}</span></p>
-                           <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">You: <span className="text-yellow-500">{myBets[s.id].toLocaleString()}</span></p>
+                        <div className="mt-auto relative z-40 text-center w-full">
+                           <div className="bg-black/40 rounded-lg py-1 px-2 border border-white/5 inline-block">
+                              <p className="text-[9px] font-black uppercase text-white/40 tracking-widest leading-tight">Pot: <span className="text-white">{(totalPots[s.id] || 0).toLocaleString()}</span></p>
+                              <p className="text-[9px] font-black uppercase text-white/40 tracking-widest leading-tight">You: <span className="text-yellow-500">{(myBets[s.id] || 0).toLocaleString()}</span></p>
+                           </div>
                         </div>
                      </button>
                   </div>
