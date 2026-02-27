@@ -26,6 +26,7 @@ import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, increment, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 export default function TasksPage() {
   const { user } = useUser();
