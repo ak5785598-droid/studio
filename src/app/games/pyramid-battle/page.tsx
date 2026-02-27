@@ -17,7 +17,8 @@ import {
   Menu,
   ChevronDown,
   Activity,
-  Crown
+  Crown,
+  Users
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
