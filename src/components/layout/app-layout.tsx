@@ -131,7 +131,7 @@ export function AppLayout({
   return (
     <SidebarProvider>
       <div className="flex min-h-[100dvh] w-full bg-[#FFCC00] font-headline overflow-hidden relative">
-        <Sidebar className="hidden md:flex bg-white border-r">
+        <Sidebar className="bg-white border-r">
           <SidebarHeader className="border-b bg-white">
             <div className="flex items-center gap-2 p-2" aria-label="Ummy Home">
               <UmmyLogoIcon className="h-7 w-7"/>

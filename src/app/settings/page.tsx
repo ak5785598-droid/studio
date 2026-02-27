@@ -164,10 +164,14 @@ export default function SettingsPage() {
           </Card>
         </div>
 
-        <div className="px-8 pt-4 pb-10 flex justify-center">
-           <Button variant="ghost" className="text-red-500 hover:bg-red-50 font-black uppercase italic tracking-widest text-xs" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" /> Exit Frequency
+        <div className="px-8 pt-8 pb-10 flex flex-col items-center gap-4">
+           <Button 
+             className="w-full h-16 rounded-[1.5rem] bg-destructive text-white font-black uppercase italic tracking-widest shadow-xl shadow-destructive/20 hover:scale-[1.02] active:scale-95 transition-all" 
+             onClick={handleLogout}
+           >
+              <LogOut className="h-6 w-6 mr-2" /> Exit Frequency (Sign Out)
            </Button>
+           <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] italic">Ummy Secure Session Protocol v1.0</p>
         </div>
       </div>
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />

@@ -48,7 +48,7 @@ export function useProfilePictureUpload() {
         updatedAt: serverTimestamp()
       };
 
-      // Atomic updates using setDoc with merge to ensure visual synchronization
+      // Atomic updates using setDoc with merge to ensure visual synchronization even if docs don't exist
       await Promise.all([
         setDoc(userSummaryRef, updateData, { merge: true }),
         setDoc(userProfileRef, updateData, { merge: true })
