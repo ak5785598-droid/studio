@@ -23,7 +23,7 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
       
       // Determine duration based on gift impact
       let duration = 3000;
-      if (giftId === 'supernova' || giftId === 'galaxy') duration = 4000;
+      if (giftId === 'supernova' || giftId === 'galaxy' || giftId === 'rolex') duration = 4000;
       if (giftId === 'dragon') duration = 4500;
 
       const timer = setTimeout(() => {
@@ -48,6 +48,7 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
       case 'castle': return '🏰';
       case 'galaxy': return '🌌';
       case 'supernova': return '💥';
+      case 'rolex': return '⌚';
       default: return '🎁';
     }
   };
@@ -61,12 +62,13 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
       case 'rocket': return 'animate-rocket-launch';
       case 'galaxy': return 'animate-galaxy-zoom';
       case 'supernova': return 'animate-supernova-burst';
+      case 'rolex': return 'animate-rolex-sync';
       default: return 'animate-bounce scale-[2.0]';
     }
   };
 
-  const isHighTier = ['dragon', 'rocket', 'castle', 'galaxy', 'supernova'].includes(giftId);
-  const isUltimate = giftId === 'supernova' || giftId === 'galaxy';
+  const isHighTier = ['dragon', 'rocket', 'castle', 'galaxy', 'supernova', 'rolex'].includes(giftId);
+  const isUltimate = giftId === 'supernova' || giftId === 'galaxy' || giftId === 'rolex';
 
   return (
     <div key={triggerKey} className="fixed inset-0 z-[300] pointer-events-none flex items-center justify-center overflow-hidden">
@@ -95,6 +97,13 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
            <div className="w-24 h-24 bg-white rounded-full blur-3xl animate-ping scale-[10]" />
            <div className="w-12 h-12 bg-yellow-400 rounded-full blur-2xl animate-ping scale-[15] delay-150" />
+        </div>
+      )}
+
+      {/* Luxury Particle Glow for Rolex */}
+      {giftId === 'rolex' && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+           <div className="w-32 h-32 bg-yellow-500/20 rounded-full blur-[80px] animate-pulse" />
         </div>
       )}
     </div>

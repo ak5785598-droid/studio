@@ -118,6 +118,7 @@ const AVAILABLE_GIFTS: Gift[] = [
   { id: 'castle', name: 'Castle', emoji: '🏰', price: 50000, animationType: 'bounce' },
   { id: 'galaxy', name: 'Galaxy', emoji: '🌌', price: 100000, animationType: 'zoom' },
   { id: 'supernova', name: 'Supernova', emoji: '💥', price: 250000, animationType: 'zoom' },
+  { id: 'rolex', name: 'Rolex', emoji: '⌚', price: 500000, animationType: 'zoom' },
 ];
 
 const AVAILABLE_EMOJIS = ['😀', '😂', '😘', '🥰', '😎', '🤗', '😡', '😭', '💋'];

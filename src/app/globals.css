@@ -129,3 +129,41 @@
 .animate-shine {
   animation: shine 3s infinite;
 }
+
+/* Gift Animations */
+@keyframes screen-flash {
+  0% { background-color: rgba(255, 255, 255, 0); }
+  10% { background-color: rgba(255, 255, 255, 0.8); }
+  100% { background-color: rgba(255, 255, 255, 0); }
+}
+.animate-screen-flash {
+  animation: screen-flash 0.5s ease-out forwards;
+}
+
+@keyframes rolex-sync {
+  0% { transform: scale(0) rotate(-180deg); opacity: 0; filter: brightness(2); }
+  20% { transform: scale(1.2) rotate(0deg); opacity: 1; filter: brightness(1.5); }
+  40% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+  60% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8)); }
+  100% { transform: scale(1.5) rotate(0deg); opacity: 0; }
+}
+.animate-rolex-sync {
+  animation: rolex-sync 4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes heart-burst {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+.animate-heart-burst {
+  animation: heart-burst 2s ease-out forwards;
+}
+
+@keyframes galaxy-zoom {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  100% { transform: scale(4) rotate(360deg); opacity: 0; }
+}
+.animate-galaxy-zoom {
+  animation: galaxy-zoom 4s linear forwards;
+}
