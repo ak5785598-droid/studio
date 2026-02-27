@@ -9,16 +9,14 @@ import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, increment, serverTimestamp } from 'firebase/firestore';
 import { 
   ChevronLeft, 
-  Volume2,
-  VolumeX,
-  History,
-  HelpCircle,
-  Trophy,
-  Users,
-  RefreshCcw,
-  MessageCircle,
-  Plus,
-  Clock,
+  Volume2, 
+  VolumeX, 
+  HelpCircle, 
+  Trophy, 
+  Users, 
+  RefreshCcw, 
+  Plus, 
+  Clock, 
   LayoutGrid
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
@@ -37,9 +35,9 @@ const CHIPS = [
 ];
 
 const SECTIONS = [
-  { id: 'A', label: 'A', characterId: 'tp-char-a', color: 'border-white/20' },
-  { id: 'B', label: 'B', characterId: 'tp-char-b', color: 'border-yellow-500/40' },
-  { id: 'C', label: 'C', characterId: 'tp-char-c', color: 'border-amber-700/40' },
+  { id: 'A', label: 'A', characterId: 'tp-char-a' },
+  { id: 'B', label: 'B', characterId: 'tp-char-b' },
+  { id: 'C', label: 'C', characterId: 'tp-char-c' },
 ];
 
 export default function TeenPattiPalacePage() {
@@ -242,7 +240,7 @@ export default function TeenPattiPalacePage() {
         <main className="flex-1 relative z-10 flex flex-col items-center pt-6">
            
            {/* Cards Layout */}
-           <div className="w-full flex justify-around px-4 mb-10">
+           <div className="w-full flex justify-around px-4 mb-6">
               {SECTIONS.map(s => (
                 <div key={s.id} className="flex flex-col items-center gap-2">
                    <div className="flex gap-0.5">
@@ -269,30 +267,30 @@ export default function TeenPattiPalacePage() {
            </div>
 
            {/* Circular Timer Centerpiece */}
-           <div className="relative mb-10">
-              <div className="w-20 h-20 rounded-full border-4 border-white/5 flex items-center justify-center bg-black/60 backdrop-blur-xl shadow-2xl overflow-hidden group">
+           <div className="relative mb-6">
+              <div className="w-16 h-16 rounded-full border-4 border-white/5 flex items-center justify-center bg-black/60 backdrop-blur-xl shadow-2xl overflow-hidden group">
                  <div 
                    className="absolute inset-0 border-4 border-yellow-500 rounded-full transition-all duration-1000" 
                    style={{ clipPath: `inset(0 0 ${100 - (timeLeft/15)*100}% 0)` }} 
                  />
                  <div className="relative z-10 flex flex-col items-center">
-                    <span className="text-2xl font-black italic tracking-tighter leading-none">{timeLeft}s</span>
+                    <span className="text-xl font-black italic tracking-tighter leading-none">{timeLeft}s</span>
                  </div>
-                 {/* Inner Glow */}
                  <div className="absolute inset-0 bg-yellow-500/10 animate-pulse" />
               </div>
            </div>
 
            {/* Character & Betting Boxes Area */}
            <div className="flex-1 w-full flex items-end justify-between px-4 pb-28 relative">
-              {SECTIONS.map((s, idx) => {
+              {SECTIONS.map((s) => {
                 const asset = PlaceHolderImages.find(img => img.id === s.characterId);
                 return (
-                  <div key={s.id} className="relative w-1/3 h-full flex flex-col justify-end group">
-                     {/* 3D Character Visual Stand - Positioned above and behind the box */}
+                  <div key={s.id} className="relative w-1/3 h-full flex flex-col justify-end group px-1">
+                     
+                     {/* 3D Character Visual - Behind the glass box */}
                      <div className={cn(
-                       "absolute bottom-[120px] left-1/2 -translate-x-1/2 w-64 h-96 transition-all duration-1000 pointer-events-none transform-gpu flex items-end justify-center",
-                       winner === s.id ? "scale-110 z-20 brightness-110" : "scale-100 z-10 opacity-80"
+                       "absolute bottom-[80px] left-1/2 -translate-x-1/2 w-64 h-[400px] transition-all duration-1000 pointer-events-none transform-gpu flex items-end justify-center z-10",
+                       winner === s.id ? "scale-110 brightness-110" : "scale-100 opacity-90"
                      )}>
                         {asset && (
                           <img 
@@ -308,32 +306,31 @@ export default function TeenPattiPalacePage() {
                         )}
                      </div>
 
-                     {/* Glass Betting Box */}
+                     {/* Semi-Transparent Glass Betting Box */}
                      <button 
                        onClick={() => handlePlaceBet(s.id)}
                        disabled={gameState !== 'betting'}
                        className={cn(
-                         "relative h-36 rounded-2xl border-2 transition-all duration-300 p-4 bg-black/40 backdrop-blur-md flex flex-col justify-between overflow-hidden active:scale-95 z-30 shadow-2xl",
-                         s.color,
+                         "relative h-56 rounded-2xl border-2 transition-all duration-300 p-4 bg-black/40 backdrop-blur-md flex flex-col justify-end overflow-hidden active:scale-95 z-30 shadow-2xl",
+                         "border-white/10",
                          winner === s.id ? "border-yellow-500 ring-4 ring-yellow-500/20" : "hover:border-white/20"
                        )}
                      >
-                        {/* Realistic Coin Scatter Simulation */}
-                        <div className="absolute inset-0 flex flex-wrap items-end justify-center p-2 opacity-80 pointer-events-none gap-0.5 overflow-hidden">
-                           {Array.from({ length: Math.min(30, Math.ceil((totalPots[s.id] || 0) / 50)) }).map((_, i) => (
+                        {/* Gold Coin Scatter Simulation */}
+                        <div className="absolute inset-0 flex flex-wrap items-center justify-center p-2 opacity-90 pointer-events-none gap-0.5 overflow-hidden pb-16">
+                           {Array.from({ length: Math.min(25, Math.ceil((totalPots[s.id] || 0) / 100)) }).map((_, i) => (
                              <GoldCoinIcon 
                                key={i} 
-                               className="h-3.5 w-3.5 text-yellow-500 filter drop-shadow-sm animate-in zoom-in slide-in-from-top-4" 
-                               style={{ animationDelay: `${i * 0.03}s` }}
+                               className="h-4 w-4 text-yellow-500 filter drop-shadow-md animate-in zoom-in slide-in-from-top-4" 
+                               style={{ animationDelay: `${i * 0.02}s` }}
                              />
                            ))}
                         </div>
 
-                        <div className="mt-auto relative z-40 text-center w-full">
-                           <div className="bg-black/40 rounded-lg py-1 px-2 border border-white/5 inline-block">
-                              <p className="text-[9px] font-black uppercase text-white/40 tracking-widest leading-tight">Pot: <span className="text-white">{(totalPots[s.id] || 0).toLocaleString()}</span></p>
-                              <p className="text-[9px] font-black uppercase text-white/40 tracking-widest leading-tight">You: <span className="text-yellow-500">{(myBets[s.id] || 0).toLocaleString()}</span></p>
-                           </div>
+                        {/* Betting Labels UI */}
+                        <div className="relative z-40 text-center w-full space-y-0.5 mb-2">
+                           <p className="text-sm font-black text-white drop-shadow-md">Pot: {(totalPots[s.id] || 0).toLocaleString()}</p>
+                           <p className="text-sm font-black text-yellow-500 drop-shadow-md">You: {(myBets[s.id] || 0).toLocaleString()}</p>
                         </div>
                      </button>
                   </div>
@@ -354,7 +351,7 @@ export default function TeenPattiPalacePage() {
                     className={cn(
                       "h-12 w-12 rounded-full flex items-center justify-center transition-all border-2 border-white/10 shrink-0 shadow-lg relative group",
                       chip.color,
-                      selectedChip === chip.value ? "scale-115 border-white ring-4 ring-white/30 z-10" : "opacity-60 hover:opacity-100"
+                      selectedChip === chip.value ? "scale-110 border-white ring-4 ring-white/30 z-10" : "opacity-60 hover:opacity-100"
                     )}
                    >
                       <span className="text-[11px] font-black text-white italic drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">{chip.label || chip.value}</span>
@@ -381,24 +378,6 @@ export default function TeenPattiPalacePage() {
               </button>
            </div>
         </footer>
-
-        {/* Tribe Winner Overlay */}
-        {gameState === 'result' && winners.length > 0 && (
-          <div className="fixed inset-0 z-[300] flex flex-col items-center justify-center bg-black/85 backdrop-blur-md animate-in zoom-in duration-500 p-6">
-             <Trophy className="h-24 w-24 text-yellow-400 animate-bounce mb-6 filter drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
-             <h2 className="text-6xl font-black text-white uppercase italic tracking-tighter text-center mb-8 drop-shadow-lg">Tribe Winner</h2>
-             <div className="flex flex-col items-center gap-6 p-8 bg-white/5 rounded-[3rem] border-2 border-yellow-500/20 shadow-2xl">
-                <Avatar className="h-32 w-32 border-4 border-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.3)]">
-                   <AvatarImage src={winners[0].avatar} />
-                   <AvatarFallback className="bg-slate-800 text-4xl">W</AvatarFallback>
-                </Avatar>
-                <div className="text-center space-y-2">
-                   <p className="text-3xl font-black text-white uppercase italic tracking-tight">{winners[0].name}</p>
-                   <p className="text-4xl font-black text-yellow-500 italic drop-shadow-sm">+{winners[0].win.toLocaleString()} Coins</p>
-                </div>
-             </div>
-          </div>
-        )}
 
         <style jsx global>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
       </div>
