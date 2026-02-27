@@ -208,9 +208,7 @@ export default function ProfilePage() {
 
           <div className="absolute top-6 right-4">
              {isOwnProfile && (
-               <button onClick={() => {}} className="p-2 bg-white/20 backdrop-blur-md rounded-full text-gray-800">
-                  <Pen className="h-5 w-5" />
-               </button>
+               <EditProfileDialog profile={profile} />
              )}
           </div>
         </div>
@@ -325,7 +323,7 @@ export default function ProfilePage() {
                       <div className="h-10 w-10 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
                          <Activity className="h-5 w-5" />
                       </div>
-                      <span className="font-bold text-gray-800">Host Center</span>
+                      <span className="font-bold text-gray-800">COMBINED CP 💕</span>
                    </div>
                    <ChevronRight className="h-4 w-4 text-gray-300" />
                 </div>
