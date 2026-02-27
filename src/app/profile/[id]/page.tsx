@@ -341,15 +341,6 @@ export default function ProfilePage() {
              </Card>
 
              <Card className="border-none shadow-sm rounded-3xl p-4 bg-white divide-y divide-gray-50">
-                <div onClick={() => router.push('/settings')} className="flex items-center justify-between py-3 cursor-pointer group">
-                   <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-600">
-                         <SettingsIcon className="h-5 w-5" />
-                      </div>
-                      <span className="font-bold text-gray-800">Setting</span>
-                   </div>
-                   <ChevronRight className="h-4 w-4 text-gray-300" />
-                </div>
                 <div className="flex items-center justify-between py-3 cursor-pointer group">
                    <div className="flex items-center gap-4">
                       <div className="h-10 w-10 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600">
