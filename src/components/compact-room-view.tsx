@@ -13,8 +13,18 @@ import { useRouter } from 'next/navigation';
 import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
 
 /**
+ * Custom Sofa Icon for high-fidelity empty seats.
+ * Synchronized with the Provided Blueprint silhouette.
+ */
+const SofaIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M19,10c-1.1,0-2,0.9-2,2v1H7v-1c0-1.1-0.9-2-2-2s-2,0.9-2,2v5c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2v-5C21,10.9,20.1,10,19,10z M18,17H6v-3h12V17z M17,6H7C5.3,6,4,7.3,4,9v1h16V9C20,7.3,18.7,6,17,6z" />
+  </svg>
+);
+
+/**
  * High-Fidelity Compact Room Overlay.
- * Designed to sit as a transparent layer at the top of full-screen games.
+ * Designed to mirror the new "Double Gold Ring" seat design in games.
  */
 export function CompactRoomView() {
   const { activeRoom, setIsMinimized } = useRoomContext();
@@ -79,15 +89,16 @@ export function CompactRoomView() {
                   )}
                   <AvatarFrame frameId={occupant?.activeFrame} size="sm">
                     <div className={cn(
-                      "h-12 w-12 rounded-full flex items-center justify-center transition-all bg-black/40 backdrop-blur-lg border-2",
-                      occupant ? "border-primary shadow-lg" : "border-white/10",
+                      "h-12 w-12 rounded-full flex items-center justify-center transition-all bg-[#0a1a0a] border-[2px] border-[#fbbf24] shadow-[0_0_0_1px_#fbbf24]",
+                      "relative overflow-visible"
                     )}>
+                      <div className="absolute inset-0.5 rounded-full border border-white/5 pointer-events-none" />
                       {occupant ? (
                         <Avatar className="h-full w-full p-0.5">
                           <AvatarImage src={occupant.avatarUrl} />
                           <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                      ) : isLocked ? <Crown className="h-4 w-4 text-red-500/20" /> : <Mic className="h-4 w-4 text-white/10" />}
+                      ) : isLocked ? <Lock className="h-4 w-4 text-red-500/40" /> : <SofaIcon className="h-6 w-6 text-[#fbbf24] opacity-80" />}
                     </div>
                   </AvatarFrame>
                   {occupant?.isMuted && (
@@ -101,7 +112,7 @@ export function CompactRoomView() {
                     </div>
                   )}
                 </div>
-                <span className="text-[7px] font-black uppercase text-white/60 truncate w-14 text-center mt-1">
+                <span className={cn("text-[7px] font-black uppercase truncate w-14 text-center mt-1", occupant ? "text-[#fbbf24]" : "text-white/60")}>
                   {occupant ? occupant.name : `Slot ${idx}`}
                 </span>
               </div>

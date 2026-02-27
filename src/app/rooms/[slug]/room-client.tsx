@@ -110,11 +110,11 @@ import { DailyRewardDialog } from '@/components/daily-reward-dialog';
 
 /**
  * Custom Sofa Icon for high-fidelity empty seats.
- * Synchronized with the Provided Blueprint.
+ * Synchronized with the Provided Blueprint silhouette.
  */
 const SofaIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M19,7H5C3.34,7,2,8.34,2,10v5c0,1.1,0.9,2,2,2h1v1c0,0.55,0.45,1,1,1s1-0.45,1-1v-1h10v1c0,0.55,0.45,1,1,1s1-0.45,1-1v-1h1c1.1,0,2-0.9,2-2v-5C22,8.34,20.66,7,19,7z M4,15v-5c0-0.55,0.45-1,1-1h14c0.55,0,1,0.45,1,1v5H4z" />
+    <path d="M19,10c-1.1,0-2,0.9-2,2v1H7v-1c0-1.1-0.9-2-2-2s-2,0.9-2,2v5c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2v-5C21,10.9,20.1,10,19,10z M18,17H6v-3h12V17z M17,6H7C5.3,6,4,7.3,4,9v1h16V9C20,7.3,18.7,6,17,6z" />
   </svg>
 );
 
@@ -459,7 +459,7 @@ export function RoomClient({ room }: { room: Room }) {
       </div>
 
       <main className="relative z-10 flex-1 flex flex-col overflow-hidden">
-        {/* Blueprint Seat Arena - Re-engineered for Pixel Perfect Synchronization */}
+        {/* Blueprint Seat Arena - Re-engineered for Pixel Perfect Synchronization with Image */}
         <div className="shrink-0 py-8 px-4 overflow-y-auto no-scrollbar max-h-[60%]">
           {/* Seat 1 - Anchor Host */}
           <div className="flex justify-center mb-8">
@@ -469,14 +469,15 @@ export function RoomClient({ room }: { room: Room }) {
                   {hostParticipant && !hostParticipant.isMuted && (<div className={cn("absolute -inset-2 rounded-full border-2 animate-voice-wave", getWaveColor(hostParticipant.activeWave))} />)}
                   <AvatarFrame frameId={hostParticipant?.activeFrame} size="lg">
                     <div onClick={() => handleSeatClick(1, hostParticipant)} className={cn(
-                      "h-20 w-20 rounded-full flex items-center justify-center transition-all cursor-pointer bg-[#0a1a0a] border-[3px] shadow-[0_0_0_1px_#fbbf24]",
-                      hostParticipant ? "border-primary shadow-xl" : "border-[#fbbf24]"
+                      "h-20 w-20 rounded-full flex items-center justify-center transition-all cursor-pointer bg-[#0a1a0a] border-[3px] border-[#fbbf24] shadow-[0_0_0_1px_#fbbf24]",
+                      "relative overflow-visible"
                     )}>
+                      <div className="absolute inset-0.5 rounded-full border border-white/10 pointer-events-none" />
                       {hostParticipant ? (
                         <Avatar className="h-full w-full p-1"><AvatarImage src={hostParticipant.avatarUrl} /><AvatarFallback>H</AvatarFallback></Avatar>
                       ) : (
                         <div className="flex items-center justify-center w-full h-full">
-                           <SofaIcon className="h-10 w-10 text-[#fbbf24] drop-shadow-md" />
+                           <SofaIcon className="h-10 w-10 text-[#fbbf24] drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]" />
                         </div>
                       )}
                     </div>
@@ -486,7 +487,7 @@ export function RoomClient({ room }: { room: Room }) {
              </div>
           </div>
 
-          {/* Seats 2–13 Grid - High-Fidelity 3-Column Layout */}
+          {/* Seats 2–13 Grid - High-Fidelity 3-Column Layout Matching provided image */}
           <div className="grid grid-cols-3 gap-x-2 gap-y-10 max-w-sm mx-auto">
             {Array.from({ length: 12 }).map((_, i) => {
               const idx = i + 2; 
@@ -501,17 +502,17 @@ export function RoomClient({ room }: { room: Room }) {
                     {occupant && !occupant.isMuted && (<div className={cn("absolute -inset-1.5 rounded-full border-2 animate-voice-wave", getWaveColor(occupant.activeWave))} />)}
                     <AvatarFrame frameId={occupant?.activeFrame} size="sm">
                       <div onClick={() => handleSeatClick(idx, occupant)} className={cn(
-                        "h-16 w-16 rounded-full flex items-center justify-center transition-all cursor-pointer bg-[#0a1a0a] border-[3px] shadow-[0_0_0_1px_#fbbf24]",
-                        occupant ? "border-primary shadow-lg" : "border-[#fbbf24]",
+                        "h-16 w-16 rounded-full flex items-center justify-center transition-all cursor-pointer bg-[#0a1a0a] border-[3px] border-[#fbbf24] shadow-[0_0_0_1px_#fbbf24]",
                         isLocked && "border-red-500 shadow-[0_0_0_1px_#ef4444]"
                       )}>
+                        <div className="absolute inset-0.5 rounded-full border border-white/5 pointer-events-none" />
                         {occupant ? (
                           <Avatar className="h-full w-full p-0.5"><AvatarImage src={occupant.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar>
                         ) : isLocked ? (
                           <Lock className="h-6 w-6 text-red-500/60" />
                         ) : (
                           <div className="flex items-center justify-center w-full h-full">
-                             <SofaIcon className="h-8 w-8 text-[#fbbf24] drop-shadow-sm" />
+                             <SofaIcon className="h-8 w-8 text-[#fbbf24] drop-shadow-[0_0_5px_rgba(251,191,36,0.3)]" />
                           </div>
                         )}
                       </div>
@@ -519,7 +520,7 @@ export function RoomClient({ room }: { room: Room }) {
                     {occupant?.isMuted && (<div className="absolute -bottom-0.5 -right-0.5 bg-red-500 rounded-full p-0.5 border border-black shadow-lg"><MicOff className="h-3 w-3 text-white" /></div>)}
                     {isMod && (<div className="absolute -top-0.5 -left-0.5 bg-blue-500 rounded-full p-0.5 border border-black shadow-lg"><ShieldCheck className="h-3 w-3 text-white fill-current" /></div>)}
                   </div>
-                  <span className={cn("text-[14px] font-black italic text-center drop-shadow-md", occupant ? "text-primary truncate w-16" : "text-white")}>
+                  <span className={cn("text-[14px] font-black italic text-center drop-shadow-md", occupant ? "text-[#fbbf24] truncate w-16" : "text-white")}>
                     {occupant ? occupant.name : idx}
                   </span>
                 </div>
