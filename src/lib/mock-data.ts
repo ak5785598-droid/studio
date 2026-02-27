@@ -1,3 +1,4 @@
+
 import type { User, Room, Game, CoinPackage, Task } from './types';
 
 /**
@@ -43,11 +44,11 @@ const games: Game[] = [
   },
   { 
     id: 'g5', 
-    title: 'Dragon Battle', 
-    slug: 'teen-patti', 
-    coverUrl: '', 
+    title: 'Pyramid Battle', 
+    slug: 'pyramid-battle', 
+    coverUrl: 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?q=80&w=1000', 
     cost: 0, 
-    imageHint: 'dragon card' 
+    imageHint: 'egyptian pyramid' 
   },
 ];
 

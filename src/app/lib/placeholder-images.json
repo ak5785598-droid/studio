@@ -72,6 +72,30 @@
       "description": "Glamorous host for Lucky Slot",
       "imageUrl": "https://images.unsplash.com/photo-1539109132314-34a959df99b3?q=80&w=1000",
       "imageHint": "glamorous woman"
+    },
+    {
+      "id": "pyramid-bg",
+      "description": "Ancient Egyptian pyramids at sunset with warm orange sky",
+      "imageUrl": "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?q=80&w=2000",
+      "imageHint": "egyptian pyramid"
+    },
+    {
+      "id": "anubis-char",
+      "description": "3D Anubis character guardian",
+      "imageUrl": "https://picsum.photos/seed/anubis-ummy/600/800",
+      "imageHint": "anubis character"
+    },
+    {
+      "id": "horus-char",
+      "description": "3D Horus falcon god character guardian",
+      "imageUrl": "https://picsum.photos/seed/horus-ummy/600/800",
+      "imageHint": "horus character"
+    },
+    {
+      "id": "egypt-card",
+      "description": "Golden Egyptian pharaoh card back",
+      "imageUrl": "https://picsum.photos/seed/egypt-card/300/450",
+      "imageHint": "golden pharaoh"
     }
   ]
 }
