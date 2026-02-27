@@ -4,6 +4,7 @@ import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 import {
   Sidebar,
@@ -59,10 +60,18 @@ export function AppLayout({
   fullScreen?: boolean;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isLoading: isUserLoading } = useUser();
   const { userProfile } = useUserProfile(user?.uid);
   const auth = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Global Authentication Guard: Redirect to login if user is missing and not on an auth-exempt page
+    if (!isUserLoading && !user && !pathname.startsWith('/login') && pathname !== '/') {
+      router.replace('/login');
+    }
+  }, [user, isUserLoading, pathname, router]);
 
   const handleLogout = async () => {
     if (!auth) return;
@@ -77,6 +86,15 @@ export function AppLayout({
   const isAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
 
   if (isUserLoading) {
+    return (
+      <div className="flex h-[100dvh] w-full items-center justify-center bg-[#FFCC00]">
+        <UmmyLogoIcon className="h-12 w-12 text-white animate-pulse" />
+      </div>
+    );
+  }
+
+  // If unauthorized, prevent rendering children to avoid flickering protected content
+  if (!user && !pathname.startsWith('/login') && pathname !== '/') {
     return (
       <div className="flex h-[100dvh] w-full items-center justify-center bg-[#FFCC00]">
         <UmmyLogoIcon className="h-12 w-12 text-white animate-pulse" />

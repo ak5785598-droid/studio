@@ -9,8 +9,8 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 
 /**
  * Root Application Gateway / Splash Screen.
- * Re-engineered for absolute Android mobile stability.
- * Uses aggressive dual-layer redirection to bypass hydration loops.
+ * Re-engineered for absolute stability across all mobile browsers.
+ * Uses a single-source redirection protocol to prevent hydration loops.
  */
 export default function Home() {
   const { user, isLoading } = useUser();
@@ -18,42 +18,30 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Fail-safe: If auto-redirection doesn't trigger within 1.5s, show manual entry
-    const timer = setTimeout(() => setShowFailSafe(true), 1500);
+    // Fail-safe: If auto-redirection doesn't trigger within 2s, show manual entry
+    const timer = setTimeout(() => setShowFailSafe(true), 2000);
 
     if (!isLoading) {
-      if (user) {
-        // Attempt immediate client-side navigation
-        router.replace('/rooms');
-        // Aggressive Hard Redirection fallback for Android Chrome - forces browser to commit
-        const hardTimer = setTimeout(() => {
-          if (window.location.pathname === '/') {
-            window.location.replace('/rooms');
-          }
-        }, 800);
-        return () => clearTimeout(hardTimer);
-      } else {
-        // Attempt immediate client-side navigation
-        router.replace('/login');
-        // Aggressive Hard Redirection fallback for Android Chrome
-        const hardTimer = setTimeout(() => {
-          if (window.location.pathname === '/') {
-            window.location.replace('/login');
-          }
-        }, 800);
-        return () => clearTimeout(hardTimer);
-      }
+      const destination = user ? '/rooms' : '/login';
+      
+      // Client-side push for smooth transition
+      router.push(destination);
+
+      // Hard redirect fallback for stubborn mobile browsers (Android Chrome/In-app)
+      const hardTimer = setTimeout(() => {
+        if (window.location.pathname === '/') {
+          window.location.href = destination;
+        }
+      }, 1000);
+
+      return () => clearTimeout(hardTimer);
     }
 
     return () => clearTimeout(timer);
   }, [isLoading, user, router]);
 
   const handleManualEntry = () => {
-    if (user) {
-      window.location.href = '/rooms';
-    } else {
-      window.location.href = '/login';
-    }
+    window.location.href = user ? '/rooms' : '/login';
   };
 
   return (
@@ -61,7 +49,7 @@ export default function Home() {
       <div className="absolute inset-0 bg-white/5 animate-pulse duration-[3000ms]" />
       
       <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-700 relative z-10">
-        <div className="relative h-48 w-48 flex items-center justify-center group">
+        <div className="relative h-48 w-48 flex items-center justify-center">
            <div className="absolute inset-0 bg-white/20 rounded-[3rem] blur-2xl animate-pulse" />
            <UmmyLogoIcon className="h-full w-full drop-shadow-2xl relative z-10" />
         </div>

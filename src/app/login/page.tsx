@@ -20,8 +20,7 @@ import Link from 'next/link';
 
 /**
  * Universal Identity Portal.
- * Optimized for high-speed Android Google Sign-In.
- * Features hard-redirection for entrance stability.
+ * Optimized for high-speed sign-in and stable redirection after sharing.
  */
 export default function LoginPage() {
   const router = useRouter();
@@ -39,11 +38,20 @@ export default function LoginPage() {
     useState<ConfirmationResult | null>(null);
 
   useEffect(() => {
+    // Only redirect if the auth state is fully loaded and a user exists
     if (!isUserLoading && user) {
-      // Hard redirect to ensure browser commits navigation on mobile
-      window.location.href = '/rooms';
+      // Use replace to prevent back-button loops after login
+      router.replace('/rooms');
+      
+      // Hard fallback for embedded browsers
+      const fallbackTimer = setTimeout(() => {
+        if (window.location.pathname === '/login') {
+          window.location.href = '/rooms';
+        }
+      }, 1000);
+      return () => clearTimeout(fallbackTimer);
     }
-  }, [user, isUserLoading]);
+  }, [user, isUserLoading, router]);
 
   const handleGoogleSignIn = async () => {
     if (!auth) return;
@@ -53,13 +61,16 @@ export default function LoginPage() {
       provider.setCustomParameters({
         prompt: 'select_account'
       });
+      // signWithPopup is used for desktop/chrome, redirection is handled by useEffect
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Sign In Failed',
-        description: error.message || 'Could not sign in with Google.',
-      });
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast({
+          variant: 'destructive',
+          title: 'Sign In Failed',
+          description: error.message || 'Could not sign in with Google.',
+        });
+      }
     } finally {
       setIsSigningIn(false);
     }
@@ -90,7 +101,10 @@ export default function LoginPage() {
       const result = await signInWithPhoneNumber(auth, formattedNumber, verifier);
       setConfirmationResult(result);
       setPhoneLoginStep('code');
+      toast({ title: 'Code Sent', description: 'Verification frequency dispatched via SMS.' });
     } catch (error: any) {
+      // Clear verifier on error to allow retry
+      (window as any).recaptchaVerifier = null;
       toast({
         variant: 'destructive',
         title: 'Failed to Send Code',
@@ -106,7 +120,7 @@ export default function LoginPage() {
     setIsSigningIn(true);
     try {
       await confirmationResult.confirm(verificationCode);
-      // Success triggers redirection via useEffect
+      toast({ title: 'Identity Verified', description: 'Synchronizing with tribal graph...' });
     } catch (error: any) {
         toast({
             variant: 'destructive',
@@ -131,9 +145,7 @@ export default function LoginPage() {
       <div id="recaptcha-container"></div>
       
       <div className="flex flex-col items-center text-center space-y-4 mb-12 animate-in fade-in duration-1000">
-        <div className="relative">
-           <UmmyLogoIcon className="h-32 w-32 relative z-10 drop-shadow-xl" />
-        </div>
+        <UmmyLogoIcon className="h-32 w-32 drop-shadow-xl" />
         <h1 className="font-headline text-6xl font-black italic uppercase tracking-tighter text-[#FFCC00] drop-shadow-sm mt-4">
           Ummy
         </h1>
@@ -168,7 +180,7 @@ export default function LoginPage() {
                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                    <Input
                       type="tel"
-                      placeholder="Phone Number"
+                      placeholder="Phone Number (with +)"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       disabled={isSigningIn}
@@ -211,7 +223,7 @@ export default function LoginPage() {
             <span>End-to-End Frequency Encryption</span>
          </div>
          <p className="text-[10px] text-muted-foreground leading-relaxed max-w-[200px]">
-            By continuing, you join the official Ummy tribe. <Link href="/terms" className="underline font-bold text-foreground">Terms & Privacy</Link>.
+            By continuing, you join the official Ummy tribe. <Link href="/help-center" className="underline font-bold text-foreground">Terms & Privacy</Link>.
          </p>
       </div>
     </div>
