@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, Mail, Crown, Gamepad2, Compass } from "lucide-react";
+import { Home, User, Settings, LogOut, ShoppingBag, ShieldCheck, Mail, Crown, Gamepad2, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -16,14 +16,14 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useUser, useAuth } from "@/firebase";
-import { UmmyLogoIcon, GameControllerIcon } from "../icons";
+import { UmmyLogoIcon } from "@/components/icons";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/hooks/use-user-profile";
-import { FloatingRoomBar } from "../floating-room-bar";
-import Image from "next/image";
+import { FloatingRoomBar } from "@/components/floating-room-bar";
 
 /**
  * 3D-ish Navigation Icons using emojis/assets to match standard tribe apps.
@@ -47,7 +47,7 @@ const sidebarItems = [
   { href: "/messages", label: "Messages", icon: Mail },
   { href: "/store", label: "Boutique", icon: ShoppingBag },
   { href: "/leaderboard", label: "Rankings", icon: Crown },
-  { href: "/games", label: "Game Zone", icon: GameControllerIcon },
+  { href: "/games", label: "Game Zone", icon: Gamepad2 },
 ];
 
 export function AppLayout({ 
@@ -82,6 +82,7 @@ export function AppLayout({
     if (!auth) return;
     try {
       await signOut(auth);
+      // Hard redirect to ensure clean state
       window.location.href = '/login';
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Logout Failed', description: error.message });
@@ -130,8 +131,8 @@ export function AppLayout({
   return (
     <SidebarProvider>
       <div className="flex min-h-[100dvh] w-full bg-[#FFCC00] font-headline overflow-hidden relative">
-        <Sidebar className="hidden md:flex">
-          <SidebarHeader>
+        <Sidebar className="hidden md:flex bg-white border-r">
+          <SidebarHeader className="border-b bg-white">
             <div className="flex items-center gap-2 p-2" aria-label="Ummy Home">
               <UmmyLogoIcon className="h-7 w-7"/>
               <span className="font-headline text-2xl font-bold tracking-tight text-foreground">
@@ -139,7 +140,7 @@ export function AppLayout({
               </span>
             </div>
           </SidebarHeader>
-          <SidebarContent>
+          <SidebarContent className="bg-white">
             <SidebarMenu>
               {sidebarItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
@@ -158,7 +159,7 @@ export function AppLayout({
               ))}
             </SidebarMenu>
           </SidebarContent>
-          <SidebarFooter>
+          <SidebarFooter className="border-t bg-white">
             <SidebarMenu>
               {isAdmin && (
                 <SidebarMenuItem>
@@ -179,21 +180,32 @@ export function AppLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              {user && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="Sign Out" onClick={handleLogout} className="text-destructive hover:bg-destructive/10" size="lg">
-                    <LogOut />
-                    <span>Sign Out</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Sign Out" onClick={handleLogout} className="text-destructive hover:bg-destructive/10" size="lg">
+                  <LogOut />
+                  <span>Sign Out</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
 
         <div className="flex flex-1 flex-col overflow-hidden relative bg-[#FFCC00]">
+          {/* Universal Header with Sidebar Trigger */}
+          <header className="h-14 bg-[#FFCC00] flex items-center px-4 md:px-6 relative z-50">
+             <div className="flex items-center gap-4">
+                <SidebarTrigger className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
+                   <Menu className="h-6 w-6" />
+                </SidebarTrigger>
+                <div className="md:hidden flex items-center gap-2">
+                   <UmmyLogoIcon className="h-6 w-6" />
+                   <span className="font-black uppercase italic tracking-tighter text-white">Ummy</span>
+                </div>
+             </div>
+          </header>
+
           <SidebarInset className="bg-[#FFCC00]">
-            <main className="flex-1 overflow-y-auto h-[100dvh] pb-28 md:pb-4 bg-white rounded-t-[2.5rem] md:rounded-none">
+            <main className="flex-1 overflow-y-auto h-[calc(100dvh-3.5rem)] pb-28 md:pb-4 bg-white rounded-t-[2.5rem] md:rounded-none">
               {children}
             </main>
           </SidebarInset>

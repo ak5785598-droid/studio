@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useStorage, useFirestore, useUser } from '@/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useToast } from './use-toast';
 
 /**
  * Hook to handle profile picture uploads to Firebase Storage and update Firestore.
  * Ensures the visual identity is permanent and synchronized across summary and profile docs.
+ * Optimized with setDoc merge protocol for maximum resilience.
  */
 export function useProfilePictureUpload() {
   const storage = useStorage();
@@ -47,10 +48,10 @@ export function useProfilePictureUpload() {
         updatedAt: serverTimestamp()
       };
 
-      // Atomic updates to ensure both documents reflect the new identity
+      // Atomic updates using setDoc with merge to ensure visual synchronization
       await Promise.all([
-        updateDoc(userSummaryRef, updateData),
-        updateDoc(userProfileRef, updateData)
+        setDoc(userSummaryRef, updateData, { merge: true }),
+        setDoc(userProfileRef, updateData, { merge: true })
       ]);
       
       toast({
