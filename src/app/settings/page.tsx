@@ -81,7 +81,7 @@ export default function SettingsPage() {
     if (!auth) return;
     try {
       await signOut(auth);
-      // Hard redirect to clear any auth state frequencies
+      // Hard redirect to clear any local state frequencies
       window.location.href = '/login';
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Logout Failed', description: e.message });

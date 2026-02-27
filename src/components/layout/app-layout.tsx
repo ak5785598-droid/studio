@@ -4,7 +4,7 @@ import { Home, MessageSquare, User, Settings, LogOut, ShoppingBag, ShieldCheck, 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Sidebar,
@@ -65,9 +65,14 @@ export function AppLayout({
   const { userProfile } = useUserProfile(user?.uid);
   const auth = useAuth();
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Global Authentication Guard: Redirect to login if user is missing and not on an auth-exempt page
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Global Authentication Guard
     if (!isUserLoading && !user && !pathname.startsWith('/login') && pathname !== '/') {
       router.replace('/login');
     }
@@ -85,6 +90,9 @@ export function AppLayout({
 
   const isAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
 
+  // Avoid hydration mismatch by waiting for mount
+  if (!mounted) return null;
+
   if (isUserLoading) {
     return (
       <div className="flex h-[100dvh] w-full items-center justify-center bg-[#FFCC00]">
@@ -93,8 +101,10 @@ export function AppLayout({
     );
   }
 
-  // If unauthorized, prevent rendering children to avoid flickering protected content
-  if (!user && !pathname.startsWith('/login') && pathname !== '/') {
+  // Allow login page and root splash without protection
+  const isAuthExempt = pathname.startsWith('/login') || pathname === '/';
+
+  if (!user && !isAuthExempt) {
     return (
       <div className="flex h-[100dvh] w-full items-center justify-center bg-[#FFCC00]">
         <UmmyLogoIcon className="h-12 w-12 text-white animate-pulse" />
@@ -110,6 +120,11 @@ export function AppLayout({
         </main>
       </div>
     );
+  }
+
+  // If on login or root, just render children without sidebar/nav
+  if (isAuthExempt) {
+    return <>{children}</>;
   }
 
   return (

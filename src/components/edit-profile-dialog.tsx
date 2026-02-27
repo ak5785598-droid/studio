@@ -70,6 +70,7 @@ export function EditProfileDialog({ profile }: EditProfileDialogProps) {
       });
 
       updateDocumentNonBlocking(userProfileRef, updateData);
+      toast({ title: 'Persona Saved', description: 'Your updates are now live.' });
       setOpen(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Sync Failed', description: e.message });

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -22,8 +21,8 @@ export function useProfilePictureUpload() {
     if (!user || !storage || !firestore) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'You must be logged in to upload a picture.',
+        title: 'Sync Error',
+        description: 'Identity frequency missing. Please sign in again.',
       });
       return;
     }
@@ -33,7 +32,8 @@ export function useProfilePictureUpload() {
     try {
       // Create a unique path with timestamp to ensure cache busting and permanent identification
       const timestamp = Date.now();
-      const storagePath = `users/${user.uid}/profile_${timestamp}.jpg`;
+      const fileExtension = file.name.split('.').pop() || 'jpg';
+      const storagePath = `users/${user.uid}/profile_${timestamp}.${fileExtension}`;
       const storageRef = ref(storage, storagePath);
       
       const uploadResult = await uploadBytes(storageRef, file);
@@ -47,9 +47,11 @@ export function useProfilePictureUpload() {
         updatedAt: serverTimestamp()
       };
 
-      // Blocking updates to ensure persistence before completion UI
-      await updateDoc(userSummaryRef, updateData);
-      await updateDoc(userProfileRef, updateData);
+      // Atomic updates to ensure both documents reflect the new identity
+      await Promise.all([
+        updateDoc(userSummaryRef, updateData),
+        updateDoc(userProfileRef, updateData)
+      ]);
       
       toast({
         title: 'Identity Synchronized',
@@ -59,8 +61,8 @@ export function useProfilePictureUpload() {
       console.error('Error uploading profile picture:', error);
       toast({
         variant: 'destructive',
-        title: 'Upload Failed',
-        description: error.message || 'Could not upload your new picture.',
+        title: 'Sync Failed',
+        description: error.message || 'Could not broadcast your new identity.',
       });
     } finally {
       setIsUploading(false);
