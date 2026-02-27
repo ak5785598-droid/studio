@@ -11,6 +11,7 @@ interface GiftAnimationOverlayProps {
 /**
  * High-Fidelity Gift Animation Overlay.
  * Features full-screen cinematic visual effects, screen flashes, and unique high-tier animations.
+ * Enhanced with specific golden background light for the ROLEX elite gift.
  */
 export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverlayProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -84,8 +85,18 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
         </div>
       )}
 
+      {/* SPECIAL: Rolex Golden Background Light Sync */}
+      {giftId === 'rolex' && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+           <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 via-yellow-200/10 to-transparent animate-in fade-in duration-1000" />
+           <div className="w-64 h-64 bg-yellow-400/20 rounded-full blur-[120px] animate-pulse" />
+           <div className="absolute inset-0 border-[20px] border-yellow-500/10 rounded-full scale-[2] animate-ping opacity-20" />
+        </div>
+      )}
+
       <div className={cn(
         "text-9xl filter transition-all duration-500",
+        giftId === 'rolex' ? "drop-shadow-[0_0_50px_rgba(255,215,0,1)] brightness-150 saturate-[1.5]" : 
         isUltimate ? "drop-shadow-[0_0_60px_rgba(255,255,255,0.9)] scale-125" : "drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]",
         getAnimationClass()
       )}>
