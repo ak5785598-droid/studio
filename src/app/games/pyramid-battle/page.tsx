@@ -17,9 +17,9 @@ import {
   Menu,
   ChevronDown,
   Activity,
-  Crown,
   Users,
-  LayoutGrid
+  LayoutGrid,
+  Move
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
@@ -52,10 +52,10 @@ export default function PyramidBattlePage() {
   const { toast } = useToast();
 
   const [gameState, setGameState] = useState<'betting' | 'calculating' | 'result'>('betting');
-  const [timeLeft, setTimeLeft] = useState(13);
+  const [timeLeft, setTimeLeft] = useState(17);
   const [selectedChip, setSelectedChip] = useState(5);
   const [myBets, setMyBets] = useState<Record<string, number>>({ BLUE: 0, RED: 0, PAIR: 0, COLOR: 0, SEQUENCE: 0, PURE_SEQ: 0, SET: 0 });
-  const [totalBets, setTotalBets] = useState<Record<string, number>>({ BLUE: 12220, RED: 10440, PAIR: 4770, COLOR: 500, SEQUENCE: 160, PURE_SEQ: 6200, SET: 0 });
+  const [totalBets, setTotalBets] = useState<Record<string, number>>({ BLUE: 0, RED: 1000, PAIR: 100, COLOR: 0, SEQUENCE: 0, PURE_SEQ: 0, SET: 0 });
   const [history, setHistory] = useState<('RED' | 'BLUE')[]>([]);
   const [isMuted, setIsMuted] = useState(false);
   const [isLaunching, setIsLaunching] = useState(true);
@@ -133,10 +133,10 @@ export default function PyramidBattlePage() {
 
     setTimeout(() => {
       setMyBets({ BLUE: 0, RED: 0, PAIR: 0, COLOR: 0, SEQUENCE: 0, PURE_SEQ: 0, SET: 0 });
-      setTotalBets({ BLUE: 12220, RED: 10440, PAIR: 4770, COLOR: 500, SEQUENCE: 160, PURE_SEQ: 6200, SET: 0 });
+      setTotalBets({ BLUE: 0, RED: 1000, PAIR: 100, COLOR: 0, SEQUENCE: 0, PURE_SEQ: 0, SET: 0 });
       setWinner(null);
       setGameState('betting');
-      setTimeLeft(13);
+      setTimeLeft(17);
     }, 5000);
   };
 
@@ -189,31 +189,31 @@ export default function PyramidBattlePage() {
            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
         </div>
 
-        {/* Blueprint Top Header */}
+        {/* Blueprint Top Header - Exact Icon Sequence */}
         <div className="relative z-[110] flex items-center justify-between p-4 pt-32">
            <div className="flex gap-1.5">
-              <button className="bg-white/30 p-1.5 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all"><Maximize2 className="h-4 w-4" /></button>
-              <button onClick={() => setIsMuted(!isMuted)} className="bg-white/30 p-1.5 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all">
+              <button className="bg-white/20 p-2 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all border border-white/10"><Move className="h-4 w-4" /></button>
+              <button onClick={() => setIsMuted(!isMuted)} className="bg-white/20 p-2 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all border border-white/10">
                 {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
               </button>
-              <button className="bg-white/30 p-1.5 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all"><HelpCircle className="h-4 w-4" /></button>
-              <button className="bg-white/30 p-1.5 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all"><LayoutGrid className="h-4 w-4" /></button>
+              <button className="bg-white/20 p-2 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all border border-white/10"><HelpCircle className="h-4 w-4" /></button>
+              <button className="bg-white/20 p-2 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all border border-white/10"><LayoutGrid className="h-4 w-4" /></button>
            </div>
            
            <h1 className="text-3xl font-black italic tracking-tight text-white drop-shadow-lg" style={{ fontFamily: 'serif' }}>Pyramid Battle</h1>
 
            <div className="flex gap-1.5">
-              <button className="bg-white/30 p-1.5 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all"><Menu className="h-4 w-4" /></button>
-              <button className="bg-white/30 p-1.5 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all"><ChevronDown className="h-4 w-4" /></button>
-              <button onClick={() => router.back()} className="bg-white/30 p-1.5 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all"><X className="h-4 w-4" /></button>
+              <button className="bg-white/20 p-2 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all border border-white/10"><Menu className="h-4 w-4" /></button>
+              <button className="bg-white/20 p-2 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all border border-white/10"><ChevronDown className="h-4 w-4" /></button>
+              <button onClick={() => router.back()} className="bg-white/20 p-2 rounded-full backdrop-blur-md shadow-lg active:scale-90 transition-all border border-white/10"><X className="h-4 w-4" /></button>
            </div>
         </div>
 
-        {/* Characters & Arena Stage */}
+        {/* Arena & Floating Characters */}
         <div className="relative z-10 flex flex-col mt-4">
            <div className="flex justify-between items-end px-4 relative h-44">
-              {/* Anubis (Left) */}
-              <div className="w-1/4 h-full relative">
+              {/* Anubis (Left) - Elite Float Animation */}
+              <div className="w-1/4 h-full relative animate-float-guardian">
                  {anubisAsset && (
                    <img 
                     src={anubisAsset.imageUrl} 
@@ -238,7 +238,7 @@ export default function PyramidBattlePage() {
                          </div>
                        )}
                        <div className={cn(
-                         "bg-[#2a1a15]/90 p-1 rounded-xl border-2 transition-all duration-500 shadow-2xl",
+                         "bg-black/60 p-1 rounded-xl border-2 transition-all duration-500 shadow-2xl",
                          winner === 'BLUE' ? "border-yellow-400 scale-105" : "border-white/10"
                        )}>
                           <div className="flex gap-0.5 mb-1">
@@ -248,16 +248,19 @@ export default function PyramidBattlePage() {
                                </div>
                              ))}
                           </div>
-                          <div className="bg-black/60 rounded-md py-0.5 px-2 text-center">
+                          <div className="bg-black/80 rounded-md py-0.5 px-2 text-center">
                              <span className="text-xs font-black italic text-yellow-500 uppercase">High card</span>
                           </div>
                        </div>
                     </div>
 
                     <div className="relative flex flex-col items-center">
-                       <span className="text-xl font-black italic text-blue-400 drop-shadow-md">VS</span>
-                       <div className="mt-2 w-12 h-12 rounded-full border-2 border-yellow-500/20 flex items-center justify-center bg-black/60 backdrop-blur-md shadow-2xl relative overflow-hidden">
-                          <div className="absolute inset-0 border-2 border-yellow-500 rounded-full transition-all duration-1000" style={{ clipPath: `inset(0 0 ${100 - (timeLeft/13)*100}% 0)` }} />
+                       <div className="text-xl font-black italic flex items-center gap-1 drop-shadow-md">
+                          <span className="text-blue-400">V</span>
+                          <span className="text-red-400">S</span>
+                       </div>
+                       <div className="mt-2 w-12 h-12 rounded-full border-2 border-yellow-500/40 flex items-center justify-center bg-black/60 backdrop-blur-md shadow-2xl relative overflow-hidden">
+                          <div className="absolute inset-0 border-2 border-yellow-500 rounded-full transition-all duration-1000" style={{ clipPath: `inset(0 0 ${100 - (timeLeft/17)*100}% 0)` }} />
                           <span className="relative z-10 text-lg font-black text-white italic">{timeLeft}</span>
                        </div>
                     </div>
@@ -271,7 +274,7 @@ export default function PyramidBattlePage() {
                          </div>
                        )}
                        <div className={cn(
-                         "bg-[#2a1a15]/90 p-1 rounded-xl border-2 transition-all duration-500 shadow-2xl",
+                         "bg-black/60 p-1 rounded-xl border-2 transition-all duration-500 shadow-2xl",
                          winner === 'RED' ? "border-yellow-400 scale-105" : "border-white/10"
                        )}>
                           <div className="flex gap-0.5 mb-1">
@@ -281,7 +284,7 @@ export default function PyramidBattlePage() {
                                </div>
                              ))}
                           </div>
-                          <div className="bg-black/60 rounded-md py-0.5 px-2 text-center">
+                          <div className="bg-black/80 rounded-md py-0.5 px-2 text-center">
                              <span className="text-xs font-black italic text-yellow-500 uppercase">High card</span>
                           </div>
                        </div>
@@ -289,8 +292,8 @@ export default function PyramidBattlePage() {
                  </div>
               </div>
 
-              {/* Horus (Right) */}
-              <div className="w-1/4 h-full relative flex justify-end">
+              {/* Horus (Right) - Elite Float Animation */}
+              <div className="w-1/4 h-full relative flex justify-end animate-float-guardian" style={{ animationDelay: '0.5s' }}>
                  {horusAsset && (
                    <img 
                     src={horusAsset.imageUrl} 
@@ -304,9 +307,9 @@ export default function PyramidBattlePage() {
               </div>
            </div>
 
-           {/* Trend Bar */}
+           {/* Trend Bar - Dot sequence with social icon */}
            <div className="px-4 py-2">
-              <div className="bg-black/50 backdrop-blur-xl rounded-full h-10 border border-white/10 flex items-center gap-1.5 px-4 overflow-hidden relative group">
+              <div className="bg-black/50 backdrop-blur-xl rounded-full h-10 border border-white/10 flex items-center gap-1.5 px-4 overflow-hidden relative group shadow-inner">
                  {history.map((type, i) => (
                    <div 
                     key={i} 
@@ -318,16 +321,14 @@ export default function PyramidBattlePage() {
                    />
                  ))}
                  <div className="absolute right-2 top-1/2 -translate-y-1/2 bg-yellow-500/20 p-1 rounded-md border border-yellow-500/30">
-                    <Activity className="h-3 w-3 text-yellow-500" />
+                    <LayoutGrid className="h-3 w-3 text-yellow-500" />
                  </div>
               </div>
            </div>
 
-           {/* Betting Blueprint Grid */}
+           {/* Betting Arena - Specialized Gold Stripe Border */}
            <div className="px-2 mt-2 space-y-1.5">
-              {/* Main Arena */}
-              <div className="relative rounded-[2rem] border-[6px] border-[#b88a44] p-1.5 shadow-2xl overflow-hidden bg-black/20">
-                 <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,#b88a44,#b88a44_10px,#a67c3c_10px,#a67c3c_20px)] opacity-10" />
+              <div className="relative rounded-[2rem] p-1.5 shadow-2xl overflow-hidden bg-black/40 border-[6px] border-[#b88a44] border-image-stripe">
                  
                  {/* Top Row: Blue vs Red */}
                  <div className="flex gap-1.5 h-36">
@@ -335,7 +336,7 @@ export default function PyramidBattlePage() {
                       onClick={() => handlePlaceBet('BLUE')}
                       disabled={gameState !== 'betting'}
                       className={cn(
-                        "flex-1 relative rounded-tl-3xl rounded-tr-sm rounded-bl-sm rounded-br-sm border-2 transition-all duration-300 overflow-hidden group active:scale-95",
+                        "flex-1 relative rounded-tl-[1.5rem] rounded-tr-sm rounded-bl-sm rounded-br-sm border-2 transition-all duration-300 overflow-hidden group active:scale-95",
                         "bg-gradient-to-br from-blue-600/80 to-blue-900/80 border-blue-400/20",
                         winner === 'BLUE' && "border-yellow-400 ring-4 ring-yellow-400/20 z-20"
                       )}
@@ -343,7 +344,11 @@ export default function PyramidBattlePage() {
                        <div className="absolute top-2 left-1/2 -translate-x-1/2 text-center z-10">
                           <span className="text-[10px] font-black text-white/80">{myBets.BLUE}/{totalBets.BLUE}</span>
                        </div>
-                       <div className="absolute inset-0 flex flex-wrap items-center justify-center p-4 gap-0.5 opacity-90 pointer-events-none">
+                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <h2 className="text-3xl font-black italic tracking-tighter text-blue-200 drop-shadow-lg">BLUE</h2>
+                          <span className="text-xs font-bold text-blue-200/60 mt-1">1.95x</span>
+                       </div>
+                       <div className="absolute inset-0 flex flex-wrap items-center justify-center p-4 gap-0.5 opacity-90 pointer-events-none overflow-hidden">
                           {Array.from({ length: Math.min(20, Math.ceil(totalBets.BLUE / 100)) }).map((_, i) => (
                             <GoldCoinIcon key={i} className="h-4 w-4 text-yellow-500 drop-shadow-md animate-in zoom-in" style={{ animationDelay: `${i * 0.01}s` }} />
                           ))}
@@ -354,7 +359,7 @@ export default function PyramidBattlePage() {
                       onClick={() => handlePlaceBet('RED')}
                       disabled={gameState !== 'betting'}
                       className={cn(
-                        "flex-1 relative rounded-tr-3xl rounded-tl-sm rounded-bl-sm rounded-br-sm border-2 transition-all duration-300 overflow-hidden group active:scale-95",
+                        "flex-1 relative rounded-tr-[1.5rem] rounded-tl-sm rounded-bl-sm rounded-br-sm border-2 transition-all duration-300 overflow-hidden group active:scale-95",
                         "bg-gradient-to-br from-red-600/80 to-red-900/80 border-red-400/20",
                         winner === 'RED' && "border-yellow-400 ring-4 ring-yellow-400/20 z-20"
                       )}
@@ -362,7 +367,11 @@ export default function PyramidBattlePage() {
                        <div className="absolute top-2 left-1/2 -translate-x-1/2 text-center z-10">
                           <span className="text-[10px] font-black text-white/80">{myBets.RED}/{totalBets.RED}</span>
                        </div>
-                       <div className="absolute inset-0 flex flex-wrap items-center justify-center p-4 gap-0.5 opacity-90 pointer-events-none">
+                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <h2 className="text-3xl font-black italic tracking-tighter text-red-200 drop-shadow-lg">RED</h2>
+                          <span className="text-xs font-bold text-red-200/60 mt-1">1.95x</span>
+                       </div>
+                       <div className="absolute inset-0 flex flex-wrap items-center justify-center p-4 gap-0.5 opacity-90 pointer-events-none overflow-hidden">
                           {Array.from({ length: Math.min(20, Math.ceil(totalBets.RED / 100)) }).map((_, i) => (
                             <GoldCoinIcon key={i} className="h-4 w-4 text-yellow-500 drop-shadow-md animate-in zoom-in" style={{ animationDelay: `${i * 0.01}s` }} />
                           ))}
@@ -370,7 +379,7 @@ export default function PyramidBattlePage() {
                     </button>
                  </div>
 
-                 {/* Bottom Row: Side Bets */}
+                 {/* Bottom Row: Side Bets Grid */}
                  <div className="flex gap-1 mt-1.5 h-24">
                     {SIDE_BETS.map(sb => (
                       <button 
@@ -394,11 +403,11 @@ export default function PyramidBattlePage() {
            </div>
         </div>
 
-        {/* Blueprint Wooden Footer */}
+        {/* Blueprint Wooden Footer - Specific Icon & Balance Setup */}
         <footer className="fixed bottom-0 left-0 right-0 p-4 pb-10 bg-gradient-to-t from-[#3d2b1f] to-transparent z-[120] font-headline">
            <div className="max-w-xl mx-auto space-y-4">
               <div className="flex items-center justify-between px-2">
-                 <button className="bg-black/40 p-2.5 rounded-2xl border border-white/10 text-white shadow-xl hover:bg-black/60 transition-all active:scale-90">
+                 <button className="bg-black/60 p-2.5 rounded-2xl border border-white/10 text-white shadow-xl hover:bg-black/60 transition-all active:scale-90">
                     <Users className="h-5 w-5" />
                  </button>
                  
@@ -411,8 +420,9 @@ export default function PyramidBattlePage() {
                  </div>
               </div>
 
-              <div className="flex items-center gap-3 bg-[#3d2b1f]/80 p-2 rounded-full border-4 border-[#5d4037] shadow-2xl">
-                 <button className="bg-[#dcdcdc] px-6 h-10 rounded-full font-black uppercase italic text-[10px] text-black shadow-lg active:translate-y-0.5 transition-all border-b-2 border-gray-400">
+              {/* Wooden Chip Selection Bar */}
+              <div className="flex items-center gap-3 bg-[#3d2b1f]/90 p-2 rounded-full border-4 border-[#5d4037] shadow-2xl">
+                 <button onClick={() => {}} className="bg-[#dcdcdc] px-6 h-10 rounded-full font-black uppercase italic text-[10px] text-black shadow-lg active:translate-y-0.5 transition-all border-b-2 border-gray-400">
                     Repeat
                  </button>
 
@@ -436,7 +446,19 @@ export default function PyramidBattlePage() {
            </div>
         </footer>
 
-        <style jsx global>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
+        <style jsx global>{`
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .border-image-stripe {
+            border-image: repeating-linear-gradient(45deg, #b88a44, #b88a44 10px, #a67c3c 10px, #a67c3c 20px) 30;
+          }
+          @keyframes float-guardian {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+          }
+          .animate-float-guardian {
+            animation: float-guardian 4s ease-in-out infinite;
+          }
+        `}</style>
       </div>
     </AppLayout>
   );
