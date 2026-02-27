@@ -85,18 +85,20 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
         </div>
       )}
 
-      {/* SPECIAL: Rolex Golden Background Light Sync */}
+      {/* SPECIAL: Rolex Golden Background Light Sync - Solar Flare Edition */}
       {giftId === 'rolex' && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-           <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 via-yellow-200/10 to-transparent animate-in fade-in duration-1000" />
-           <div className="w-64 h-64 bg-yellow-400/20 rounded-full blur-[120px] animate-pulse" />
-           <div className="absolute inset-0 border-[20px] border-yellow-500/10 rounded-full scale-[2] animate-ping opacity-20" />
+           <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/30 via-yellow-200/20 to-transparent animate-in fade-in duration-1000" />
+           <div className="w-[500px] h-[500px] bg-yellow-400/20 rounded-full blur-[150px] animate-pulse scale-[2]" />
+           <div className="absolute inset-0 border-[40px] border-yellow-500/10 rounded-full scale-[3] animate-ping opacity-20" />
+           <div className="absolute inset-0 bg-yellow-500/5 mix-blend-overlay animate-pulse" />
         </div>
       )}
 
       <div className={cn(
         "text-9xl filter transition-all duration-500",
-        giftId === 'rolex' ? "drop-shadow-[0_0_50px_rgba(255,215,0,1)] brightness-150 saturate-[1.5]" : 
+        // Force ROLEX to brilliant GOLD using high-intensity filters
+        giftId === 'rolex' ? "sepia(1) saturate(10) hue-rotate(5deg) brightness(1.2) drop-shadow-[0_0_60px_rgba(255,215,0,1)]" : 
         isUltimate ? "drop-shadow-[0_0_60px_rgba(255,255,255,0.9)] scale-125" : "drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]",
         getAnimationClass()
       )}>
@@ -114,7 +116,7 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
       {/* Luxury Particle Glow for Rolex */}
       {giftId === 'rolex' && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-           <div className="w-32 h-32 bg-yellow-500/20 rounded-full blur-[80px] animate-pulse" />
+           <div className="w-64 h-64 bg-yellow-500/20 rounded-full blur-[100px] animate-pulse" />
         </div>
       )}
     </div>
