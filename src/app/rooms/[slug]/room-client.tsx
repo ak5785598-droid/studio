@@ -559,6 +559,7 @@ export function RoomClient({ room }: { room: Room }) {
                     <ToolTile icon={FruitMixIcon} label="Fruit" onClick={() => router.push('/games/fruit-party')} />
                     <ToolTile icon={PawPrint} label="Wild" onClick={() => router.push('/games/forest-party')} />
                     <ToolTile icon={Dices} label="Slot" onClick={() => router.push('/games/lucky-slot-777')} />
+                    <ToolTile icon={Sparkles} label="Pyramid" onClick={() => router.push('/games/pyramid-battle')} />
                     <ToolTile icon={Crown} label="Teen" onClick={() => router.push('/games/teen-patti')} />
                   </div>
                 </ScrollArea>
@@ -610,6 +611,7 @@ export function RoomClient({ room }: { room: Room }) {
                         <ToolTile icon={FruitMixIcon} label="Fruit" onClick={() => router.push('/games/fruit-party')} />
                         <ToolTile icon={PawPrint} label="Wild" onClick={() => router.push('/games/forest-party')} />
                         <ToolTile icon={Dices} label="Slot" onClick={() => router.push('/games/lucky-slot-777')} />
+                        <ToolTile icon={Sparkles} label="Pyramid" onClick={() => router.push('/games/pyramid-battle')} />
                         <ToolTile icon={Crown} label="Teen" onClick={() => router.push('/games/teen-patti')} />
                       </div>
                     </section>
