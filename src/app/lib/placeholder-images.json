@@ -45,9 +45,27 @@
     },
     {
       "id": "teen-patti-bg",
-      "description": "Vault background for Dragon Battle",
-      "imageUrl": "https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=80&w=2000",
-      "imageHint": "vault room"
+      "description": "Ornate palace ballroom background",
+      "imageUrl": "https://images.unsplash.com/photo-1562664377-709f2c337eb2?q=80&w=2000",
+      "imageHint": "ornate palace"
+    },
+    {
+      "id": "tp-char-a",
+      "description": "Elegant princess in white dress",
+      "imageUrl": "https://picsum.photos/seed/tp-char-a/400/600",
+      "imageHint": "princess white"
+    },
+    {
+      "id": "tp-char-b",
+      "description": "Regal princess in gold dress",
+      "imageUrl": "https://picsum.photos/seed/tp-char-b/400/600",
+      "imageHint": "princess gold"
+    },
+    {
+      "id": "tp-char-c",
+      "description": "Majestic princess in yellow dress",
+      "imageUrl": "https://picsum.photos/seed/tp-char-c/400/600",
+      "imageHint": "princess yellow"
     },
     {
       "id": "slot-host",
