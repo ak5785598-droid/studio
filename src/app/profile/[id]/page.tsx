@@ -25,6 +25,8 @@ import {
   Smartphone,
   Wallet,
   Check,
+  ShieldAlert,
+  X,
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -61,13 +63,16 @@ const DiamondIcon = ({ className }: { className?: string }) => (
 /**
  * Purchase Coins Dialog.
  * Supporting simulated real-time payments via Paytm, PhonePe, and Google Pay.
+ * STRICT PROTOCOL: Coins are ONLY credited after explicit confirmation in the Gateway step.
  */
 function PurchaseCoinsDialog({ open, setOpen }: { open: boolean, setOpen: (o: boolean) => void }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  
   const [selectedPkg, setSelectedPkg] = useState<number | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [paymentStep, setPaymentStep] = useState<'select' | 'gateway'>('select');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const packages = [
@@ -77,15 +82,20 @@ function PurchaseCoinsDialog({ open, setOpen }: { open: boolean, setOpen: (o: bo
     { id: 4, amount: 50000, price: '₹4000' },
   ];
 
-  const handleRecharge = async () => {
-    if (!user || !firestore || selectedPkg === null || !selectedMethod) return;
+  const handleStartPayment = () => {
+    if (!selectedPkg || !selectedMethod) return;
+    setPaymentStep('gateway');
+  };
+
+  const handlePaymentSuccess = async () => {
+    if (!user || !firestore || selectedPkg === null) return;
     
     const pkg = packages.find(p => p.id === selectedPkg);
     if (!pkg) return;
 
     setIsProcessing(true);
     
-    // Simulate real-time payment processing frequency
+    // Simulate final bank synchronization
     setTimeout(() => {
       const userRef = doc(firestore, 'users', user.uid);
       const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
@@ -99,92 +109,169 @@ function PurchaseCoinsDialog({ open, setOpen }: { open: boolean, setOpen: (o: bo
       updateDocumentNonBlocking(profileRef, updateData);
 
       toast({
-        title: 'Recharge Successful',
-        description: `Synced ${pkg.amount.toLocaleString()} Gold Coins via ${selectedMethod}.`
+        title: 'Payment Confirmed',
+        description: `Synced ${pkg.amount.toLocaleString()} Gold Coins to your frequency wallet.`
       });
 
       setIsProcessing(false);
-      setOpen(false);
-      setSelectedPkg(null);
-      setSelectedMethod(null);
-    }, 2000);
+      resetDialog();
+    }, 1500);
   };
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[425px] bg-white text-black p-0 rounded-t-[3rem] overflow-hidden border-none shadow-2xl">
-        <DialogHeader className="p-8 pb-0 text-center">
-          <DialogTitle className="font-headline text-3xl uppercase italic tracking-tighter">Gold Recharge</DialogTitle>
-          <DialogDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">
-            Official Ummy Secure Payment Portal
-          </DialogDescription>
-        </DialogHeader>
-        <div className="p-8 space-y-6">
-          <div className="grid grid-cols-2 gap-3">
-            {packages.map((pkg) => (
-              <button 
-                key={pkg.id} 
-                onClick={() => setSelectedPkg(pkg.id)}
-                className={cn(
-                  "flex flex-col items-center gap-1 p-4 bg-gray-50 border-2 rounded-2xl transition-all active:scale-95",
-                  selectedPkg === pkg.id ? "border-primary bg-primary/5 shadow-lg" : "border-transparent hover:border-gray-200"
-                )}
-              >
-                <div className="flex items-center gap-1 text-primary font-black italic">
-                  <GoldCoinIcon className="h-4 w-4" />
-                  {pkg.amount.toLocaleString()}
-                </div>
-                <span className="text-[10px] font-black text-gray-400">{pkg.price}</span>
-              </button>
-            ))}
-          </div>
+  const handlePaymentCancel = () => {
+    toast({
+      variant: 'destructive',
+      title: 'Payment Discarded',
+      description: 'Transaction terminated. No coins were credited.'
+    });
+    resetDialog();
+  };
 
-          <div className="space-y-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Secure Payment Methods</p>
-            <div className="grid grid-cols-3 gap-3">
-              <button 
-                onClick={() => setSelectedMethod('Paytm')}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-3 bg-white border-2 rounded-2xl transition-all group",
-                  selectedMethod === 'Paytm' ? "border-blue-500 bg-blue-50 shadow-md" : "border-gray-100 hover:border-blue-300"
-                )}
+  const resetDialog = () => {
+    setOpen(false);
+    setTimeout(() => {
+      setPaymentStep('select');
+      setSelectedPkg(null);
+      setSelectedMethod(null);
+      setIsProcessing(false);
+    }, 300);
+  };
+
+  const currentPkg = packages.find(p => p.id === selectedPkg);
+
+  return (
+    <Dialog open={open} onOpenChange={(val) => !isProcessing && setOpen(val)}>
+      <DialogContent className="sm:max-w-[425px] bg-white text-black p-0 rounded-t-[3rem] overflow-hidden border-none shadow-2xl">
+        {paymentStep === 'select' ? (
+          <>
+            <DialogHeader className="p-8 pb-0 text-center">
+              <DialogTitle className="font-headline text-3xl uppercase italic tracking-tighter">Gold Recharge</DialogTitle>
+              <DialogDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">
+                Official Ummy Secure Payment Portal
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-3">
+                {packages.map((pkg) => (
+                  <button 
+                    key={pkg.id} 
+                    onClick={() => setSelectedPkg(pkg.id)}
+                    className={cn(
+                      "flex flex-col items-center gap-1 p-4 bg-gray-50 border-2 rounded-2xl transition-all active:scale-95",
+                      selectedPkg === pkg.id ? "border-primary bg-primary/5 shadow-lg" : "border-transparent hover:border-gray-200"
+                    )}
+                  >
+                    <div className="flex items-center gap-1 text-primary font-black italic">
+                      <GoldCoinIcon className="h-4 w-4" />
+                      {pkg.amount.toLocaleString()}
+                    </div>
+                    <span className="text-[10px] font-black text-gray-400">{pkg.price}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Secure Payment Methods</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <button 
+                    onClick={() => setSelectedMethod('Paytm')}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 bg-white border-2 rounded-2xl transition-all group",
+                      selectedMethod === 'Paytm' ? "border-blue-500 bg-blue-50 shadow-md" : "border-gray-100 hover:border-blue-300"
+                    )}
+                  >
+                    <div className="h-10 w-full bg-blue-600 rounded-lg flex items-center justify-center text-[10px] text-white font-black italic">Paytm</div>
+                    <span className="text-[8px] font-bold uppercase opacity-40 group-hover:opacity-100">Paytm</span>
+                  </button>
+                  <button 
+                    onClick={() => setSelectedMethod('PhonePe')}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 bg-white border-2 rounded-2xl transition-all group",
+                      selectedMethod === 'PhonePe' ? "border-purple-500 bg-purple-50 shadow-md" : "border-gray-100 hover:border-purple-300"
+                    )}
+                  >
+                    <div className="h-10 w-full bg-purple-600 rounded-lg flex items-center justify-center text-[10px] text-white font-black italic">PhonePe</div>
+                    <span className="text-[8px] font-bold uppercase opacity-40 group-hover:opacity-100">PhonePe</span>
+                  </button>
+                  <button 
+                    onClick={() => setSelectedMethod('GPay')}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 bg-white border-2 rounded-2xl transition-all group",
+                      selectedMethod === 'GPay' ? "border-green-500 bg-green-50 shadow-md" : "border-gray-100 hover:border-green-300"
+                    )}
+                  >
+                    <div className="h-10 w-full bg-green-600 rounded-lg flex items-center justify-center text-[10px] text-white font-black italic">GPay</div>
+                    <span className="text-[8px] font-bold uppercase opacity-40 group-hover:opacity-100">G Pay</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="p-8 pt-0">
+              <Button 
+                onClick={handleStartPayment}
+                disabled={!selectedPkg || !selectedMethod}
+                className="w-full h-16 text-xl font-black uppercase italic rounded-3xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90"
               >
-                <div className="h-10 w-full bg-blue-600 rounded-lg flex items-center justify-center text-[10px] text-white font-black italic">Paytm</div>
-                <span className="text-[8px] font-bold uppercase opacity-40 group-hover:opacity-100">Paytm</span>
-              </button>
-              <button 
-                onClick={() => setSelectedMethod('PhonePe')}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-3 bg-white border-2 rounded-2xl transition-all group",
-                  selectedMethod === 'PhonePe' ? "border-purple-500 bg-purple-50 shadow-md" : "border-gray-100 hover:border-purple-300"
-                )}
-              >
-                <div className="h-10 w-full bg-purple-600 rounded-lg flex items-center justify-center text-[10px] text-white font-black italic">PhonePe</div>
-                <span className="text-[8px] font-bold uppercase opacity-40 group-hover:opacity-100">PhonePe</span>
-              </button>
-              <button 
-                onClick={() => setSelectedMethod('GPay')}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-3 bg-white border-2 rounded-2xl transition-all group",
-                  selectedMethod === 'GPay' ? "border-green-500 bg-green-50 shadow-md" : "border-gray-100 hover:border-green-300"
-                )}
-              >
-                <div className="h-10 w-full bg-green-600 rounded-lg flex items-center justify-center text-[10px] text-white font-black italic">GPay</div>
-                <span className="text-[8px] font-bold uppercase opacity-40 group-hover:opacity-100">G Pay</span>
-              </button>
+                <Wallet className="h-6 w-6 mr-2" />
+                Initialize Payment
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <div className="p-8 space-y-8 animate-in slide-in-from-right-4 duration-300">
+            <div className="flex flex-col items-center text-center space-y-4">
+               <div className={cn(
+                 "h-20 w-20 rounded-full flex items-center justify-center shadow-2xl",
+                 selectedMethod === 'Paytm' ? "bg-blue-600" : selectedMethod === 'PhonePe' ? "bg-purple-600" : "bg-green-600"
+               )}>
+                  <Smartphone className="h-10 w-10 text-white" />
+               </div>
+               <div>
+                  <h3 className="text-2xl font-black uppercase italic">{selectedMethod} Gateway</h3>
+                  <p className="text-muted-foreground text-sm font-body">Waiting for transaction authorization...</p>
+               </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-3xl p-6 border-2 border-dashed border-gray-200">
+               <div className="flex justify-between items-center mb-4">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Order Amount</span>
+                  <span className="text-xl font-black italic">{currentPkg?.price}</span>
+               </div>
+               <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Coins to Credit</span>
+                  <div className="flex items-center gap-1 text-primary font-black italic">
+                     <GoldCoinIcon className="h-4 w-4" />
+                     {currentPkg?.amount.toLocaleString()}
+                  </div>
+               </div>
+            </div>
+
+            <div className="space-y-3">
+               <div className="flex items-center gap-2 justify-center text-[10px] font-bold text-muted-foreground uppercase mb-4">
+                  <ShieldCheck className="h-4 w-4 text-green-500" />
+                  <span>256-Bit SSL Encrypted Connection</span>
+               </div>
+               <Button 
+                 onClick={handlePaymentSuccess}
+                 disabled={isProcessing}
+                 className={cn(
+                   "w-full h-16 text-xl font-black uppercase italic rounded-3xl shadow-xl",
+                   selectedMethod === 'Paytm' ? "bg-blue-600 hover:bg-blue-700" : selectedMethod === 'PhonePe' ? "bg-purple-600 hover:bg-purple-700" : "bg-green-600 hover:bg-green-700"
+                 )}
+               >
+                 {isProcessing ? <Loader className="animate-spin h-6 w-6 mr-2" /> : <Check className="h-6 w-6 mr-2" />}
+                 {isProcessing ? 'Verifying...' : 'Confirm Paid'}
+               </Button>
+               <button 
+                 onClick={handlePaymentCancel}
+                 disabled={isProcessing}
+                 className="w-full py-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-red-500 transition-colors"
+               >
+                 Discard Transaction
+               </button>
             </div>
           </div>
-        </div>
-        <DialogFooter className="p-8 pt-0">
-          <Button 
-            onClick={handleRecharge}
-            disabled={!selectedPkg || !selectedMethod || isProcessing}
-            className="w-full h-16 text-xl font-black uppercase italic rounded-3xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90"
-          >
-            {isProcessing ? <Loader className="animate-spin h-6 w-6 mr-2" /> : <Wallet className="h-6 w-6 mr-2" />}
-            {isProcessing ? 'Processing...' : 'Recharge Wealth'}
-          </Button>
-        </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -410,9 +497,9 @@ export default function ProfilePage() {
                       <p className="text-[10px] text-white/60 font-bold uppercase italic">Enjoy distinguished privileges</p>
                    </div>
                 </div>
-                <Button className="bg-gradient-to-b from-yellow-300 to-yellow-600 text-black font-black uppercase italic text-[10px] h-8 rounded-full px-4 shadow-lg border-b-2 border-yellow-800">
+                <button className="bg-gradient-to-b from-yellow-300 to-yellow-600 text-black font-black uppercase italic text-[10px] h-8 rounded-full px-4 shadow-lg border-b-2 border-yellow-800">
                    Get SVIP
-                </Button>
+                </button>
              </div>
           </div>
 
