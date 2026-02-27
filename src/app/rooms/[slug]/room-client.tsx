@@ -187,7 +187,6 @@ export function RoomClient({ room }: { room: Room }) {
   const router = useRouter();
   const { user: currentUser } = useUser();
   const { userProfile } = useUserProfile(currentUser?.uid);
-  const { setIsMinimized, setActiveRoom } = useRoomContext();
   const firestore = useFirestore();
   const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(room.id);
 
@@ -448,7 +447,7 @@ export function RoomClient({ room }: { room: Room }) {
 
       <main className="relative z-10 flex-1 flex flex-col overflow-hidden">
         {/* Fixed Arena Section */}
-        <div className="shrink-0 py-4 px-4 overflow-y-auto no-scrollbar">
+        <div className="shrink-0 py-4 px-4 overflow-y-auto no-scrollbar max-h-[50%]">
           <div className="flex justify-center mb-6">
              <div className="relative flex flex-col items-center gap-2 w-28 h-36">
                 <EmojiReactionOverlay emoji={hostParticipant?.activeEmoji} size="lg" />
@@ -523,7 +522,7 @@ export function RoomClient({ room }: { room: Room }) {
         </ScrollArea>
       </main>
 
-      <footer className="relative z-50 px-6 pb-12 pt-4 bg-gradient-to-t from-black via-black/80 to-transparent">
+      <footer className="relative z-50 px-6 pb-12 pt-4 bg-gradient-to-t from-black via-black/80 to-transparent shrink-0">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <form className="flex-1 flex items-center bg-blue-900/40 backdrop-blur-xl rounded-full border border-white/10 h-12 px-5 group focus-within:border-primary/50 transition-colors" onSubmit={handleSendMessage}>
             <Input placeholder={room.isChatMuted ? "Messages Disabled" : "Share a vibe..."} className="bg-transparent border-none text-xs text-white placeholder:text-white/40 focus-visible:ring-0" value={messageText} onChange={(e) => setMessageText(e.target.value)} disabled={isSending || (room.isChatMuted && !canManageRoom)} />
