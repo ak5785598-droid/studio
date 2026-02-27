@@ -106,6 +106,7 @@ import { GiftAnimationOverlay } from '@/components/gift-animation-overlay';
 import { useWebRTC } from '@/hooks/use-webrtc';
 import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
 import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
+import { DailyRewardDialog } from '@/components/daily-reward-dialog';
 
 /**
  * Rich Level Calculation Engine.
@@ -336,6 +337,7 @@ export function RoomClient({ room }: { room: Room }) {
 
   return (
     <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl border border-white/5 animate-in fade-in duration-700">
+      <DailyRewardDialog />
       <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
       <audio ref={roomAudioRef} loop crossOrigin="anonymous" />
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => <RemoteAudio key={peerId} stream={stream} />)}
