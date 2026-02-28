@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { GoldCoinIcon } from '@/components/icons';
+import { OfficialTag } from '@/components/official-tag';
 import {
   Dialog,
   DialogContent,
@@ -79,7 +80,10 @@ const RankingList = ({ items, type, isLoading }: any) => {
                 </div>
              </div>
              <div className="mt-8 text-center space-y-1">
-                <h2 className="text-xl font-black text-cyan-400 uppercase italic tracking-tighter drop-shadow-md">{getDisplayName(top1)}</h2>
+                <div className="flex flex-col items-center gap-1">
+                  <h2 className="text-xl font-black text-cyan-400 uppercase italic tracking-tighter drop-shadow-md">{getDisplayName(top1)}</h2>
+                  {top1.tags?.includes('Official') && <OfficialTag size="sm" />}
+                </div>
                 <div className="flex items-center justify-center gap-1">
                    <span className="text-lg font-black text-yellow-500 italic">{(getValue(top1)).toLocaleString()}</span>
                    <GoldCoinIcon className="h-4 w-4" />
@@ -98,9 +102,10 @@ const RankingList = ({ items, type, isLoading }: any) => {
                    </Avatar>
                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white h-6 w-6 rounded-full flex items-center justify-center font-black text-xs italic shadow-lg ring-2 ring-black">2</div>
                 </div>
-                <div className="text-center space-y-1">
+                <div className="text-center space-y-1 flex flex-col items-center">
                    <p className="font-black text-sm text-pink-300 uppercase italic truncate w-32">{getDisplayName(top2)}</p>
-                   <div className="flex items-center justify-center gap-1">
+                   {top2.tags?.includes('Official') && <OfficialTag size="sm" />}
+                   <div className="flex items-center justify-center gap-1 mt-1">
                       <span className="text-xs font-black text-yellow-500">{(getValue(top2)).toLocaleString()}</span>
                       <GoldCoinIcon className="h-3 w-3" />
                    </div>
@@ -116,9 +121,10 @@ const RankingList = ({ items, type, isLoading }: any) => {
                    </Avatar>
                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-white h-6 w-6 rounded-full flex items-center justify-center font-black text-xs italic shadow-lg ring-2 ring-black">3</div>
                 </div>
-                <div className="text-center space-y-1">
+                <div className="text-center space-y-1 flex flex-col items-center">
                    <p className="font-black text-sm text-white uppercase italic truncate w-32">{getDisplayName(top3)}</p>
-                   <div className="flex items-center justify-center gap-1">
+                   {top3.tags?.includes('Official') && <OfficialTag size="sm" />}
+                   <div className="flex items-center justify-center gap-1 mt-1">
                       <span className="text-xs font-black text-yellow-500">{(getValue(top3)).toLocaleString()}</span>
                       <GoldCoinIcon className="h-3 w-3" />
                    </div>
@@ -137,8 +143,11 @@ const RankingList = ({ items, type, isLoading }: any) => {
                 <AvatarImage src={getDisplayImage(item)} />
                 <AvatarFallback>{type === 'rooms' ? <Castle className="h-6 w-6" /> : <UserIcon className="h-6 w-6" />}</AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <p className="font-black text-sm uppercase text-white/90 truncate italic tracking-tighter">{getDisplayName(item)}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-black text-sm uppercase text-white/90 truncate italic tracking-tighter">{getDisplayName(item)}</p>
+                  {item.tags?.includes('Official') && <OfficialTag size="sm" />}
+                </div>
                 <Badge variant="outline" className="text-[8px] border-yellow-500/20 text-yellow-500/60 font-black h-4 mt-1">
                   {type === 'rooms' ? (item.category || 'Tribe') : `Lv.${(item.level?.rich || 1)}`}
                 </Badge>

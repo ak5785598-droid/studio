@@ -100,6 +100,7 @@ import {
   arrayRemove,
 } from 'firebase/firestore';
 import { AvatarFrame } from '@/components/avatar-frame';
+import { OfficialTag } from '@/components/official-tag';
 import { useRouter } from 'next/navigation';
 import { useRoomContext } from '@/components/room-provider';
 import { GiftAnimationOverlay } from '@/components/gift-animation-overlay';
@@ -414,10 +415,10 @@ export function RoomClient({ room }: { room: Room }) {
                             <AvatarFrame frameId={p.activeFrame} size="sm">
                               <Avatar><AvatarImage src={p.avatarUrl} /><AvatarFallback>{p.name.charAt(0)}</AvatarFallback></Avatar>
                             </AvatarFrame>
-                            <div>
+                            <div className="flex flex-col gap-1">
                               <div className="flex items-center gap-2">
                                 <p className="font-bold text-sm">{p.name}</p>
-                                {isPOwner ? <Crown className="h-3 w-3 text-yellow-500 fill-current" /> : isPMod ? <ShieldCheck className="h-3 w-3 text-blue-400 fill-current" /> : null}
+                                {(isPOwner || isPMod) && <OfficialTag size="sm" />}
                               </div>
                               <div className="flex items-center gap-2">
                                 {isPOwner && <Badge className="bg-yellow-500 text-black text-[8px] h-4">OWNER</Badge>}
