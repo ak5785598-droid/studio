@@ -49,9 +49,6 @@ const MenuItem = ({ icon: Icon, label, href, extra, iconColor, onClick }: any) =
   );
 };
 
-/**
- * Settings Page - Mobile Native High-Fidelity Edition.
- */
 export default function SettingsPage() {
   const auth = useAuth();
   const { user, isLoading: isUserLoading } = useUser();
@@ -72,7 +69,7 @@ export default function SettingsPage() {
   if (isUserLoading || isProfileLoading) {
     return (
       <AppLayout>
-        <div className="flex h-screen items-center justify-center">
+        <div className="flex h-dvh items-center justify-center">
           <Loader className="animate-spin text-primary h-8 w-8" />
         </div>
       </AppLayout>
@@ -83,7 +80,7 @@ export default function SettingsPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-white font-headline pb-32 animate-in fade-in duration-700">
+      <div className="min-h-full bg-white font-headline pb-32 animate-in fade-in duration-700">
         <header className="px-6 pt-10 pb-6 flex items-center gap-4 border-b border-gray-50 sticky top-0 bg-white/80 backdrop-blur-md z-50">
            <button onClick={() => router.back()} className="p-2 bg-secondary/50 rounded-full hover:bg-secondary transition-all">
               <ChevronLeft className="h-6 w-6 text-gray-800" />
@@ -110,14 +107,14 @@ export default function SettingsPage() {
               </Card>
            </section>
 
-           <section className="pt-4">
+           <section className="pt-4 px-2">
               <Button 
                 onClick={handleLogout}
                 variant="destructive"
                 className="w-full h-16 rounded-[1.5rem] bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 shadow-none font-black uppercase italic text-lg"
               >
                 <LogOut className="h-6 w-6 mr-2" />
-                Exit Frequency
+                Exit Frequency (Sign Out)
               </Button>
               <p className="text-center text-[8px] font-black uppercase tracking-[0.3em] text-gray-300 mt-4 italic">
                 Ummy Secure Protocol v1.4.2 • India Official

@@ -422,7 +422,7 @@ export default function ProfilePage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-[#f8f9fa] font-headline pb-32">
+      <div className="min-h-full bg-[#f8f9fa] font-headline pb-32">
         <div className="relative h-64 w-full">
           <Image src="https://picsum.photos/seed/ummy-bg/1200/600" alt="Mountain Header" fill className="object-cover opacity-20" data-ai-hint="mountain landscape" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#f8f9fa]" />
@@ -445,7 +445,6 @@ export default function ProfilePage() {
             <div className="pb-2 flex-1 space-y-1">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-black text-gray-900 uppercase italic tracking-tight">{profile.username}</h1>
-                {isOfficial && <OfficialTag size="sm" />}
               </div>
               <div className="flex items-center gap-2 text-muted-foreground"><span className="text-xs font-bold">ID:{profile.specialId || '563021252'}</span><button onClick={() => { navigator.clipboard.writeText(profile.specialId); toast({ title: 'ID Copied' }); }}><Copy className="h-3 w-3" /></button></div>
               <div className="flex items-center gap-2">

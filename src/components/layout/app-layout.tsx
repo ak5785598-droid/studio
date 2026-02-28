@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, User, Settings, LogOut, ShoppingBag, ShieldCheck, Mail, Crown, Gamepad2 } from "lucide-react";
+import { Home, Settings, LogOut, ShoppingBag, Mail, Crown, Gamepad2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -25,14 +25,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { FloatingRoomBar } from "@/components/floating-room-bar";
 
-const CastleEmoji = () => <span className="text-2xl">🏰</span>;
-const MessageEmoji = () => <span className="text-2xl">📑</span>;
-const CrownEmoji = () => <span className="text-2xl">👑</span>;
-
 const navItems = [
-  { href: "/rooms", label: "Home", icon: CastleEmoji },
-  { href: "/messages", label: "Message", icon: MessageEmoji },
-  { href: "/profile", label: "Mine", icon: CrownEmoji },
+  { href: "/rooms", label: "Home", icon: () => <span className="text-2xl">🏰</span> },
+  { href: "/messages", label: "Message", icon: () => <span className="text-2xl">📑</span> },
+  { href: "/profile", label: "Mine", icon: () => <span className="text-2xl">👑</span> },
 ];
 
 const sidebarItems = [
@@ -80,31 +76,21 @@ export function AppLayout({
     }
   };
 
-  const isAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
-
   if (!mounted) return null;
 
   if (isUserLoading) {
     return (
-      <div className="flex h-svh w-full items-center justify-center bg-[#FFCC00]">
-        <UmmyLogoIcon className="h-12 w-12 text-white animate-pulse" />
+      <div className="flex h-dvh w-full items-center justify-center bg-[#FFCC00]">
+        <UmmyLogoIcon className="h-16 w-16 text-white animate-pulse" />
       </div>
     );
   }
 
   const isAuthExempt = pathname.startsWith('/login') || pathname === '/';
 
-  if (!user && !isAuthExempt) {
-    return (
-      <div className="flex h-svh w-full items-center justify-center bg-[#FFCC00]">
-        <UmmyLogoIcon className="h-12 w-12 text-white animate-pulse" />
-      </div>
-    );
-  }
-
   if (fullScreen) {
     return (
-      <div className="min-h-svh w-full bg-black font-headline overflow-hidden relative">
+      <div className="h-dvh w-full bg-black font-headline overflow-hidden relative">
         <main className="h-full w-full relative">
           {children}
         </main>
@@ -113,15 +99,17 @@ export function AppLayout({
   }
 
   if (isAuthExempt) {
-    return <>{children}</>;
+    return <React.Fragment>{children}</React.Fragment>;
   }
+
+  const isAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-dvh w-full bg-[#FFCC00] font-headline overflow-hidden relative">
+      <div className="flex h-dvh w-full bg-[#FFCC00] font-headline overflow-hidden relative">
         <Sidebar className="bg-white border-r">
-          <SidebarHeader className="border-b bg-white">
-            <div className="flex items-center gap-2 p-2">
+          <SidebarHeader className="border-b bg-white p-4">
+            <div className="flex items-center gap-2">
               <UmmyLogoIcon className="h-7 w-7"/>
               <span className="font-headline text-2xl font-bold tracking-tight text-foreground">
                 Ummy
@@ -153,13 +141,13 @@ export function AppLayout({
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild size="lg" className="bg-primary/5 text-primary border border-primary/20 rounded-xl mb-2">
                     <Link href="/admin">
-                      <ShieldCheck className="h-5 w-5" />
+                      <Settings className="h-5 w-5" />
                       <span>Admin Control</span>
                     </Link>
                   </SidebarMenuItem>
                 </SidebarMenuItem>
               )}
-               <SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')} size="lg">
                   <Link href="/settings">
                     <Settings />
@@ -178,10 +166,10 @@ export function AppLayout({
         </Sidebar>
 
         <div className="flex flex-1 flex-col overflow-hidden relative bg-[#FFCC00]">
-          <SidebarInset className="bg-[#FFCC00]">
+          <SidebarInset className="bg-[#FFCC00] flex-1 overflow-hidden">
             <main className={cn(
-              "flex-1 overflow-y-auto h-full bg-white rounded-t-[2.5rem] md:rounded-none",
-              !hideSidebarOnMobile ? "pb-20 md:pb-4" : "pb-4"
+              "h-full w-full overflow-y-auto bg-white rounded-t-[2.5rem] md:rounded-none transition-all",
+              !hideSidebarOnMobile ? "pb-20" : "pb-0"
             )}>
               {children}
             </main>

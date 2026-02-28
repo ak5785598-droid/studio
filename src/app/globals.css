@@ -75,7 +75,7 @@
   }
   
   html, body {
-    @apply h-full w-full overflow-hidden;
+    @apply h-[100dvh] w-full overflow-hidden;
     height: 100dvh;
     min-height: 100dvh;
     position: fixed;
@@ -87,7 +87,6 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    /* Respect hardware notches and Android navigation bars automatically */
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 }
