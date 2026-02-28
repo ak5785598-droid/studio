@@ -27,9 +27,9 @@ import { useUserProfile } from "@/hooks/use-user-profile";
 import { FloatingRoomBar } from "@/components/floating-room-bar";
 
 const navItems = [
-  { href: "/rooms", label: "HOME", icon: () => <span className="text-2xl">🏰</span> },
-  { href: "/messages", label: "MESSAGE", icon: () => <span className="text-2xl">📑</span> },
-  { href: "/profile", label: "MINE", icon: () => <span className="text-2xl">👑</span> },
+  { href: "/rooms", label: "HOME", icon: "🏰" },
+  { href: "/messages", label: "MESSAGE", icon: "📑" },
+  { href: "/profile", label: "MINE", icon: "👑" },
 ];
 
 const sidebarItems = [
@@ -121,7 +121,7 @@ export function AppLayout({
   const isAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex h-[100dvh] w-full bg-[#FFCC00] font-headline overflow-hidden relative">
         <Sidebar className="bg-white border-r">
           <SidebarHeader className="border-b bg-white p-4">
@@ -211,7 +211,7 @@ export function AppLayout({
                     )}
                   >
                     <div className={cn("transition-transform", active ? "scale-110" : "scale-100 grayscale")}>
-                       <item.icon />
+                       <span className="text-2xl">{item.icon}</span>
                     </div>
                     <span className="text-[9px] font-black uppercase tracking-tighter">{item.label}</span>
                   </Link>

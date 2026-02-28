@@ -110,20 +110,20 @@ export default function RoomsPage() {
 
   return (
     <div className="min-h-full bg-white flex flex-col">
-      <header className="px-4 pt-8 pb-3 sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-50 shrink-0">
+      <header className="px-4 pt-8 pb-3 sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shrink-0">
         <div className="flex items-center justify-between gap-2 max-w-full overflow-hidden">
-          <div className="flex items-center gap-3 sm:gap-4 overflow-x-auto no-scrollbar flex-1 min-w-0">
-            <button onClick={() => setNavTab('chatroom')} className={cn("text-lg sm:text-2xl font-black transition-all whitespace-nowrap", navTab === 'chatroom' ? "text-gray-900" : "text-gray-300")}>Chatroom</button>
-            <button onClick={() => setNavTab('moments')} className={cn("text-lg sm:text-2xl font-black transition-all whitespace-nowrap", navTab === 'moments' ? "text-gray-900" : "text-gray-300")}>Moments</button>
-            <button onClick={() => setNavTab('mine')} className={cn("text-lg sm:text-2xl font-black transition-all whitespace-nowrap", navTab === 'mine' ? "text-gray-900" : "text-gray-300")}>Mine</button>
+          <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar flex-1 min-w-0 pr-2">
+            <button onClick={() => setNavTab('chatroom')} className={cn("text-xl sm:text-2xl font-black transition-all whitespace-nowrap", navTab === 'chatroom' ? "text-gray-900" : "text-gray-300")}>Chatroom</button>
+            <button onClick={() => setNavTab('moments')} className={cn("text-xl sm:text-2xl font-black transition-all whitespace-nowrap", navTab === 'moments' ? "text-gray-900" : "text-gray-300")}>Moments</button>
+            <button onClick={() => setNavTab('mine')} className={cn("text-xl sm:text-2xl font-black transition-all whitespace-nowrap", navTab === 'mine' ? "text-gray-900" : "text-gray-300")}>Mine</button>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 pr-1">
+          <div className="flex items-center gap-2 shrink-0">
              <UserSearchDialog />
              {navTab === 'moments' && <PublishMomentDialog />}
              {myRoomId ? (
                <Link href={`/rooms/${myRoomId}`} className="p-1 hover:scale-110 active:scale-90 transition-all"><Home className="h-6 w-6 text-gray-800" /></Link>
              ) : (
-               <button onClick={() => toast({ title: "No Frequency Found", description: "You need to launch a room in the 'Mine' tab first." })} className="p-1 opacity-20 hover:scale-110 active:scale-90 transition-all"><Home className="h-6 w-6 text-gray-800" /></button>
+               <button onClick={() => toast({ title: "No Frequency", description: "Launch your room in the 'Mine' tab." })} className="p-1 opacity-20 hover:scale-110 active:scale-90 transition-all"><Home className="h-6 w-6 text-gray-800" /></button>
              )}
           </div>
         </div>

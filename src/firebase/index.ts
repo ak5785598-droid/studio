@@ -3,14 +3,15 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { initializeFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 // A record to hold the initialized SDKs to prevent re-initialization.
 let firebaseServices: { firebaseApp: FirebaseApp; auth: Auth; firestore: Firestore, storage: FirebaseStorage } | null = null;
 
 /**
- * Initializes Firebase services if they haven't been already.
+ * Initializes Firebase services with high-fidelity connectivity protocols.
+ * Uses experimentalForceLongPolling to ensure stability on mobile networks.
  */
 export function initializeFirebase() {
   if (firebaseServices) {
@@ -20,7 +21,12 @@ export function initializeFirebase() {
   const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
   const auth = getAuth(app);
-  const firestore = getFirestore(app);
+  
+  // High-Fidelity Connectivity fix for restricted environments
+  const firestore = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+  });
+  
   const storage = getStorage(app);
 
   firebaseServices = {
