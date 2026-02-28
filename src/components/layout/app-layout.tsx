@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -179,20 +180,8 @@ export function AppLayout({
         </Sidebar>
 
         <div className="flex flex-1 flex-col overflow-hidden relative bg-[#FFCC00]">
-          <header className="h-14 bg-[#FFCC00] flex items-center px-4 md:px-6 relative z-50">
-             <div className="flex items-center gap-4">
-                <SidebarTrigger className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
-                   <Menu className="h-6 w-6" />
-                </SidebarTrigger>
-                <div className="md:hidden flex items-center gap-2">
-                   <UmmyLogoIcon className="h-6 w-6" />
-                   <span className="font-black uppercase italic tracking-tighter text-white">Ummy</span>
-                </div>
-             </div>
-          </header>
-
           <SidebarInset className="bg-[#FFCC00]">
-            <main className="flex-1 overflow-y-auto h-[calc(100dvh-3.5rem)] pb-28 md:pb-4 bg-white rounded-t-[2.5rem] md:rounded-none">
+            <main className="flex-1 overflow-y-auto h-svh pb-28 md:pb-4 bg-white rounded-t-[2.5rem] md:rounded-none">
               {children}
             </main>
           </SidebarInset>
