@@ -38,7 +38,6 @@ import {
   PawPrint,
   Dices,
   Sparkles,
-  Car,
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -190,6 +189,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isGamesDialogOpen, setIsGamesDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isClearChatConfirmOpen, setIsClearChatConfirmOpen] = useState(false);
+  const [isMusicMenuOpen, setIsMusicMenuOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedSeatIndex, setSelectedSeatIndex] = useState<number | null>(null);
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
@@ -613,7 +613,6 @@ export function RoomClient({ room }: { room: Room }) {
                 <ScrollArea className="h-full px-8 pb-20">
                   <div className="grid grid-cols-4 gap-4">
                     <ToolTile icon={Gamepad2} label="Ludo" onClick={() => router.push('/games/ludo')} />
-                    <ToolTile icon={FruitMixIcon} label="Fruit" onClick={() => router.push('/games/fruit-party')} />
                     <ToolTile icon={PawPrint} label="Wild" onClick={() => router.push('/games/forest-party')} />
                     <ToolTile icon={Dices} label="Slot" onClick={() => router.push('/games/lucky-slot-777')} />
                     <ToolTile icon={Sparkles} label="Pyramid" onClick={() => router.push('/games/pyramid-battle')} />
@@ -665,7 +664,6 @@ export function RoomClient({ room }: { room: Room }) {
                       <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white/40 ml-2">Room Play</h3>
                       <div className="grid grid-cols-4 gap-4">
                         <ToolTile icon={Gamepad2} label="Ludo" onClick={() => router.push('/games/ludo')} />
-                        <ToolTile icon={FruitMixIcon} label="Fruit" onClick={() => router.push('/games/fruit-party')} />
                         <ToolTile icon={PawPrint} label="Wild" onClick={() => router.push('/games/forest-party')} />
                         <ToolTile icon={Dices} label="Slot" onClick={() => router.push('/games/lucky-slot-777')} />
                         <ToolTile icon={Sparkles} label="Pyramid" onClick={() => router.push('/games/pyramid-battle')} />
@@ -677,7 +675,6 @@ export function RoomClient({ room }: { room: Room }) {
                       <div className="grid grid-cols-4 gap-4">
                         <ToolTile icon={!currentUserParticipant?.isMuted && isInSeat ? Mic : MicOff} label="Voice" active={!currentUserParticipant?.isMuted && isInSeat} onClick={handleMicToggle} disabled={!isInSeat} />
                         <ToolTile icon={GiftIcon} label="Gift Effect" active={showGiftEffects} onClick={() => setShowGiftEffects(!showGiftEffects)} />
-                        <ToolTile icon={Sparkles} label="Lucky Gift" onClick={() => setIsGiftPickerOpen(true)} />
                         <ToolTile icon={Trash2} label="Clean" onClick={() => setIsClearChatConfirmOpen(true)} disabled={!canManageRoom} />
                         <ToolTile icon={room.isChatMuted ? MessageSquareOff : MessageSquare} label="Public Msg" active={!room.isChatMuted} onClick={toggleRoomMessages} disabled={!canManageRoom} />
                         <ToolTile icon={Music} label="Music" active={!!room.currentMusicUrl} onClick={() => setIsMusicMenuOpen(!isMusicMenuOpen)} />
