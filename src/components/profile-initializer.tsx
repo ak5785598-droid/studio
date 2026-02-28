@@ -7,7 +7,7 @@ import { doc, getDoc, setDoc, serverTimestamp, runTransaction, collection } from
 /**
  * Production Profile Initializer.
  * Assigns a unique sequential 6-digit numeric ID (e.g. 100001) starting from 100,000.
- * Provision 100M coins and Official tags instantly.
+ * IDs are automatic and assigned in real-time. Official staff retain unique ID privileges.
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -31,13 +31,14 @@ export function ProfileInitializer() {
 
         hasInitialized.current = profileId;
 
-        // Atomic Transaction for unique 6-digit ID assignment (e.g. 100001, 100002...)
+        // Atomic Transaction for sequential 6-digit ID (100001, 100002...)
         const finalData = await runTransaction(firestore, async (transaction) => {
           const countersRef = doc(firestore, 'appConfig', 'counters');
           const countersSnap = await transaction.get(countersRef);
           let nextUserId = 100000;
 
           if (countersSnap.exists()) {
+            // Sequential logic ensures "don't give same number"
             const current = countersSnap.data().userCounter || 99999;
             nextUserId = current + 1;
           }
@@ -58,11 +59,12 @@ export function ProfileInitializer() {
               dailySpent: 0 
             },
             inventory: { ownedItems: [], activeFrame: 'None', activeBubble: 'Default' },
-            stats: { followers: 0, fans: 0 },
+            stats: { followers: 0, fans: 0, dailyFans: 0 },
             level: { rich: 1, charm: 1 },
             tags: ['Admin', 'Official', 'Tribe Member'], 
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
+            isNewUser: true, // Flag for onboarding tutorial
             details: {
               gender: 'Secret',
               hometown: 'India',
@@ -91,10 +93,9 @@ export function ProfileInitializer() {
 
         await setDoc(userProfileRef, finalData, { merge: true });
 
-        // Official Reward Notification Protocol
         addDocumentNonBlocking(collection(firestore, 'users', profileId, 'notifications'), {
-          title: 'Official Notice',
-          content: `Notice.. You receive 100,000,000 coins..... Best regard Ummy official`,
+          title: 'Welcome Reward',
+          content: `Welcome to Ummy! You've received 100,000,000 Gold Coins to start your journey. Your Tribal ID is ${finalData.specialId}.`,
           type: 'system',
           timestamp: serverTimestamp(),
           isRead: false

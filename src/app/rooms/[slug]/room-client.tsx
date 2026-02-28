@@ -107,6 +107,7 @@ import { useWebRTC } from '@/hooks/use-webrtc';
 import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
 import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
 import { DailyRewardDialog } from '@/components/daily-reward-dialog';
+import { VoiceTutorial } from '@/components/voice-tutorial';
 
 const GoldenMicIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
@@ -194,6 +195,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [showGiftEffects, setShowGiftEffects] = useState(true);
   const [showEntryEffects, setShowEntryEffects] = useState(true);
   const [isMusicMenuOpen, setIsMusicMenuOpen] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const roomDpInputRef = useRef<HTMLInputElement>(null);
@@ -238,6 +240,12 @@ export function RoomClient({ room }: { room: Room }) {
       user: { id: m.senderId, name: m.senderName || 'User', avatarUrl: m.senderAvatar || '' }
     })) || [];
   }, [firestoreMessages]);
+
+  useEffect(() => {
+    if (userProfile?.isNewUser && !showTutorial) {
+      setShowTutorial(true);
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     if (!showGiftEffects) return;
@@ -334,6 +342,13 @@ export function RoomClient({ room }: { room: Room }) {
   const leaveSeat = () => { if (!firestore || !room.id || !currentUser) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: 0, isMuted: true }); setIsActionMenuOpen(false); };
   const handleMicToggle = () => { if (!isInSeat) { const first = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].find(i => !participants?.some(p => p.seatIndex === i) && !room.lockedSeats?.includes(i)); if (first) takeSeat(first); return; } if (currentUserParticipant?.isSilenced) { toast({ variant: 'destructive', title: 'Silenced' }); return; } if (firestore && currentUser && room.id) { updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { isMuted: !currentUserParticipant?.isMuted }); } };
 
+  const handleTutorialComplete = () => {
+    if (currentUser && firestore) {
+      updateDocumentNonBlocking(doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid), { isNewUser: false });
+    }
+    setShowTutorial(false);
+  };
+
   const handleSeatClick = (index: number, occupant?: RoomParticipant) => {
     setSelectedSeatIndex(index);
     setIsActionMenuOpen(true);
@@ -352,6 +367,7 @@ export function RoomClient({ room }: { room: Room }) {
 
   return (
     <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl border border-white/5 animate-in fade-in duration-700">
+      {showTutorial && <VoiceTutorial onComplete={handleTutorialComplete} />}
       <DailyRewardDialog />
       <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
       <audio ref={roomAudioRef} loop crossOrigin="anonymous" />
