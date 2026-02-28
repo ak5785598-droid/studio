@@ -439,7 +439,7 @@ export default function ProfilePage() {
                 <div className="bg-gradient-to-r from-cyan-400 to-cyan-600 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
                   <span className="text-[8px] font-black text-white italic">💎 {profile.level?.charm || 1}</span>
                 </div>
-                {isOfficial && <OfficialTag size="sm" className="ml-1" />}
+                {isOfficial && <OfficialTag size="sm" />}
               </div>
             </div>
           </div>
