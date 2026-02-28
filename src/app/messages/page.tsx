@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, MessageCircle, UserPlus, Star, ShieldCheck, ChevronRight, Search, Loader } from 'lucide-react';
@@ -9,6 +10,13 @@ import Link from 'next/link';
 import { UmmyLogoIcon } from '@/components/icons';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 /**
  * Message Center - High-fidelity Elite Inbox.
@@ -17,6 +25,7 @@ import { format } from 'date-fns';
 export default function MessagesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [selectedMessage, setSelectedMessage] = useState<any>(null);
 
   const notificationsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -84,7 +93,11 @@ export default function MessagesPage() {
                <div className="py-20 text-center text-muted-foreground uppercase font-black text-[10px] tracking-widest italic opacity-40">No System Broadcasts</div>
              ) : (
                systemMessages?.map((msg: any) => (
-                 <div key={msg.id} className="p-4 bg-white rounded-3xl border border-gray-100 flex gap-4 hover:shadow-md transition-shadow cursor-pointer">
+                 <div 
+                   key={msg.id} 
+                   onClick={() => setSelectedMessage(msg)}
+                   className="p-4 bg-white rounded-3xl border border-gray-100 flex gap-4 hover:shadow-md transition-shadow cursor-pointer active:scale-[0.98]"
+                 >
                     <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0">
                        <UmmyLogoIcon className="h-8 w-8" />
                     </div>
@@ -104,6 +117,43 @@ export default function MessagesPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <Dialog open={!!selectedMessage} onOpenChange={(open) => !open && setSelectedMessage(null)}>
+        <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[2.5rem] md:rounded-[2.5rem] border-none shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
+          <DialogHeader className="p-8 pb-4 border-b border-gray-50 flex flex-row items-center gap-4">
+            <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0">
+               <UmmyLogoIcon className="h-10 w-10" />
+            </div>
+            <div className="flex-1 text-left">
+              <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">
+                {selectedMessage?.title || 'Official Broadcast'}
+              </DialogTitle>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">
+                {selectedMessage?.timestamp ? format(selectedMessage.timestamp.toDate(), 'MMMM d, yyyy • HH:mm') : 'Recently'}
+              </p>
+            </div>
+          </DialogHeader>
+          <div className="p-8 space-y-6">
+            <div className="bg-gray-50/50 p-6 rounded-[2rem] border border-gray-100 min-h-[200px]">
+               <p className="text-lg font-body leading-relaxed text-gray-800 whitespace-pre-wrap italic">
+                 {selectedMessage?.content}
+               </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 py-2">
+               <ShieldCheck className="h-4 w-4 text-green-500" />
+               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Official Ummy Identity Sync Verified</span>
+            </div>
+          </div>
+          <div className="p-8 pt-0">
+            <button 
+              onClick={() => setSelectedMessage(null)}
+              className="w-full h-16 bg-primary text-white rounded-[1.5rem] font-black uppercase italic text-xl shadow-xl shadow-primary/20 active:scale-95 transition-all"
+            >
+              Sync Acknowledged
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
