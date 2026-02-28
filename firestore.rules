@@ -49,7 +49,14 @@ service cloud.firestore {
 
       match /participants/{userId} {
         allow read, list: if isSignedIn();
-        allow write: if isSignedIn() && request.auth.uid == userId;
+        // Allow user to manage their own participation
+        // Allow room owner/mods/admins to kick/silence
+        allow write: if isSignedIn() && (
+          request.auth.uid == userId ||
+          get(/databases/$(database)/documents/chatRooms/$(roomId)).data.ownerId == request.auth.uid ||
+          get(/databases/$(database)/documents/chatRooms/$(roomId)).data.moderatorIds.hasAny([request.auth.uid]) ||
+          isAdmin()
+        );
         
         match /signaling/{peerId} {
           allow read, write: if isSignedIn();
@@ -62,9 +69,7 @@ service cloud.firestore {
     }
 
     match /moments/{momentId} {
-      // Allow all tribe members to read the global social graph
       allow read, list: if isSignedIn();
-      // Allow only the author to broadcast or terminate a moment
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow delete: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
