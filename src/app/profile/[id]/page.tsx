@@ -31,6 +31,7 @@ import {
   Landmark,
   CreditCard as CardIcon,
   Headset,
+  LogOut,
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -400,6 +401,7 @@ export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
   const firestore = useFirestore();
+  const auth = useAuth();
   const { toast } = useToast();
   const profileId = Array.isArray(params?.id) ? params.id[0] : params?.id as string;
   const { user: currentUser, isLoading: isAuthLoading } = useUser();
@@ -413,6 +415,16 @@ export default function ProfilePage() {
   const [localAvatarPreview, setLocalAvatarPreview] = useState<string | null>(null);
 
   useEffect(() => { if (!isAuthLoading && !currentUser) router.replace('/login'); }, [currentUser, isAuthLoading, router]);
+
+  const handleLogout = async () => {
+    if (!auth) return;
+    try {
+      await signOut(auth);
+      window.location.href = '/login';
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Logout Failed', description: e.message });
+    }
+  };
 
   if (isAuthLoading || isProfileLoading) return <AppLayout><div className="flex h-[60vh] w-full flex-col items-center justify-center space-y-4"><Loader className="animate-spin text-primary h-10 w-10" /><p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Synchronizing Identity...</p></div></AppLayout>;
   if (!profile) { notFound(); return null; }
@@ -498,6 +510,21 @@ export default function ProfilePage() {
                    <ChevronRight className="h-4 w-4 text-gray-300" />
                 </div>
              </Card>
+
+             {isOwnProfile && (
+               <Card className="border-none shadow-sm rounded-[2rem] p-4 bg-white mt-4">
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-between py-3 group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 bg-red-50 rounded-2xl flex items-center justify-center text-red-500"><LogOut className="h-5 w-5" /></div>
+                      <span className="font-black text-red-600 uppercase italic text-[10px] sm:text-xs">Exit Frequency (Logout)</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-gray-300" />
+                  </button>
+               </Card>
+             )}
           </div>
         </div>
       </div>

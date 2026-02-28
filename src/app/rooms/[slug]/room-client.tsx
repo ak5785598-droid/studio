@@ -552,12 +552,12 @@ export function RoomClient({ room }: { room: Room }) {
         <ScrollArea className="flex-1 px-6 mt-2" ref={scrollRef}>
           <div className="max-w-lg mx-auto space-y-3 pb-4">
             {activeMessages.map((msg) => (
-              <div key={msg.id} className={cn(
+              <div className={cn(
                 "flex items-start gap-2 animate-in fade-in slide-in-from-left-2 duration-300", 
                 msg.type === 'gift' && "bg-primary/10 p-2 rounded-xl border border-primary/20", 
                 (msg.type === 'entrance' || msg.type === 'leave') && "bg-blue-500/10 p-1.5 px-3 rounded-full border border-blue-500/20 justify-center w-fit mx-auto", 
                 msg.type === 'emoji' && "justify-center w-full py-2"
-              )}>
+              )} key={msg.id}>
                 {msg.type === 'entrance' || msg.type === 'leave' ? (
                   <div className="flex items-center gap-2">
                     {msg.type === 'entrance' ? <UserCheck className="h-3 w-3 text-blue-400" /> : <LogOut className="h-3 w-3 text-red-400" />}
@@ -702,7 +702,7 @@ export function RoomClient({ room }: { room: Room }) {
       </footer>
 
       <Dialog open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-white text-black p-0 rounded-t-[2.5rem] overflow-hidden border-none shadow-2xl animate-in slide-in-from-bottom-full duration-500">
+        <DialogContent className="sm:max-w-[425px] bg-white text-black p-0 rounded-t-[3rem] overflow-hidden border-none shadow-2xl animate-in slide-in-from-bottom-full duration-500">
           <DialogHeader className="p-6 border-b border-gray-100">
             <DialogTitle className="text-center text-2xl text-gray-800 uppercase italic">{selectedOccupant ? `Tribe Member: ${selectedOccupant.name}` : `Seat ${selectedSeatIndex}`}</DialogTitle>
             <DialogDescription className="sr-only">Available actions for the selected tribe member or seat.</DialogDescription>

@@ -167,16 +167,16 @@ export function AppLayout({
         </Sidebar>
 
         <div className="flex flex-1 flex-col overflow-hidden relative bg-[#FFCC00]">
-          <SidebarInset className="bg-[#FFCC00] flex-1 overflow-hidden">
-            <header className="md:hidden flex items-center justify-between p-4 bg-white/10 backdrop-blur-md h-14 shrink-0 relative z-50">
+          <SidebarInset className="bg-[#FFCC00] flex-1 overflow-hidden flex flex-col">
+            <header className="md:hidden flex items-center justify-between p-4 bg-black/5 backdrop-blur-md h-14 shrink-0 relative z-50">
                <div className="flex items-center gap-2">
                   <UmmyLogoIcon className="h-6 w-6" />
-                  <span className="font-black text-white italic uppercase tracking-tighter">Ummy</span>
+                  <span className="font-black text-black italic uppercase tracking-tighter">Ummy</span>
                </div>
-               <SidebarTrigger className="text-white hover:bg-white/20 p-2 rounded-full" />
+               <SidebarTrigger className="text-black hover:bg-black/10 p-2 rounded-full" />
             </header>
             <main className={cn(
-              "h-full w-full overflow-y-auto bg-white rounded-t-[2.5rem] md:rounded-none transition-all",
+              "flex-1 w-full overflow-y-auto bg-white rounded-t-[2.5rem] md:rounded-none transition-all",
               !hideSidebarOnMobile ? "pb-[calc(72px+env(safe-area-inset-bottom,16px))]" : "pb-0"
             )}>
               {children}
