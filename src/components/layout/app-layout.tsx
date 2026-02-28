@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, User, Settings, LogOut, ShoppingBag, ShieldCheck, Mail, Crown, Gamepad2, Menu } from "lucide-react";
+import { Home, User, Settings, LogOut, ShoppingBag, ShieldCheck, Mail, Crown, Gamepad2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useUser, useAuth } from "@/firebase";
 import { UmmyLogoIcon } from "@/components/icons";
@@ -119,7 +118,7 @@ export function AppLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-svh w-full bg-[#FFCC00] font-headline overflow-hidden relative">
+      <div className="flex min-h-dvh w-full bg-[#FFCC00] font-headline overflow-hidden relative">
         <Sidebar className="bg-white border-r">
           <SidebarHeader className="border-b bg-white">
             <div className="flex items-center gap-2 p-2">
@@ -157,7 +156,7 @@ export function AppLayout({
                       <ShieldCheck className="h-5 w-5" />
                       <span>Admin Control</span>
                     </Link>
-                  </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenuItem>
               )}
                <SidebarMenuItem>
@@ -181,8 +180,8 @@ export function AppLayout({
         <div className="flex flex-1 flex-col overflow-hidden relative bg-[#FFCC00]">
           <SidebarInset className="bg-[#FFCC00]">
             <main className={cn(
-              "flex-1 overflow-y-auto h-svh bg-white rounded-t-[2.5rem] md:rounded-none",
-              !hideSidebarOnMobile ? "pb-28 md:pb-4" : "pb-4"
+              "flex-1 overflow-y-auto h-full bg-white rounded-t-[2.5rem] md:rounded-none",
+              !hideSidebarOnMobile ? "pb-20 md:pb-4" : "pb-4"
             )}>
               {children}
             </main>
@@ -191,7 +190,7 @@ export function AppLayout({
           <FloatingRoomBar />
 
           {!hideSidebarOnMobile && (
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-2 flex justify-between items-center z-[70] h-20 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 px-4 pt-2 pb-[env(safe-area-inset-bottom,16px)] flex justify-between items-center z-[70] h-auto min-h-[72px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
               {navItems.map((item) => {
                 const isMine = item.href === '/profile' && pathname.startsWith('/profile');
                 const isRooms = item.href === '/rooms' && pathname.startsWith('/rooms');
@@ -203,7 +202,7 @@ export function AppLayout({
                     key={item.label} 
                     href={item.href} 
                     className={cn(
-                      "flex flex-col items-center gap-1 transition-all flex-1",
+                      "flex flex-col items-center gap-1 transition-all flex-1 py-1",
                       active ? "text-gray-900" : "text-gray-300"
                     )}
                   >

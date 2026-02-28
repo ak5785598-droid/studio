@@ -57,6 +57,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
 
 /**
  * Rich Level Calculation Engine.
@@ -422,7 +423,22 @@ export default function ProfilePage() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-[#f8f9fa] font-headline pb-32">
-        <div className="relative h-64 w-full"><Image src="https://picsum.photos/seed/ummy-bg/1200/600" alt="Mountain Header" fill className="object-cover opacity-20" data-ai-hint="mountain landscape" /><div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#f8f9fa]" /><div className="absolute top-6 left-4 flex items-center gap-4"><button onClick={() => router.back()} className="p-2 bg-white/20 backdrop-blur-md rounded-full text-gray-800"><ChevronLeft className="h-6 w-6" /></button></div><div className="absolute top-6 right-4">{isOwnProfile && <EditProfileDialog profile={profile} />}</div></div>
+        <div className="relative h-64 w-full">
+          <Image src="https://picsum.photos/seed/ummy-bg/1200/600" alt="Mountain Header" fill className="object-cover opacity-20" data-ai-hint="mountain landscape" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#f8f9fa]" />
+          <div className="absolute top-6 left-4 flex items-center gap-4">
+            <button onClick={() => router.back()} className="p-2 bg-white/20 backdrop-blur-md rounded-full text-gray-800">
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+          </div>
+          <div className="absolute top-6 right-4 flex items-center gap-2">
+            {isOwnProfile && (
+              <Link href="/settings" className="p-2 bg-white/20 backdrop-blur-md rounded-full text-gray-800 hover:bg-white/40 transition-all">
+                <SettingsIcon className="h-6 w-6" />
+              </Link>
+            )}
+          </div>
+        </div>
         <div className="px-6 -mt-32 relative z-10 space-y-6">
           <div className="flex items-end gap-4">
             <div className="relative shrink-0"><AvatarFrame frameId={profile.inventory?.activeFrame} size="xl"><Avatar className="h-24 w-24 border-4 border-white shadow-xl"><AvatarImage src={localAvatarPreview || profile.avatarUrl} /><AvatarFallback className="text-4xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback></Avatar></AvatarFrame>{isOwnProfile && <div className="absolute bottom-0 right-0"><EditProfileDialog profile={profile} /></div>}</div>

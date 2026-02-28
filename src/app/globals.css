@@ -76,8 +76,10 @@
   
   html, body {
     @apply h-full w-full overflow-hidden;
+    height: 100dvh;
+    min-height: 100dvh;
     position: fixed;
-    touch-action: none;
+    touch-action: manipulation;
     -webkit-user-select: none;
     user-select: none;
     overscroll-behavior: none;
