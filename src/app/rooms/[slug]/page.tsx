@@ -1,3 +1,4 @@
+
 'use client';
 
 import { use, useMemo, useEffect, useState } from 'react';
@@ -116,7 +117,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   }
 
   return (
-    <AppLayout>
+    <AppLayout hideSidebarOnMobile>
        <RoomClient room={activeRoom} />
     </AppLayout>
   );
