@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -180,6 +179,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
   const [showGiftEffects, setShowGiftEffects] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [isClaimingTree, setIsClaimingTree] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const roomDpInputRef = useRef<HTMLInputElement>(null);
@@ -310,6 +310,44 @@ export function RoomClient({ room }: { room: Room }) {
       toast({ title: 'Frequency Cleaned', description: 'All messages have been synchronized to void.' });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Action Failed', description: error.message });
+    }
+  };
+
+  const handleMoneyTreeClick = async () => {
+    if (!currentUser || !firestore || !userProfile || isClaimingTree) return;
+
+    const lastClaim = userProfile.lastMoneyTreeClaimAt?.toDate();
+    const today = new Date();
+    const isAlreadyClaimedToday = lastClaim && 
+      lastClaim.getDate() === today.getDate() && 
+      lastClaim.getMonth() === today.getMonth() && 
+      lastClaim.getFullYear() === today.getFullYear();
+
+    if (isAlreadyClaimedToday) {
+      toast({ title: 'Already Synchronized', description: 'The tree will bear fruit for you again tomorrow.' });
+      return;
+    }
+
+    setIsClaimingTree(true);
+    try {
+      const reward = 1000;
+      const userRef = doc(firestore, 'users', currentUser.uid);
+      const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
+      
+      const updateData = {
+        'wallet.coins': increment(reward),
+        'lastMoneyTreeClaimAt': serverTimestamp(),
+        'updatedAt': serverTimestamp()
+      };
+
+      updateDocumentNonBlocking(userRef, updateData);
+      updateDocumentNonBlocking(profileRef, updateData);
+
+      toast({ title: 'Sync Successful', description: `Received 1,000 Gold Coins from the Wealth Tree.` });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Sync Failed', description: e.message });
+    } finally {
+      setIsClaimingTree(false);
     }
   };
 
@@ -451,11 +489,20 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </div>
 
-      <div className="absolute top-24 right-4 z-40 animate-bounce" style={{ animationDuration: '4s' }}>
+      <button 
+        onClick={handleMoneyTreeClick}
+        disabled={isClaimingTree}
+        className="absolute top-24 right-4 z-40 animate-bounce hover:scale-110 active:scale-95 transition-transform" 
+        style={{ animationDuration: '4s' }}
+      >
         <div className="relative h-12 w-12">
-          <Image src="https://img.icons8.com/color/96/money-tree.png" alt="Money Tree" fill className="object-contain" />
+          {isClaimingTree ? (
+            <Loader className="h-full w-full animate-spin text-yellow-500" />
+          ) : (
+            <Image src="https://img.icons8.com/color/96/money-tree.png" alt="Money Tree" fill className="object-contain" />
+          )}
         </div>
-      </div>
+      </button>
 
       <main className="relative z-10 flex-1 flex flex-col pt-2 overflow-hidden">
         <div className="px-4 space-y-2 flex flex-col items-center">

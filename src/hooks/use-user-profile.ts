@@ -36,6 +36,9 @@ export interface UserProfile {
     tags?: string[];
     createdAt?: any;
     updatedAt?: any;
+    lastSignInAt?: any;
+    lastMoneyTreeClaimAt?: any;
+    isNewUser?: boolean;
 }
 
 /**
