@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
@@ -9,26 +8,18 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { 
   Loader, 
-  Camera, 
   ChevronRight, 
   Copy,
-  Pen,
   ChevronLeft,
   ArrowRightLeft,
   Settings as SettingsIcon,
   ShieldCheck,
   UserPlus,
-  Share2,
   Trophy,
   Activity,
-  CreditCard,
   Smartphone,
   Wallet,
   Check,
-  ShieldAlert,
-  X,
-  History,
-  TrendingDown,
   Landmark,
   CreditCard as CardIcon,
   Headset,
@@ -53,7 +44,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -355,7 +345,6 @@ export default function ProfilePage() {
   return (
     <AppLayout>
       <div className="flex flex-col min-h-full bg-[#f8f9fa] font-headline pb-24">
-        {/* SMALLER HEADER */}
         <div className="relative h-32 sm:h-40 w-full shrink-0">
           <Image src="https://picsum.photos/seed/ummy-bg/1200/600" alt="Mountain Header" fill className="object-cover opacity-20" data-ai-hint="mountain landscape" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#f8f9fa]" />
@@ -373,7 +362,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* SMALLER PROFILE OFFSET */}
         <div className="flex-1 px-4 -mt-12 sm:-mt-16 relative z-10 space-y-3">
           <div className="flex items-end gap-3">
             <div className="relative shrink-0">

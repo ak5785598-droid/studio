@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from "react";
-import { Home, Settings, LogOut, ShoppingBag, Mail, Crown, Gamepad2, Menu, Power, User } from "lucide-react";
+import { Home, Settings, ShoppingBag, Mail, Crown, Gamepad2, Power, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,6 @@ import { useUser, useAuth } from "@/firebase";
 import { UmmyLogoIcon } from "@/components/icons";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
-import { useUserProfile } from "@/hooks/use-user-profile";
 import { FloatingRoomBar } from "@/components/floating-room-bar";
 
 const sidebarItems = [
@@ -161,11 +160,10 @@ export function AppLayout({
             {children}
           </main>
 
-          {/* PORTAL NAVIGATION: HOME, MESSAGE, MINE */}
           {!fullScreen && (
             <nav className="md:hidden flex items-center justify-around bg-white border-t border-gray-100 h-20 pb-safe shrink-0 relative z-50 px-4">
               {mobileNavItems.map((item) => {
-                const isActive = pathname === item.href || (item.href !== '/rooms' && pathname.startsWith(item.href));
+                const isActive = pathname === item.href || (item.href === '/profile' && pathname.startsWith('/profile'));
                 return (
                   <Link 
                     key={item.label}
