@@ -7,16 +7,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GoldCoinIcon } from '@/components/icons';
-import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, updateDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import { doc, increment, serverTimestamp, addDoc, collection } from 'firebase/firestore';
+import { doc, increment, serverTimestamp, addDoc, collection, query, orderBy, limit } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { ChevronLeft, RefreshCw, CreditCard, History, Loader } from 'lucide-react';
+import { ChevronLeft, RefreshCw, History, Loader, ArrowRightLeft, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 
 /**
  * Tribal Vault - Economic Control Center.
  * Handles high-fidelity coin recharge and diamond-to-coin exchange frequencies.
+ * Now includes real-time calculation and synchronization history.
  */
 export default function WalletPage() {
   const router = useRouter();
@@ -27,6 +29,19 @@ export default function WalletPage() {
 
   const [exchangeAmount, setExchangeAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState('recharge');
+
+  // Sync History Query
+  const historyQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, 'users', user.uid, 'diamondExchanges'),
+      orderBy('timestamp', 'desc'),
+      limit(20)
+    );
+  }, [firestore, user]);
+
+  const { data: exchangeHistory, isLoading: isHistoryLoading } = useCollection(historyQuery);
 
   const handleExchange = async () => {
     if (!user || !firestore) return;
@@ -102,6 +117,8 @@ export default function WalletPage() {
     { id: 5, amount: 100000, price: '₹9000', bonus: 10000 },
   ];
 
+  const calculatedCoins = exchangeAmount ? parseInt(exchangeAmount) : 0;
+
   return (
     <AppLayout>
       <div className="min-h-full bg-[#f8f9fa] font-headline pb-32 animate-in fade-in duration-700">
@@ -137,16 +154,17 @@ export default function WalletPage() {
               </div>
            </div>
 
-           <Tabs defaultValue="recharge" className="w-full">
+           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="bg-secondary/50 p-1 h-14 rounded-full border border-gray-100 w-full mb-6">
                  <TabsTrigger value="recharge" className="flex-1 rounded-full font-black uppercase text-xs italic">Recharge</TabsTrigger>
                  <TabsTrigger value="exchange" className="flex-1 rounded-full font-black uppercase text-xs italic">Exchange</TabsTrigger>
+                 <TabsTrigger value="records" className="flex-1 rounded-full font-black uppercase text-xs italic">Records</TabsTrigger>
               </TabsList>
 
               <TabsContent value="recharge" className="space-y-4">
                  <div className="flex items-center justify-between px-2">
                     <h3 className="text-sm font-black uppercase italic text-gray-400">Select Package</h3>
-                    <button className="flex items-center gap-1 text-[10px] font-black uppercase text-primary hover:underline"><History className="h-3 w-3" /> Records</button>
+                    <button onClick={() => setActiveTab('records')} className="flex items-center gap-1 text-[10px] font-black uppercase text-primary hover:underline"><History className="h-3 w-3" /> Records</button>
                  </div>
                  <div className="space-y-3">
                     {packages.map(pkg => (
@@ -181,7 +199,14 @@ export default function WalletPage() {
                              <RefreshCw className="h-6 w-6 text-indigo-200 animate-spin-slow" />
                              <div className="text-center"><GoldCoinIcon className="h-10 w-10" /><p className="text-[8px] font-black text-gray-400 uppercase mt-1">Output</p></div>
                           </div>
-                          <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest italic">1 Diamond = 1 Gold Coin</p>
+                          <div className="text-center">
+                             <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest italic">1 Diamond = 1 Gold Coin</p>
+                             {calculatedCoins > 0 && (
+                               <p className="text-lg font-black text-green-600 uppercase italic mt-2 animate-in zoom-in">
+                                 You get +{calculatedCoins.toLocaleString()} Gold Coins
+                               </p>
+                             )}
+                          </div>
                        </div>
 
                        <div className="space-y-3">
@@ -209,6 +234,52 @@ export default function WalletPage() {
                        </Button>
                     </CardContent>
                  </Card>
+              </TabsContent>
+
+              <TabsContent value="records" className="space-y-4">
+                 <div className="flex items-center gap-2 px-2">
+                    <Clock className="h-4 w-4 text-gray-400" />
+                    <h3 className="text-sm font-black uppercase italic text-gray-400">Synchronization History</h3>
+                 </div>
+                 
+                 <div className="space-y-3">
+                    {isHistoryLoading ? (
+                      <div className="flex justify-center py-10"><Loader className="animate-spin text-primary" /></div>
+                    ) : !exchangeHistory || exchangeHistory.length === 0 ? (
+                      <div className="text-center py-20 bg-white rounded-[2rem] border-2 border-dashed border-gray-100">
+                         <History className="h-12 w-12 text-gray-200 mx-auto mb-2" />
+                         <p className="text-xs font-black uppercase text-gray-300">No records found in the frequency</p>
+                      </div>
+                    ) : (
+                      exchangeHistory.map((record: any) => (
+                        <Card key={record.id} className="rounded-3xl border-none shadow-sm overflow-hidden bg-white">
+                           <CardContent className="p-5 flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                 <div className="h-10 w-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                                    <ArrowRightLeft className="h-5 w-5 text-indigo-500" />
+                                 </div>
+                                 <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
+                                       {record.timestamp ? format(record.timestamp.toDate(), 'MMM d, HH:mm') : 'Syncing...'}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                       <span className="text-sm font-black text-gray-800 italic">{record.diamondAmount} 💎</span>
+                                       <span className="text-[10px] font-bold text-gray-300">➜</span>
+                                       <div className="flex items-center gap-1">
+                                          <GoldCoinIcon className="h-3 w-3" />
+                                          <span className="text-sm font-black text-green-600 italic">{record.coinAmount}</span>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div className="bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                                 <span className="text-[8px] font-black text-green-600 uppercase">Success</span>
+                              </div>
+                           </CardContent>
+                        </Card>
+                      ))
+                    )}
+                 </div>
               </TabsContent>
            </Tabs>
         </div>
