@@ -25,14 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
-/**
- * Enhanced Creation Dialog.
- * Enforces "One Room Per User" constraint.
- * Initializes participantCount to 0 for strict discovery logic.
- */
 export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +45,6 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
     setIsSubmitting(true);
 
     try {
-      // 1. Production Constraint: One Room Only
       const q = query(collection(firestore, 'chatRooms'), where('ownerId', '==', user.uid));
       const snap = await getDocs(q);
       
@@ -72,9 +64,9 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
 
       const roomNumber = await runTransaction(firestore, async (transaction) => {
         const countersSnap = await transaction.get(countersRef);
-        let nextRoomNum = 100000;
+        let nextRoomNum = 100001;
         if (countersSnap.exists()) {
-          const current = countersSnap.data().roomCounter || 99999;
+          const current = countersSnap.data().roomCounter || 100000;
           nextRoomNum = current + 1;
         }
         transaction.set(countersRef, { roomCounter: nextRoomNum }, { merge: true });
@@ -92,7 +84,7 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
         tags: [],
         stats: { totalGifts: 0, dailyGifts: 0 },
         lockedSeats: [],
-        participantCount: 0, // Initial state: Hidden from public discovery
+        participantCount: 0,
         announcement: 'Welcome to the frequency!'
       };
 
@@ -101,16 +93,7 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
       setOpen(false);
       router.push(`/rooms/${docRef.id}`);
     } catch (error: any) {
-      if (error.code === 'permission-denied') {
-        const permissionError = new FirestorePermissionError({
-          path: 'chatRooms',
-          operation: 'create',
-          requestResourceData: { name, topic, category }
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      } else {
-        toast({ variant: 'destructive', title: 'Room Failed', description: error.message });
-      }
+      toast({ variant: 'destructive', title: 'Room Failed', description: error.message });
     } finally {
       setIsSubmitting(false);
     }

@@ -6,8 +6,7 @@ import { doc, getDoc, setDoc, serverTimestamp, runTransaction, collection } from
 
 /**
  * Production Profile Initializer.
- * Assigns a unique sequential 6-digit numeric ID (e.g. 100001) starting from 100,000.
- * IDs are automatic and assigned in real-time. Official staff retain unique ID privileges.
+ * Assigns a unique sequential 3-digit numeric ID (e.g. 001, 002...) starting from 1.
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -31,45 +30,40 @@ export function ProfileInitializer() {
 
         hasInitialized.current = profileId;
 
-        // Atomic Transaction for sequential 6-digit ID (100001, 100002...)
         const finalData = await runTransaction(firestore, async (transaction) => {
           const countersRef = doc(firestore, 'appConfig', 'counters');
           const countersSnap = await transaction.get(countersRef);
-          let nextUserId = 100000;
+          let nextUserId = 1;
 
           if (countersSnap.exists()) {
-            // Sequential logic ensures "don't give same number"
-            const current = countersSnap.data().userCounter || 99999;
+            const current = countersSnap.data().userCounter || 0;
             nextUserId = current + 1;
           }
 
           transaction.set(countersRef, { userCounter: nextUserId }, { merge: true });
 
+          const specialId = String(nextUserId).padStart(3, '0');
+
           const initialData = {
             id: profileId,
-            specialId: String(nextUserId),
-            username: user.displayName || `Tribe_${String(nextUserId)}`,
+            specialId: specialId,
+            username: user.displayName || `Tribe_${specialId}`,
             avatarUrl: user.photoURL || '', 
             email: user.email || '',
             bio: 'Synchronized with the Ummy frequency.',
             wallet: { 
-              coins: 100000000, 
+              coins: 1000000, 
               diamonds: 0,
               totalSpent: 0,
               dailySpent: 0 
             },
-            inventory: { ownedItems: [], activeFrame: 'None', activeBubble: 'Default' },
+            inventory: { ownedItems: [], activeFrame: 'f5', activeBubble: 'Default' },
             stats: { followers: 0, fans: 0, dailyFans: 0 },
             level: { rich: 1, charm: 1 },
-            tags: ['Admin', 'Official', 'Tribe Member'], 
+            tags: ['Tribe Member'], 
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-            isNewUser: true, // Flag for onboarding tutorial
-            details: {
-              gender: 'Secret',
-              hometown: 'India',
-              age: 22
-            }
+            isNewUser: true,
           };
 
           return initialData;
@@ -95,7 +89,7 @@ export function ProfileInitializer() {
 
         addDocumentNonBlocking(collection(firestore, 'users', profileId, 'notifications'), {
           title: 'Welcome Reward',
-          content: `Welcome to Ummy! You've received 100,000,000 Gold Coins to start your journey. Your Tribal ID is ${finalData.specialId}.`,
+          content: `Welcome! Your Tribal ID is ${finalData.specialId}.`,
           type: 'system',
           timestamp: serverTimestamp(),
           isRead: false

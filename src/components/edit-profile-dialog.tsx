@@ -25,10 +25,6 @@ interface EditProfileDialogProps {
   profile: any;
 }
 
-/**
- * Unified Identity Synchronization Dialog.
- * Uses professional Pen icon for visual alignment with production UI.
- */
 export function EditProfileDialog({ profile }: EditProfileDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

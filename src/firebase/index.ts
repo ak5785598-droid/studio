@@ -11,7 +11,7 @@ let firebaseServices: { firebaseApp: FirebaseApp; auth: Auth; firestore: Firesto
 
 /**
  * Initializes Firebase services with high-fidelity connectivity protocols.
- * Uses experimentalForceLongPolling to ensure stability on mobile networks.
+ * Uses experimentalForceLongPolling and useFetchStreams: false to ensure stability on restricted mobile networks.
  */
 export function initializeFirebase() {
   if (firebaseServices) {
@@ -25,6 +25,7 @@ export function initializeFirebase() {
   // High-Fidelity Connectivity fix for restricted environments (Mobile/Android stability)
   const firestore = initializeFirestore(app, {
     experimentalForceLongPolling: true,
+    useFetchStreams: false, // Prevents 10s timeout on certain restricted networks
   });
   
   const storage = getStorage(app);

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { ChatRoomCard } from '@/components/chat-room-card';
-import { Loader, Flame, Crown, Heart, Users, Home, Plus, Star, Search } from 'lucide-react';
+import { Loader, Flame, Crown, Heart, Users, Home, Star } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { UserSearchDialog } from '@/components/user-search-dialog';
@@ -12,14 +12,11 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/com
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
-import { useToast } from '@/hooks/use-toast';
 import { MomentsFeed } from '@/components/moments-feed';
-import { PublishMomentDialog } from '@/components/publish-moment-dialog';
 
 export default function RoomsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('All');
   const [navTab, setNavTab] = useState<'chatroom' | 'moments' | 'mine'>('chatroom');
   const [api, setApi] = useState<CarouselApi>();
@@ -36,7 +33,6 @@ export default function RoomsPage() {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, 'chatRooms'), 
-      where('participantCount', '>', 0),
       orderBy('participantCount', 'desc'),
       limit(50)
     );
@@ -50,7 +46,6 @@ export default function RoomsPage() {
   }, [firestore, user]);
 
   const { data: myRoomData } = useCollection(myRoomQuery);
-  const myRoomId = myRoomData?.[0]?.id;
 
   const topRichQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -113,7 +108,7 @@ export default function RoomsPage() {
             <button onClick={() => setNavTab('mine')} className={cn("text-2xl font-black transition-all whitespace-nowrap italic", navTab === 'mine' ? "text-gray-900" : "text-gray-200")}>Mine</button>
           </div>
           <div className="flex items-center gap-4">
-             <button className="text-gray-800 hover:scale-110 transition-transform"><Search className="h-6 w-6" /></button>
+             <UserSearchDialog />
              <button className="text-gray-800 hover:scale-110 transition-transform"><Home className="h-6 w-6" /></button>
           </div>
         </header>

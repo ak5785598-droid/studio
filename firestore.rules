@@ -17,18 +17,11 @@ service cloud.firestore {
       match /profile/{profileId} {
         allow read: if isSignedIn();
         allow create: if isSignedIn() && request.auth.uid == userId;
-        allow update: if isSignedIn() && (
-          request.auth.uid == userId || 
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'wallet', 'updatedAt'])
-        );
+        allow update: if isSignedIn() && request.auth.uid == userId;
       }
       match /notifications/{id} {
         allow read: if isSignedIn() && request.auth.uid == userId;
         allow create: if isSignedIn();
-      }
-      match /diamondExchanges/{id} {
-        allow read: if isSignedIn() && request.auth.uid == userId;
-        allow create: if isSignedIn() && request.auth.uid == userId;
       }
     }
 
@@ -49,18 +42,7 @@ service cloud.firestore {
 
       match /participants/{userId} {
         allow read, list: if isSignedIn();
-        // Allow user to manage their own participation
-        // Allow room owner/mods/admins to kick/silence
-        allow write: if isSignedIn() && (
-          request.auth.uid == userId ||
-          get(/databases/$(database)/documents/chatRooms/$(roomId)).data.ownerId == request.auth.uid ||
-          get(/databases/$(database)/documents/chatRooms/$(roomId)).data.moderatorIds.hasAny([request.auth.uid]) ||
-          isAdmin()
-        );
-        
-        match /signaling/{peerId} {
-          allow read, write: if isSignedIn();
-        }
+        allow write: if isSignedIn();
       }
       match /messages/{id} {
         allow read, list, create: if isSignedIn();
@@ -72,11 +54,6 @@ service cloud.firestore {
       allow read, list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow delete: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-    }
-
-    match /adminLogs/{id} {
-      allow create: if isSignedIn();
-      allow read: if isAdmin();
     }
   }
 }

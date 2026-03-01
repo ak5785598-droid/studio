@@ -17,10 +17,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
-/**
- * High-Fidelity Full-Screen User Search Dialog.
- * Immersive portal for finding tribe members by their unique 6-digit ID.
- */
 export function UserSearchDialog() {
   const [open, setOpen] = useState(false);
   const [searchId, setSearchId] = useState('');
@@ -30,7 +26,7 @@ export function UserSearchDialog() {
   const { toast } = useToast();
 
   const handleSearch = async () => {
-    if (!firestore || searchId.length < 6) return;
+    if (!firestore || !searchId) return;
 
     setIsSearching(true);
     try {
@@ -81,7 +77,7 @@ export function UserSearchDialog() {
               <DialogTitle className="font-black uppercase italic text-sm tracking-tighter">Locate Tribe</DialogTitle>
            </div>
            <DialogDescription className="sr-only">
-             Enter the unique 6-digit identity code to sync with your friend's frequency.
+             Enter the unique identity code to sync with your friend's frequency.
            </DialogDescription>
            <button 
              onClick={() => setOpen(false)}
@@ -97,7 +93,7 @@ export function UserSearchDialog() {
               Tribe Finder
             </h2>
             <p className="text-muted-foreground font-body text-lg max-w-xs mx-auto">
-              Enter the unique 6-digit identity code to sync with your friend's frequency.
+              Enter the unique identity code to sync with your friend's frequency.
             </p>
           </div>
           
@@ -105,20 +101,19 @@ export function UserSearchDialog() {
             <div className="relative group">
               <User className="absolute left-6 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-300 group-focus-within:text-primary transition-colors" />
               <Input 
-                placeholder="000000" 
+                placeholder="ID" 
                 className="pl-16 h-24 rounded-[2rem] border-4 border-gray-100 focus:border-primary transition-all text-5xl font-black tracking-[0.3em] text-center placeholder:text-gray-100"
-                maxLength={6}
                 value={searchId}
                 autoFocus
                 onChange={(e) => setSearchId(e.target.value.replace(/\D/g, ''))}
-                onKeyDown={(e) => e.key === 'Enter' && searchId.length === 6 && handleSearch()}
+                onKeyDown={(e) => e.key === 'Enter' && !!searchId && handleSearch()}
               />
             </div>
             
             <div className="space-y-4">
               <Button 
                 onClick={handleSearch} 
-                disabled={isSearching || searchId.length < 6}
+                disabled={isSearching || !searchId}
                 className="w-full h-20 text-2xl font-black uppercase italic rounded-[2rem] bg-primary text-white shadow-2xl shadow-yellow-500/30 hover:scale-[1.02] transition-transform flex items-center justify-center gap-4"
               >
                 {isSearching ? <Loader className="animate-spin h-8 w-8" /> : <ArrowRight className="h-8 w-8" />}
@@ -132,17 +127,6 @@ export function UserSearchDialog() {
                 Cancel Search
               </button>
             </div>
-          </div>
-          
-          <div className="flex flex-col items-center gap-2 opacity-40">
-             <div className="flex gap-1">
-                {Array.from({length: 6}).map((_, i) => (
-                  <div key={i} className={`h-1.5 w-1.5 rounded-full ${searchId.length > i ? 'bg-primary' : 'bg-gray-200'}`} />
-                ))}
-             </div>
-             <p className="text-[9px] font-black uppercase tracking-widest italic">
-               Waiting for 6-Digit Frequency...
-             </p>
           </div>
         </div>
 
