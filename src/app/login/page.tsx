@@ -17,10 +17,12 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 /**
  * High-Fidelity Identity Portal.
- * Re-engineered to match the screenshot: single screen, clean gradient, and specific button hierarchy.
+ * Re-engineered with purple neon atmospheric vibes and the new tribal tagline.
+ * Ensures single-screen visibility for branding and authentication portals.
  */
 export default function LoginPage() {
   const router = useRouter();
@@ -99,39 +101,54 @@ export default function LoginPage() {
     }
   };
 
+  const bgImage = PlaceHolderImages.find(img => img.id === 'login-bg');
+
   if (isUserLoading || user) {
     return (
-      <div className="flex h-[100dvh] w-full items-center justify-center bg-[#005bb5]">
+      <div className="flex h-[100dvh] w-full items-center justify-center bg-[#0a0514]">
         <UmmyLogoIcon className="h-24 w-24 animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className="relative flex h-[100dvh] w-full flex-col items-center justify-center bg-gradient-to-b from-[#005bb5] to-[#00c2ff] p-8 overflow-hidden font-headline">
+    <div className="relative flex h-[100dvh] w-full flex-col items-center justify-center bg-black p-8 overflow-hidden font-headline">
       <div id="recaptcha-container"></div>
       
-      {/* Main Container */}
-      <div className="flex flex-col items-center w-full max-w-sm space-y-10 animate-in fade-in zoom-in duration-700">
+      {/* Immersive Atmospheric Background */}
+      <div className="absolute inset-0 z-0">
+        {bgImage && (
+          <img 
+            src={bgImage.imageUrl} 
+            className="h-full w-full object-cover opacity-60 scale-110 blur-[1px]" 
+            alt="Neon Vibes" 
+            data-ai-hint={bgImage.imageHint}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0514]/90 via-transparent to-[#0a0514]" />
+      </div>
+      
+      {/* Main Single-Screen Container */}
+      <div className="relative z-10 flex flex-col items-center w-full max-w-sm space-y-10 animate-in fade-in zoom-in duration-700">
         
-        {/* Logo and Brand */}
+        {/* Logo and Brand Identity */}
         {!showPhoneInput && (
           <div className="flex flex-col items-center text-center space-y-4">
             <div className="bg-white rounded-[2rem] p-6 shadow-2xl">
               <UmmyLogoIcon className="h-24 w-24" />
             </div>
             <div className="space-y-1">
-              <h1 className="text-6xl font-black uppercase tracking-tighter text-white">
+              <h1 className="text-6xl font-black uppercase tracking-tighter text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
                 Ummy
               </h1>
-              <p className="text-white/90 text-sm font-bold tracking-[0.1em]">
-                PARTY & LIVE WITH FAMILY
+              <p className="text-white/90 text-sm font-bold tracking-[0.05em] uppercase">
+                Find your vibe, connect with your tribe
               </p>
             </div>
           </div>
         )}
 
-        {/* Auth Buttons or Phone Input */}
+        {/* Authentication Portals */}
         <div className="w-full space-y-4">
           {!showPhoneInput ? (
             <>
@@ -207,9 +224,9 @@ export default function LoginPage() {
           )}
         </div>
 
-        {/* Footer Info */}
+        {/* Footer Legal & Sync Status */}
         <div className="flex flex-col items-center space-y-4 text-center">
-          <div className="text-[10px] text-white/80 leading-relaxed max-w-[240px]">
+          <div className="text-[10px] text-white/80 leading-relaxed max-w-[240px] uppercase tracking-tighter">
             By continuing you agree to the<br/>
             <Link href="/help-center" className="underline font-bold">User Agreement</Link> & <Link href="/help-center" className="underline font-bold">Privacy Policy</Link>
           </div>
@@ -221,13 +238,13 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Corner Icons */}
-      <div className="absolute bottom-10 left-8">
+      {/* Atmospheric UI Elements */}
+      <div className="absolute bottom-10 left-8 z-10">
         <div className="h-10 w-10 bg-black/20 rounded-full flex items-center justify-center text-white backdrop-blur-md border border-white/10">
           <Zap className="h-5 w-5" />
         </div>
       </div>
-      <div className="absolute bottom-10 right-8">
+      <div className="absolute bottom-10 right-8 z-10">
         <div className="h-10 w-10 bg-black/20 rounded-full flex items-center justify-center text-white backdrop-blur-md border border-white/10">
           <Activity className="h-5 w-5" />
         </div>
