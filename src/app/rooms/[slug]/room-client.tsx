@@ -38,6 +38,7 @@ import {
   PawPrint,
   Dices,
   Sparkles,
+  MoreHorizontal,
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -490,6 +491,14 @@ export function RoomClient({ room }: { room: Room }) {
                       )}
                     </div>
                   </AvatarFrame>
+                  {canManageRoom && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleSeatClick(1, hostParticipant); }}
+                      className="absolute -top-1 -right-1 bg-black/60 rounded-full p-1 border border-white/10 z-40"
+                    >
+                      <MoreHorizontal className="h-3 w-3 text-white" />
+                    </button>
+                  )}
                 </div>
                 <span className="text-lg font-black text-white italic tracking-tighter drop-shadow-md">1</span>
              </div>
@@ -527,6 +536,14 @@ export function RoomClient({ room }: { room: Room }) {
                     </AvatarFrame>
                     {occupant?.isMuted && (<div className="absolute -bottom-0.5 -right-0.5 bg-red-500 rounded-full p-1 border border-black shadow-lg"><MicOff className="h-4 w-4 text-white" /></div>)}
                     {isMod && (<div className="absolute -top-0.5 -left-0.5 bg-blue-500 rounded-full p-1 border border-black shadow-lg"><ShieldCheck className="h-4 w-4 text-white fill-current" /></div>)}
+                    {canManageRoom && (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleSeatClick(idx, occupant); }}
+                        className="absolute -top-1 -right-1 bg-black/60 rounded-full p-1 border border-white/10 z-40"
+                      >
+                        <MoreHorizontal className="h-3 w-3 text-white" />
+                      </button>
+                    )}
                   </div>
                   <span className={cn("text-base font-black italic text-center drop-shadow-md", occupant ? "text-[#fbbf24] truncate w-24" : "text-white")}>
                     {occupant ? occupant.name : idx}
@@ -701,6 +718,9 @@ export function RoomClient({ room }: { room: Room }) {
                 <button onClick={() => toggleSeatLock(selectedSeatIndex!)} className="py-5 font-bold text-purple-600 uppercase tracking-widest text-xs hover:bg-purple-50 flex items-center justify-center gap-2 active:scale-95 transition-all">{room.lockedSeats?.includes(selectedSeatIndex!) ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}{room.lockedSeats?.includes(selectedSeatIndex!) ? 'Unlock Slot' : 'Lock Slot'}</button>
               )}
             </>)}
+            <button onClick={() => { const link = `${window.location.origin}/rooms/${room.id}`; navigator.clipboard.writeText(link); toast({ title: 'Invite Copied' }); setIsActionMenuOpen(false); }} className="py-5 font-bold text-blue-500 uppercase tracking-widest text-xs hover:bg-blue-50 flex items-center justify-center gap-2 active:scale-95 transition-all">
+              <UserPlus className="h-4 w-4" /> Invite Tribe
+            </button>
             {selectedOccupant?.uid === currentUser?.uid ? (<button onClick={leaveSeat} className="py-5 font-black text-red-500 uppercase tracking-widest text-xs italic hover:bg-red-50 active:scale-95 transition-all">Exit Seat</button>) : !selectedOccupant && !room.lockedSeats?.includes(selectedSeatIndex!) && (<button onClick={() => takeSeat(selectedSeatIndex!)} className="py-5 font-black text-blue-600 uppercase tracking-widest text-xs italic hover:bg-blue-50 active:scale-95 transition-all">Take Seat</button>)}
             <button onClick={() => setIsActionMenuOpen(false)} className="py-5 font-bold text-gray-400 bg-gray-50/50 text-[10px] uppercase tracking-widest hover:text-gray-600">Cancel</button>
           </div>

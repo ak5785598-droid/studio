@@ -9,11 +9,12 @@ service cloud.firestore {
     }
 
     function isRoomAdmin(roomId) {
-      let roomData = get(/databases/$(database)/documents/chatRooms/$(roomId)).data;
+      let roomPath = /databases/$(database)/documents/chatRooms/$(roomId);
       return isSignedIn() && (
-        roomData.ownerId == request.auth.uid || 
-        request.auth.uid in roomData.get('moderatorIds', []) || 
-        isAdmin()
+        (exists(roomPath) && (
+          get(roomPath).data.ownerId == request.auth.uid || 
+          request.auth.uid in get(roomPath).data.get('moderatorIds', [])
+        )) || isAdmin()
       );
     }
     
@@ -22,7 +23,7 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && (
         request.auth.uid == userId || 
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'wallet', 'updatedAt'])
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'wallet', 'updatedAt', 'lastSignInAt', 'inventory', 'level'])
       );
       
       match /profile/{profileId} {
@@ -31,7 +32,7 @@ service cloud.firestore {
         allow update: if isSignedIn() && request.auth.uid == userId;
       }
       match /notifications/{id} {
-        allow read: if isSignedIn();
+        allow read: if isSignedIn() && request.auth.uid == userId;
         allow write: if isSignedIn();
       }
       match /followers/{followerId} {
@@ -63,7 +64,7 @@ service cloud.firestore {
       allow update: if isSignedIn() && (
         request.auth.uid == resource.data.ownerId ||
         request.auth.uid in resource.data.get('moderatorIds', []) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'stats', 'updatedAt', 'currentMusicUrl']) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'stats', 'updatedAt', 'currentMusicUrl', 'lockedSeats', 'isChatMuted', 'coverUrl', 'announcement']) ||
         isAdmin()
       );
       allow delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
