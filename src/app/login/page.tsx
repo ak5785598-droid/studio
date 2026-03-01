@@ -17,11 +17,10 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 /**
  * High-Fidelity Identity Portal.
- * Re-engineered with purple neon atmospheric vibes and the new tribal tagline.
+ * Synchronized with the Official Ummy Yellow frequency (#FFCC00).
  * Ensures single-screen visibility for branding and authentication portals.
  */
 export default function LoginPage() {
@@ -101,31 +100,22 @@ export default function LoginPage() {
     }
   };
 
-  const bgImage = PlaceHolderImages.find(img => img.id === 'login-bg');
-
   if (isUserLoading || user) {
     return (
-      <div className="flex h-[100dvh] w-full items-center justify-center bg-[#0a0514]">
+      <div className="flex h-[100dvh] w-full items-center justify-center bg-[#FFCC00]">
         <UmmyLogoIcon className="h-24 w-24 animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className="relative flex h-[100dvh] w-full flex-col items-center justify-center bg-black p-8 overflow-hidden font-headline">
+    <div className="relative flex h-[100dvh] w-full flex-col items-center justify-center bg-[#FFCC00] p-8 overflow-hidden font-headline">
       <div id="recaptcha-container"></div>
       
-      {/* Immersive Atmospheric Background */}
+      {/* Brand Identity Background */}
       <div className="absolute inset-0 z-0">
-        {bgImage && (
-          <img 
-            src={bgImage.imageUrl} 
-            className="h-full w-full object-cover opacity-60 scale-110 blur-[1px]" 
-            alt="Neon Vibes" 
-            data-ai-hint={bgImage.imageHint}
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0514]/90 via-transparent to-[#0a0514]" />
+        <div className="absolute inset-0 bg-[#FFCC00]" />
+        <div className="absolute inset-0 bg-white/10 pointer-events-none" />
       </div>
       
       {/* Main Single-Screen Container */}
@@ -138,10 +128,10 @@ export default function LoginPage() {
               <UmmyLogoIcon className="h-24 w-24" />
             </div>
             <div className="space-y-1">
-              <h1 className="text-6xl font-black uppercase tracking-tighter text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
+              <h1 className="text-6xl font-black uppercase tracking-tighter text-black drop-shadow-sm">
                 Ummy
               </h1>
-              <p className="text-white/90 text-sm font-bold tracking-[0.05em] uppercase">
+              <p className="text-black/80 text-sm font-bold tracking-[0.05em] uppercase">
                 Find your vibe, connect with your tribe
               </p>
             </div>
@@ -163,7 +153,7 @@ export default function LoginPage() {
               <Button
                 onClick={handleGoogleSignIn}
                 disabled={isSigningIn}
-                className="w-full h-14 bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-full font-bold uppercase text-lg shadow-xl border border-white/10 transition-all active:scale-95"
+                className="w-full h-14 bg-white/80 backdrop-blur-md text-black hover:bg-white/90 rounded-full font-bold uppercase text-lg shadow-xl border border-white/20 transition-all active:scale-95"
               >
                 {isSigningIn ? <Loader className="animate-spin h-5 w-5 mr-2" /> : <FcGoogle className="h-6 w-6 mr-2" />}
                 Sign in with Google
@@ -171,13 +161,13 @@ export default function LoginPage() {
             </>
           ) : (
             /* Phone OTP dimension */
-            <div className="space-y-6 animate-in zoom-in duration-300 bg-white/10 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/20 shadow-2xl w-full">
+            <div className="space-y-6 animate-in zoom-in duration-300 bg-white/20 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/30 shadow-2xl w-full">
               <div className="flex justify-between items-center mb-2">
-                 <div className="flex items-center gap-2 text-white/80">
+                 <div className="flex items-center gap-2 text-black/80">
                     <Phone className="h-4 w-4" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Phone Entry</span>
                  </div>
-                 <button onClick={() => { setShowPhoneInput(false); setPhoneLoginStep('number'); }} className="text-white/60 hover:text-white"><X className="h-5 w-5" /></button>
+                 <button onClick={() => { setShowPhoneInput(false); setPhoneLoginStep('number'); }} className="text-black/60 hover:text-black"><X className="h-5 w-5" /></button>
               </div>
 
               {phoneLoginStep === 'number' ? (
@@ -188,36 +178,36 @@ export default function LoginPage() {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     disabled={isSigningIn}
-                    className="h-14 bg-white/10 border-white/20 text-white rounded-2xl text-center text-lg focus:ring-white focus:border-white placeholder:text-white/30"
+                    className="h-14 bg-white/40 border-white/50 text-black rounded-2xl text-center text-lg focus:ring-black/20 focus:border-black/20 placeholder:text-black/30"
                   />
                   <Button 
                     onClick={handlePhoneSignIn} 
                     disabled={isSigningIn || !phoneNumber} 
-                    className="w-full h-14 bg-white text-black font-black uppercase rounded-2xl shadow-xl border-none"
+                    className="w-full h-14 bg-black text-white font-black uppercase rounded-2xl shadow-xl border-none"
                   >
                     {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Get OTP'}
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-[10px] text-white/60 text-center">Enter code sent to {phoneNumber}</p>
+                  <p className="text-[10px] text-black/60 text-center uppercase font-bold">Enter code sent to {phoneNumber}</p>
                   <Input
                     type="text"
                     placeholder="000000"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value)}
                     disabled={isSigningIn}
-                    className="h-16 bg-white/10 border-white/20 text-white rounded-2xl text-center text-3xl font-black tracking-[0.5em] focus:ring-white"
+                    className="h-16 bg-white/40 border-white/50 text-black rounded-2xl text-center text-3xl font-black tracking-[0.5em] focus:ring-black/20"
                     maxLength={6}
                   />
                   <Button 
                     onClick={handleVerifyCode} 
                     disabled={isSigningIn || !verificationCode} 
-                    className="w-full h-14 bg-white text-black font-black uppercase rounded-2xl shadow-xl border-none"
+                    className="w-full h-14 bg-black text-white font-black uppercase rounded-2xl shadow-xl border-none"
                   >
                     {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Enter Ummy'}
                   </Button>
-                  <button onClick={() => setPhoneLoginStep('number')} className="w-full text-white/60 text-[10px] font-black uppercase tracking-widest hover:text-white">Back</button>
+                  <button onClick={() => setPhoneLoginStep('number')} className="w-full text-black/60 text-[10px] font-black uppercase tracking-widest hover:text-black">Back</button>
                 </div>
               )}
             </div>
@@ -226,26 +216,26 @@ export default function LoginPage() {
 
         {/* Footer Legal & Sync Status */}
         <div className="flex flex-col items-center space-y-4 text-center">
-          <div className="text-[10px] text-white/80 leading-relaxed max-w-[240px] uppercase tracking-tighter">
+          <div className="text-[10px] text-black/60 leading-relaxed max-w-[240px] uppercase tracking-tighter">
             By continuing you agree to the<br/>
             <Link href="/help-center" className="underline font-bold">User Agreement</Link> & <Link href="/help-center" className="underline font-bold">Privacy Policy</Link>
           </div>
-          <div className="flex items-center gap-2 opacity-40">
-             <div className="h-[1px] w-8 bg-white" />
-             <span className="text-[8px] font-black uppercase tracking-widest text-white">Secured Tribal Portal</span>
-             <div className="h-[1px] w-8 bg-white" />
+          <div className="flex items-center gap-2 opacity-20">
+             <div className="h-[1px] w-8 bg-black" />
+             <span className="text-[8px] font-black uppercase tracking-widest text-black">Secured Tribal Portal</span>
+             <div className="h-[1px] w-8 bg-black" />
           </div>
         </div>
       </div>
 
       {/* Atmospheric UI Elements */}
       <div className="absolute bottom-10 left-8 z-10">
-        <div className="h-10 w-10 bg-black/20 rounded-full flex items-center justify-center text-white backdrop-blur-md border border-white/10">
+        <div className="h-10 w-10 bg-black/10 rounded-full flex items-center justify-center text-black backdrop-blur-md border border-black/5">
           <Zap className="h-5 w-5" />
         </div>
       </div>
       <div className="absolute bottom-10 right-8 z-10">
-        <div className="h-10 w-10 bg-black/20 rounded-full flex items-center justify-center text-white backdrop-blur-md border border-white/10">
+        <div className="h-10 w-10 bg-black/10 rounded-full flex items-center justify-center text-black backdrop-blur-md border border-black/5">
           <Activity className="h-5 w-5" />
         </div>
       </div>
