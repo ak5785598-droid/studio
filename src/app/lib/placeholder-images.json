@@ -14,6 +14,12 @@
       "imageHint": "abstract vibrant"
     },
     {
+      "id": "login-bg",
+      "description": "Vibrant neon purple and blue light streaks for mobile login",
+      "imageUrl": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1080&h=1920&auto=format&fit=crop",
+      "imageHint": "neon streaks"
+    },
+    {
       "id": "fruit-party-special-chicken",
       "description": "Roast chicken special item for Fruit Party",
       "imageUrl": "https://picsum.photos/seed/fruit-roast/200/200",
