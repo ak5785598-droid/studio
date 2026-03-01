@@ -325,16 +325,6 @@ export default function ProfilePage() {
 
   useEffect(() => { if (!isAuthLoading && !currentUser) router.replace('/login'); }, [currentUser, isAuthLoading, router]);
 
-  const handleLogout = async () => {
-    if (!auth) return;
-    try {
-      await signOut(auth);
-      window.location.href = '/login';
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Logout Failed', description: e.message });
-    }
-  };
-
   if (isAuthLoading || isProfileLoading) return <AppLayout><div className="flex h-[60vh] w-full flex-col items-center justify-center space-y-4"><Loader className="animate-spin text-primary h-8 w-8" /><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Syncing Identity...</p></div></AppLayout>;
   if (!profile) { notFound(); return null; }
 
@@ -432,21 +422,6 @@ export default function ProfilePage() {
                    <ChevronRight className="h-3 w-3 text-gray-300" />
                 </div>
              </Card>
-
-             {isOwnProfile && (
-               <Card className="border-none shadow-sm rounded-2xl p-2 bg-white mt-2">
-                  <button 
-                    onClick={handleLogout}
-                    className="w-full flex items-center justify-between py-2 group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 bg-red-100 rounded-xl flex items-center justify-center text-red-600"><LogOut className="h-4 w-4" /></div>
-                      <span className="font-black text-red-600 uppercase italic text-[9px]">Exit Frequency (Logout)</span>
-                    </div>
-                    <ChevronRight className="h-3 w-3 text-gray-300" />
-                  </button>
-               </Card>
-             )}
           </div>
         </div>
       </div>
