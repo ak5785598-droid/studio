@@ -22,7 +22,6 @@ export function ProfileInitializer() {
       
       try {
         const userSnap = await getDoc(userRef);
-        
         if (userSnap.exists()) {
           hasInitialized.current = profileId;
           return;
@@ -41,7 +40,6 @@ export function ProfileInitializer() {
           }
 
           transaction.set(countersRef, { userCounter: nextUserId }, { merge: true });
-
           const specialId = String(nextUserId).padStart(3, '0');
 
           const initialData = {

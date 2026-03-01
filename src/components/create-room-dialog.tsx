@@ -49,11 +49,7 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
       const snap = await getDocs(q);
       
       if (!snap.empty) {
-        toast({ 
-          variant: 'destructive', 
-          title: 'Limit Reached', 
-          description: 'One user can create only one voice chat room.' 
-        });
+        toast({ variant: 'destructive', title: 'Limit Reached', description: 'One user can create only one voice chat room.' });
         const existingId = snap.docs[0].id;
         router.push(`/rooms/${existingId}`);
         setOpen(false);
@@ -61,7 +57,6 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
       }
 
       const countersRef = doc(firestore, 'appConfig', 'counters');
-
       const roomNumber = await runTransaction(firestore, async (transaction) => {
         const countersSnap = await transaction.get(countersRef);
         let nextRoomNum = 100001;
@@ -73,22 +68,9 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
         return String(nextRoomNum);
       });
 
-      const roomData = {
-        name,
-        description: topic,
-        roomNumber,
-        ownerId: user.uid,
-        moderatorIds: [user.uid],
-        createdAt: serverTimestamp(),
-        category: category,
-        tags: [],
-        stats: { totalGifts: 0, dailyGifts: 0 },
-        lockedSeats: [],
-        participantCount: 0,
-        announcement: 'Welcome to the frequency!'
-      };
-
-      const docRef = await addDoc(collection(firestore, 'chatRooms'), roomData);
+      const docRef = await addDoc(collection(firestore, 'chatRooms'), {
+        name, description: topic, roomNumber, ownerId: user.uid, moderatorIds: [user.uid], createdAt: serverTimestamp(), category, stats: { totalGifts: 0, dailyGifts: 0 }, lockedSeats: [], participantCount: 0, announcement: 'Welcome to the frequency!'
+      });
       
       setOpen(false);
       router.push(`/rooms/${docRef.id}`);
@@ -103,66 +85,19 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {iconOnly ? (
-          <button className="bg-primary text-black p-1.5 rounded-xl shadow-lg hover:scale-110 transition-transform flex items-center justify-center border-2 border-white">
-            <Plus className="h-4 w-4" />
-          </button>
+          <button className="bg-primary text-black p-1.5 rounded-xl border-2 border-white shadow-lg flex items-center justify-center"><Plus className="h-4 w-4" /></button>
         ) : (
-          <Button className="gap-2 rounded-full font-black uppercase italic tracking-widest text-[10px] px-6 shadow-md h-10">
-            <Plus className="h-4 w-4" />
-            Create
-          </Button>
+          <Button className="rounded-full font-black uppercase italic tracking-widest text-[10px] px-6 h-10"><Plus className="h-4 w-4 mr-2" />Create</Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] rounded-t-[2.5rem] border-none shadow-2xl bg-white text-black p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[425px] rounded-t-[2.5rem] bg-white text-black p-0 overflow-hidden">
         <form onSubmit={handleSubmit}>
-          <DialogHeader className="p-8 pb-0 text-center">
-            <DialogTitle className="font-headline text-3xl uppercase italic tracking-tighter">Launch Tribe</DialogTitle>
-            <DialogDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mt-2">
-              Limit: One Frequency per Member
-            </DialogDescription>
-          </DialogHeader>
+          <DialogHeader className="p-8 pb-0 text-center"><DialogTitle className="font-headline text-3xl uppercase italic tracking-tighter">Launch Tribe</DialogTitle></DialogHeader>
           <div className="grid gap-6 py-8 px-8">
-            <div className="grid gap-2">
-              <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Room Name</Label>
-              <Input
-                id="name"
-                placeholder="e.g. Neon Dreamers"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-14 rounded-2xl border-2 focus:border-primary transition-all text-lg"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="topic" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Vibe Topic</Label>
-              <Input
-                id="topic"
-                placeholder="e.g. Late night lofi vibes"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                className="h-14 rounded-2xl border-2 focus:border-primary transition-all"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="category" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger id="category" className="h-14 rounded-2xl border-2">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border-none shadow-xl rounded-2xl">
-                  <SelectItem value="Chat">General Chat</SelectItem>
-                  <SelectItem value="Game">Game Zone</SelectItem>
-                  <SelectItem value="Singing">Singing/Music</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="grid gap-2"><Label htmlFor="name" className="text-[10px] font-black uppercase text-gray-400">Room Name</Label><Input id="name" placeholder="Vibe Name" value={name} onChange={(e) => setName(e.target.value)} className="h-14 rounded-2xl border-2" required /></div>
+            <div className="grid gap-2"><Label htmlFor="topic" className="text-[10px] font-black uppercase text-gray-400">Vibe Topic</Label><Input id="topic" placeholder="Vibe Topic" value={topic} onChange={(e) => setTopic(e.target.value)} className="h-14 rounded-2xl border-2" required /></div>
           </div>
-          <DialogFooter className="p-8 pt-0">
-            <Button type="submit" className="w-full h-16 text-xl font-black uppercase italic rounded-3xl shadow-xl shadow-primary/20" disabled={isSubmitting || !name || !topic}>
-              {isSubmitting ? <Loader className="mr-2 h-6 w-6 animate-spin" /> : 'Start Frequency'}
-            </Button>
-          </DialogFooter>
+          <DialogFooter className="p-8 pt-0"><Button type="submit" className="w-full h-16 text-xl font-black uppercase italic rounded-3xl" disabled={isSubmitting}>{isSubmitting ? <Loader className="animate-spin" /> : 'Start Frequency'}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

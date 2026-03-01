@@ -109,7 +109,6 @@ export default function ProfilePage() {
     return (
       <AppLayout>
         <div className="min-h-full bg-[#f8f9fa] text-gray-900 font-headline relative flex flex-col pb-24 overflow-x-hidden">
-          {/* Compact Header with Forest Background */}
           <header className="relative h-[18vh] overflow-hidden shrink-0">
             <Image 
               src="https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=2000" 
@@ -127,14 +126,20 @@ export default function ProfilePage() {
           </header>
 
           <div className="relative z-30 px-6 -mt-10 space-y-4">
-            {/* Identity Info */}
             <div className="flex items-center gap-4">
-              <AvatarFrame frameId={profile.inventory?.activeFrame || 'f5'} size="lg" className="w-24 h-24">
-                <Avatar className="h-full w-full border-2 border-white shadow-xl">
-                  <AvatarImage src={profile.avatarUrl} />
-                  <AvatarFallback className="text-3xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback>
-                </Avatar>
-              </AvatarFrame>
+              <div className="flex flex-col items-center gap-1">
+                <AvatarFrame frameId={profile.inventory?.activeFrame || 'f5'} size="lg" className="w-24 h-24">
+                  <Avatar className="h-full w-full border-2 border-white shadow-xl">
+                    <AvatarImage src={profile.avatarUrl} />
+                    <AvatarFallback className="text-3xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </AvatarFrame>
+                {/* Vertically Stacked Tags with Minimal Gap */}
+                <div className="flex flex-col -space-y-3.5 h-[48px] justify-start mt-1">
+                  <OfficialTag size="sm" />
+                  <SellerTag size="sm" />
+                </div>
+              </div>
               <div className="pt-2 space-y-0.5 flex-1">
                 <div className="flex items-center gap-2">
                   <h1 className="text-xl font-black italic tracking-tighter uppercase">{profile.username}</h1>
@@ -148,13 +153,10 @@ export default function ProfilePage() {
                   <Badge className="bg-orange-500 text-white text-[8px] h-4 font-black italic px-2 border-none">Sr.</Badge>
                   <Badge className="bg-blue-500 text-white text-[8px] h-4 font-black italic px-2 border-none">SVIP</Badge>
                   <Badge className="bg-cyan-500 text-white text-[8px] h-4 font-black italic px-2 border-none">CP</Badge>
-                  <OfficialTag size="sm" />
-                  <SellerTag size="sm" />
                 </div>
               </div>
             </div>
 
-            {/* Social Stats */}
             <div className="flex justify-around items-center py-2 bg-transparent">
               <div className="flex flex-col items-center"><span className="text-sm font-black italic">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Friends</span></div>
               <div className="flex flex-col items-center"><span className="text-sm font-black italic">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Following</span></div>
@@ -162,7 +164,6 @@ export default function ProfilePage() {
               <div className="flex flex-col items-center"><span className="text-sm font-black italic">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Visitors</span></div>
             </div>
 
-            {/* Wallet Cards */}
             <div className="grid grid-cols-2 gap-3">
               <div 
                 onClick={() => router.push('/wallet')}
@@ -186,7 +187,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Tool Tiles */}
             <div className="bg-white rounded-[1.5rem] p-4 shadow-sm border border-gray-100 flex justify-between gap-2">
               <ToolTile label="Level" icon={Trophy} />
               <ToolTile label="Store" icon={Crown} onClick={() => router.push('/store')} />
@@ -194,7 +194,6 @@ export default function ProfilePage() {
               <ToolTile label="Task" icon={Activity} onClick={() => router.push('/tasks')} />
             </div>
 
-            {/* Menu Sections */}
             <div className="space-y-3">
               <Card className="rounded-[1.5rem] border-none shadow-sm overflow-hidden bg-white">
                 <MenuItem label="COMBINED CP 💕" icon={Activity} />
