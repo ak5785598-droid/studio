@@ -33,6 +33,7 @@ import { AvatarFrame } from '@/components/avatar-frame';
 import { EditProfileDialog } from '@/components/edit-profile-dialog';
 import { SellerTransferDialog } from '@/components/seller-transfer-dialog';
 import { OfficialTag } from '@/components/official-tag';
+import { SellerTag } from '@/components/seller-tag';
 
 const SupporterIcon = ({ color, rank }: { color: string, rank: number }) => (
   <div className="relative group cursor-pointer active:scale-95 transition-transform shrink-0">
@@ -143,11 +144,12 @@ export default function ProfilePage() {
                   <span className="text-[10px] font-black text-gray-400 uppercase italic">ID: {profile.specialId}</span>
                   <button onClick={() => { navigator.clipboard.writeText(profile.specialId); toast({ title: 'ID Copied' }); }} className="text-gray-300 hover:text-primary transition-colors"><Copy className="h-3 w-3" /></button>
                 </div>
-                <div className="flex items-center gap-1 mt-1">
+                <div className="flex items-center gap-1 mt-1 flex-wrap">
                   <Badge className="bg-orange-500 text-white text-[8px] h-4 font-black italic px-2 border-none">Sr.</Badge>
                   <Badge className="bg-blue-500 text-white text-[8px] h-4 font-black italic px-2 border-none">SVIP</Badge>
                   <Badge className="bg-cyan-500 text-white text-[8px] h-4 font-black italic px-2 border-none">CP</Badge>
                   <OfficialTag size="sm" />
+                  <SellerTag size="sm" />
                 </div>
               </div>
             </div>
