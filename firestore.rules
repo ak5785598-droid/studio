@@ -23,6 +23,14 @@ service cloud.firestore {
         allow read: if isSignedIn() && request.auth.uid == userId;
         allow create: if isSignedIn();
       }
+      match /followers/{followerId} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn();
+      }
+      match /following/{followingId} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn();
+      }
     }
 
     match /appConfig/{id} {
@@ -43,6 +51,10 @@ service cloud.firestore {
       match /participants/{userId} {
         allow read, list: if isSignedIn();
         allow write: if isSignedIn();
+        
+        match /signaling/{signalId} {
+          allow read, write: if isSignedIn();
+        }
       }
       match /messages/{id} {
         allow read, list, create: if isSignedIn();
@@ -54,6 +66,11 @@ service cloud.firestore {
       allow read, list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow delete: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+    
+    match /adminLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
     }
   }
 }

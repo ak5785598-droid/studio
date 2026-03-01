@@ -91,7 +91,7 @@ export default function ProfilePage() {
   const { data: rooms } = useCollection(userRoomQuery);
   const activeRoom = rooms?.[0];
 
-  if (isAuthLoading || isProfileLoading) return <AppLayout fullScreen><div className="flex h-screen w-full flex-col items-center justify-center bg-white space-y-4"><Loader className="animate-spin h-8 w-8 text-primary" /><p className="text-[10px] font-black uppercase tracking-widest animate-pulse text-gray-400">Syncing Tribal Identity...</p></div></AppLayout>;
+  if (isAuthLoading || isProfileLoading) return <AppLayout><div className="flex h-full w-full flex-col items-center justify-center bg-white space-y-4"><Loader className="animate-spin h-8 w-8 text-primary" /><p className="text-[10px] font-black uppercase tracking-widest animate-pulse text-gray-400">Syncing Tribal Identity...</p></div></AppLayout>;
   if (!profile) { notFound(); return null; }
 
   const isOwnProfile = currentUser?.uid === profileId;
@@ -99,8 +99,8 @@ export default function ProfilePage() {
   // OWN PROFILE VIEW (Misty Forest Dashboard)
   if (isOwnProfile) {
     return (
-      <AppLayout fullScreen>
-        <div className="min-h-screen bg-white text-gray-900 font-headline relative flex flex-col pb-32 overflow-x-hidden">
+      <AppLayout>
+        <div className="min-h-full bg-white text-gray-900 font-headline relative flex flex-col pb-32 overflow-x-hidden">
           <header className="relative h-[25vh] overflow-hidden shrink-0">
             <Image 
               src="https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=2000" 
@@ -179,8 +179,8 @@ export default function ProfilePage() {
 
   // OTHERS VIEW (Atmospheric Emerald)
   return (
-    <AppLayout fullScreen>
-      <div className="min-h-screen bg-[#051a05] text-white font-headline relative flex flex-col overflow-x-hidden pb-32">
+    <AppLayout>
+      <div className="min-h-full bg-[#051a05] text-white font-headline relative flex flex-col overflow-x-hidden pb-32">
         <div className="absolute top-0 left-0 w-full h-[60vh] z-0 overflow-hidden">
            <div className="absolute inset-0 bg-black/40 z-10" />
            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#051a05]/80 to-[#051a05] z-20" />
@@ -261,16 +261,16 @@ export default function ProfilePage() {
                  <SupporterIcon color="bronze" rank={3} />
               </div>
            </section>
-        </div>
 
-        <footer className="fixed bottom-0 left-0 right-0 p-6 pt-4 bg-gradient-to-t from-black via-black/90 to-transparent z-[100] flex justify-center border-t border-white/5">
-           <div className="flex flex-col items-center gap-1 group cursor-pointer active:scale-90 transition-transform">
-              <div className="h-16 w-16 rounded-3xl bg-gradient-to-br from-[#d946ef] via-[#a855f7] to-[#7c3aed] flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)] border-2 border-white/20">
-                 <div className="p-2 bg-white/20 rounded-xl"><Gift className="h-8 w-8 text-white fill-current" /></div>
+           <div className="w-full flex justify-center pt-10">
+              <div className="flex flex-col items-center gap-1 group cursor-pointer active:scale-90 transition-transform">
+                <div className="h-16 w-16 rounded-3xl bg-gradient-to-br from-[#d946ef] via-[#a855f7] to-[#7c3aed] flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)] border-2 border-white/20">
+                   <div className="p-2 bg-white/20 rounded-xl"><Gift className="h-8 w-8 text-white fill-current" /></div>
+                </div>
+                <span className="text-[10px] font-black uppercase italic tracking-tighter">Gift</span>
               </div>
-              <span className="text-[10px] font-black uppercase italic tracking-tighter">Gift</span>
            </div>
-        </footer>
+        </div>
       </div>
     </AppLayout>
   );

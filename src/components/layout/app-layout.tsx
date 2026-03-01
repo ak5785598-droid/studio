@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from "react";
-import { Home, Settings, ShoppingBag, Mail, Crown, Gamepad2, Power, User } from "lucide-react";
+import { Home, Settings, ShoppingBag, Mail, Crown, Gamepad2, Power, User, Zap } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -34,9 +34,9 @@ const sidebarItems = [
 ];
 
 const mobileNavItems = [
-  { href: "/rooms", label: "HOME", icon: Home },
+  { href: "/rooms", label: "HOME", icon: Zap },
   { href: "/messages", label: "MESSAGE", icon: Mail },
-  { href: "/profile", label: "MINE", icon: User },
+  { href: "/profile", label: "MINE", icon: Crown },
 ];
 
 export function AppLayout({ 
