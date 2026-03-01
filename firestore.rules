@@ -20,7 +20,7 @@ service cloud.firestore {
         allow update: if isSignedIn() && request.auth.uid == userId;
       }
       match /notifications/{id} {
-        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow read: if isSignedIn();
         allow create: if isSignedIn();
       }
       match /followers/{followerId} {

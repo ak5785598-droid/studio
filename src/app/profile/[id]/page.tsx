@@ -12,15 +12,11 @@ import {
   Copy,
   ChevronLeft,
   Gift,
-  Plus,
-  Settings as SettingsIcon,
   Crown,
   Trophy,
   Activity,
   Users,
-  MessageCircle,
-  Share2,
-  Pen,
+  Settings as SettingsIcon,
   Shield as ShieldIcon
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
@@ -55,7 +51,7 @@ const SupporterIcon = ({ color, rank }: { color: string, rank: number }) => (
   </div>
 );
 
-const ToolTile = ({ label, icon: Icon, color, onClick }: any) => (
+const ToolTile = ({ label, icon: Icon, onClick }: any) => (
   <button onClick={onClick} className="flex flex-col items-center gap-2 group flex-1">
     <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shadow-md group-active:scale-95 transition-all bg-gradient-to-br from-yellow-300 to-yellow-500")}>
       <Icon className="h-6 w-6 text-white" />
@@ -139,7 +135,7 @@ export default function ProfilePage() {
               <div className="pt-2 space-y-0.5 flex-1">
                 <div className="flex items-center gap-2">
                   <h1 className="text-xl font-black italic tracking-tighter uppercase">{profile.username}</h1>
-                  <span className="text-xs">🇨🇦 ♂️ 🇮🇳</span>
+                  <span className="text-xs">♂️ 🇮🇳</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-gray-400 uppercase italic">ID: {profile.specialId}</span>
@@ -155,8 +151,8 @@ export default function ProfilePage() {
 
             {/* Social Stats */}
             <div className="flex justify-around items-center py-2 bg-transparent">
-              <div className="flex flex-col items-center"><span className="text-sm font-black italic">2</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Friends</span></div>
-              <div className="flex flex-col items-center"><span className="text-sm font-black italic">3</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Following</span></div>
+              <div className="flex flex-col items-center"><span className="text-sm font-black italic">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Friends</span></div>
+              <div className="flex flex-col items-center"><span className="text-sm font-black italic">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Following</span></div>
               <div className="flex flex-col items-center"><span className="text-sm font-black italic">{profile.stats?.followers || 0}</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Followers</span></div>
               <div className="flex flex-col items-center"><span className="text-sm font-black italic">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Visitors</span></div>
             </div>
