@@ -31,6 +31,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { EditProfileDialog } from '@/components/edit-profile-dialog';
+import { SellerTransferDialog } from '@/components/seller-transfer-dialog';
 
 const SupporterIcon = ({ color, rank }: { color: string, rank: number }) => (
   <div className="relative group cursor-pointer active:scale-95 transition-transform shrink-0">
@@ -198,7 +199,7 @@ export default function ProfilePage() {
 
               <Card className="rounded-[1.5rem] border-none shadow-sm overflow-hidden bg-white">
                 <MenuItem label="Network Test" icon={Activity} />
-                <MenuItem label="Seller" icon={ShieldIcon} extra="Apply" />
+                <SellerTransferDialog />
               </Card>
             </div>
           </div>
