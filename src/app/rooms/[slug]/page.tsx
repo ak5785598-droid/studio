@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 /**
  * Chat Room Entry Page Gateway.
  * Implements the 1-Hour Ban Security Protocol.
+ * Typography normalized to standard upright.
  */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -104,7 +105,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
             <Clock className="h-6 w-6 text-red-500" />
             <div className="text-left">
               <p className="text-[10px] font-black uppercase tracking-widest text-red-400">Sync Restored At</p>
-              <p className="text-lg font-black text-red-600 italic">{format(activeBan, 'HH:mm:ss')} (Local Time)</p>
+              <p className="text-lg font-black text-red-600">{format(activeBan, 'HH:mm:ss')} (Local Time)</p>
             </div>
           </div>
           <button 
@@ -123,7 +124,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
         <AppLayout>
             <div className="flex h-[60vh] flex-col items-center justify-center space-y-4 text-center px-6">
                 <ShieldAlert className="h-16 w-16 text-destructive mb-2" />
-                <h1 className="text-2xl font-black uppercase italic">Access Denied</h1>
+                <h1 className="text-2xl font-black uppercase">Access Denied</h1>
                 <p className="text-muted-foreground">You do not have permission to access this frequency or you have been banned.</p>
                 <button onClick={() => router.push('/rooms')} className="bg-primary text-black font-black uppercase px-8 py-3 rounded-full">Explore Others</button>
             </div>
@@ -151,9 +152,9 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
       <AppLayout>
         <div className="flex h-[60vh] flex-col items-center justify-center space-y-6 text-center px-6 animate-in fade-in duration-700">
             <div className="h-24 w-24 bg-secondary/20 rounded-full flex items-center justify-center"><Ghost className="h-12 w-12 text-muted-foreground opacity-40" /></div>
-            <h1 className="text-3xl font-black uppercase italic tracking-tighter">Frequency Not Found</h1>
+            <h1 className="text-3xl font-black uppercase tracking-tighter">Frequency Not Found</h1>
             <p className="text-muted-foreground max-w-xs font-body text-lg">This tribe has disbanded or the frequency has been terminated by an Admin.</p>
-            <button onClick={() => router.push('/rooms')} className="bg-primary text-white font-black uppercase italic tracking-widest text-xs px-10 py-4 rounded-full shadow-lg shadow-primary/20 hover:scale-105 transition-transform">Back to Home</button>
+            <button onClick={() => router.push('/rooms')} className="bg-primary text-white font-black uppercase tracking-widest text-xs px-10 py-4 rounded-full shadow-lg shadow-primary/20 hover:scale-105 transition-transform">Back to Home</button>
         </div>
       </AppLayout>
     );

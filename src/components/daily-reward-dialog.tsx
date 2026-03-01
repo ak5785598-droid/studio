@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -21,6 +22,7 @@ import { Sparkles, Star, Award, Bike, Image as ImageIcon, Rocket } from 'lucide-
  * High-Fidelity Daily Reward Portal.
  * Designed to mirror the provided blueprint exactly.
  * Features a 7-day reward sequence with automatic real-time closure upon sign-in.
+ * Typography normalized to standard upright.
  */
 export function DailyRewardDialog() {
   const { user } = useUser();
@@ -86,7 +88,7 @@ export function DailyRewardDialog() {
       day === 1 && "border-yellow-400 ring-2 ring-yellow-400/20"
     )}>
       <div className={cn(
-        "absolute top-0 left-0 px-2 py-0.5 rounded-tl-lg rounded-br-lg text-[10px] font-black italic",
+        "absolute top-0 left-0 px-2 py-0.5 rounded-tl-lg rounded-br-lg text-[10px] font-black",
         isBig ? "bg-gradient-to-r from-red-500 to-orange-500 text-white" : "bg-yellow-400 text-black"
       )}>
         {day} {isBig && 'Big Reward'}
@@ -106,7 +108,7 @@ export function DailyRewardDialog() {
         )}
         <div className="flex items-center gap-1 mt-1">
           {amount && <GoldCoinIcon className="h-3 w-3 text-yellow-500" />}
-          <span className="text-[10px] font-black uppercase italic text-gray-700">
+          <span className="text-[10px] font-black uppercase text-gray-700">
             {amount ? amount : label}
           </span>
         </div>
@@ -128,13 +130,13 @@ export function DailyRewardDialog() {
              <div className="relative h-16 bg-gradient-to-b from-yellow-300 to-yellow-500 rounded-2xl flex items-center justify-center shadow-xl border-b-4 border-yellow-600">
                 <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-yellow-600 rotate-45 rounded-sm" />
                 <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-yellow-600 rotate-45 rounded-sm" />
-                <h2 className="text-3xl font-black text-green-900 uppercase italic tracking-tighter drop-shadow-sm">Daily Reward</h2>
+                <h2 className="text-3xl font-black text-green-900 uppercase tracking-tighter drop-shadow-sm">Daily Reward</h2>
              </div>
           </div>
 
           <div className="text-center mb-6 mt-4">
              <div className="bg-yellow-100/50 py-2 rounded-full inline-block px-10 border border-yellow-200">
-                <p className="text-sm font-bold text-orange-800 italic">Sign in for 7 days for rich rewards</p>
+                <p className="text-sm font-bold text-orange-800">Sign in for 7 days for rich rewards</p>
              </div>
           </div>
 
@@ -152,7 +154,7 @@ export function DailyRewardDialog() {
             <Button 
               onClick={handleSignIn}
               disabled={isSigningIn}
-              className="w-full h-16 rounded-[2rem] bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-500 text-green-900 font-black text-2xl uppercase italic shadow-[0_10px_30px_rgba(234,179,8,0.4)] border-b-4 border-yellow-600 hover:scale-[1.02] active:scale-95 transition-all"
+              className="w-full h-16 rounded-[2rem] bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-500 text-green-900 font-black text-2xl uppercase shadow-[0_10px_30px_rgba(234,179,8,0.4)] border-b-4 border-yellow-600 hover:scale-[1.02] active:scale-95 transition-all"
             >
               {isSigningIn ? 'Signing In...' : 'Sign In'}
             </Button>

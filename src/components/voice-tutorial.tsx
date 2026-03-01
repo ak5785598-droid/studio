@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -12,6 +13,7 @@ interface VoiceTutorialProps {
 /**
  * Interactive Onboarding Tutorial.
  * High-fidelity guide for first-time voice chat users.
+ * Typography normalized to standard upright.
  */
 export function VoiceTutorial({ onComplete }: VoiceTutorialProps) {
   const [step, setStep] = useState(1);
@@ -59,7 +61,7 @@ export function VoiceTutorial({ onComplete }: VoiceTutorialProps) {
           </div>
 
           <div className="space-y-2">
-            <h3 className="font-headline text-3xl font-black uppercase italic tracking-tighter text-gray-900">
+            <h3 className="font-headline text-3xl font-black uppercase tracking-tighter text-gray-900">
               {currentStep.title}
             </h3>
             <p className="text-muted-foreground font-body text-lg leading-relaxed px-4">
@@ -78,7 +80,7 @@ export function VoiceTutorial({ onComplete }: VoiceTutorialProps) {
               if (step < steps.length) setStep(step + 1);
               else onComplete();
             }}
-            className="w-full h-16 rounded-[1.5rem] text-xl font-black uppercase italic shadow-xl shadow-primary/20 bg-primary"
+            className="w-full h-16 rounded-[1.5rem] text-xl font-black uppercase shadow-xl shadow-primary/20 bg-primary"
           >
             {step < steps.length ? 'Next Step' : 'Enter Frequency'}
             <ArrowRight className="ml-2 h-6 w-6" />

@@ -22,7 +22,7 @@ service cloud.firestore {
 
     function isBanned(roomId) {
       let banPath = /databases/$(database)/documents/chatRooms/$(roomId)/bans/$(request.auth.uid);
-      return exists(banPath) && get(banPath).data.expiresAt > request.time;
+      return exists(banPath) && get(banPath).data.get('expiresAt', request.time) > request.time;
     }
     
     match /users/{userId} {
@@ -67,7 +67,8 @@ service cloud.firestore {
     }
 
     match /chatRooms/{roomId} {
-      allow read: if isSignedIn() && !isBanned(roomId);
+      // Allow reading room metadata to prevent crash, but block content if banned
+      allow read: if isSignedIn();
       allow list, create: if isSignedIn();
       allow update: if isSignedIn() && (
         request.auth.uid == resource.data.ownerId ||
@@ -78,9 +79,9 @@ service cloud.firestore {
       allow delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
 
       match /participants/{userId} {
-        allow read, list: if isSignedIn();
-        allow create: if isSignedIn() && request.auth.uid == userId;
-        allow update: if isSignedIn();
+        allow read, list: if isSignedIn() && !isBanned(roomId);
+        allow create: if isSignedIn() && request.auth.uid == userId && !isBanned(roomId);
+        allow update: if isSignedIn() && !isBanned(roomId);
         allow delete: if isSignedIn() && (
           request.auth.uid == userId || 
           isRoomAdmin(roomId)
@@ -91,11 +92,13 @@ service cloud.firestore {
         }
       }
       match /messages/{id} {
-        allow read, list, create: if isSignedIn();
+        allow read, list: if isSignedIn() && !isBanned(roomId);
+        allow create: if isSignedIn() && !isBanned(roomId);
         allow delete: if isSignedIn() && isRoomAdmin(roomId);
       }
-      match /bans/{id} {
-        allow read: if isSignedIn();
+      match /bans/{userId} {
+        // Allow user to read their own ban status and admins to manage it
+        allow read: if isSignedIn() && (request.auth.uid == userId || isRoomAdmin(roomId));
         allow write: if isRoomAdmin(roomId);
       }
     }

@@ -548,7 +548,7 @@ export function RoomClient({ room }: { room: Room }) {
           <div className="bg-gradient-to-b from-amber-200 to-amber-600 p-0.5 rounded-xl shadow-2xl">
             <div className="bg-black/80 rounded-lg p-1.5 flex flex-col items-center gap-1 border border-white/5">
               <Trophy className="h-6 w-6 text-yellow-500" />
-              <p className="text-[7px] font-black uppercase text-center text-white/60 leading-none">Room<br/>Support</p>
+              <p className="text-[7px] font-black uppercase text-center text-white/60 leading-none">Room Support</p>
               <div className="flex gap-0.5 mt-0.5">
                 {[1, 2, 3, 4, 5].map(i => <div key={i} className={cn("h-1 w-1 rounded-full", i === 1 ? "bg-white" : "bg-white/20")} />)}
               </div>
