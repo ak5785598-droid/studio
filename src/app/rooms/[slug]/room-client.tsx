@@ -230,7 +230,7 @@ export function RoomClient({ room }: { room: Room }) {
     if (userProfile?.isNewUser && !showTutorial) {
       setShowTutorial(true);
     }
-  }, [userProfile]);
+  }, [userProfile, showTutorial]);
 
   useEffect(() => {
     if (!showGiftEffects) return;
@@ -629,7 +629,7 @@ export function RoomClient({ room }: { room: Room }) {
       <Dialog open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
         <DialogContent className="sm:max-w-[425px] bg-white text-black p-0 rounded-t-[3rem] overflow-hidden border-none shadow-2xl animate-in slide-in-from-bottom-full duration-500">
           <DialogHeader className="p-6 border-b border-gray-100">
-            <DialogTitle className="text-center text-2xl text-gray-800 uppercase">{selectedOccupant ? `Tribe Member: ${selectedOccupant.name}` : `Seat ${selectedSeatIndex}`}</DialogTitle>
+            <DialogTitle className="text-center text-2xl text-gray-800 uppercase tracking-tighter">{selectedOccupant ? `Tribe Member: ${selectedOccupant.name}` : `Seat ${selectedSeatIndex}`}</DialogTitle>
             <DialogDescription className="sr-only">Available actions for the selected tribe member or seat.</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col divide-y divide-gray-100">
@@ -663,7 +663,7 @@ export function RoomClient({ room }: { room: Room }) {
       <Dialog open={isGiftPickerOpen} onOpenChange={setIsGiftPickerOpen}>
         <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
           <DialogHeader className="p-8 pb-0 text-center">
-            <DialogTitle className="text-3xl font-black uppercase">Ummy Boutique</DialogTitle>
+            <DialogTitle className="text-3xl font-black uppercase tracking-tighter">Ummy Boutique</DialogTitle>
             <DialogDescription className="sr-only">Select premium assets and high-tier gifts to synchronize with your chosen recipient.</DialogDescription>
           </DialogHeader>
           <div className="p-8 pt-6 space-y-6">
@@ -675,15 +675,15 @@ export function RoomClient({ room }: { room: Room }) {
                 </div>
                 <div>
                   <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Gifting Recipient</p>
-                  <p className="text-sm font-black uppercase text-primary">{giftRecipient?.uid === currentUser?.uid ? 'Myself' : (giftRecipient?.name || hostParticipant?.name || 'The Frequency')}</p>
+                  <p className="text-sm font-black uppercase text-primary tracking-tighter">{giftRecipient?.uid === currentUser?.uid ? 'Myself' : (giftRecipient?.name || hostParticipant?.name || 'The Frequency')}</p>
                 </div>
               </div>
               <Button variant="ghost" size="sm" onClick={() => { if (giftRecipient?.uid === currentUser?.uid) { setGiftRecipient(null); } else { setGiftRecipient({ uid: currentUser!.uid, name: userProfile!.username, avatarUrl: userProfile!.avatarUrl }); } }} className="rounded-full text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10"><RefreshCw className="h-3 w-3 mr-1" />{giftRecipient?.uid === currentUser?.uid ? 'Switch to Host' : 'Gift Myself'}</Button>
             </div>
             <div className="grid grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto p-2 no-scrollbar">
-              {AVAILABLE_GIFTS.map(g => (<button key={g.id} onClick={() => handleSendGift(g)} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-secondary/50 hover:bg-primary/20 transition-all border-2 border-transparent hover:border-primary group active:scale-90"><span className="text-4xl group-hover:scale-125 transition-transform duration-300">{g.emoji}</span><div className="text-center"><p className="text-[10px] font-black uppercase truncate w-20">{g.name}</p><div className="flex items-center justify-center gap-1 text-[10px] font-black text-primary"><GoldCoinIcon className="h-3 w-3" />{g.price}</div></div></button>))}
+              {AVAILABLE_GIFTS.map(g => (<button key={g.id} onClick={() => handleSendGift(g)} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-secondary/50 hover:bg-primary/20 transition-all border-2 border-transparent hover:border-primary group active:scale-90"><span className="text-4xl group-hover:scale-125 transition-transform duration-300">{g.emoji}</span><div className="text-center"><p className="text-[10px] font-black uppercase truncate w-20 tracking-tighter">{g.name}</p><div className="flex items-center justify-center gap-1 text-[10px] font-black text-primary"><GoldCoinIcon className="h-3 w-3" />{g.price}</div></div></button>))}
             </div>
-            <div className="bg-secondary/30 p-4 rounded-2xl flex items-center justify-between shadow-inner"><span className="text-xs font-black uppercase opacity-60">Your Balance</span><div className="flex items-center gap-2 font-black text-primary text-xl"><GoldCoinIcon className="h-5 w-5" />{userProfile?.wallet?.coins || 0}</div></div>
+            <div className="bg-secondary/30 p-4 rounded-2xl flex items-center justify-between shadow-inner"><span className="text-xs font-black uppercase opacity-60 tracking-widest">Your Balance</span><div className="flex items-center gap-2 font-black text-primary text-xl"><GoldCoinIcon className="h-5 w-5" />{userProfile?.wallet?.coins || 0}</div></div>
           </div>
         </DialogContent>
       </Dialog>
@@ -719,7 +719,7 @@ export function RoomClient({ room }: { room: Room }) {
               {isMusicMenuOpen && (
                 <div className="bg-white/5 rounded-[2rem] p-6 border border-white/10 animate-in zoom-in-95 duration-300">
                   <div className="flex items-center gap-2 mb-4"><Music className="h-4 w-4 text-primary" /><h4 className="text-[10px] font-black uppercase tracking-widest text-primary/80">Room Radio</h4></div>
-                  <div className="grid grid-cols-2 gap-3">{MUSIC_TRACKS.map(track => (<button key={track.id} onClick={() => handleToggleMusic(track.url)} disabled={!canManageRoom} className={cn("p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all active:scale-95", room.currentMusicUrl === track.url ? "bg-primary border-primary text-black shadow-lg shadow-primary/20" : "bg-slate-800/50 border-transparent text-white/60 hover:border-primary/20")}>{room.currentMusicUrl === track.url ? <Square className="h-5 w-5 fill-current" /> : <Play className="h-5 w-5 fill-current" />}<span className="text-[10px] font-black uppercase truncate w-full text-center">{track.name}</span></button>))}</div>
+                  <div className="grid grid-cols-2 gap-3">{MUSIC_TRACKS.map(track => (<button key={track.id} onClick={() => handleToggleMusic(track.url)} disabled={!canManageRoom} className={cn("p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all active:scale-95", room.currentMusicUrl === track.url ? "bg-primary border-primary text-black shadow-lg shadow-primary/20" : "bg-slate-800/50 border-transparent text-white/60 hover:border-primary/20")}>{room.currentMusicUrl === track.url ? <Square className="h-5 w-5 fill-current" /> : <Play className="h-5 w-5 fill-current" />}<span className="text-[10px] font-black uppercase truncate w-full text-center tracking-tighter">{track.name}</span></button>))}</div>
                 </div>
               )}
             </div>
@@ -730,12 +730,12 @@ export function RoomClient({ room }: { room: Room }) {
       <AlertDialog open={isClearChatConfirmOpen} onOpenChange={setIsClearChatConfirmOpen}>
         <AlertDialogContent className="bg-white text-black border-none rounded-[2rem]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-black uppercase">Purge Frequency Chat?</AlertDialogTitle>
+            <AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter">Purge Frequency Chat?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground font-body text-base">This will permanently delete all messages from this frequency for all tribe members.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClearChat} className="bg-destructive text-white rounded-full">Purge Now</AlertDialogAction>
+            <AlertDialogCancel className="rounded-full font-black uppercase tracking-widest text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearChat} className="bg-destructive text-white rounded-full font-black uppercase tracking-widest text-xs">Purge Now</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

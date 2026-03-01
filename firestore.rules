@@ -67,7 +67,6 @@ service cloud.firestore {
     }
 
     match /chatRooms/{roomId} {
-      // Allow reading room metadata to prevent crash
       allow read: if isSignedIn();
       allow list, create: if isSignedIn();
       allow update: if isSignedIn() && (
@@ -96,11 +95,12 @@ service cloud.firestore {
         allow create: if isSignedIn() && !isBanned(roomId);
         allow delete: if isSignedIn() && isRoomAdmin(roomId);
       }
-      match /bans/{userId} {
-        // Allow user to read their own ban status regardless of room access
-        allow read: if isSignedIn() && (request.auth.uid == userId || isRoomAdmin(roomId));
-        allow write: if isRoomAdmin(roomId);
-      }
+    }
+
+    // Top-level match for bans to avoid nesting/shadowing issues
+    match /chatRooms/{roomId}/bans/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isRoomAdmin(roomId));
+      allow write: if isRoomAdmin(roomId);
     }
 
     match /moments/{momentId} {

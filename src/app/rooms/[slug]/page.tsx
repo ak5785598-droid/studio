@@ -93,7 +93,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
         <div className="flex h-[70vh] flex-col items-center justify-center space-y-8 text-center px-8 animate-in fade-in duration-700">
           <div className="relative">
             <div className="absolute inset-0 bg-red-500/20 blur-3xl rounded-full" />
-            <ShieldAlert className="h-24 w-24 text-red-500 relative z-10" />
+            < ShieldAlert className="h-24 w-24 text-red-500 relative z-10" />
           </div>
           <div className="space-y-3">
             <h1 className="text-4xl font-black uppercase tracking-tighter text-gray-900">Frequency Blocked</h1>
@@ -124,9 +124,9 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
         <AppLayout>
             <div className="flex h-[60vh] flex-col items-center justify-center space-y-4 text-center px-6">
                 <ShieldAlert className="h-16 w-16 text-destructive mb-2" />
-                <h1 className="text-2xl font-black uppercase">Access Denied</h1>
-                <p className="text-muted-foreground">You do not have permission to access this frequency or you have been banned.</p>
-                <button onClick={() => router.push('/rooms')} className="bg-primary text-black font-black uppercase px-8 py-3 rounded-full">Explore Others</button>
+                <h1 className="text-2xl font-black uppercase tracking-tighter">Access Denied</h1>
+                <p className="text-muted-foreground font-body text-base">You do not have permission to access this frequency or you have been banned.</p>
+                <button onClick={() => router.push('/rooms')} className="bg-primary text-white font-black uppercase tracking-widest text-xs px-8 py-3 rounded-full shadow-lg">Explore Others</button>
             </div>
         </AppLayout>
      );
@@ -139,7 +139,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
       <AppLayout>
         <div className="flex h-[60vh] w-full flex-col items-center justify-center space-y-4">
           <Loader className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-xs text-muted-foreground animate-pulse font-black uppercase tracking-widest">
+          <p className="text-[10px] text-muted-foreground animate-pulse font-black uppercase tracking-widest">
             Tuning Frequency...
           </p>
         </div>
