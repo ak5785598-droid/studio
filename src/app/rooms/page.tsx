@@ -85,7 +85,7 @@ export default function RoomsPage() {
       )}
     >
        <div className="flex justify-between items-start mb-2">
-          <span className="text-white font-black text-[10px] uppercase italic tracking-widest opacity-60">{title}</span>
+          <span className="text-white font-black text-[10px] uppercase tracking-widest opacity-60">{title}</span>
           <Icon className="h-3 w-3 text-white/40" />
        </div>
        <div className="flex justify-center items-center h-12">
@@ -103,9 +103,9 @@ export default function RoomsPage() {
       <div className="min-h-full bg-white flex flex-col p-6 space-y-8 pb-32">
         <header className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
-            <button onClick={() => setNavTab('chatroom')} className={cn("text-2xl font-black transition-all whitespace-nowrap italic", navTab === 'chatroom' ? "text-gray-900" : "text-gray-200")}>Chatroom</button>
-            <button onClick={() => setNavTab('moments')} className={cn("text-2xl font-black transition-all whitespace-nowrap italic", navTab === 'moments' ? "text-gray-900" : "text-gray-200")}>Moments</button>
-            <button onClick={() => setNavTab('mine')} className={cn("text-2xl font-black transition-all whitespace-nowrap italic", navTab === 'mine' ? "text-gray-900" : "text-gray-200")}>Mine</button>
+            <button onClick={() => setNavTab('chatroom')} className={cn("text-2xl font-black transition-all whitespace-nowrap", navTab === 'chatroom' ? "text-gray-900" : "text-gray-200")}>Chatroom</button>
+            <button onClick={() => setNavTab('moments')} className={cn("text-2xl font-black transition-all whitespace-nowrap", navTab === 'moments' ? "text-gray-900" : "text-gray-200")}>Moments</button>
+            <button onClick={() => setNavTab('mine')} className={cn("text-2xl font-black transition-all whitespace-nowrap", navTab === 'mine' ? "text-gray-900" : "text-gray-200")}>Mine</button>
           </div>
           <div className="flex items-center gap-4">
              <UserSearchDialog />
@@ -122,7 +122,7 @@ export default function RoomsPage() {
                     <CarouselItem key={i}>
                       <div className="relative aspect-[16/8] rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-[#ffd700] via-[#ff9800] to-[#ff4081] flex flex-col justify-center px-10 border-[6px] border-white shadow-inner">
                          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-                         <h2 className="text-4xl sm:text-5xl font-black text-white italic uppercase tracking-tighter drop-shadow-lg relative z-10 leading-[0.9]">RISING HOST<br/><span className="text-black/80">CONTEST</span></h2>
+                         <h2 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter drop-shadow-lg relative z-10 leading-[0.9]">RISING HOST<br/><span className="text-black/80">CONTEST</span></h2>
                          <div className="flex gap-1.5 mt-6 relative z-10">
                             {Array.from({length: 8}).map((_, dot) => (
                               <div key={dot} className={cn("h-2.5 w-2.5 rounded-full bg-white/40 shadow-sm", dot === 0 && "bg-white w-6")} />
@@ -142,9 +142,9 @@ export default function RoomsPage() {
             </div>
 
             <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
-              <button onClick={() => setActiveTab('All')} className={cn("flex items-center gap-2 px-8 h-11 rounded-full text-sm font-black uppercase italic transition-all whitespace-nowrap shadow-md", activeTab === 'All' ? "bg-[#ffd700] text-gray-900 border-2 border-white ring-2 ring-[#ffd700]/20" : "bg-gray-100 text-gray-400")}><Star className="h-4 w-4 fill-current" />All</button>
-              <button onClick={() => setActiveTab('Hot')} className={cn("px-10 h-11 rounded-full text-sm font-black uppercase italic transition-all whitespace-nowrap", activeTab === 'Hot' ? "bg-gray-200 text-gray-900" : "bg-gray-100 text-gray-400")}>Hot</button>
-              <button onClick={() => setActiveTab('New')} className={cn("px-10 h-11 rounded-full text-sm font-black uppercase italic transition-all whitespace-nowrap", activeTab === 'New' ? "bg-gray-200 text-gray-900" : "bg-gray-100 text-gray-400")}>New</button>
+              <button onClick={() => setActiveTab('All')} className={cn("flex items-center gap-2 px-8 h-11 rounded-full text-sm font-black uppercase transition-all whitespace-nowrap shadow-md", activeTab === 'All' ? "bg-[#ffd700] text-gray-900 border-2 border-white ring-2 ring-[#ffd700]/20" : "bg-gray-100 text-gray-400")}><Star className="h-4 w-4 fill-current" />All</button>
+              <button onClick={() => setActiveTab('Hot')} className={cn("px-10 h-11 rounded-full text-sm font-black uppercase transition-all whitespace-nowrap", activeTab === 'Hot' ? "bg-gray-200 text-gray-900" : "bg-gray-100 text-gray-400")}>Hot</button>
+              <button onClick={() => setActiveTab('New')} className={cn("px-10 h-11 rounded-full text-sm font-black uppercase transition-all whitespace-nowrap", activeTab === 'New' ? "bg-gray-200 text-gray-900" : "bg-gray-100 text-gray-400")}>New</button>
             </div>
 
             {isRoomsLoading ? (
@@ -169,7 +169,7 @@ export default function RoomsPage() {
              ) : (
                <div className="py-20 flex flex-col items-center justify-center text-center space-y-6">
                   <div className="h-24 w-24 bg-[#FFCC00]/10 rounded-full flex items-center justify-center text-[#FFCC00]"><Flame className="h-12 w-12" /></div>
-                  <h3 className="text-2xl font-black uppercase italic">Start Your Frequency</h3>
+                  <h3 className="text-2xl font-black uppercase">Start Your Frequency</h3>
                   <CreateRoomDialog />
                </div>
              )}

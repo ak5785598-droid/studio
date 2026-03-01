@@ -24,7 +24,7 @@ import {
 
 const RankingList = ({ items, type, isLoading }: any) => {
   if (isLoading) return <div className="flex flex-col items-center py-40 gap-4"><Loader className="animate-spin text-primary" /><p className="text-xs font-black uppercase tracking-widest text-muted-foreground/50">Ascending the Throne...</p></div>;
-  if (!items || items.length === 0) return <div className="text-center py-40 opacity-40 italic"><TrendingUp className="mx-auto mb-4" /> The chronicles are empty.</div>;
+  if (!items || items.length === 0) return <div className="text-center py-40 opacity-40"><TrendingUp className="mx-auto mb-4" /> The chronicles are empty.</div>;
 
   const top1 = items[0];
   const top2 = items[1];
@@ -76,16 +76,16 @@ const RankingList = ({ items, type, isLoading }: any) => {
                       <AvatarImage src={getDisplayImage(top1)} />
                       <AvatarFallback className="bg-black text-4xl">{type === 'rooms' ? <Castle className="h-12 w-12" /> : <UserIcon className="h-12 w-12" />}</AvatarFallback>
                    </Avatar>
-                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-b from-yellow-300 to-yellow-600 text-black px-6 py-1 rounded-full font-black text-xs italic shadow-xl ring-4 ring-black">TOP 1</div>
+                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-b from-yellow-300 to-yellow-600 text-black px-6 py-1 rounded-full font-black text-xs shadow-xl ring-4 ring-black">TOP 1</div>
                 </div>
              </div>
              <div className="mt-8 text-center space-y-1">
                 <div className="flex flex-col items-center gap-1">
-                  <h2 className="text-xl font-black text-cyan-400 uppercase italic tracking-tighter drop-shadow-md">{getDisplayName(top1)}</h2>
+                  <h2 className="text-xl font-black text-cyan-400 uppercase tracking-tighter drop-shadow-md">{getDisplayName(top1)}</h2>
                   {top1.tags?.includes('Official') && <OfficialTag size="sm" />}
                 </div>
                 <div className="flex items-center justify-center gap-1">
-                   <span className="text-lg font-black text-yellow-500 italic">{(getValue(top1)).toLocaleString()}</span>
+                   <span className="text-lg font-black text-yellow-500">{(getValue(top1)).toLocaleString()}</span>
                    <GoldCoinIcon className="h-4 w-4" />
                 </div>
              </div>
@@ -100,10 +100,10 @@ const RankingList = ({ items, type, isLoading }: any) => {
                       <AvatarImage src={getDisplayImage(top2)} />
                       <AvatarFallback className="bg-black">{type === 'rooms' ? <Castle className="h-8 w-8" /> : <UserIcon className="h-8 w-8" />}</AvatarFallback>
                    </Avatar>
-                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white h-6 w-6 rounded-full flex items-center justify-center font-black text-xs italic shadow-lg ring-2 ring-black">2</div>
+                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white h-6 w-6 rounded-full flex items-center justify-center font-black text-xs shadow-lg ring-2 ring-black">2</div>
                 </div>
                 <div className="text-center space-y-1 flex flex-col items-center">
-                   <p className="font-black text-sm text-pink-300 uppercase italic truncate w-32">{getDisplayName(top2)}</p>
+                   <p className="font-black text-sm text-pink-300 uppercase truncate w-32">{getDisplayName(top2)}</p>
                    {top2.tags?.includes('Official') && <OfficialTag size="sm" />}
                    <div className="flex items-center justify-center gap-1 mt-1">
                       <span className="text-xs font-black text-yellow-500">{(getValue(top2)).toLocaleString()}</span>
@@ -119,10 +119,10 @@ const RankingList = ({ items, type, isLoading }: any) => {
                       <AvatarImage src={getDisplayImage(top3)} />
                       <AvatarFallback className="bg-black">{type === 'rooms' ? <Castle className="h-8 w-8" /> : <UserIcon className="h-8 w-8" />}</AvatarFallback>
                    </Avatar>
-                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-white h-6 w-6 rounded-full flex items-center justify-center font-black text-xs italic shadow-lg ring-2 ring-black">3</div>
+                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-white h-6 w-6 rounded-full flex items-center justify-center font-black text-xs shadow-lg ring-2 ring-black">3</div>
                 </div>
                 <div className="text-center space-y-1 flex flex-col items-center">
-                   <p className="font-black text-sm text-white uppercase italic truncate w-32">{getDisplayName(top3)}</p>
+                   <p className="font-black text-sm text-white uppercase truncate w-32">{getDisplayName(top3)}</p>
                    {top3.tags?.includes('Official') && <OfficialTag size="sm" />}
                    <div className="flex items-center justify-center gap-1 mt-1">
                       <span className="text-xs font-black text-yellow-500">{(getValue(top3)).toLocaleString()}</span>
@@ -138,14 +138,14 @@ const RankingList = ({ items, type, isLoading }: any) => {
         <CardContent className="p-0">
           {others.map((item, index) => (
             <Link key={item.id} href={getProfileLink(item.id)} className="flex items-center gap-4 p-5 border-b border-white/5 last:border-0 hover:bg-white/5 transition-all">
-              <span className="w-8 text-center font-black text-white/20 italic">{index + 4}</span>
+              <span className="w-8 text-center font-black text-white/20">{index + 4}</span>
               <Avatar className="h-14 w-14 border-2 border-white/10">
                 <AvatarImage src={getDisplayImage(item)} />
                 <AvatarFallback>{type === 'rooms' ? <Castle className="h-6 w-6" /> : <UserIcon className="h-6 w-6" />}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="font-black text-sm uppercase text-white/90 truncate italic tracking-tighter">{getDisplayName(item)}</p>
+                  <p className="font-black text-sm uppercase text-white/90 truncate tracking-tighter">{getDisplayName(item)}</p>
                   {item.tags?.includes('Official') && <OfficialTag size="sm" />}
                 </div>
                 <Badge variant="outline" className="text-[8px] border-yellow-500/20 text-yellow-500/60 font-black h-4 mt-1">
@@ -178,12 +178,12 @@ const RewardItem = ({ rank, amount, color, emoji }: { rank: string, amount: stri
       </div>
       <div>
         <p className="font-bold text-xs uppercase tracking-widest text-white/40">{rank}</p>
-        <p className="font-black text-sm uppercase italic text-white">Prize Pool</p>
+        <p className="font-black text-sm uppercase text-white">Prize Pool</p>
       </div>
     </div>
     <div className="flex items-center gap-2">
       <GoldCoinIcon className="h-5 w-5" />
-      <span className="font-black text-xl text-primary italic">{amount}</span>
+      <span className="font-black text-xl text-primary">{amount}</span>
     </div>
   </div>
 );
@@ -260,10 +260,10 @@ function LeaderboardContent() {
           <div className="flex items-center justify-between mb-8 overflow-x-auto no-scrollbar pb-2">
              <Link href="/rooms" className="text-yellow-500 hover:scale-110 transition-transform shrink-0"><ChevronLeft className="h-8 w-8" /></Link>
              <div className="flex gap-6 px-4">
-                <button onClick={() => setRankingMode('rich')} className={cn("text-lg font-black uppercase italic tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'rich' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Rich</button>
-                <button onClick={() => setRankingMode('charm')} className={cn("text-lg font-black uppercase italic tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'charm' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Charm</button>
-                <button onClick={() => setRankingMode('games')} className={cn("text-lg font-black uppercase italic tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'games' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Game</button>
-                <button onClick={() => setRankingMode('rooms')} className={cn("text-lg font-black uppercase italic tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'rooms' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Room</button>
+                <button onClick={() => setRankingMode('rich')} className={cn("text-lg font-black uppercase tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'rich' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Rich</button>
+                <button onClick={() => setRankingMode('charm')} className={cn("text-lg font-black uppercase tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'charm' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Charm</button>
+                <button onClick={() => setRankingMode('games')} className={cn("text-lg font-black uppercase tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'games' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Game</button>
+                <button onClick={() => setRankingMode('rooms')} className={cn("text-lg font-black uppercase tracking-tighter pb-1 border-b-2 transition-all", rankingType === 'rooms' ? "text-yellow-500 border-yellow-500" : "text-white/40 border-transparent")}>Room</button>
              </div>
              <Dialog>
                 <DialogTrigger asChild>
@@ -273,7 +273,7 @@ function LeaderboardContent() {
                 </DialogTrigger>
                 <DialogContent className="bg-slate-900 border-none rounded-t-[3rem] text-white p-0 overflow-hidden h-[85vh] sm:max-w-md animate-in slide-in-from-bottom-full duration-500">
                   <DialogHeader className="p-8 pb-4 text-center">
-                    <DialogTitle className="text-3xl font-black uppercase italic flex items-center justify-center gap-3">
+                    <DialogTitle className="text-3xl font-black uppercase flex items-center justify-center gap-3">
                       <Trophy className="h-8 w-8 text-yellow-400" />
                       Daily Rewards
                     </DialogTitle>
@@ -311,9 +311,9 @@ function LeaderboardContent() {
           </div>
 
           <div className="flex items-center justify-between gap-2 bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/10">
-             <button onClick={() => setTimePeriod('daily')} className={cn("flex-1 py-2 rounded-full font-black uppercase text-[10px] italic transition-all", timePeriod === 'daily' ? "bg-gradient-to-b from-yellow-100 to-yellow-500 text-black" : "text-white/40")}>Daily</button>
-             <button onClick={() => setTimePeriod('weekly')} className={cn("flex-1 py-2 rounded-full font-black uppercase text-[10px] italic transition-all", timePeriod === 'weekly' ? "bg-gradient-to-b from-yellow-100 to-yellow-500 text-black" : "text-white/40")}>Weekly</button>
-             <button onClick={() => setTimePeriod('monthly')} className={cn("flex-1 py-2 rounded-full font-black uppercase text-[10px] italic transition-all", timePeriod === 'monthly' ? "bg-gradient-to-b from-yellow-100 to-yellow-500 text-black" : "text-white/40")}>Monthly</button>
+             <button onClick={() => setTimePeriod('daily')} className={cn("flex-1 py-2 rounded-full font-black uppercase text-[10px] transition-all", timePeriod === 'daily' ? "bg-gradient-to-b from-yellow-100 to-yellow-500 text-black" : "text-white/40")}>Daily</button>
+             <button onClick={() => setTimePeriod('weekly')} className={cn("flex-1 py-2 rounded-full font-black uppercase text-[10px] transition-all", timePeriod === 'weekly' ? "bg-gradient-to-b from-yellow-100 to-yellow-500 text-black" : "text-white/40")}>Weekly</button>
+             <button onClick={() => setTimePeriod('monthly')} className={cn("flex-1 py-2 rounded-full font-black uppercase text-[10px] transition-all", timePeriod === 'monthly' ? "bg-gradient-to-b from-yellow-100 to-yellow-500 text-black" : "text-white/40")}>Monthly</button>
              <button className="px-4 py-2 font-black uppercase text-[8px] text-yellow-500 flex items-center gap-1"><TrendingUp className="h-3 w-3" /> IST Today</button>
           </div>
         </header>

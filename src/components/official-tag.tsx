@@ -49,7 +49,7 @@ export function OfficialTag({ className, size = 'md' }: { className?: string, si
         </div>
 
         {/* Official Text with Gold Gradient */}
-        <span className="font-headline text-[14px] font-black italic text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-yellow-100 to-yellow-400">
+        <span className="font-headline text-[14px] font-black text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-yellow-100 to-yellow-400">
           Official
         </span>
         

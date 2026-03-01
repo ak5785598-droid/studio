@@ -34,7 +34,7 @@ export function SellerTag({ className, size = 'md' }: { className?: string, size
               <path d="M 44 70 Q 50 74 56 70" fill="none" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round" />
            </svg>
         </div>
-        <span className="font-headline text-[14px] font-black italic text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-yellow-100 to-yellow-400">Seller</span>
+        <span className="font-headline text-[14px] font-black text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-yellow-100 to-yellow-400">Seller</span>
         <div className="absolute inset-0 pointer-events-none"><div className="absolute top-1 left-12 w-0.5 h-0.5 bg-white rounded-full animate-ping" /><div className="absolute bottom-1 right-6 w-1 h-1 bg-white/40 rounded-full animate-pulse" /></div>
       </div>
     </div>

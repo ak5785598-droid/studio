@@ -123,7 +123,7 @@ const GoldenMicIcon = ({ className }: { className?: string }) => (
     </defs>
     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="url(#micGoldGrad)" />
     <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke="url(#micGoldGrad)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="12" y1="19" x2="12" y2="23" stroke="url(#micGoldGrad)" strokeWidth="2" strokeLinecap="round" />
+    <line x1="12" x1="19" x2="12" y2="23" stroke="url(#micGoldGrad)" strokeWidth="2" strokeLinecap="round" />
     <line x1="8" y1="23" x2="16" y2="23" stroke="url(#micGoldGrad)" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
@@ -392,7 +392,7 @@ export function RoomClient({ room }: { room: Room }) {
             <Sheet>
               <SheetTrigger asChild>
                 <div>
-                  <h1 className="font-black text-xl tracking-tight uppercase italic">{room.title}</h1>
+                  <h1 className="font-black text-xl tracking-tight uppercase">{room.title}</h1>
                   <div className="flex items-center gap-2 text-[10px] font-bold text-white/60 uppercase">
                     <span>No: {room.roomNumber || '000000'}</span>
                     <div className="flex items-center gap-1 text-pink-400"><Users className="h-3 w-3" /><span>{onlineCount} Tribe</span></div>
@@ -401,7 +401,7 @@ export function RoomClient({ room }: { room: Room }) {
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-slate-900 border-none rounded-t-[3rem] text-white p-0 overflow-hidden h-[70vh]">
                 <SheetHeader className="p-8 pb-4">
-                  <SheetTitle className="text-2xl font-black uppercase italic text-center">Frequency Members</SheetTitle>
+                  <SheetTitle className="text-2xl font-black uppercase text-center">Frequency Members</SheetTitle>
                   <SheetDescription className="sr-only">A list of all tribe members currently in this frequency.</SheetDescription>
                 </SheetHeader>
                 <ScrollArea className="h-full px-8 pb-20">
@@ -433,7 +433,7 @@ export function RoomClient({ room }: { room: Room }) {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => toggleModerator(p.uid)}
-                                className="rounded-full h-8 px-4 bg-white/5 border-white/10 hover:bg-white/10 text-[10px] font-black uppercase italic"
+                                className="rounded-full h-8 px-4 bg-white/5 border-white/10 hover:bg-white/10 text-[10px] font-black uppercase"
                               >
                                 <UserCog className="h-3 w-3 mr-1.5" />
                                 {isPMod ? 'Revoke Admin' : 'Set Admin'}
@@ -466,7 +466,7 @@ export function RoomClient({ room }: { room: Room }) {
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-white text-black border-none rounded-[2rem]">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="text-2xl font-black uppercase italic">Terminate Frequency?</AlertDialogTitle>
+                      <AlertDialogTitle className="text-2xl font-black uppercase">Terminate Frequency?</AlertDialogTitle>
                       <AlertDialogDescription className="text-muted-foreground font-body text-base">This will permanently delete the tribe frequency.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -523,7 +523,7 @@ export function RoomClient({ room }: { room: Room }) {
                     </button>
                   )}
                 </div>
-                <span className="text-lg font-black text-white italic tracking-tighter drop-shadow-md">1</span>
+                <span className="text-lg font-black text-white tracking-tighter drop-shadow-md">1</span>
              </div>
           </div>
 
@@ -568,7 +568,7 @@ export function RoomClient({ room }: { room: Room }) {
                       </button>
                     )}
                   </div>
-                  <span className={cn("text-base font-black italic text-center drop-shadow-md", occupant ? "text-[#fbbf24] truncate w-24" : "text-white")}>
+                  <span className={cn("text-base font-black text-center drop-shadow-md", occupant ? "text-[#fbbf24] truncate w-24" : "text-white")}>
                     {occupant ? occupant.name : idx}
                   </span>
                 </div>
@@ -589,7 +589,7 @@ export function RoomClient({ room }: { room: Room }) {
                 {msg.type === 'entrance' || msg.type === 'leave' ? (
                   <div className="flex items-center gap-2">
                     {msg.type === 'entrance' ? <UserCheck className="h-3 w-3 text-blue-400" /> : <LogOut className="h-3 w-3 text-red-400" />}
-                    <p className={cn("text-[10px] font-black uppercase italic", msg.type === 'entrance' ? "text-blue-400" : "text-red-400")}>
+                    <p className={cn("text-[10px] font-black uppercase", msg.type === 'entrance' ? "text-blue-400" : "text-red-400")}>
                       {msg.user.name} <span className="opacity-60">{msg.text}</span>
                     </p>
                   </div>
@@ -601,7 +601,7 @@ export function RoomClient({ room }: { room: Room }) {
                 ) : (
                   <>
                     <span className={cn("text-[10px] font-black uppercase shrink-0 mt-1", msg.type === 'gift' ? "text-primary" : "text-blue-400")}>{msg.user.name}:</span>
-                    <p className={cn("text-xs font-body", msg.type === 'gift' ? "text-primary font-black italic" : "text-white/80")}>{msg.text}</p>
+                    <p className={cn("text-xs font-body", msg.type === 'gift' ? "text-primary font-black" : "text-white/80")}>{msg.text}</p>
                   </>
                 )}
               </div>
@@ -625,7 +625,7 @@ export function RoomClient({ room }: { room: Room }) {
               <DialogTrigger asChild><Button className="rounded-full h-12 w-12 bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30 shadow-lg"><Smile className="h-6 w-6" /></Button></DialogTrigger>
               <DialogContent className="sm:max-w-xs bg-slate-900 text-white border-white/10 rounded-[2.5rem] p-6">
                 <DialogHeader className="pb-4">
-                  <DialogTitle className="text-center font-black uppercase italic text-sm tracking-widest">Tribe Reactions</DialogTitle>
+                  <DialogTitle className="text-center font-black uppercase text-sm tracking-widest">Tribe Reactions</DialogTitle>
                   <DialogDescription className="sr-only">Express your vibe with animated emojis visible to everyone in the frequency.</DialogDescription>
                 </DialogHeader>
                 <div className="grid grid-cols-3 gap-4">
@@ -638,7 +638,7 @@ export function RoomClient({ room }: { room: Room }) {
               <DialogTrigger asChild><Button className="rounded-full h-12 w-12 bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-yellow-500/30 shadow-lg"><Gamepad2 className="h-6 w-6" /></Button></DialogTrigger>
               <DialogContent className="sm:max-w-md bg-[#0a0a0a] text-white p-0 rounded-t-[3rem] border-none overflow-hidden h-[60vh]">
                 <DialogHeader className="p-8 pb-4 text-center">
-                  <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Room Play</DialogTitle>
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Room Play</DialogTitle>
                   <DialogDescription className="sr-only">Launch interactive 3D games to play with your tribe members in real-time.</DialogDescription>
                 </DialogHeader>
                 <ScrollArea className="h-full px-8 pb-20">
@@ -657,7 +657,7 @@ export function RoomClient({ room }: { room: Room }) {
               <DialogTrigger asChild><Button className="rounded-full h-14 w-14 bg-gradient-to-br from-pink-500 to-rose-600 animate-pulse shadow-xl"><GiftIcon className="h-7 w-7 text-white" /></Button></DialogTrigger>
               <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
                 <DialogHeader className="p-8 pb-0 text-center">
-                  <DialogTitle className="text-3xl font-black uppercase italic">Ummy Boutique</DialogTitle>
+                  <DialogTitle className="text-3xl font-black uppercase">Ummy Boutique</DialogTitle>
                   <DialogDescription className="sr-only">Select premium assets and high-tier gifts to synchronize with your chosen recipient.</DialogDescription>
                 </DialogHeader>
                 <div className="p-8 pt-6 space-y-6">
@@ -669,15 +669,15 @@ export function RoomClient({ room }: { room: Room }) {
                       </div>
                       <div>
                         <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Gifting Recipient</p>
-                        <p className="text-sm font-black uppercase italic text-primary">{giftRecipient?.uid === currentUser?.uid ? 'Myself' : (giftRecipient?.name || hostParticipant?.name || 'The Frequency')}</p>
+                        <p className="text-sm font-black uppercase text-primary">{giftRecipient?.uid === currentUser?.uid ? 'Myself' : (giftRecipient?.name || hostParticipant?.name || 'The Frequency')}</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => { if (giftRecipient?.uid === currentUser?.uid) { setGiftRecipient(null); } else { setGiftRecipient({ uid: currentUser!.uid, name: userProfile!.username, avatarUrl: userProfile!.avatarUrl }); } }} className="rounded-full text-[10px] font-black uppercase italic tracking-widest text-primary hover:bg-primary/10"><RefreshCw className="h-3 w-3 mr-1" />{giftRecipient?.uid === currentUser?.uid ? 'Switch to Host' : 'Gift Myself'}</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { if (giftRecipient?.uid === currentUser?.uid) { setGiftRecipient(null); } else { setGiftRecipient({ uid: currentUser!.uid, name: userProfile!.username, avatarUrl: userProfile!.avatarUrl }); } }} className="rounded-full text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10"><RefreshCw className="h-3 w-3 mr-1" />{giftRecipient?.uid === currentUser?.uid ? 'Switch to Host' : 'Gift Myself'}</Button>
                   </div>
                   <div className="grid grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto p-2 no-scrollbar">
                     {AVAILABLE_GIFTS.map(g => (<button key={g.id} onClick={() => handleSendGift(g)} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-secondary/50 hover:bg-primary/20 transition-all border-2 border-transparent hover:border-primary group active:scale-90"><span className="text-4xl group-hover:scale-125 transition-transform duration-300">{g.emoji}</span><div className="text-center"><p className="text-[10px] font-black uppercase truncate w-20">{g.name}</p><div className="flex items-center justify-center gap-1 text-[10px] font-black text-primary"><GoldCoinIcon className="h-3 w-3" />{g.price}</div></div></button>))}
                   </div>
-                  <div className="bg-secondary/30 p-4 rounded-2xl flex items-center justify-between shadow-inner"><span className="text-xs font-black uppercase opacity-60">Your Balance</span><div className="flex items-center gap-2 font-black text-primary italic text-xl"><GoldCoinIcon className="h-5 w-5" />{userProfile?.wallet?.coins || 0}</div></div>
+                  <div className="bg-secondary/30 p-4 rounded-2xl flex items-center justify-between shadow-inner"><span className="text-xs font-black uppercase opacity-60">Your Balance</span><div className="flex items-center gap-2 font-black text-primary text-xl"><GoldCoinIcon className="h-5 w-5" />{userProfile?.wallet?.coins || 0}</div></div>
                 </div>
               </DialogContent>
             </Dialog>
@@ -686,7 +686,7 @@ export function RoomClient({ room }: { room: Room }) {
               <DialogTrigger asChild><Button className="rounded-full h-12 w-12 bg-white/10 text-white hover:bg-white/20 border border-white/10"><Settings className="h-6 w-6" /></Button></DialogTrigger>
               <DialogContent className="sm:max-w-md bg-[#0a0a0a] text-white p-0 rounded-t-[3rem] border-none overflow-hidden h-[85vh]">
                 <DialogHeader className="p-8 pb-4 text-center">
-                  <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Frequency Portal</DialogTitle>
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Frequency Portal</DialogTitle>
                   <DialogDescription className="sr-only">Interactive dashboard for room entertainment and management tools.</DialogDescription>
                 </DialogHeader>
                 <ScrollArea className="h-full px-8 pb-32">
@@ -728,11 +728,11 @@ export function RoomClient({ room }: { room: Room }) {
       <Dialog open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
         <DialogContent className="sm:max-w-[425px] bg-white text-black p-0 rounded-t-[3rem] overflow-hidden border-none shadow-2xl animate-in slide-in-from-bottom-full duration-500">
           <DialogHeader className="p-6 border-b border-gray-100">
-            <DialogTitle className="text-center text-2xl text-gray-800 uppercase italic">{selectedOccupant ? `Tribe Member: ${selectedOccupant.name}` : `Seat ${selectedSeatIndex}`}</DialogTitle>
+            <DialogTitle className="text-center text-2xl text-gray-800 uppercase">{selectedOccupant ? `Tribe Member: ${selectedOccupant.name}` : `Seat ${selectedSeatIndex}`}</DialogTitle>
             <DialogDescription className="sr-only">Available actions for the selected tribe member or seat.</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col divide-y divide-gray-100">
-            {selectedOccupant && (<button onClick={() => { setGiftRecipient({ uid: selectedOccupant.uid, name: selectedOccupant.name, avatarUrl: selectedOccupant.avatarUrl }); setIsGiftPickerOpen(true); setIsActionMenuOpen(false); }} className="py-5 font-black text-primary uppercase tracking-widest text-xs italic hover:bg-gray-50 active:scale-95 transition-all">Send Gift</button>)}
+            {selectedOccupant && (<button onClick={() => { setGiftRecipient({ uid: selectedOccupant.uid, name: selectedOccupant.name, avatarUrl: selectedOccupant.avatarUrl }); setIsGiftPickerOpen(true); setIsActionMenuOpen(false); }} className="py-5 font-black text-primary uppercase tracking-widest text-xs hover:bg-gray-50 active:scale-95 transition-all">Send Gift</button>)}
             {isOwner && selectedOccupant && selectedOccupant.uid !== currentUser?.uid && (
               <button 
                 onClick={() => { toggleModerator(selectedOccupant.uid); setIsActionMenuOpen(false); }} 
@@ -745,7 +745,7 @@ export function RoomClient({ room }: { room: Room }) {
             {canManageRoom && (<>
               {selectedOccupant ? (<>
                 <button onClick={() => silenceParticipant(selectedOccupant.uid, selectedOccupant.isSilenced ?? false)} className="py-5 font-bold text-gray-700 uppercase tracking-widest text-xs hover:bg-gray-50 flex items-center justify-center gap-2 active:scale-95 transition-all">{selectedOccupant.isSilenced ? <Volume2 className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}{selectedOccupant.isSilenced ? 'Unsilence Tribe' : 'Silence Tribe'}</button>
-                {selectedOccupant.uid !== currentUser?.uid && (<button onClick={() => kickParticipant(selectedOccupant.uid)} className="py-5 font-black text-destructive uppercase tracking-widest text-xs italic hover:bg-red-50 flex items-center justify-center gap-2 active:scale-95 transition-all"><span className="flex items-center gap-2"><Ban className="h-4 w-4" /> Kick Tribe</span></button>)}
+                {selectedOccupant.uid !== currentUser?.uid && (<button onClick={() => kickParticipant(selectedOccupant.uid)} className="py-5 font-black text-destructive uppercase tracking-widest text-xs hover:bg-red-50 flex items-center justify-center gap-2 active:scale-95 transition-all"><span className="flex items-center gap-2"><Ban className="h-4 w-4" /> Kick Tribe</span></button>)}
               </>) : (
                 <button onClick={() => toggleSeatLock(selectedSeatIndex!)} className="py-5 font-bold text-purple-600 uppercase tracking-widest text-xs hover:bg-purple-50 flex items-center justify-center gap-2 active:scale-95 transition-all">{room.lockedSeats?.includes(selectedSeatIndex!) ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}{room.lockedSeats?.includes(selectedSeatIndex!) ? 'Unlock Slot' : 'Lock Slot'}</button>
               )}
@@ -753,7 +753,7 @@ export function RoomClient({ room }: { room: Room }) {
             <button onClick={() => { const link = `${window.location.origin}/rooms/${room.id}`; navigator.clipboard.writeText(link); toast({ title: 'Invite Copied' }); setIsActionMenuOpen(false); }} className="py-5 font-bold text-blue-500 uppercase tracking-widest text-xs hover:bg-blue-50 flex items-center justify-center gap-2 active:scale-95 transition-all">
               <UserPlus className="h-4 w-4" /> Invite Tribe
             </button>
-            {selectedOccupant?.uid === currentUser?.uid ? (<button onClick={leaveSeat} className="py-5 font-black text-red-500 uppercase tracking-widest text-xs italic hover:bg-red-50 active:scale-95 transition-all">Exit Seat</button>) : !selectedOccupant && !room.lockedSeats?.includes(selectedSeatIndex!) && (<button onClick={() => takeSeat(selectedSeatIndex!)} className="py-5 font-black text-blue-600 uppercase tracking-widest text-xs italic hover:bg-blue-50 active:scale-95 transition-all">Take Seat</button>)}
+            {selectedOccupant?.uid === currentUser?.uid ? (<button onClick={leaveSeat} className="py-5 font-black text-red-500 uppercase tracking-widest text-xs hover:bg-red-50 active:scale-95 transition-all">Exit Seat</button>) : !selectedOccupant && !room.lockedSeats?.includes(selectedSeatIndex!) && (<button onClick={() => takeSeat(selectedSeatIndex!)} className="py-5 font-black text-blue-600 uppercase tracking-widest text-xs hover:bg-blue-50 active:scale-95 transition-all">Take Seat</button>)}
             <button onClick={() => setIsActionMenuOpen(false)} className="py-5 font-bold text-gray-400 bg-gray-50/50 text-[10px] uppercase tracking-widest hover:text-gray-600">Cancel</button>
           </div>
         </DialogContent>
@@ -762,7 +762,7 @@ export function RoomClient({ room }: { room: Room }) {
       <AlertDialog open={isClearChatConfirmOpen} onOpenChange={setIsClearChatConfirmOpen}>
         <AlertDialogContent className="bg-white text-black border-none rounded-[2rem]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-black uppercase italic">Purge Frequency Chat?</AlertDialogTitle>
+            <AlertDialogTitle className="text-2xl font-black uppercase">Purge Frequency Chat?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground font-body text-base">This will permanently delete all messages from this frequency for all tribe members.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

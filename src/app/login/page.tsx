@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -139,10 +138,10 @@ export default function LoginPage() {
            <UmmyLogoIcon className="h-full w-full drop-shadow-2xl relative z-10" />
         </div>
         <div className="space-y-1">
-          <h1 className="text-6xl font-black italic uppercase tracking-tighter text-white drop-shadow-lg">
+          <h1 className="text-6xl font-black uppercase tracking-tighter text-white drop-shadow-lg">
             Ummy
           </h1>
-          <p className="text-white/80 font-body text-xl tracking-tight italic">
+          <p className="text-white/80 font-body text-xl tracking-tight">
             Connect & vibe with your tribe
           </p>
         </div>
@@ -154,7 +153,7 @@ export default function LoginPage() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-10 duration-700">
             {/* Solid High-Visibility Buttons */}
             <Button
-              className="w-full h-14 justify-center gap-4 bg-[#1877F2] text-white hover:bg-[#166fe5] rounded-full font-black uppercase italic transition-all shadow-xl border-none"
+              className="w-full h-14 justify-center gap-4 bg-[#1877F2] text-white hover:bg-[#166fe5] rounded-full font-black uppercase transition-all shadow-xl border-none"
               onClick={() => toast({ title: 'Facebook Sync', description: 'Portal maintenance in progress.' })}
             >
               <FaFacebookF className="h-5 w-5" />
@@ -162,7 +161,7 @@ export default function LoginPage() {
             </Button>
 
             <Button
-              className="w-full h-14 justify-center gap-4 bg-white text-black hover:bg-gray-100 rounded-full font-black uppercase italic transition-all shadow-xl border-none"
+              className="w-full h-14 justify-center gap-4 bg-white text-black hover:bg-gray-100 rounded-full font-black uppercase transition-all shadow-xl border-none"
               onClick={handleGoogleSignIn}
               disabled={isSigningIn}
             >
@@ -172,7 +171,7 @@ export default function LoginPage() {
 
             <div className="flex items-center gap-4 py-4">
               <span className="flex-1 h-px bg-white/20" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 italic">- or -</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">- or -</span>
               <span className="flex-1 h-px bg-white/20" />
             </div>
 
@@ -210,14 +209,14 @@ export default function LoginPage() {
                 <Button 
                   onClick={handlePhoneSignIn} 
                   disabled={isSigningIn || !phoneNumber} 
-                  className="w-full h-14 bg-primary text-black font-black uppercase italic rounded-2xl shadow-xl border-none"
+                  className="w-full h-14 bg-primary text-black font-black uppercase rounded-2xl shadow-xl border-none"
                 >
                   {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Sync Number'}
                 </Button>
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-[10px] text-white/40 italic text-center">Identity code sent to {phoneNumber}</p>
+                <p className="text-[10px] text-white/40 text-center">Identity code sent to {phoneNumber}</p>
                 <Input
                   type="text"
                   placeholder="000000"
@@ -230,7 +229,7 @@ export default function LoginPage() {
                 <Button 
                   onClick={handleVerifyCode} 
                   disabled={isSigningIn || !verificationCode} 
-                  className="w-full h-14 bg-primary text-black font-black uppercase italic rounded-2xl shadow-xl border-none"
+                  className="w-full h-14 bg-primary text-black font-black uppercase rounded-2xl shadow-xl border-none"
                 >
                   {isSigningIn ? <Loader className="h-5 w-5 animate-spin" /> : 'Enter Frequency'}
                 </Button>
@@ -243,9 +242,9 @@ export default function LoginPage() {
 
       {/* Footer Dimension */}
       <div className="relative z-10 flex flex-col items-center gap-4 text-center max-w-[280px]">
-         <p className="text-[10px] text-white/60 leading-relaxed font-body italic">
+         <p className="text-[10px] text-white/60 leading-relaxed font-body">
             By continuing you agree to the<br/>
-            <Link href="/help-center" className="underline text-white font-black not-italic mx-1">User Agreement</Link> & <Link href="/help-center" className="underline text-white font-black not-italic">Privacy Policy</Link>
+            <Link href="/help-center" className="underline text-white font-black mx-1">User Agreement</Link> & <Link href="/help-center" className="underline text-white font-black">Privacy Policy</Link>
          </p>
          <div className="h-1 w-32 bg-white/10 rounded-full" />
       </div>

@@ -55,7 +55,7 @@ export default function Home() {
         </div>
         
         <div className="flex flex-col items-center gap-2 mt-4 text-center px-6">
-           <h1 className="text-6xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg">
+           <h1 className="text-6xl font-black text-white tracking-tighter uppercase drop-shadow-lg">
              Ummy
            </h1>
            <p className="text-white font-black uppercase tracking-[0.5em] text-[10px] opacity-80">
@@ -68,7 +68,7 @@ export default function Home() {
          {showFailSafe ? (
            <Button 
              onClick={handleManualEntry}
-             className="bg-white text-[#FFCC00] rounded-full px-10 h-14 font-black uppercase italic shadow-2xl animate-in zoom-in duration-500 hover:scale-105 active:scale-95 transition-transform"
+             className="bg-white text-[#FFCC00] rounded-full px-10 h-14 font-black uppercase shadow-2xl animate-in zoom-in duration-500 hover:scale-105 active:scale-95 transition-transform"
            >
              Enter Frequency <ArrowRight className="ml-2 h-5 w-5" />
            </Button>

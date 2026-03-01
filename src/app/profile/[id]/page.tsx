@@ -69,10 +69,10 @@ const MenuItem = ({ label, extra, icon: Icon, onClick }: any) => (
       <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center">
         {Icon && <Icon className="h-4 w-4 text-blue-400" />}
       </div>
-      <span className="font-black text-xs uppercase italic text-gray-800">{label}</span>
+      <span className="font-black text-xs uppercase text-gray-800">{label}</span>
     </div>
     <div className="flex items-center gap-2">
-      {extra && <span className="text-[10px] font-bold text-gray-400 uppercase italic">{extra}</span>}
+      {extra && <span className="text-[10px] font-bold text-gray-400 uppercase">{extra}</span>}
       <ChevronRight className="h-4 w-4 text-gray-300 group-hover:translate-x-1 transition-transform" />
     </div>
   </div>
@@ -142,26 +142,26 @@ export default function ProfilePage() {
               </div>
               <div className="pt-2 space-y-0.5 flex-1">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-black italic tracking-tighter uppercase">{profile.username}</h1>
+                  <h1 className="text-xl font-black tracking-tighter uppercase">{profile.username}</h1>
                   <span className="text-xs">♂️ 🇮🇳</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-gray-400 uppercase italic">ID: {profile.specialId}</span>
+                  <span className="text-[10px] font-black text-gray-400 uppercase">ID: {profile.specialId}</span>
                   <button onClick={() => { navigator.clipboard.writeText(profile.specialId); toast({ title: 'ID Copied' }); }} className="text-gray-300 hover:text-primary transition-colors"><Copy className="h-3 w-3" /></button>
                 </div>
                 <div className="flex items-center gap-1 mt-1 flex-wrap">
-                  <Badge className="bg-orange-500 text-white text-[8px] h-4 font-black italic px-2 border-none">Sr.</Badge>
-                  <Badge className="bg-blue-500 text-white text-[8px] h-4 font-black italic px-2 border-none">SVIP</Badge>
-                  <Badge className="bg-cyan-500 text-white text-[8px] h-4 font-black italic px-2 border-none">CP</Badge>
+                  <Badge className="bg-orange-500 text-white text-[8px] h-4 font-black px-2 border-none">Sr.</Badge>
+                  <Badge className="bg-blue-500 text-white text-[8px] h-4 font-black px-2 border-none">SVIP</Badge>
+                  <Badge className="bg-cyan-500 text-white text-[8px] h-4 font-black px-2 border-none">CP</Badge>
                 </div>
               </div>
             </div>
 
             <div className="flex justify-around items-center py-2 bg-transparent">
-              <div className="flex flex-col items-center"><span className="text-sm font-black italic">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Friends</span></div>
-              <div className="flex flex-col items-center"><span className="text-sm font-black italic">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Following</span></div>
-              <div className="flex flex-col items-center"><span className="text-sm font-black italic">{profile.stats?.followers || 0}</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Followers</span></div>
-              <div className="flex flex-col items-center"><span className="text-sm font-black italic">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Visitors</span></div>
+              <div className="flex flex-col items-center"><span className="text-sm font-black">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Friends</span></div>
+              <div className="flex flex-col items-center"><span className="text-sm font-black">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Following</span></div>
+              <div className="flex flex-col items-center"><span className="text-sm font-black">{profile.stats?.followers || 0}</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Followers</span></div>
+              <div className="flex flex-col items-center"><span className="text-sm font-black">0</span><span className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Visitors</span></div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -171,7 +171,7 @@ export default function ProfilePage() {
               >
                 <div className="flex items-center gap-2">
                   <div className="h-7 w-7 bg-white/20 rounded-full flex items-center justify-center"><GoldCoinIcon className="h-4 w-4" /></div>
-                  <span className="text-[10px] font-black italic truncate w-16">{(profile.wallet?.coins || 0).toLocaleString()}</span>
+                  <span className="text-[10px] font-black truncate w-16">{(profile.wallet?.coins || 0).toLocaleString()}</span>
                 </div>
                 <ChevronRight className="h-3 w-3 opacity-60" />
               </div>
@@ -181,7 +181,7 @@ export default function ProfilePage() {
               >
                 <div className="flex items-center gap-2">
                   <div className="h-7 w-7 bg-white/20 rounded-full flex items-center justify-center text-xs">💎</div>
-                  <span className="text-[10px] font-black italic truncate w-16">{(profile.wallet?.diamonds || 0).toLocaleString()}</span>
+                  <span className="text-[10px] font-black truncate w-16">{(profile.wallet?.diamonds || 0).toLocaleString()}</span>
                 </div>
                 <ChevronRight className="h-3 w-3 opacity-60" />
               </div>
@@ -253,19 +253,19 @@ export default function ProfilePage() {
 
            <div className="text-center space-y-2">
               <div className="flex items-center justify-center gap-2">
-                <h1 className="text-4xl font-black italic tracking-tighter drop-shadow-lg">{profile.username}</h1>
+                <h1 className="text-4xl font-black tracking-tighter drop-shadow-lg">{profile.username}</h1>
                 {profile.tags?.includes('Official') && <OfficialTag size="sm" />}
               </div>
               <div className="flex items-center justify-center gap-2">
                  <span className="text-xl">🇮🇳</span>
                  <div className="flex items-center gap-1.5 text-white/80 bg-black/20 backdrop-blur-md px-3 py-0.5 rounded-full border border-white/10">
-                    <span className="text-xs font-black uppercase tracking-tight italic">ID:{profile.specialId}</span>
+                    <span className="text-xs font-black uppercase tracking-tight">ID:{profile.specialId}</span>
                     <button onClick={() => { navigator.clipboard.writeText(profile.specialId); toast({ title: 'ID Copied' }); }}><Copy className="h-3 w-3 text-white/40" /></button>
                  </div>
               </div>
               <div className="flex items-center justify-center gap-3 mt-2">
-                 <div className="bg-gradient-to-r from-blue-400 to-indigo-600 px-3 py-0.5 rounded-full flex items-center gap-1 shadow-xl border border-white/20"><span className="text-[10px] font-black italic">🛡️ {profile.level?.rich || 1}</span></div>
-                 <div className="bg-gradient-to-r from-[#10b981] to-[#059669] px-3 py-0.5 rounded-full flex items-center gap-1 shadow-xl border border-white/20"><span className="text-[10px] font-black italic">💎 {profile.level?.charm || 1}</span></div>
+                 <div className="bg-gradient-to-r from-blue-400 to-indigo-600 px-3 py-0.5 rounded-full flex items-center gap-1 shadow-xl border border-white/20"><span className="text-[10px] font-black">🛡️ {profile.level?.rich || 1}</span></div>
+                 <div className="bg-gradient-to-r from-[#10b981] to-[#059669] px-3 py-0.5 rounded-full flex items-center gap-1 shadow-xl border border-white/20"><span className="text-[10px] font-black">💎 {profile.level?.charm || 1}</span></div>
               </div>
            </div>
 
@@ -274,7 +274,7 @@ export default function ProfilePage() {
                 <div className="bg-[#0a2e1a]/80 backdrop-blur-xl border border-white/5 rounded-2xl p-3 flex items-center justify-between group active:scale-95 transition-transform shadow-lg">
                    <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-xl overflow-hidden relative border border-white/10"><Image src={activeRoom.coverUrl || 'https://picsum.photos/seed/room/200/200'} alt="Room" fill className="object-cover" /></div>
-                      <div><p className="text-xs font-black uppercase italic tracking-tight">{activeRoom.name}</p><p className="text-[8px] font-black text-white/40 uppercase tracking-widest">My Frequency</p></div>
+                      <div><p className="text-xs font-black uppercase tracking-tight">{activeRoom.name}</p><p className="text-[8px] font-black text-white/40 uppercase tracking-widest">My Frequency</p></div>
                    </div>
                    <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white transition-colors" />
                 </div>
@@ -282,16 +282,16 @@ export default function ProfilePage() {
            )}
 
            <div className="w-full bg-black/30 backdrop-blur-md rounded-3xl border border-white/5 p-6 flex justify-around items-center shadow-inner">
-              <div className="flex flex-col items-center gap-1"><span className="text-xl font-black italic">0</span><span className="text-[9px] font-black uppercase text-[#10b981] tracking-widest">Friends</span></div>
+              <div className="flex flex-col items-center gap-1"><span className="text-xl font-black">0</span><span className="text-[9px] font-black uppercase text-[#10b981] tracking-widest">Friends</span></div>
               <div className="h-8 w-px bg-white/5" />
-              <div className="flex flex-col items-center gap-1"><span className="text-xl font-black italic">0</span><span className="text-[9px] font-black uppercase text-[#10b981] tracking-widest">Following</span></div>
+              <div className="flex flex-col items-center gap-1"><span className="text-xl font-black">0</span><span className="text-[9px] font-black uppercase text-[#10b981] tracking-widest">Following</span></div>
               <div className="h-8 w-px bg-white/5" />
-              <div className="flex flex-col items-center gap-1"><span className="text-xl font-black italic">{profile.stats?.followers || 0}</span><span className="text-[9px] font-black uppercase text-[#10b981] tracking-widest">Followers</span></div>
+              <div className="flex flex-col items-center gap-1"><span className="text-xl font-black">{profile.stats?.followers || 0}</span><span className="text-[9px] font-black uppercase text-[#10b981] tracking-widest">Followers</span></div>
            </div>
 
            <section className="w-full space-y-4">
               <div className="flex items-center justify-between px-2">
-                 <h3 className="text-sm font-black uppercase italic text-yellow-500 tracking-widest">Supporter</h3>
+                 <h3 className="text-sm font-black uppercase text-yellow-500 tracking-widest">Supporter</h3>
                  <button className="flex items-center gap-1 text-[9px] font-black uppercase text-white/40 tracking-widest">View list <ChevronRight className="h-3 w-3" /></button>
               </div>
               <div className="bg-black/20 backdrop-blur-sm rounded-3xl p-6 flex gap-6 overflow-x-auto no-scrollbar border border-white/5">
@@ -306,7 +306,7 @@ export default function ProfilePage() {
                 <div className="h-16 w-16 rounded-3xl bg-gradient-to-br from-[#d946ef] via-[#a855f7] to-[#7c3aed] flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)] border-2 border-white/20">
                    <div className="p-2 bg-white/20 rounded-xl"><Gift className="h-8 w-8 text-white fill-current" /></div>
                 </div>
-                <span className="text-[10px] font-black uppercase italic tracking-tighter">Gift</span>
+                <span className="text-[10px] font-black uppercase tracking-tighter">Gift</span>
               </div>
            </div>
         </div>
