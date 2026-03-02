@@ -361,6 +361,20 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                  <SupporterIcon color="bronze" rank={3} />
               </div>
            </section>
+
+           <section className="w-full space-y-4">
+              <div className="flex items-center justify-between px-2">
+                 <h3 className="text-base font-black uppercase text-yellow-500 tracking-tighter italic">Gifts Received</h3>
+                 <button className="flex items-center gap-1 text-[10px] font-black uppercase text-white/40 tracking-widest hover:text-white transition-colors">View list <ChevronRight className="h-3 w-3" /></button>
+              </div>
+              <div className="bg-black/20 backdrop-blur-sm rounded-3xl p-6 flex gap-4 overflow-x-auto no-scrollbar border border-white/5 shadow-xl">
+                 {['🌹', '💖', '💍', '🏎️', '🛩️', '🐉', '🚀', '🏰'].map((emoji, i) => (
+                   <div key={i} className="h-16 w-16 rounded-2xl bg-black/40 flex items-center justify-center text-3xl border border-white/10 shrink-0 shadow-lg group active:scale-95 transition-transform">
+                      <span className="drop-shadow-md group-hover:scale-110 transition-transform">{emoji}</span>
+                   </div>
+                 ))}
+              </div>
+           </section>
         </div>
 
         <footer className="fixed bottom-0 left-0 right-0 p-6 pt-10 bg-gradient-to-t from-[#051a05] via-[#051a05]/95 to-transparent z-[60] flex items-center justify-around gap-4 border-t border-white/5">
