@@ -195,6 +195,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isClearChatConfirmOpen, setIsClearChatConfirmOpen] = useState(false);
   const [isMusicMenuOpen, setIsMusicMenuOpen] = useState(false);
+  const [isParticipantListOpen, setIsParticipantListOpen] = useState(false);
   const [selectedSeatIndex, setSelectedSeatIndex] = useState<number | null>(null);
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
@@ -503,7 +504,7 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
         <div className="flex items-center gap-2">
           {!isOwner && (<button onClick={handleToggleFollow} className={cn("h-8 px-4 rounded-full font-black uppercase text-[10px] transition-all flex items-center gap-1.5 shadow-lg", isFollowing ? "bg-white/20 text-white border border-white/10" : "bg-primary text-white shadow-primary/20")}><Heart className={cn("h-3 w-3", isFollowing && "fill-current")} />{isFollowing ? 'Following' : 'Follow'}</button>)}
-          <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2"><Users className="h-3 w-3 text-white/60" /><span className="text-[10px] font-black">{onlineCount}</span></div>
+          <button onClick={() => setIsParticipantListOpen(true)} className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2 hover:bg-white/10 transition-colors"><Users className="h-3 w-3 text-white/60" /><span className="text-[10px] font-black">{onlineCount}</span></button>
           <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsSettingsOpen(true)}><SettingsIcon className="h-4 w-4" /></button>
           <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" onClick={handleCopyInvite}><Share2 className="h-4 w-4" /></button>
           <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" onClick={leaveRoom}><Power className="h-4 w-4" /></button>
@@ -520,7 +521,48 @@ export function RoomClient({ room }: { room: Room }) {
         <div className="flex-1 flex flex-col mt-2 px-4 pb-2 justify-end"><div className="space-y-1"><div className="bg-emerald-500/10 border border-emerald-500/20 p-1.5 rounded-xl animate-in fade-in duration-1000"><p className="text-emerald-400 text-[9px] font-black uppercase leading-relaxed text-center">Welcome to Ummy! Please show respect to one another and be courteous.</p></div>{!isInSeat && (<Button onClick={handleMicToggle} className="w-full bg-gradient-to-r from-emerald-400 to-emerald-600 text-white rounded-xl h-9 px-8 font-black uppercase shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-[10px]">Join Voice Chat <ChevronRight className="ml-2 h-3 w-3" /></Button>)}<ScrollArea className="h-20" ref={scrollRef}><div className="space-y-1">{activeMessages.map((msg) => (<div key={msg.id} className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-300">{msg.type === 'entrance' ? (<p className="text-[8px] font-black uppercase text-white/60">welcome <span className="text-yellow-400">{msg.user.name}</span> entered the room</p>) : (<div className="bg-black/20 backdrop-blur-sm px-2 py-0.5 rounded-lg border border-white/5 flex gap-2 max-w-[90%]"><span className="text-[8px] font-black text-blue-400 shrink-0 uppercase">{msg.user.name}:</span><p className="text-[8px] font-medium text-white/80">{msg.text}</p></div>)}</div>))}</div></ScrollArea></div></div>
       </main>
 
-      <footer className="relative z-50 px-4 pb-4 flex items-center justify-between gap-3 bg-gradient-to-t from-black via-black/80 to-transparent pt-1"><form className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-9 px-4 flex items-center border border-white/5" onSubmit={handleSendMessage}><Input placeholder="Say Hi" className="bg-transparent border-none text-[9px] font-black uppercase tracking-widest placeholder:text-white/40 focus-visible:ring-0 h-full" value={messageText} onChange={(e) => setMessageText(e.target.value)} /></form><div className="flex items-center gap-2"><button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Volume2 className="h-4 w-4" /></button><button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Mail className="h-4 w-4" /></button><button className="bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 p-2 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all" onClick={() => setIsGiftPickerOpen(true)}><GiftIcon className="h-4 w-4 text-white" /></button><button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsGamesDialogOpen(true)}><LayoutGrid className="h-4 w-4" /></button></div></footer>
+      <footer className="relative z-50 px-4 pb-4 flex items-center justify-between gap-3 bg-gradient-to-t from-black via-black/80 to-transparent pt-1"><form className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-9 px-4 flex items-center border border-white/5" onSubmit={handleSendMessage}><Input placeholder="Say Hi" className="bg-transparent border-none text-[9px] font-black uppercase tracking-widest placeholder:text-white/40 focus-visible:ring-0 h-full" value={messageText} onChange={(e) => setMessageText(e.target.value)} /></form><div className="flex items-center gap-2"><button onClick={() => setIsParticipantListOpen(true)} className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Users className="h-4 w-4" /></button><button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Mail className="h-4 w-4" /></button><button className="bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 p-2 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all" onClick={() => setIsGiftPickerOpen(true)}><GiftIcon className="h-4 w-4 text-white" /></button><button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsGamesDialogOpen(true)}><LayoutGrid className="h-4 w-4" /></button></div></footer>
+
+      <Dialog open={isParticipantListOpen} onOpenChange={setIsParticipantListOpen}>
+        <DialogContent className="w-screen h-screen max-w-none m-0 rounded-none border-none bg-black/95 backdrop-blur-xl text-white p-0 flex flex-col animate-in slide-in-from-bottom duration-500 font-headline overflow-hidden">
+          <header className="flex items-center p-4 border-b border-white/10 mt-10">
+            <button onClick={() => setIsParticipantListOpen(false)} className="p-2 -ml-2 text-white/60"><ChevronLeft className="h-6 w-6" /></button>
+            <DialogTitle className="flex-1 text-center font-black uppercase text-lg -ml-4">Tribe List ({onlineCount})</DialogTitle>
+          </header>
+          <ScrollArea className="flex-1 px-6">
+            <div className="py-6 space-y-4">
+              {participants?.map((p) => {
+                const isPOwner = p.uid === room.ownerId;
+                const isPMod = room.moderatorIds?.includes(p.uid) && !isPOwner;
+                return (
+                  <div key={p.uid} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 group active:bg-white/10 transition-all">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-14 w-14 border-2 border-white/10">
+                        <AvatarImage src={p.avatarUrl} />
+                        <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-black text-sm uppercase tracking-tight">{p.name}</p>
+                          {isPOwner && <Crown className="h-3 w-3 text-yellow-500 fill-current" />}
+                          {isPMod && <ShieldCheck className="h-3 w-3 text-blue-400 fill-current" />}
+                        </div>
+                        <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">
+                          {isPOwner ? "Room Owner" : isPMod ? "Room Admin" : "Tribe Member"}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white" />
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+          <div className="p-8 text-center bg-white/5">
+             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Ummy Social Sync Protocol</p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <DialogContent className="w-screen h-screen max-w-none m-0 rounded-none border-none bg-white text-black p-0 flex flex-col animate-in slide-in-from-right duration-300 font-headline overflow-hidden">
