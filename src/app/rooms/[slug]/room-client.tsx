@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -168,6 +169,24 @@ function RemoteAudio({ stream }: { stream: MediaStream }) {
   return <audio ref={audioRef} autoPlay className="hidden" />;
 }
 
+const ModeratorItem = ({ userId }: { userId: string }) => {
+  const { userProfile } = useUserProfile(userId);
+  if (!userProfile) return null;
+  return (
+    <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+      <Avatar className="h-12 w-12 border-2 border-white/10">
+        <AvatarImage src={userProfile.avatarUrl} />
+        <AvatarFallback>U</AvatarFallback>
+      </Avatar>
+      <div className="flex-1">
+        <p className="font-black text-sm uppercase tracking-tight">{userProfile.username}</p>
+        <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">Room Admin</p>
+      </div>
+      <ShieldCheck className="h-5 w-5 text-blue-400" />
+    </div>
+  );
+};
+
 export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -184,6 +203,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [showTutorial, setShowTutorial] = useState(false);
   const [isClaimingTree, setIsClaimingTree] = useState(false);
   const [isRoomInfoOpen, setIsRoomInfoOpen] = useState(false);
+  const [infoTab, setInfoTab] = useState<'profile' | 'members'>('profile');
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowingLoading, setIsFollowingLoading] = useState(true);
 
@@ -404,7 +424,7 @@ export function RoomClient({ room }: { room: Room }) {
     if (!isOwner || !firestore || !room.id) return;
     const isPMod = room.moderatorIds?.includes(targetUid);
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), {
-      moderatorIds: isPMod ? arrayRemove(targetUid) : arrayUnion(targetUid)
+      moderatorIds: iPMod ? arrayRemove(targetUid) : arrayUnion(targetUid)
     });
     toast({ title: isPMod ? 'Admin Revoked' : 'Admin Granted', description: 'Tribe role has been synchronized.' });
   };
@@ -698,40 +718,79 @@ export function RoomClient({ room }: { room: Room }) {
             </div>
 
             <div className="flex gap-12 border-b border-white/10 w-full justify-center mb-8">
-              <button className="pb-4 text-lg font-black uppercase tracking-widest border-b-4 border-primary text-white">Profile</button>
-              <button className="pb-4 text-lg font-black uppercase tracking-widest border-b-4 border-transparent text-white/40">Member</button>
+              <button 
+                onClick={() => setInfoTab('profile')}
+                className={cn(
+                  "pb-4 text-lg font-black uppercase tracking-widest border-b-4 transition-all",
+                  infoTab === 'profile' ? "border-primary text-white" : "border-transparent text-white/40"
+                )}
+              >
+                Profile
+              </button>
+              <button 
+                onClick={() => setInfoTab('members')}
+                className={cn(
+                  "pb-4 text-lg font-black uppercase tracking-widest border-b-4 transition-all",
+                  infoTab === 'members' ? "border-primary text-white" : "border-transparent text-white/40"
+                )}
+              >
+                Member
+              </button>
             </div>
 
-            <div className="w-full max-w-sm bg-white/5 rounded-[2rem] p-4 flex items-center gap-4 mb-10 border border-white/5 shadow-inner">
-              <Avatar className="h-14 w-14 rounded-2xl border-2 border-white/10">
-                <AvatarImage src={ownerProfile?.avatarUrl} />
-                <AvatarFallback>U</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-black text-lg uppercase tracking-tight">{ownerProfile?.username || 'Host'}</p>
-                <p className="text-[10px] font-black uppercase text-white/40 tracking-[0.2em]">Room owner</p>
-              </div>
-              <div className="flex items-center gap-1 bg-primary/20 px-3 py-1 rounded-full border border-primary/30">
-                <Crown className="h-3 w-3 text-primary" />
-                <span className="text-[10px] font-black text-primary uppercase">Elite</span>
-              </div>
-            </div>
+            <ScrollArea className="w-full max-w-sm flex-1 no-scrollbar">
+              <div className="space-y-8 pb-20">
+                {infoTab === 'profile' ? (
+                  <>
+                    <div className="w-full bg-white/5 rounded-[2rem] p-4 flex items-center gap-4 border border-white/5 shadow-inner">
+                      <Avatar className="h-14 w-14 rounded-2xl border-2 border-white/10">
+                        <AvatarImage src={ownerProfile?.avatarUrl} />
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-black text-lg uppercase tracking-tight">{ownerProfile?.username || 'Host'}</p>
+                        <p className="text-[10px] font-black uppercase text-white/40 tracking-[0.2em]">Room owner</p>
+                      </div>
+                      <div className="flex items-center gap-1 bg-primary/20 px-3 py-1 rounded-full border border-primary/30">
+                        <Crown className="h-3 w-3 text-primary" />
+                        <span className="text-[10px] font-black text-primary uppercase">Elite</span>
+                      </div>
+                    </div>
 
-            <div className="w-full max-w-sm space-y-4">
-              <div className="flex items-center gap-2 px-2">
-                <Info className="h-4 w-4 text-white/40" />
-                <h3 className="text-xs font-black uppercase tracking-widest text-white/40">Announcement</h3>
+                    <div className="w-full space-y-4">
+                      <div className="flex items-center gap-2 px-2">
+                        <Info className="h-4 w-4 text-white/40" />
+                        <h3 className="text-xs font-black uppercase tracking-widest text-white/40">Announcement</h3>
+                      </div>
+                      <div className="bg-white/5 rounded-[2rem] p-6 border border-white/5 min-h-[120px]">
+                        <p className="text-lg font-medium text-white/80 leading-relaxed">
+                          {room.announcement || "Welcome to the tribe! Enjoy the frequency."}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full space-y-3">
+                    <div className="flex items-center gap-2 px-2 mb-2">
+                      <ShieldCheck className="h-4 w-4 text-blue-400" />
+                      <h3 className="text-xs font-black uppercase tracking-widest text-white/40">Room Administrators</h3>
+                    </div>
+                    <div className="space-y-3">
+                      {room.moderatorIds?.map(id => (
+                        <ModeratorItem key={id} userId={id} />
+                      ))}
+                      {(!room.moderatorIds || room.moderatorIds.length === 0) && (
+                        <p className="text-center py-10 text-white/20 uppercase font-black text-xs italic">No admins assigned</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="bg-white/5 rounded-[2rem] p-6 border border-white/5 min-h-[120px]">
-                <p className="text-lg font-medium text-white/80 leading-relaxed">
-                  {room.announcement || "Welcome to the tribe! Enjoy the frequency."}
-                </p>
-              </div>
-            </div>
+            </ScrollArea>
 
             <button 
               onClick={() => setIsRoomInfoOpen(false)}
-              className="mt-auto mb-12 text-[10px] font-black uppercase tracking-[0.5em] text-white/20 hover:text-white transition-colors"
+              className="mt-auto mb-8 text-[10px] font-black uppercase tracking-[0.5em] text-white/20 hover:text-white transition-colors"
             >
               Tap anywhere to close
             </button>
