@@ -3,15 +3,13 @@
 
 import { useEffect, useRef } from 'react';
 import { useRoomContext } from './room-provider';
-import { useUser, useFirestore, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import { doc, setDoc, serverTimestamp, collection, getDoc, increment, writeBatch } from 'firebase/firestore';
+import { doc, serverTimestamp, collection, increment, writeBatch } from 'firebase/firestore';
 
 /**
  * Maintains Firestore presence while a room is active.
- * Production Ready: Manages participantCount atomically.
- * AUTOMATIC REMOVAL PROTOCOL: When user goes offline or navigates away, 
- * they are purged from the participant list and the count is decremented instantly.
+ * RE-ENGINEERED: Separates Join/Leave lifecycle from Identity updates to prevent auto-kick loops.
  */
 export function RoomPresenceManager() {
   const { activeRoom } = useRoomContext();
@@ -19,100 +17,113 @@ export function RoomPresenceManager() {
   const { userProfile } = useUserProfile(user?.uid);
   const firestore = useFirestore();
   const lastRoomId = useRef<string | null>(null);
-  const hasHandshakedForSession = useRef<boolean>(false);
-  const hasIncrementedCount = useRef<string | null>(null);
 
+  // 1. PRIMARY PRESENCE LIFECYCLE (Join/Leave)
+  // Only depends on Room ID and User ID to ensure stability.
   useEffect(() => {
-    // Identity Sync Check: Wait until user AND userProfile are both synchronized
-    if (!firestore || !activeRoom?.id || !user || !userProfile) {
+    if (!firestore || !activeRoom?.id || !user) {
       return;
     }
 
     const roomId = activeRoom.id;
-    const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', user.uid);
-    const roomDocRef = doc(firestore, 'chatRooms', roomId);
-    const userRef = doc(firestore, 'users', user.uid);
-    const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+    const uid = user.uid;
 
-    const performSync = async () => {
-      // 1. Send Entrance Broadcast and Increment Atomic Count
-      if (lastRoomId.current !== roomId) {
-        lastRoomId.current = roomId;
-        
-        const batch = writeBatch(firestore);
-        
-        // Broadcast entrance
-        addDocumentNonBlocking(collection(firestore, 'chatRooms', roomId, 'messages'), {
-          content: 'entered the frequency',
-          senderId: user.uid,
-          senderName: userProfile.username || 'Tribe Member',
-          senderAvatar: userProfile.avatarUrl || '',
-          chatRoomId: roomId,
-          timestamp: serverTimestamp(),
-          type: 'entrance'
-        });
+    const performJoin = async () => {
+      if (lastRoomId.current === roomId) return;
+      lastRoomId.current = roomId;
 
-        // Atomic Entry Protocol
-        if (hasIncrementedCount.current !== roomId) {
-          batch.update(roomDocRef, { participantCount: increment(1) });
-          batch.update(userRef, { currentRoomId: roomId, updatedAt: serverTimestamp() });
-          batch.update(profileRef, { currentRoomId: roomId, updatedAt: serverTimestamp() });
-          hasIncrementedCount.current = roomId;
-        }
+      const batch = writeBatch(firestore);
+      const roomDocRef = doc(firestore, 'chatRooms', roomId);
+      const userRef = doc(firestore, 'users', uid);
+      const profileRef = doc(firestore, 'users', uid, 'profile', uid);
+      const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', uid);
 
-        // Handle Seat Presence Identity
-        let existingSeatIndex = 0;
-        if (!hasHandshakedForSession.current) {
-          try {
-            const snap = await getDoc(participantRef);
-            if (snap.exists()) {
-              existingSeatIndex = snap.data().seatIndex || 0;
-            }
-          } catch (e) {}
-          hasHandshakedForSession.current = true;
-        }
+      // Broadcast entrance (Non-blocking)
+      addDocumentNonBlocking(collection(firestore, 'chatRooms', roomId, 'messages'), {
+        content: 'entered the frequency',
+        senderId: uid,
+        senderName: userProfile?.username || 'Tribe Member',
+        senderAvatar: userProfile?.avatarUrl || '',
+        chatRoomId: roomId,
+        timestamp: serverTimestamp(),
+        type: 'entrance'
+      });
 
-        batch.set(participantRef, {
-          uid: user.uid,
-          name: userProfile.username || 'Guest',
-          avatarUrl: userProfile.avatarUrl || '',
-          activeFrame: userProfile.inventory?.activeFrame || 'None',
-          joinedAt: serverTimestamp(),
-          isMuted: true,
-          seatIndex: existingSeatIndex,
-        }, { merge: true });
+      // Atomic Entry Protocol
+      batch.update(roomDocRef, { participantCount: increment(1) });
+      batch.update(userRef, { currentRoomId: roomId, updatedAt: serverTimestamp() });
+      batch.update(profileRef, { currentRoomId: roomId, updatedAt: serverTimestamp() });
 
+      // Initial Participant Document
+      batch.set(participantRef, {
+        uid: uid,
+        name: userProfile?.username || 'Guest',
+        avatarUrl: userProfile?.avatarUrl || '',
+        activeFrame: userProfile?.inventory?.activeFrame || 'None',
+        joinedAt: serverTimestamp(),
+        isMuted: true,
+        seatIndex: 0,
+      }, { merge: true });
+
+      try {
         await batch.commit();
+      } catch (e) {
+        console.error("[Presence Sync] Join failed:", e);
+        lastRoomId.current = null;
       }
     };
 
-    performSync();
+    performJoin();
 
     const handleExit = async () => {
-      if (hasIncrementedCount.current === roomId) {
-        // Atomic Exit Protocol: Decrement count, delete identity, and clear user state
+      if (lastRoomId.current === roomId) {
+        // Atomic Exit Protocol
         const batch = writeBatch(firestore);
+        const roomDocRef = doc(firestore, 'chatRooms', roomId);
+        const userRef = doc(firestore, 'users', uid);
+        const profileRef = doc(firestore, 'users', uid, 'profile', uid);
+        const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', uid);
+
         batch.update(roomDocRef, { participantCount: increment(-1) });
         batch.delete(participantRef);
         batch.update(userRef, { currentRoomId: null, updatedAt: serverTimestamp() });
         batch.update(profileRef, { currentRoomId: null, updatedAt: serverTimestamp() });
         
-        await batch.commit();
+        try {
+          await batch.commit();
+        } catch (e) {}
         
-        hasIncrementedCount.current = null;
-        hasHandshakedForSession.current = false;
         lastRoomId.current = null;
       }
     };
 
-    // Ensure exit on window close or navigation
     window.addEventListener('beforeunload', handleExit);
 
     return () => {
       handleExit();
       window.removeEventListener('beforeunload', handleExit);
     };
-  }, [firestore, activeRoom?.id, user?.uid, userProfile]);
+  }, [firestore, activeRoom?.id, user?.uid]); // Stability: No userProfile in dependencies
+
+  // 2. IDENTITY SYNCHRONIZATION
+  // Updates participant card details if user changes them while in the room.
+  useEffect(() => {
+    if (!firestore || !activeRoom?.id || !user || !userProfile) return;
+
+    const participantRef = doc(firestore, 'chatRooms', activeRoom.id, 'participants', user.uid);
+    updateDocumentNonBlocking(participantRef, {
+      name: userProfile.username || 'Guest',
+      avatarUrl: userProfile.avatarUrl || '',
+      activeFrame: userProfile.inventory?.activeFrame || 'None',
+    });
+  }, [
+    userProfile?.username, 
+    userProfile?.avatarUrl, 
+    userProfile?.inventory?.activeFrame, 
+    firestore, 
+    activeRoom?.id, 
+    user?.uid
+  ]);
 
   return null;
 }

@@ -2,8 +2,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useUser, useFirestore, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { doc, getDoc, setDoc, serverTimestamp, runTransaction, collection, deleteDoc, increment, writeBatch } from 'firebase/firestore';
+import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { doc, getDoc, setDoc, serverTimestamp, runTransaction, collection, increment, writeBatch } from 'firebase/firestore';
 
 /**
  * Production Profile Initializer.
@@ -36,11 +36,12 @@ export function ProfileInitializer() {
               const batch = writeBatch(firestore);
               const roomRef = doc(firestore, 'chatRooms', staleRoomId);
               const participantRef = doc(firestore, 'chatRooms', staleRoomId, 'participants', profileId);
+              const profileRef = doc(firestore, 'users', profileId, 'profile', profileId);
               
               batch.update(roomRef, { participantCount: increment(-1) });
               batch.delete(participantRef);
               batch.update(userRef, { currentRoomId: null, updatedAt: serverTimestamp() });
-              batch.update(doc(firestore, 'users', profileId, 'profile', profileId), { currentRoomId: null, updatedAt: serverTimestamp() });
+              batch.update(profileRef, { currentRoomId: null, updatedAt: serverTimestamp() });
               
               await batch.commit();
               console.log(`[Identity Sync] Purged stale presence from room: ${staleRoomId}`);
