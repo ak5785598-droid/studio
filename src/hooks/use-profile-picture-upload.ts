@@ -7,8 +7,8 @@ import { doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from './use-toast';
 
 /**
- * Hook to handle profile picture uploads to Firebase Storage and update Firestore.
- * Re-engineered with Non-Blocking Protocol to eliminate infinite loading spinners.
+ * Elite Visual Identity Sync Hook.
+ * Handles profile picture uploads with high-fidelity resilience.
  */
 export function useProfilePictureUpload() {
   const storage = useStorage();
@@ -30,14 +30,14 @@ export function useProfilePictureUpload() {
     setIsUploading(true);
 
     try {
-      // 1. Storage Upload (Must be awaited to get the URL)
+      // 1. Storage Upload
       const timestamp = Date.now();
       const fileExtension = file.name.split('.').pop() || 'jpg';
       const storagePath = `users/${user.uid}/profile_${timestamp}.${fileExtension}`;
       const storageRef = ref(storage, storagePath);
       
-      const uploadResult = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(uploadResult.ref);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
 
       // 2. Firestore Sync (Non-Blocking)
       const userSummaryRef = doc(firestore, 'users', user.uid);
@@ -48,23 +48,21 @@ export function useProfilePictureUpload() {
         updatedAt: serverTimestamp()
       };
 
-      // Atomic updates without await to leverage optimistic UI speed
       setDocumentNonBlocking(userSummaryRef, updateData, { merge: true });
       setDocumentNonBlocking(userProfileRef, updateData, { merge: true });
       
       toast({
         title: 'Identity Synchronized',
-        description: 'Your new persona is now broadcast to the tribe.',
+        description: 'Your new persona is now live.',
       });
     } catch (error: any) {
-      console.error('Error uploading profile picture:', error);
+      console.error('[Visual Sync] Upload Failed:', error);
       toast({
         variant: 'destructive',
         title: 'Sync Failed',
         description: error.message || 'Could not broadcast your new identity.',
       });
     } finally {
-      // Reset state immediately after writes are initiated to hide the spinner
       setIsUploading(false);
     }
   };

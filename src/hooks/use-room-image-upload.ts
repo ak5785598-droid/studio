@@ -7,8 +7,8 @@ import { doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from './use-toast';
 
 /**
- * Hook to handle room image uploads to Firebase Storage and update Firestore.
- * Re-engineered with Non-Blocking Protocol to ensure high-fidelity room updates.
+ * Elite Frequency Cover Sync Hook.
+ * Handles room cover image updates with high-fidelity resilience.
  */
 export function useRoomImageUpload(roomId: string) {
   const storage = useStorage();
@@ -30,14 +30,14 @@ export function useRoomImageUpload(roomId: string) {
     setIsUploading(true);
 
     try {
-      // 1. Storage Upload (Must be awaited to get the URL)
+      // 1. Storage Upload
       const fileExtension = file.name.split('.').pop() || 'jpg';
       const timestamp = Date.now();
       const storagePath = `chatRooms/${roomId}/cover_${timestamp}.${fileExtension}`;
       const storageRef = ref(storage, storagePath);
 
-      const uploadResult = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(uploadResult.ref);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
 
       // 2. Firestore Sync (Non-Blocking)
       const roomRef = doc(firestore, 'chatRooms', roomId);
@@ -48,22 +48,20 @@ export function useRoomImageUpload(roomId: string) {
         updatedAt: serverTimestamp()
       };
 
-      // Atomic update using non-blocking protocol
       setDocumentNonBlocking(roomRef, updateData, { merge: true });
 
       toast({
-        title: 'Room DP Updated!',
-        description: 'The frequency visual identity has been synchronized.',
+        title: 'Frequency Cover Updated!',
+        description: 'The new visual vibe has been synchronized.',
       });
     } catch (error: any) {
-      console.error('Error uploading room image:', error);
+      console.error('[Visual Sync] Room Cover Failed:', error);
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
         description: error.message || 'Could not broadcast the new visual vibe.',
       });
     } finally {
-      // Reset state immediately after initiation
       setIsUploading(false);
     }
   };
