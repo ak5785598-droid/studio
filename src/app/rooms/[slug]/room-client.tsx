@@ -51,7 +51,8 @@ import {
   X,
   Settings as SettingsIcon,
   Copy,
-  Info
+  Info,
+  Heart
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -389,6 +390,7 @@ export function RoomClient({ room }: { room: Room }) {
 
   const toggleRoomMessages = () => { if (!canManageRoom || !firestore || !room.id) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { isChatMuted: !room.isChatMuted }); };
   const handleToggleMusic = (url: string) => { if (!canManageRoom || !firestore || !room.id) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { currentMusicUrl: room.currentMusicUrl === url ? null : url }); };
+  const handleDeleteRoom = async () => { if (!firestore || !room.id || (!isOwner && !isGlobalAdmin)) return; try { const participantsSnap = await getDocs(collection(firestore, 'chatRooms', room.id, 'participants')); const batch = writeBatch(firestore); participantsSnap.docs.forEach(d => batch.delete(d.ref)); batch.delete(doc(firestore, 'chatRooms', room.id)); await batch.commit(); setActiveRoom(null); router.push('/rooms'); } catch(e:any){} };
   const toggleSeatLock = (index: number) => { if (!canManageRoom || !firestore || !room.id) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { lockedSeats: room.lockedSeats?.includes(index) ? arrayRemove(index) : arrayUnion(index) }); };
   const silenceParticipant = (uid: string, currentState: boolean) => { if (!canManageRoom || !firestore || !room.id) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid), { isSilenced: !currentState, isMuted: true }); };
   
@@ -520,7 +522,6 @@ export function RoomClient({ room }: { room: Room }) {
 
       <footer className="relative z-50 px-4 pb-4 flex items-center justify-between gap-3 bg-gradient-to-t from-black via-black/80 to-transparent pt-1"><form className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-9 px-4 flex items-center border border-white/5" onSubmit={handleSendMessage}><Input placeholder="Say Hi" className="bg-transparent border-none text-[9px] font-black uppercase tracking-widest placeholder:text-white/40 focus-visible:ring-0 h-full" value={messageText} onChange={(e) => setMessageText(e.target.value)} /></form><div className="flex items-center gap-2"><button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Volume2 className="h-4 w-4" /></button><button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Mail className="h-4 w-4" /></button><button className="bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 p-2 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all" onClick={() => setIsGiftPickerOpen(true)}><GiftIcon className="h-4 w-4 text-white" /></button><button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsGamesDialogOpen(true)}><LayoutGrid className="h-4 w-4" /></button></div></footer>
 
-      {/* Main Room Settings Dialog - Mirroring Screenshot List Layout */}
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <DialogContent className="w-screen h-screen max-w-none m-0 rounded-none border-none bg-white text-black p-0 flex flex-col animate-in slide-in-from-right duration-300 font-headline overflow-hidden">
           <header className="flex items-center p-4 border-b">
@@ -530,10 +531,9 @@ export function RoomClient({ room }: { room: Room }) {
           
           <ScrollArea className="flex-1 bg-gray-50/30">
             <div className="pb-20">
-              {/* Room Cover Section */}
               <section className="bg-white py-10 flex flex-col items-center gap-4">
                 <div className="relative group cursor-pointer" onClick={() => roomDpInputRef.current?.click()}>
-                  <div className="h-32 w-32 rounded-[2rem] overflow-hidden border-4 border-gray-100 shadow-xl bg-gray-100 flex items-center justify-center">
+                  <div className="h-32 w-32 rounded-[2rem] overflow-hidden border-4 border-gray-100 shadow-xl bg-gray-100 flex items-center justify-center relative">
                     {room.coverUrl ? (<Image src={room.coverUrl} alt="Room Cover" fill className="object-cover" />) : (<Camera className="h-10 w-10 text-gray-300" />)}
                   </div>
                   <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-gray-100"><Camera className="h-4 w-4 text-gray-800" /></div>
@@ -544,19 +544,13 @@ export function RoomClient({ room }: { room: Room }) {
                 </div>
               </section>
 
-              {/* Settings List */}
               <section className="mt-2 bg-white px-6">
                 <SettingsListItem label="Room name" value={room.title} onClick={() => { setEditingField('name'); setEditingFieldValue(room.title); }} />
                 <SettingsListItem label="Room announcement" value={room.announcement} onClick={() => { setEditingField('announcement'); setEditingFieldValue(room.announcement || ''); }} />
                 <SettingsListItem label="Theme" value="Misty Forest" />
                 <SettingsListItem label="Music" value={room.currentMusicUrl ? "Active" : "None"} onClick={() => setIsMusicMenuOpen(true)} />
                 <SettingsListItem label="Admin" value={`${room.moderatorIds?.length || 0} Managed`} onClick={() => setEditingField('admins')} />
-                <SettingsListItem 
-                  label="Room lock" 
-                  onClick={toggleRoomLock} 
-                  showChevron={false} 
-                  icon={(room as any).isLocked ? Lock : Unlock} 
-                />
+                <SettingsListItem label="Room lock" onClick={toggleRoomLock} showChevron={false} icon={(room as any).isLocked ? Lock : Unlock} />
               </section>
 
               <section className="mt-2 bg-white px-6">
@@ -573,7 +567,6 @@ export function RoomClient({ room }: { room: Room }) {
         </DialogContent>
       </Dialog>
 
-      {/* Editing Sub-Dialogs for Settings */}
       <Dialog open={!!editingField} onOpenChange={(open) => !open && setEditingField(null)}>
         <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[2.5rem] overflow-hidden">
           <DialogHeader className="p-8 pb-4 text-center border-b">
@@ -602,7 +595,6 @@ export function RoomClient({ room }: { room: Room }) {
         </DialogContent>
       </Dialog>
 
-      {/* Music Selector Sub-Portal */}
       <Dialog open={isMusicMenuOpen} onOpenChange={setIsMusicMenuOpen}>
         <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[2.5rem] overflow-hidden">
           <DialogHeader className="p-8 pb-4 text-center border-b"><DialogTitle className="text-2xl font-black uppercase tracking-tighter">Room Radio</DialogTitle></DialogHeader>
@@ -612,7 +604,6 @@ export function RoomClient({ room }: { room: Room }) {
         </DialogContent>
       </Dialog>
 
-      {/* Existing Shared Dialogs */}
       <Dialog open={isRoomInfoOpen} onOpenChange={setIsRoomInfoOpen}>
         <DialogContent className="w-screen h-screen max-w-none m-0 rounded-none border-none bg-black/95 backdrop-blur-xl text-white p-0 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden font-headline">
           <DialogHeader className="sr-only"><DialogTitle>Room Info</DialogTitle><DialogDescription>Detailed identity portal.</DialogDescription></DialogHeader>
@@ -632,7 +623,7 @@ export function RoomClient({ room }: { room: Room }) {
 
       <Dialog open={isGiftPickerOpen} onOpenChange={setIsGiftPickerOpen}>
         <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
-          <DialogHeader className="p-8 pb-0 text-center"><DialogTitle className="text-3xl font-black uppercase tracking-tighter">Ummy Boutique</DialogTitle></DialogHeader>
+          <DialogHeader className="p-8 pb-0 text-center"><DialogTitle className="text-3xl font-black uppercase tracking-tighter">Ummy Boutique</DialogTitle><DialogDescription className="sr-only">Select gifts</DialogDescription></DialogHeader>
           <div className="p-8 pt-6 space-y-6">
             <div className="flex items-center justify-between bg-secondary/30 p-4 rounded-2xl border-2 border-dashed border-primary/20"><div className="flex items-center gap-3"><div className="relative"><Avatar className="h-10 w-10 border-2 border-white shadow-sm"><AvatarImage src={giftRecipient?.avatarUrl || hostParticipant?.avatarUrl || userProfile?.avatarUrl} /><AvatarFallback><UserIcon className="h-5 w-5 text-muted-foreground" /></AvatarFallback></Avatar><div className="absolute -bottom-1 -right-1 bg-primary text-white p-0.5 rounded-full ring-2 ring-white"><UserCheck className="h-3 w-3" /></div></div><div><p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Gifting Recipient</p><p className="text-sm font-black uppercase text-primary tracking-tighter">{giftRecipient?.uid === currentUser?.uid ? 'Myself' : (giftRecipient?.name || hostParticipant?.name || 'The Frequency')}</p></div></div><button onClick={() => { if (giftRecipient?.uid === currentUser?.uid) { setGiftRecipient(null); } else { setGiftRecipient({ uid: currentUser!.uid, name: userProfile!.username, avatarUrl: userProfile!.avatarUrl }); } }} className="rounded-full text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 flex items-center gap-1.5"><RefreshCw className="h-3 w-3" />{giftRecipient?.uid === currentUser?.uid ? 'Switch to Host' : 'Gift Myself'}</button></div>
             <div className="grid grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto p-2 no-scrollbar">{AVAILABLE_GIFTS.map(g => (<button key={g.id} onClick={() => handleSendGift(g)} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-secondary/50 hover:bg-primary/20 transition-all border-2 border-transparent hover:border-primary group active:scale-90"><span className="text-4xl group-hover:scale-125 transition-transform duration-300">{g.emoji}</span><div className="text-center"><p className="text-[10px] font-black uppercase truncate w-20 tracking-tighter">{g.name}</p><div className="flex items-center justify-center gap-1 text-[10px] font-black text-primary"><GoldCoinIcon className="h-3 w-3" />{g.price}</div></div></button>))}</div>
@@ -645,11 +636,48 @@ export function RoomClient({ room }: { room: Room }) {
         <AlertDialogContent className="bg-white text-black border-none rounded-[2rem]"><AlertDialogHeader><AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter">Purge Frequency Chat?</AlertDialogTitle><AlertDialogDescription className="text-muted-foreground font-body text-base">This will permanently delete all messages from this frequency for all tribe members.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel className="rounded-full font-black uppercase tracking-widest text-xs">Cancel</AlertDialogCancel><AlertDialogAction onClick={handleClearChat} className="bg-destructive text-white rounded-full font-black uppercase tracking-widest text-xs">Purge Now</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
       </AlertDialog>
 
+      <Dialog open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-white text-black p-0 rounded-t-[3rem] overflow-hidden border-none shadow-2xl animate-in slide-in-from-bottom-full duration-500">
+          <DialogHeader className="p-6 border-b border-gray-100">
+            <DialogTitle className="text-center text-2xl text-gray-800 uppercase tracking-tighter">{selectedOccupant ? `Tribe Member: ${selectedOccupant.name}` : `Seat ${selectedSeatIndex}`}</DialogTitle>
+            <DialogDescription className="sr-only">Available actions for the selected tribe member or seat.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col divide-y divide-gray-100">
+            {selectedOccupant && (<button onClick={() => { setGiftRecipient({ uid: selectedOccupant.uid, name: selectedOccupant.name, avatarUrl: selectedOccupant.avatarUrl }); setIsGiftPickerOpen(true); setIsActionMenuOpen(false); }} className="py-5 font-black text-primary uppercase tracking-widest text-xs hover:bg-gray-50 active:scale-95 transition-all">Send Gift</button>)}
+            {isOwner && selectedOccupant && selectedOccupant.uid !== currentUser?.uid && (
+              <button 
+                onClick={() => { toggleModerator(selectedOccupant.uid); setIsActionMenuOpen(false); }} 
+                className="py-5 font-bold text-blue-600 uppercase tracking-widest text-xs hover:bg-gray-50 flex items-center justify-center gap-2 active:scale-95 transition-all"
+              >
+                <UserCog className="h-4 w-4" />
+                {room.moderatorIds?.includes(selectedOccupant.uid) ? 'Revoke Admin Status' : 'Make Admin'}
+              </button>
+            )}
+            {canManageRoom && (<>
+              {selectedOccupant ? (<>
+                <button onClick={() => silenceParticipant(selectedOccupant.uid, selectedOccupant.isSilenced ?? false)} className="py-5 font-bold text-gray-700 uppercase tracking-widest text-xs hover:bg-gray-50 flex items-center justify-center gap-2 active:scale-95 transition-all">{selectedOccupant.isSilenced ? <Volume2 className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}{selectedOccupant.isSilenced ? 'Unsilence Tribe' : 'Silence Tribe'}</button>
+                {selectedOccupant.uid !== currentUser?.uid && (<button onClick={() => kickParticipant(selectedOccupant.uid)} className="py-5 font-black text-destructive uppercase tracking-widest text-xs hover:bg-red-50 flex items-center justify-center gap-2 active:scale-95 transition-all"><span className="flex items-center gap-2"><Ban className="h-4 w-4" /> Kick Tribe</span></button>)}
+              </>) : (
+                <button onClick={() => toggleSeatLock(selectedSeatIndex!)} className="py-5 font-bold text-purple-600 uppercase tracking-widest text-xs hover:bg-purple-50 flex items-center justify-center gap-2 active:scale-95 transition-all">{room.lockedSeats?.includes(selectedSeatIndex!) ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}{room.lockedSeats?.includes(selectedSeatIndex!) ? 'Unlock Slot' : 'Lock Slot'}</button>
+              )}
+            </>)}
+            <button onClick={() => { const link = `${window.location.origin}/rooms/${room.id}`; navigator.clipboard.writeText(link); toast({ title: 'Invite Copied' }); setIsActionMenuOpen(false); }} className="py-5 font-bold text-blue-500 uppercase tracking-widest text-xs hover:bg-blue-50 flex items-center justify-center gap-2 active:scale-95 transition-all">
+              <UserPlus className="h-4 w-4" /> Invite Tribe
+            </button>
+            {selectedOccupant?.uid === currentUser?.uid ? (<button onClick={leaveSeat} className="py-5 font-black text-red-500 uppercase tracking-widest text-xs hover:bg-red-50 active:scale-95 transition-all">Exit Seat</button>) : !selectedOccupant && !room.lockedSeats?.includes(selectedSeatIndex!) && (<button onClick={() => takeSeat(selectedSeatIndex!)} className="py-5 font-black text-blue-600 uppercase tracking-widest text-xs hover:bg-blue-50 active:scale-95 transition-all">Take Seat</button>)}
+            <button onClick={() => setIsActionMenuOpen(false)} className="py-5 font-bold text-gray-400 bg-gray-50/50 text-[10px] uppercase tracking-widest hover:text-gray-600">Cancel</button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <input type="file" ref={roomDpInputRef} onChange={(e) => { if (e.target.files?.[0]) { uploadRoomImage(e.target.files[0]); e.target.value = ''; } }} className="hidden" accept="image/*" />
     </div>
   );
 }
 
 const ToolTile = ({ icon: Icon, label, active, onClick, disabled }: any) => (
-  <button onClick={onClick} disabled={disabled} className={cn("flex flex-col items-center gap-2 transition-all active:scale-95", disabled && "opacity-30 grayscale cursor-not-allowed")}><div className={cn("h-16 w-16 rounded-2xl flex items-center justify-center border-2 transition-colors", active ? "bg-primary/20 border-primary text-primary" : "bg-slate-800/50 border-white/5 text-white/60 hover:bg-slate-800")}><Icon className="h-7 w-7" /></div><span className="text-[10px] font-black uppercase tracking-tighter text-white/80">{label}</span></button>
+  <button onClick={onClick} disabled={disabled} className={cn("flex flex-col items-center gap-2 transition-all active:scale-95", disabled && "opacity-30 grayscale cursor-not-allowed")}>
+    <div className={cn("h-16 w-16 rounded-2xl flex items-center justify-center border-2 transition-colors", active ? "bg-primary/20 border-primary text-primary" : "bg-slate-800/50 border-white/5 text-white/60 hover:bg-slate-800")}><Icon className="h-7 w-7" /></div>
+    <span className="text-[10px] font-black uppercase tracking-tighter text-white/80">{label}</span>
+  </button>
 );
