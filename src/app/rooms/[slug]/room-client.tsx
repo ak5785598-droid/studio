@@ -703,7 +703,7 @@ export function RoomClient({ room }: { room: Room }) {
           <ScrollArea className="flex-1 px-6">
             <div className="py-6 space-y-4">
               {participants?.map((p) => (
-                <TribeMemberItem key={p.uid} participant={p} ownerId={room.ownerId} />
+                <TribeMemberItem key={p.id} participant={p} ownerId={room.ownerId} />
               ))}
             </div>
           </ScrollArea>
