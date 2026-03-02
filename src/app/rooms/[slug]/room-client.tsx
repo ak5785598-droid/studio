@@ -44,7 +44,8 @@ import {
   Calculator as CalculatorIcon,
   Camera,
   MessageSquare,
-  Palette
+  Palette,
+  Upload
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -102,6 +103,7 @@ import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
 import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
 import { DailyRewardDialog } from '@/components/daily-reward-dialog';
 import { VoiceTutorial } from '@/components/voice-tutorial';
+import { CameraCaptureDialog } from '@/components/camera-capture-dialog';
 
 const ROOM_THEMES = [
   { id: 'misty', name: 'Misty Forest', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000' },
@@ -282,6 +284,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isParticipantListOpen, setIsParticipantListOpen] = useState(false);
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
   const [isMicOptionPickerOpen, setIsMicOptionPickerOpen] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [selectedSeatIndex, setSelectedSeatIndex] = useState<number | null>(null);
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
@@ -720,15 +723,33 @@ export function RoomClient({ room }: { room: Room }) {
           <ScrollArea className="flex-1 bg-gray-50/30">
             <div className="pb-20">
               <section className="bg-white py-10 flex flex-col items-center gap-4">
-                <div className="relative group cursor-pointer" onClick={() => roomDpInputRef.current?.click()}>
+                <div className="relative group">
                   <div className="h-32 w-32 rounded-[2rem] overflow-hidden border-4 border-gray-100 shadow-xl bg-gray-100 flex items-center justify-center relative">
                     {room.coverUrl ? (<Image src={room.coverUrl} alt="Room Cover" fill className="object-cover" />) : (<Camera className="h-10 w-10 text-gray-300" />)}
+                    {isRoomImageUploading && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-sm z-10">
+                        <Loader className="h-8 w-8 animate-spin text-white" />
+                      </div>
+                    )}
                   </div>
-                  <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-gray-100"><Camera className="h-4 w-4 text-gray-800" /></div>
                 </div>
-                <div className="text-center">
-                  <h3 className="font-black text-gray-800 text-lg uppercase tracking-tight">Room Cover</h3>
-                  <p className="text-gray-300 text-xs font-bold uppercase tracking-widest mt-1">Click to edit</p>
+                <div className="flex gap-2">
+                   <Button 
+                     variant="outline" 
+                     size="sm" 
+                     onClick={() => roomDpInputRef.current?.click()}
+                     className="rounded-full h-10 px-6 text-[10px] font-black uppercase italic border-2"
+                   >
+                     <Upload className="h-3 w-3 mr-2" /> Upload
+                   </Button>
+                   <Button 
+                     variant="outline" 
+                     size="sm" 
+                     onClick={() => setIsCameraOpen(true)}
+                     className="rounded-full h-10 px-6 text-[10px] font-black uppercase italic border-2 bg-primary/5 border-primary/20 text-primary"
+                   >
+                     <Camera className="h-3 w-3 mr-2" /> Camera
+                   </Button>
                 </div>
               </section>
 
@@ -986,6 +1007,13 @@ export function RoomClient({ room }: { room: Room }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      <CameraCaptureDialog 
+        open={isCameraOpen} 
+        onOpenChange={setIsCameraOpen} 
+        onCapture={uploadRoomImage}
+        title="Sync Room Cover"
+      />
 
       <input type="file" ref={roomDpInputRef} onChange={(e) => { if (e.target.files?.[0]) { uploadRoomImage(e.target.files[0]); e.target.value = ''; } }} className="hidden" accept="image/*" />
     </div>
