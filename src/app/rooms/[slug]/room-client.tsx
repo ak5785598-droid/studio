@@ -46,7 +46,8 @@ import {
   Camera,
   MessageSquare,
   Palette,
-  Upload
+  Upload,
+  Minimize2
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -287,6 +288,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
   const [isMicOptionPickerOpen, setIsMicOptionPickerOpen] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isExitPortalOpen, setIsExitPortalOpen] = useState(false);
   const [selectedSeatIndex, setSelectedSeatIndex] = useState<number | null>(null);
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
@@ -311,7 +313,7 @@ export function RoomClient({ room }: { room: Room }) {
   const { userProfile: ownerProfile } = useUserProfile(room.ownerId);
   const firestore = useFirestore();
   const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(room.id);
-  const { setActiveRoom } = useRoomContext();
+  const { setActiveRoom, setIsMinimized } = useRoomContext();
 
   const isGlobalAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
   const isOwner = currentUser?.uid === room.ownerId;
@@ -500,7 +502,21 @@ export function RoomClient({ room }: { room: Room }) {
     toast({ title: 'Member Kicked' });
   };
 
-  const leaveRoom = () => { setActiveRoom(null); router.push('/rooms'); };
+  const handleMinimize = () => {
+    setIsMinimized(true);
+    router.push('/rooms');
+  };
+
+  const handleExit = () => {
+    if (firestore && currentUser && room.id) {
+      const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
+      deleteDocumentNonBlocking(participantRef);
+    }
+    setActiveRoom(null);
+    setIsMinimized(false);
+    router.push('/rooms');
+  };
+
   const takeSeat = (index: number) => { if (!firestore || !room.id || !currentUser || !userProfile) return; if (room.lockedSeats?.includes(index)) { toast({ variant: 'destructive', title: 'Seat Locked' }); return; } updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { uid: currentUser.uid, name: userProfile.username || 'Guest', avatarUrl: userProfile.avatarUrl || '', seatIndex: index, isMuted: true, activeWave: userProfile.inventory?.activeWave || 'Default' }); };
   const leaveSeat = () => { if (!firestore || !room.id || !currentUser) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: 0, isMuted: true }); setIsActionMenuOpen(false); };
   
@@ -654,7 +670,7 @@ export function RoomClient({ room }: { room: Room }) {
           <button onClick={() => setIsParticipantListOpen(true)} className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2 hover:bg-white/10 transition-colors"><Users className="h-3 w-3 text-white/60" /><span className="text-[10px] font-black">{onlineCount}</span></button>
           <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsSettingsOpen(true)}><SettingsIcon className="h-4 w-4" /></button>
           <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" onClick={handleCopyInvite}><Share2 className="h-4 w-4" /></button>
-          <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" onClick={leaveRoom}><Power className="h-4 w-4" /></button>
+          <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsExitPortalOpen(true)}><Power className="h-4 w-4" /></button>
         </div>
       </header>
 
@@ -713,6 +729,36 @@ export function RoomClient({ room }: { room: Room }) {
           <button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsGamesDialogOpen(true)}><LayoutGrid className="h-4 w-4" /></button>
         </div>
       </footer>
+
+      {/* Exit Dimension Portal */}
+      <Dialog open={isExitPortalOpen} onOpenChange={setIsExitPortalOpen}>
+        <DialogContent className="sm:max-w-md bg-black/90 backdrop-blur-2xl border-none p-0 rounded-t-[3rem] overflow-hidden animate-in fade-in duration-500">
+          <div className="p-12 flex items-center justify-around gap-8">
+            <button 
+              onClick={handleMinimize}
+              className="flex flex-col items-center gap-4 group active:scale-95 transition-all"
+            >
+              <div className="h-24 w-24 rounded-full bg-white flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+                <Minimize2 className="h-10 w-10 text-black" />
+              </div>
+              <span className="text-white font-black uppercase italic tracking-widest text-sm">Minimize</span>
+            </button>
+
+            <button 
+              onClick={handleExit}
+              className="flex flex-col items-center gap-4 group active:scale-95 transition-all"
+            >
+              <div className="h-24 w-24 rounded-full bg-white flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+                <LogOut className="h-10 w-10 text-pink-500" />
+              </div>
+              <span className="text-white font-black uppercase italic tracking-widest text-sm">Exit</span>
+            </button>
+          </div>
+          <div className="pb-8 text-center">
+             <button onClick={() => setIsExitPortalOpen(false)} className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 hover:text-white transition-colors">Cancel</button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isParticipantListOpen} onOpenChange={setIsParticipantListOpen}>
         <DialogContent className="w-screen h-screen max-w-none m-0 rounded-none border-none bg-black/95 backdrop-blur-xl text-white p-0 flex flex-col animate-in slide-in-from-bottom duration-500 font-headline overflow-hidden">
