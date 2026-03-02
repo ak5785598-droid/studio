@@ -47,7 +47,8 @@ import {
   MessageSquare,
   Palette,
   Upload,
-  Minimize2
+  Minimize2,
+  Smile
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -117,6 +118,8 @@ const ROOM_THEMES = [
 ];
 
 const MIC_OPTIONS = [4, 8, 9, 12, 15];
+
+const TRIBE_EMOJIS = ['😀', '😂', '😘', '🥰', '😎', '🤗', '😡', '😭', '💋'];
 
 function calculateRichLevel(spent: number = 0) {
   if (spent < 50000) return 1;
@@ -285,6 +288,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isMusicMenuOpen, setIsMusicMenuOpen] = useState(false);
   const [isParticipantListOpen, setIsParticipantListOpen] = useState(false);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
   const [isMicOptionPickerOpen, setIsMicOptionPickerOpen] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -385,13 +389,6 @@ export function RoomClient({ room }: { room: Room }) {
   }, [firestoreMessages]);
 
   useEffect(() => {
-    if (participants && currentUser && !participants.some(p => p.uid === currentUser.uid)) {
-      setActiveRoom(null);
-      router.replace('/rooms');
-    }
-  }, [participants, currentUser, router, setActiveRoom]);
-
-  useEffect(() => {
     if (!showGiftEffects) return;
     const lastMsg = firestoreMessages?.[firestoreMessages.length - 1];
     if (lastMsg?.type === 'gift' && lastMsg.giftId) {
@@ -451,6 +448,23 @@ export function RoomClient({ room }: { room: Room }) {
     }
     addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), { content: `sent ${isSelfGifting ? 'themselves' : finalRecipient.name} a ${gift.name} ${gift.emoji}!`, senderId: currentUser.uid, senderName: userProfile.username, senderAvatar: userProfile.avatarUrl, chatRoomId: room.id, timestamp: serverTimestamp(), type: 'gift', giftId: gift.id, recipientName: finalRecipient.name });
     setIsGiftPickerOpen(false); setGiftRecipient(null);
+  };
+
+  const handleSendEmoji = async (emoji: string) => {
+    if (!firestore || !room.id || !currentUser || !isInSeat) {
+      toast({ variant: 'destructive', title: 'Action Denied', description: 'You must be in a seat to react.' });
+      return;
+    }
+    
+    const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
+    updateDocumentNonBlocking(participantRef, { activeEmoji: emoji });
+    
+    // Automatic cleanup of active state after animation completes
+    setTimeout(() => {
+      updateDocumentNonBlocking(participantRef, { activeEmoji: null });
+    }, 4000);
+    
+    setIsEmojiPickerOpen(false);
   };
 
   const handleClearChat = async () => {
@@ -724,6 +738,7 @@ export function RoomClient({ room }: { room: Room }) {
         </form>
         <div className="flex items-center gap-2">
           <button onClick={() => setIsParticipantListOpen(true)} className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Users className="h-4 w-4" /></button>
+          <button onClick={() => setIsEmojiPickerOpen(true)} className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Smile className="h-4 w-4" /></button>
           <button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Mail className="h-4 w-4" /></button>
           <button className="bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 p-2 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all" onClick={() => setIsGiftPickerOpen(true)}><GiftIcon className="h-4 w-4 text-white" /></button>
           <button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsGamesDialogOpen(true)}><LayoutGrid className="h-4 w-4" /></button>
@@ -775,6 +790,28 @@ export function RoomClient({ room }: { room: Room }) {
           </ScrollArea>
           <div className="p-8 text-center bg-white/5">
              <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Ummy Social Sync Protocol</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
+        <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
+          <DialogHeader className="p-8 pb-4 text-center border-b">
+            <DialogTitle className="text-2xl font-black uppercase tracking-tighter italic">Tribal Reactions</DialogTitle>
+          </DialogHeader>
+          <div className="p-8 grid grid-cols-3 gap-6">
+            {TRIBE_EMOJIS.map(emoji => (
+              <button 
+                key={emoji} 
+                onClick={() => handleSendEmoji(emoji)}
+                className="text-5xl hover:scale-125 active:scale-90 transition-transform duration-200 p-2"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+          <div className="p-6 text-center bg-gray-50">
+             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Reactions sync across the entire social graph</p>
           </div>
         </DialogContent>
       </Dialog>
