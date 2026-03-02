@@ -13,6 +13,7 @@ import { useRoomContext } from '@/components/room-provider';
 /**
  * Chat Room Entry Page Gateway.
  * Manages identity synchronization and room metadata retrieval.
+ * Includes a Permanent Protocol for the Official Help Desk.
  */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -34,9 +35,10 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
 
   const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
 
-  useEffect(() => {
+  // Elite Permanent Fallback Protocol: Ensures Ummy Help Desk is never "Disbanded"
+  const activeRoom: Room | null = useMemo(() => {
     if (firestoreRoom) {
-      setActiveRoom({
+      return {
         id: firestoreRoom.id,
         roomNumber: firestoreRoom.roomNumber,
         slug: firestoreRoom.id,
@@ -54,35 +56,41 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
         currentMusicUrl: firestoreRoom.currentMusicUrl,
         maxActiveMics: firestoreRoom.maxActiveMics,
         roomThemeId: firestoreRoom.roomThemeId
-      } as any);
+      } as any;
+    }
+
+    // Return hardcoded metadata for the official support portal if DB entry is missing
+    if (slug === 'ummy-help-center') {
+      return {
+        id: 'ummy-help-center',
+        roomNumber: '0000',
+        slug: 'ummy-help-center',
+        title: 'Ummy Official Help',
+        topic: 'Ask any app related question quick and fast.',
+        category: 'Chat',
+        coverUrl: 'https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=1000',
+        ownerId: 'official-support-bot',
+        moderatorIds: [],
+        lockedSeats: [],
+        announcement: 'Welcome to official support! How can we help you today?',
+        createdAt: new Date(),
+        participantCount: 0,
+        maxActiveMics: 9,
+        roomThemeId: 'royal'
+      } as any;
+    }
+
+    return null;
+  }, [firestoreRoom, slug]);
+
+  useEffect(() => {
+    if (activeRoom) {
+      setActiveRoom(activeRoom);
       setIsMinimized(false);
     }
-  }, [firestoreRoom, setActiveRoom, setIsMinimized]);
+  }, [activeRoom, setActiveRoom, setIsMinimized]);
 
-  const activeRoom: Room | null = useMemo(() => {
-    if (!firestoreRoom) return null;
-    return {
-      id: firestoreRoom.id,
-      roomNumber: firestoreRoom.roomNumber,
-      slug: firestoreRoom.id,
-      title: firestoreRoom.name || 'Frequency',
-      topic: firestoreRoom.description || '',
-      category: (firestoreRoom.category as any) || 'Chat',
-      coverUrl: firestoreRoom.coverUrl || '',
-      ownerId: firestoreRoom.ownerId,
-      moderatorIds: firestoreRoom.moderatorIds || [],
-      lockedSeats: firestoreRoom.lockedSeats || [],
-      announcement: firestoreRoom.announcement || "Enjoy the vibe!",
-      createdAt: firestoreRoom.createdAt,
-      stats: firestoreRoom.stats,
-      isChatMuted: firestoreRoom.isChatMuted,
-      currentMusicUrl: firestoreRoom.currentMusicUrl,
-      maxActiveMics: firestoreRoom.maxActiveMics,
-      roomThemeId: firestoreRoom.roomThemeId
-    } as any;
-  }, [firestoreRoom]);
-
-  if (docError) {
+  if (docError && slug !== 'ummy-help-center') {
      return (
         <AppLayout>
             <div className="flex h-[60vh] flex-col items-center justify-center space-y-4 text-center px-6">
@@ -95,7 +103,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
      );
   }
 
-  const isWaiting = isUserLoading || (!!roomDocRef && isDocLoading);
+  const isWaiting = isUserLoading || (!!roomDocRef && isDocLoading && slug !== 'ummy-help-center');
 
   if (isWaiting) {
     return (
