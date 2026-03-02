@@ -60,7 +60,7 @@ service cloud.firestore {
       match /participants/{userId} {
         allow read, list: if isSignedIn();
         allow create: if isSignedIn() && request.auth.uid == userId;
-        allow update: if isSignedIn();
+        allow update: if isSignedIn() && (request.auth.uid == userId || isRoomAdmin(roomId));
         allow delete: if isSignedIn() && (request.auth.uid == userId || isRoomAdmin(roomId));
         
         match /signaling/{signalId} {

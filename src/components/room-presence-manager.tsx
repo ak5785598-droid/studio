@@ -3,13 +3,14 @@
 
 import { useEffect, useRef } from 'react';
 import { useRoomContext } from './room-provider';
-import { useUser, useFirestore, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, serverTimestamp, collection, increment, writeBatch } from 'firebase/firestore';
 
 /**
  * Maintains Firestore presence while a room is active.
  * RE-ENGINEERED: Separates Join/Leave lifecycle from Identity updates to prevent auto-kick loops.
+ * IDENTITY SYNC: Uses setDocumentNonBlocking with merge: true to avoid race condition denials.
  */
 export function RoomPresenceManager() {
   const { activeRoom } = useRoomContext();
@@ -103,19 +104,20 @@ export function RoomPresenceManager() {
       handleExit();
       window.removeEventListener('beforeunload', handleExit);
     };
-  }, [firestore, activeRoom?.id, user?.uid]); // Stability: No userProfile in dependencies
+  }, [firestore, activeRoom?.id, user?.uid]); 
 
   // 2. IDENTITY SYNCHRONIZATION
   // Updates participant card details if user changes them while in the room.
+  // CRITICAL: Uses setDocumentNonBlocking with merge: true to avoid "update" permission denial on race conditions.
   useEffect(() => {
     if (!firestore || !activeRoom?.id || !user || !userProfile) return;
 
     const participantRef = doc(firestore, 'chatRooms', activeRoom.id, 'participants', user.uid);
-    updateDocumentNonBlocking(participantRef, {
+    setDocumentNonBlocking(participantRef, {
       name: userProfile.username || 'Guest',
       avatarUrl: userProfile.avatarUrl || '',
       activeFrame: userProfile.inventory?.activeFrame || 'None',
-    });
+    }, { merge: true });
   }, [
     userProfile?.username, 
     userProfile?.avatarUrl, 
