@@ -73,7 +73,6 @@ export function AppLayout({
   };
 
   const isCreator = user?.uid === CREATOR_ID;
-  const isAdmin = userProfile?.tags?.some((t: string) => ['Admin', 'Official', 'Super Admin', 'Admin Management', 'App Manager'].includes(t)) || isCreator;
 
   if (!mounted) return null;
   if (isUserLoading) return <div className="flex h-[100dvh] w-full items-center justify-center bg-[#FFCC00]"><UmmyLogoIcon className="h-16 w-16 text-white animate-pulse" /></div>;
@@ -95,7 +94,7 @@ export function AppLayout({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              {isAdmin && (
+              {isCreator && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname === '/admin'} className={cn("h-14 rounded-xl px-4 mt-4 bg-red-500/10", pathname === '/admin' && "bg-red-500/20 font-black")}>
                     <Link href="/admin" className="flex items-center gap-4"><ShieldAlert className="h-6 w-6 text-red-600" /><span className="text-base font-black uppercase italic text-red-600">Command Center</span></Link>

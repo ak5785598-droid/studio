@@ -29,7 +29,7 @@ const AUTHORITY_ROLES = [
 
 /**
  * Ummy Command Center - Supreme Authority Oversight.
- * Creator-exclusive portal for tribal role management.
+ * Restricted exclusively to the Supreme Creator.
  */
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -38,35 +38,34 @@ export default function AdminPage() {
   const { toast } = useToast();
   
   const isCreator = user?.uid === CREATOR_ID;
-  const isAdmin = userProfile?.tags?.some((t: string) => ['Admin', 'Official', 'Super Admin', 'Admin Management', 'App Manager'].includes(t)) || isCreator;
 
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('authority');
   const [searchQuery, setSearchQuery] = useState('');
   const [foundUsers, setFoundUsers] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Automatically switch to Authority Hub for the Creator
+  // Hardcoded redirect/state lock
   useEffect(() => {
-    if (isCreator) {
-      setActiveTab('authority');
+    if (!isCreator && user) {
+      setActiveTab('unauthorized');
     }
-  }, [isCreator]);
+  }, [isCreator, user]);
 
   const configRef = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !isCreator) return null;
     return doc(firestore, 'appConfig', 'global');
-  }, [firestore]);
+  }, [firestore, isCreator]);
   const { data: config } = useDoc(configRef);
 
   const logsQuery = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
+    if (!firestore || !isCreator) return null;
     return query(collection(firestore, 'adminLogs'), orderBy('createdAt', 'desc'), limit(20));
-  }, [firestore, user]);
+  }, [firestore, isCreator]);
   const { data: logs } = useCollection(logsQuery);
 
   const handleDistributeDailyRewards = async () => {
-    if (!firestore || !isAdmin) return;
+    if (!firestore || !isCreator) return;
     setIsSaving(true);
     
     try {
@@ -162,10 +161,10 @@ export default function AdminPage() {
   };
 
   const logAdminAction = async (action: string, targetId: string, details: any) => {
-    if (!firestore || !user) return;
+    if (!firestore || !user || !isCreator) return;
     addDoc(collection(firestore, 'adminLogs'), {
       adminId: user.uid,
-      adminName: userProfile?.username || 'Admin',
+      adminName: userProfile?.username || 'Creator',
       targetId,
       action,
       details,
@@ -174,7 +173,7 @@ export default function AdminPage() {
   };
 
   const handleSearchUsers = async () => {
-    if (!firestore || !searchQuery) return;
+    if (!firestore || !searchQuery || !isCreator) return;
     setIsSearching(true);
     try {
       const q = query(
@@ -196,7 +195,7 @@ export default function AdminPage() {
   };
 
   const adjustBalance = (targetUserId: string, type: 'coins' | 'diamonds', amount: number) => {
-    if (!firestore || !user) return;
+    if (!firestore || !isCreator) return;
     setIsSaving(true);
     
     const userRef = doc(firestore, 'users', targetUserId);
@@ -255,7 +254,7 @@ export default function AdminPage() {
     await logAdminAction(`Toggle Role: ${roleId}`, targetUid, { action: hasRole ? 'revoke' : 'grant' });
   };
 
-  if (!isAdmin) return <AppLayout><div className="flex h-[50vh] items-center justify-center text-destructive font-headline"><Shield className="h-12 w-12 mr-2" /> Unauthorized</div></AppLayout>;
+  if (!isCreator) return <AppLayout><div className="flex h-[50vh] items-center justify-center text-destructive font-headline"><Shield className="h-12 w-12 mr-2" /> Unauthorized Portal Access Restricted</div></AppLayout>;
 
   return (
     <AppLayout>
@@ -264,16 +263,16 @@ export default function AdminPage() {
           <div className="flex items-center gap-4">
              <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20"><Shield className="h-8 w-8 text-white" /></div>
              <div>
-                <h1 className="text-4xl font-bold uppercase italic tracking-tighter">{isCreator ? 'Supreme Command' : 'Ummy Command Center'}</h1>
-                <p className="text-muted-foreground">{isCreator ? 'Supreme Authority Active' : 'Elite Rewards & Official 11:59:59 IST Distribution.'}</p>
+                <h1 className="text-4xl font-bold uppercase italic tracking-tighter">Supreme Command</h1>
+                <p className="text-muted-foreground">Supreme Authority Protocol Active.</p>
              </div>
           </div>
-          {isCreator && <Badge className="bg-red-500 text-white font-black uppercase italic px-4 py-1.5 h-10 rounded-xl shadow-xl shadow-red-500/20">Supreme Creator</Badge>}
+          <Badge className="bg-red-500 text-white font-black uppercase italic px-4 py-1.5 h-10 rounded-xl shadow-xl shadow-red-500/20">Supreme Creator</Badge>
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           <TabsList className="bg-secondary/50 p-1.5 h-12 rounded-full border w-fit overflow-x-auto no-scrollbar">
-            {isCreator && <TabsTrigger value="authority" className="rounded-full px-6 font-black uppercase text-[10px] bg-red-500/10 text-red-500 data-[state=active]:bg-red-500 data-[state=active]:text-white">Authority Hub</TabsTrigger>}
+            <TabsTrigger value="authority" className="rounded-full px-6 font-black uppercase text-[10px] bg-red-500/10 text-red-500 data-[state=active]:bg-red-500 data-[state=active]:text-white">Authority Hub</TabsTrigger>
             <TabsTrigger value="overview" className="rounded-full px-6 font-black uppercase text-[10px]">Overview</TabsTrigger>
             <TabsTrigger value="rewards" className="rounded-full px-6 font-black uppercase text-[10px]">Rewards Hub</TabsTrigger>
             <TabsTrigger value="users" className="rounded-full px-6 font-black uppercase text-[10px]">Users</TabsTrigger>
