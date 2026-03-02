@@ -22,8 +22,19 @@ import { useUserProfile } from '@/hooks/use-user-profile';
 import { cn } from '@/lib/utils';
 
 const ChatListItem = ({ chat, currentUid, onSelect }: any) => {
-  const otherUid = chat.participantIds.find((id: string) => id !== currentUid);
-  const { userProfile: otherUser } = useUserProfile(otherUid);
+  // Logic to find the other user's ID
+  const otherUid = chat.participantIds.find((id: string) => id !== currentUid) || currentUid;
+  const { userProfile: otherUser, isLoading } = useUserProfile(otherUid);
+
+  if (isLoading) return (
+    <div className="p-4 bg-white rounded-3xl border border-gray-100 flex gap-4 animate-pulse">
+      <div className="h-12 w-12 bg-gray-100 rounded-full" />
+      <div className="flex-1 space-y-2">
+        <div className="h-3 bg-gray-100 rounded w-1/3" />
+        <div className="h-2 bg-gray-100 rounded w-1/2" />
+      </div>
+    </div>
+  );
 
   if (!otherUser) return null;
 
@@ -64,13 +75,22 @@ const PrivateConversation = ({ chatId, otherUser, onBack, currentUid }: any) => 
 
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !chatId) return null;
-    return query(collection(firestore, 'privateChats', chatId, 'messages'), orderBy('timestamp', 'asc'), limitToLast(50));
+    return query(
+      collection(firestore, 'privateChats', chatId, 'messages'), 
+      orderBy('timestamp', 'asc'), 
+      limitToLast(50)
+    );
   }, [firestore, chatId]);
 
   const { data: messages, isLoading } = useCollection(messagesQuery);
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current) {
+      const scrollViewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollViewport) {
+        scrollViewport.scrollTop = scrollViewport.scrollHeight;
+      }
+    }
   }, [messages]);
 
   const handleSend = async (e: React.FormEvent) => {
@@ -82,18 +102,22 @@ const PrivateConversation = ({ chatId, otherUser, onBack, currentUid }: any) => 
 
     try {
       const chatRef = doc(firestore, 'privateChats', chatId);
+      // Non-blocking update for the chat metadata
       updateDocumentNonBlocking(chatRef, {
         lastMessage: msgText,
         lastSenderId: currentUid,
         updatedAt: serverTimestamp()
       });
 
+      // Add message to subcollection
       await addDocumentNonBlocking(collection(firestore, 'privateChats', chatId, 'messages'), {
         text: msgText,
         senderId: currentUid,
         timestamp: serverTimestamp()
       });
-    } catch (e) {}
+    } catch (e) {
+      console.error("Message Sync Error:", e);
+    }
   };
 
   return (
@@ -114,6 +138,12 @@ const PrivateConversation = ({ chatId, otherUser, onBack, currentUid }: any) => 
         <div className="space-y-4">
           {isLoading ? (
             <div className="flex justify-center py-10"><Loader className="animate-spin text-primary" /></div>
+          ) : messages?.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center opacity-30">
+               <MessageCircle className="h-10 w-10 mb-2" />
+               <p className="text-[10px] font-black uppercase tracking-widest">No Messages Yet</p>
+               <p className="text-[8px] uppercase">Start the tribal vibe.</p>
+            </div>
           ) : messages?.map((msg: any) => {
             const isMe = msg.senderId === currentUid;
             return (
