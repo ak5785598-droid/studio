@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -104,6 +105,7 @@ import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
 import { DailyRewardDialog } from '@/components/daily-reward-dialog';
 import { VoiceTutorial } from '@/components/voice-tutorial';
 import { CameraCaptureDialog } from '@/components/camera-capture-dialog';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const ROOM_THEMES = [
   { id: 'misty', name: 'Misty Forest', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000' },
@@ -571,6 +573,8 @@ export function RoomClient({ room }: { room: Room }) {
   const currentTheme = ROOM_THEMES.find(t => t.id === (room as any).roomThemeId) || ROOM_THEMES[0];
   const maxMics = room.maxActiveMics || 9;
 
+  const moneyTreeAsset = PlaceHolderImages.find(img => img.id === 'money-tree');
+
   const Seat = ({ index }: { index: number }) => {
     const occupant = participants?.find(p => p.seatIndex === index);
     const isLocked = room.lockedSeats?.includes(index);
@@ -656,7 +660,23 @@ export function RoomClient({ room }: { room: Room }) {
 
       <div className="relative z-50 px-4 mt-0"><div className="bg-yellow-500/20 backdrop-blur-md border border-yellow-500/30 rounded-full py-1 px-3 w-fit flex items-center gap-2"><Trophy className="h-3 w-3 text-yellow-500" /><span className="text-[10px] font-black text-yellow-500 uppercase">{(room.stats?.totalGifts || 0).toLocaleString()}</span><ChevronRight className="h-2 w-2 text-yellow-500/60" /></div></div>
 
-      <button onClick={handleMoneyTreeClick} disabled={isClaimingTree} className="absolute top-20 right-4 z-40 animate-bounce hover:scale-110 active:scale-95 transition-transform" style={{ animationDuration: '4s' }}><div className="relative h-10 w-10">{isClaimingTree ? (<Loader className="h-full w-full animate-spin text-yellow-500" />) : (<Image src="https://img.icons8.com/color/96/money-tree.png" alt="Money Tree" fill className="object-contain" />)}</div></button>
+      <button onClick={handleMoneyTreeClick} disabled={isClaimingTree} className="absolute top-20 right-4 z-40 animate-bounce hover:scale-110 active:scale-95 transition-transform" style={{ animationDuration: '4s' }}>
+        <div className="relative h-10 w-10">
+          {isClaimingTree ? (
+            <Loader className="h-full w-full animate-spin text-yellow-500" />
+          ) : (
+            moneyTreeAsset && (
+              <Image 
+                src={moneyTreeAsset.imageUrl} 
+                alt={moneyTreeAsset.description} 
+                fill 
+                className="object-contain" 
+                data-ai-hint={moneyTreeAsset.imageHint}
+              />
+            )
+          )}
+        </div>
+      </button>
 
       <main className="relative z-10 flex-1 flex flex-col pt-1 overflow-hidden">
         <ScrollArea className="flex-1">

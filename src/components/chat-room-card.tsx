@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -7,6 +8,7 @@ import type { Room } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { cn } from '@/lib/utils';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface ChatRoomCardProps {
   room: Room & { isOfficial?: boolean };
@@ -20,7 +22,7 @@ interface ChatRoomCardProps {
  * - Bottom-Left: Owner identity overlay.
  * - Bottom-Right: Level/Emblem icon.
  * - Below: Flag + Regional Identity.
- * - NEW: Special handling for Official Help Room.
+ * - NEW: Special handling for Official Help Room with stable assets.
  */
 export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
   const onlineCount = room.participantCount || 0;
@@ -29,6 +31,9 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
   // Elite Official Support Logic
   const ownerName = room.isOfficial ? 'Ummy Help Desk' : (owner?.username || 'Tribe Member');
   const regionalFlag = room.isOfficial ? '🌐' : '🇮🇳';
+
+  const officialShield = PlaceHolderImages.find(img => img.id === 'official-shield');
+  const eliteJet = PlaceHolderImages.find(img => img.id === 'elite-jet');
 
   if (variant === 'modern') {
     return (
@@ -81,12 +86,27 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
 
             {/* Bottom-Right Status Emblem */}
             <div className="absolute bottom-2 right-2 h-8 w-8 rounded-lg overflow-hidden border border-white/20 shadow-lg z-20">
-               <Image 
-                 src={room.isOfficial ? "https://img.icons8.com/color/96/shield.png" : "https://img.icons8.com/color/96/fighter-jet.png"} 
-                 alt="Emblem" 
-                 fill 
-                 className="object-contain p-1 bg-black/20 backdrop-blur-sm"
-               />
+               {room.isOfficial ? (
+                 officialShield && (
+                   <Image 
+                     src={officialShield.imageUrl} 
+                     alt="Shield" 
+                     fill 
+                     className="object-contain p-1 bg-black/20 backdrop-blur-sm"
+                     data-ai-hint={officialShield.imageHint}
+                   />
+                 )
+               ) : (
+                 eliteJet && (
+                   <Image 
+                     src={eliteJet.imageUrl} 
+                     alt="Emblem" 
+                     fill 
+                     className="object-contain p-1 bg-black/20 backdrop-blur-sm"
+                     data-ai-hint={eliteJet.imageHint}
+                   />
+                 )
+               )}
             </div>
           </div>
           

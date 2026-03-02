@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -21,6 +22,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const ChatListItem = ({ chat, currentUid, onSelect }: any) => {
   const participantIds = chat.participantIds || [];
@@ -204,6 +206,8 @@ export default function MessagesPage() {
   const { data: systemMessages, isLoading: isSysLoading } = useCollection(notificationsQuery);
   const { data: chats, isLoading: isChatsLoading } = useCollection(chatsQuery);
 
+  const taskListAsset = PlaceHolderImages.find(img => img.id === 'task-list');
+
   return (
     <AppLayout>
       <div className="min-h-full bg-white flex flex-col relative font-headline">
@@ -317,12 +321,15 @@ export default function MessagesPage() {
              <div className="relative group">
                 <button className="h-16 w-16 bg-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] border-2 border-gray-50 flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
                    <div className="relative h-12 w-12">
-                      <Image 
-                        src="https://img.icons8.com/color/96/todo-list.png" 
-                        alt="Tasks" 
-                        fill 
-                        className="object-contain" 
-                      />
+                      {taskListAsset && (
+                        <Image 
+                          src={taskListAsset.imageUrl} 
+                          alt={taskListAsset.description} 
+                          fill 
+                          className="object-contain" 
+                          data-ai-hint={taskListAsset.imageHint}
+                        />
+                      )}
                    </div>
                 </button>
                 {/* Notification Pulse */}
