@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -47,6 +48,14 @@ export default function RoomsPage() {
 
   const { data: myRoomData } = useCollection(myRoomQuery);
 
+  // Real-time Following Sync
+  const followingRoomsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(collection(firestore, 'users', user.uid, 'followingRooms'), orderBy('followedAt', 'desc'));
+  }, [firestore, user]);
+
+  const { data: followingData } = useCollection(followingRoomsQuery);
+
   const topRichQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(collection(firestore, 'users'), orderBy('wallet.dailySpent', 'desc'), limit(3));
@@ -66,7 +75,7 @@ export default function RoomsPage() {
   const { data: topRoomsRanking } = useCollection(topRoomsQuery);
 
   const filteredRooms = useMemo(() => {
-    if (navTab === 'mine') return myRoomData || [];
+    if (navTab === 'mine') return [];
     if (!roomsData) return [];
     let rooms = [...roomsData];
     if (activeTab !== 'All') {
@@ -74,7 +83,20 @@ export default function RoomsPage() {
       if (activeTab === 'New') return rooms.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).slice(0, 5);
     }
     return rooms;
-  }, [roomsData, myRoomData, activeTab, navTab]);
+  }, [roomsData, activeTab, navTab]);
+
+  const mineItems = useMemo(() => {
+    if (navTab !== 'mine') return [];
+    const owned = myRoomData?.map(r => ({ ...r, isOwned: true })) || [];
+    const followed = followingData?.map(f => ({ 
+      id: f.roomId, 
+      title: f.roomName, 
+      coverUrl: f.coverUrl, 
+      participantCount: 0, // Placeholder, real count comes from card
+      isOwned: false 
+    })) || [];
+    return [...owned, ...followed];
+  }, [myRoomData, followingData, navTab]);
 
   const RankingCard = ({ title, color, items, icon: Icon, type }: any) => (
     <Link 
@@ -142,7 +164,7 @@ export default function RoomsPage() {
             </div>
 
             <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
-              <button onClick={() => setActiveTab('All')} className={cn("flex items-center gap-2 px-8 h-11 rounded-full text-sm font-black uppercase transition-all whitespace-nowrap shadow-md", activeTab === 'All' ? "bg-[#ffd700] text-gray-900 border-2 border-white ring-2 ring-[#ffd700]/20" : "bg-gray-100 text-gray-400")}><Star className="h-4 w-4 fill-current" />All</button>
+              <button onClick={() => setActiveTab('All')} className={cn("flex items-center gap-2 px-8 h-11 rounded-full text-sm font-black uppercase transition-all whitespace-nowrap shadow-md", activeTab === 'All' ? "bg-[#ffd700] text-gray-900 border-2 border-white ring-2 ring-[#ffd700]/20" : "bg-gray-100 text-gray-400")}>All</button>
               <button onClick={() => setActiveTab('Hot')} className={cn("px-10 h-11 rounded-full text-sm font-black uppercase transition-all whitespace-nowrap", activeTab === 'Hot' ? "bg-gray-200 text-gray-900" : "bg-gray-100 text-gray-400")}>Hot</button>
               <button onClick={() => setActiveTab('New')} className={cn("px-10 h-11 rounded-full text-sm font-black uppercase transition-all whitespace-nowrap", activeTab === 'New' ? "bg-gray-200 text-gray-900" : "bg-gray-100 text-gray-400")}>New</button>
             </div>
@@ -162,15 +184,29 @@ export default function RoomsPage() {
         {navTab === 'moments' && <MomentsFeed />}
         {navTab === 'mine' && (
           <div className="space-y-6">
-             {myRoomData && myRoomData.length > 0 ? (
-               <div className="grid grid-cols-2 gap-4">
-                  {myRoomData.map((room: any) => (<ChatRoomCard key={room.id} room={room} variant="modern" />))}
+             <div className="flex items-center justify-between">
+                <h3 className="text-xl font-black uppercase">My Frequencies</h3>
+                <CreateRoomDialog />
+             </div>
+             
+             {mineItems.length > 0 ? (
+               <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+                  {mineItems.map((item: any) => (
+                    <div key={item.id} className="relative">
+                       <ChatRoomCard room={item} variant="modern" />
+                       <Badge className={cn("absolute top-2 left-2 pointer-events-none uppercase text-[8px] font-black", item.isOwned ? "bg-yellow-500" : "bg-blue-500")}>
+                          {item.isOwned ? 'Owner' : 'Following'}
+                       </Badge>
+                    </div>
+                  ))}
                </div>
              ) : (
                <div className="py-20 flex flex-col items-center justify-center text-center space-y-6">
-                  <div className="h-24 w-24 bg-[#FFCC00]/10 rounded-full flex items-center justify-center text-[#FFCC00]"><Flame className="h-12 w-12" /></div>
-                  <h3 className="text-2xl font-black uppercase">Start Your Frequency</h3>
-                  <CreateRoomDialog />
+                  <div className="h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center text-gray-300"><Flame className="h-12 w-12" /></div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-black uppercase">No Connections Yet</h3>
+                    <p className="text-muted-foreground font-body max-w-xs">Follow rooms or launch your own frequency to see them listed here.</p>
+                  </div>
                </div>
              )}
           </div>

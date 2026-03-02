@@ -49,7 +49,8 @@ import {
   Crown,
   Settings as SettingsIcon,
   Copy,
-  Info
+  Info,
+  Heart
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -96,7 +97,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { 
   collection, 
@@ -110,6 +111,9 @@ import {
   getDocs,
   arrayUnion,
   arrayRemove,
+  getDoc,
+  deleteDoc,
+  setDoc
 } from 'firebase/firestore';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { OfficialTag } from '@/components/official-tag';
@@ -170,12 +174,10 @@ export function RoomClient({ room }: { room: Room }) {
   const [isSending, setIsSending] = useState(false);
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [isGiftPickerOpen, setIsGiftPickerOpen] = useState(false);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isGamesDialogOpen, setIsGamesDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isClearChatConfirmOpen, setIsClearChatConfirmOpen] = useState(false);
   const [isMusicMenuOpen, setIsMusicMenuOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedSeatIndex, setSelectedSeatIndex] = useState<number | null>(null);
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
@@ -183,6 +185,8 @@ export function RoomClient({ room }: { room: Room }) {
   const [showTutorial, setShowTutorial] = useState(false);
   const [isClaimingTree, setIsClaimingTree] = useState(false);
   const [isRoomInfoOpen, setIsRoomInfoOpen] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowingLoading, setIsFollowingLoading] = useState(true);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const roomDpInputRef = useRef<HTMLInputElement>(null);
@@ -200,6 +204,41 @@ export function RoomClient({ room }: { room: Room }) {
   const isOwner = currentUser?.uid === room.ownerId;
   const isModerator = room.moderatorIds?.includes(currentUser?.uid || '');
   const canManageRoom = isGlobalAdmin || isOwner || isModerator;
+
+  // Real-time Following Check
+  useEffect(() => {
+    if (!firestore || !currentUser || !room.id) return;
+    const followRef = doc(firestore, 'users', currentUser.uid, 'followingRooms', room.id);
+    const checkFollowing = async () => {
+      const snap = await getDoc(followRef);
+      setIsFollowing(snap.exists());
+      setIsFollowingLoading(false);
+    };
+    checkFollowing();
+  }, [firestore, currentUser, room.id]);
+
+  const handleToggleFollow = async () => {
+    if (!firestore || !currentUser || !room.id) return;
+    const followRef = doc(firestore, 'users', currentUser.uid, 'followingRooms', room.id);
+    try {
+      if (isFollowing) {
+        await deleteDoc(followRef);
+        setIsFollowing(false);
+        toast({ title: 'Unfollowed', description: 'Room removed from your Mine section.' });
+      } else {
+        await setDoc(followRef, {
+          roomId: room.id,
+          roomName: room.title,
+          coverUrl: room.coverUrl || '',
+          followedAt: serverTimestamp()
+        });
+        setIsFollowing(true);
+        toast({ title: 'Following Room', description: 'This room is now synced to your Mine section.' });
+      }
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Action Failed', description: e.message });
+    }
+  };
 
   const participantsQuery = useMemoFirebase(() => {
     if (!firestore || !room.id || !currentUser) return null;
@@ -228,12 +267,6 @@ export function RoomClient({ room }: { room: Room }) {
       user: { id: m.senderId, name: m.senderName || 'User', avatarUrl: m.senderAvatar || '' }
     })) || [];
   }, [firestoreMessages]);
-
-  useEffect(() => {
-    if (userProfile?.isNewUser && !showTutorial) {
-      setShowTutorial(true);
-    }
-  }, [userProfile, showTutorial]);
 
   useEffect(() => {
     if (participants && currentUser && !participants.some(p => p.uid === currentUser.uid)) {
@@ -352,7 +385,6 @@ export function RoomClient({ room }: { room: Room }) {
 
   const toggleRoomMessages = () => { if (!canManageRoom || !firestore || !room.id) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { isChatMuted: !room.isChatMuted }); };
   const handleToggleMusic = (url: string) => { if (!canManageRoom || !firestore || !room.id) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { currentMusicUrl: room.currentMusicUrl === url ? null : url }); };
-  const handleDeleteRoom = async () => { if (!firestore || !room.id || (!isOwner && !isGlobalAdmin)) return; setIsDeleting(true); try { const participantsSnap = await getDocs(collection(firestore, 'chatRooms', room.id, 'participants')); const batch = writeBatch(firestore); participantsSnap.docs.forEach(d => batch.delete(d.ref)); batch.delete(doc(firestore, 'chatRooms', room.id)); await batch.commit(); setActiveRoom(null); router.push('/rooms'); } finally { setIsDeleting(false); } };
   const toggleSeatLock = (index: number) => { if (!canManageRoom || !firestore || !room.id) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { lockedSeats: room.lockedSeats?.includes(index) ? arrayRemove(index) : arrayUnion(index) }); };
   const silenceParticipant = (uid: string, currentState: boolean) => { if (!canManageRoom || !firestore || !room.id) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid), { isSilenced: !currentState, isMuted: true }); };
   
@@ -481,15 +513,29 @@ export function RoomClient({ room }: { room: Room }) {
           onClick={() => setIsRoomInfoOpen(true)}
         >
           <Avatar className="h-10 w-10 rounded-xl border border-white/20 group-hover:border-primary transition-colors"><AvatarImage src={room.coverUrl} /><AvatarFallback>UM</AvatarFallback></Avatar>
-          <div>
-            <div className="flex items-center gap-1">
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
               <h1 className="font-black text-sm uppercase tracking-tight">{room.title}</h1>
               <ChevronRight className="h-3 w-3 text-white/40 group-hover:text-primary" />
             </div>
             <p className="text-[10px] font-bold text-white/60 uppercase">ID:{room.roomNumber}</p>
           </div>
         </div>
+        
         <div className="flex items-center gap-2">
+          {!isOwner && (
+            <button 
+              onClick={handleToggleFollow}
+              disabled={isFollowingLoading}
+              className={cn(
+                "h-8 px-4 rounded-full font-black uppercase text-[10px] transition-all flex items-center gap-1.5 shadow-lg",
+                isFollowing ? "bg-white/20 text-white border border-white/10" : "bg-primary text-white shadow-primary/20"
+              )}
+            >
+              <Heart className={cn("h-3 w-3", isFollowing && "fill-current")} />
+              {isFollowing ? 'Following' : 'Follow'}
+            </button>
+          )}
           <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
             <Users className="h-3 w-3 text-white/60" />
             <span className="text-[10px] font-black">{onlineCount}</span>
@@ -620,7 +666,6 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </footer>
 
-      {/* Frequency Identity Portal (Room Info Dialog) */}
       <Dialog open={isRoomInfoOpen} onOpenChange={setIsRoomInfoOpen}>
         <DialogContent className="w-screen h-screen max-w-none m-0 rounded-none border-none bg-black/95 backdrop-blur-xl text-white p-0 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden font-headline">
           <DialogHeader className="sr-only">
@@ -629,7 +674,6 @@ export function RoomClient({ room }: { room: Room }) {
           </DialogHeader>
           <div className="relative flex-1 flex flex-col items-center pt-20 px-6">
             
-            {/* Command Corners */}
             <div className="absolute top-8 left-6">
               <button onClick={handleCopyInvite} className="p-3 bg-white/10 rounded-full hover:bg-white/20 active:scale-90 transition-all"><Share2 className="h-6 w-6" /></button>
             </div>
@@ -637,7 +681,6 @@ export function RoomClient({ room }: { room: Room }) {
               <button onClick={() => { setIsRoomInfoOpen(false); setIsSettingsOpen(true); }} className="p-3 bg-white/10 rounded-full hover:bg-white/20 active:scale-90 transition-all"><SettingsIcon className="h-6 w-6" /></button>
             </div>
 
-            {/* Room Owner Identity Section */}
             <div className="flex flex-col items-center gap-4 mb-8">
               <div className="relative">
                 <Avatar className="h-32 w-32 border-4 border-white/20 shadow-2xl">
@@ -655,13 +698,11 @@ export function RoomClient({ room }: { room: Room }) {
               </div>
             </div>
 
-            {/* Portal Tab System */}
             <div className="flex gap-12 border-b border-white/10 w-full justify-center mb-8">
               <button className="pb-4 text-lg font-black uppercase tracking-widest border-b-4 border-primary text-white">Profile</button>
               <button className="pb-4 text-lg font-black uppercase tracking-widest border-b-4 border-transparent text-white/40">Member</button>
             </div>
 
-            {/* Owner Identity Card */}
             <div className="w-full max-w-sm bg-white/5 rounded-[2rem] p-4 flex items-center gap-4 mb-10 border border-white/5 shadow-inner">
               <Avatar className="h-14 w-14 rounded-2xl border-2 border-white/10">
                 <AvatarImage src={ownerProfile?.avatarUrl} />
@@ -677,7 +718,6 @@ export function RoomClient({ room }: { room: Room }) {
               </div>
             </div>
 
-            {/* Announcement Broadcast Section */}
             <div className="w-full max-w-sm space-y-4">
               <div className="flex items-center gap-2 px-2">
                 <Info className="h-4 w-4 text-white/40" />
@@ -752,7 +792,7 @@ export function RoomClient({ room }: { room: Room }) {
                   <p className="text-sm font-black uppercase text-primary tracking-tighter">{giftRecipient?.uid === currentUser?.uid ? 'Myself' : (giftRecipient?.name || hostParticipant?.name || 'The Frequency')}</p>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => { if (giftRecipient?.uid === currentUser?.uid) { setGiftRecipient(null); } else { setGiftRecipient({ uid: currentUser!.uid, name: userProfile!.username, avatarUrl: userProfile!.avatarUrl }); } }} className="rounded-full text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10"><RefreshCw className="h-3 w-3 mr-1" />{giftRecipient?.uid === currentUser?.uid ? 'Switch to Host' : 'Gift Myself'}</Button>
+              <button onClick={() => { if (giftRecipient?.uid === currentUser?.uid) { setGiftRecipient(null); } else { setGiftRecipient({ uid: currentUser!.uid, name: userProfile!.username, avatarUrl: userProfile!.avatarUrl }); } }} className="rounded-full text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 flex items-center gap-1.5"><RefreshCw className="h-3 w-3" />{giftRecipient?.uid === currentUser?.uid ? 'Switch to Host' : 'Gift Myself'}</button>
             </div>
             <div className="grid grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto p-2 no-scrollbar">
               {AVAILABLE_GIFTS.map(g => (<button key={g.id} onClick={() => handleSendGift(g)} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-secondary/50 hover:bg-primary/20 transition-all border-2 border-transparent hover:border-primary group active:scale-90"><span className="text-4xl group-hover:scale-125 transition-transform duration-300">{g.emoji}</span><div className="text-center"><p className="text-[10px] font-black uppercase truncate w-20 tracking-tighter">{g.name}</p><div className="flex items-center justify-center gap-1 text-[10px] font-black text-primary"><GoldCoinIcon className="h-3 w-3" />{g.price}</div></div></button>))}
@@ -825,5 +865,3 @@ const ToolTile = ({ icon: Icon, label, active, onClick, disabled }: any) => (
     <span className="text-[10px] font-black uppercase tracking-tighter text-white/80">{label}</span>
   </button>
 );
-
-    

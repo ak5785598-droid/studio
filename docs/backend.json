@@ -66,6 +66,16 @@
         }
       }
     },
+    "FollowedRoom": {
+      "title": "FollowedRoom",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "roomName": { "type": "string" },
+        "coverUrl": { "type": "string" },
+        "followedAt": { "type": "string", "format": "date-time" }
+      }
+    },
     "Game": {
       "title": "Game",
       "type": "object",
@@ -89,16 +99,6 @@
         "likes": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
       }
-    },
-    "DiamondExchange": {
-      "title": "DiamondExchange",
-      "type": "object",
-      "properties": {
-        "diamondAmount": { "type": "number" },
-        "coinAmount": { "type": "number" },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "type": { "type": "string" }
-      }
     }
   },
   "auth": {
@@ -106,24 +106,14 @@
   },
   "firestore": {
     "/users/{userId}": {
-      "schema": { "$ref": "#/backend/entities/UserProfile" },
-      "description": "User root identity."
+      "schema": { "$ref": "#/backend/entities/UserProfile" }
     },
-    "/users/{userId}/diamondExchanges/{exchangeId}": {
-      "schema": { "$ref": "#/backend/entities/DiamondExchange" },
-      "description": "History of diamond-to-coin conversions."
+    "/users/{userId}/followingRooms/{roomId}": {
+      "schema": { "$ref": "#/backend/entities/FollowedRoom" },
+      "description": "Frequencies followed by the user."
     },
     "/chatRooms/{roomId}": {
-      "schema": { "$ref": "#/backend/entities/ChatRoom" },
-      "description": "Voice room metadata."
-    },
-    "/games/{gameId}": {
-      "schema": { "$ref": "#/backend/entities/Game" },
-      "description": "Dynamic game registry."
-    },
-    "/moments/{momentId}": {
-      "schema": { "$ref": "#/backend/entities/Moment" },
-      "description": "Public status broadcasts."
+      "schema": { "$ref": "#/backend/entities/ChatRoom" }
     }
   }
 }

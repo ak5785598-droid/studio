@@ -12,42 +12,28 @@ service cloud.firestore {
 
     function isRoomAdmin(rId) {
       let roomPath = /databases/$(database)/documents/chatRooms/$(rId);
-      return isSignedIn() && (
-        (exists(roomPath) && (
-          get(roomPath).data.ownerId == request.auth.uid || 
-          request.auth.uid in get(roomPath).data.get('moderatorIds', [])
-        )) || isAdmin()
+      return isSignedIn() && exists(roomPath) && (
+        get(roomPath).data.ownerId == request.auth.uid || 
+        request.auth.uid in get(roomPath).data.get('moderatorIds', []) || 
+        isAdmin()
       );
     }
     
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && (
-        request.auth.uid == userId || 
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'wallet', 'updatedAt', 'lastSignInAt', 'inventory', 'level', 'username', 'bio', 'avatarUrl', 'isNewUser', 'lastMoneyTreeClaimAt'])
-      );
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       
       match /profile/{profileId} {
         allow read: if isSignedIn();
-        allow create: if isSignedIn() && request.auth.uid == userId;
-        allow update: if isSignedIn() && request.auth.uid == userId;
+        allow write: if isSignedIn() && request.auth.uid == userId;
       }
       match /notifications/{id} {
         allow read: if isSignedIn() && request.auth.uid == userId;
         allow write: if isSignedIn();
       }
-      match /followers/{followerId} {
-        allow read: if isSignedIn();
-        allow write: if isSignedIn();
-      }
-      match /following/{followingId} {
-        allow read: if isSignedIn();
-        allow write: if isSignedIn();
-      }
-      match /diamondExchanges/{id} {
-        allow read: if isSignedIn() && request.auth.uid == userId;
-        allow create: if isSignedIn() && request.auth.uid == userId;
+      match /followingRooms/{roomId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
       }
     }
 
@@ -56,18 +42,13 @@ service cloud.firestore {
       allow write: if isAdmin() || (isSignedIn() && (id == 'counters'));
     }
 
-    match /games/{id} {
-      allow read, list: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
     match /chatRooms/{roomId} {
       allow read: if isSignedIn();
-      allow list, create: if isSignedIn();
+      allow create: if isSignedIn();
       allow update: if isSignedIn() && (
         request.auth.uid == resource.data.ownerId ||
         request.auth.uid in resource.data.get('moderatorIds', []) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'stats', 'updatedAt', 'currentMusicUrl', 'lockedSeats', 'isChatMuted', 'coverUrl', 'announcement', 'moderatorIds']) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'stats', 'updatedAt', 'currentMusicUrl', 'lockedSeats', 'isChatMuted', 'coverUrl', 'announcement']) ||
         isAdmin()
       );
       allow delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
@@ -76,10 +57,7 @@ service cloud.firestore {
         allow read, list: if isSignedIn();
         allow create: if isSignedIn() && request.auth.uid == userId;
         allow update: if isSignedIn();
-        allow delete: if isSignedIn() && (
-          request.auth.uid == userId || 
-          isRoomAdmin(roomId)
-        );
+        allow delete: if isSignedIn() && (request.auth.uid == userId || isRoomAdmin(roomId));
         
         match /signaling/{signalId} {
           allow read, write: if isSignedIn();
@@ -96,11 +74,6 @@ service cloud.firestore {
       allow read, list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow delete: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isAdmin());
-    }
-    
-    match /adminLogs/{logId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin();
     }
   }
 }
