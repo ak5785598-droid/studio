@@ -621,10 +621,25 @@ export function RoomClient({ room }: { room: Room }) {
 
       <header className="relative z-50 flex items-center justify-between p-4 pt-4">
         <div className="flex items-center gap-3 cursor-pointer group active:scale-[0.98] transition-transform" onClick={() => setIsRoomInfoOpen(true)}>
-          <Avatar className="h-10 w-10 rounded-xl border border-white/20 group-hover:border-primary transition-colors"><AvatarImage src={room.coverUrl || undefined} /><AvatarFallback>UM</AvatarFallback></Avatar>
+          <div className="relative">
+            <Avatar className="h-12 w-12 rounded-xl border-2 border-white/20 group-hover:border-primary transition-colors shadow-lg">
+              <AvatarImage src={room.coverUrl || undefined} />
+              <AvatarFallback>UM</AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-1 -right-1 bg-yellow-500 rounded-full p-0.5 border border-black shadow-lg">
+              <Crown className="h-2.5 w-2.5 text-black fill-current" />
+            </div>
+          </div>
           <div className="flex-1">
-            <div className="flex items-center gap-2"><h1 className="font-black text-sm uppercase tracking-tight">{room.title}</h1><ChevronRight className="h-3 w-3 text-white/40 group-hover:text-primary" /></div>
-            <p className="text-[10px] font-bold text-white/60 uppercase">ID:{room.roomNumber}</p>
+            <div className="flex items-center gap-2">
+              <h1 className="font-black text-[15px] uppercase tracking-tighter text-white drop-shadow-md">{room.title}</h1>
+              <ChevronRight className="h-3 w-3 text-white/40 group-hover:text-primary" />
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-[10px] font-black text-primary uppercase italic tracking-tight">{ownerProfile?.username || 'Tribe Owner'}</p>
+              <span className="text-[8px] text-white/20">|</span>
+              <p className="text-[10px] font-bold text-white/60 uppercase">ID:{room.roomNumber}</p>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -840,8 +855,24 @@ export function RoomClient({ room }: { room: Room }) {
             <div className="absolute top-8 left-6"><button onClick={handleCopyInvite} className="p-3 bg-white/10 rounded-full hover:bg-white/20 active:scale-90 transition-all"><Share2 className="h-6 w-6" /></button></div>
             <div className="absolute top-8 right-6"><button onClick={() => { setIsRoomInfoOpen(false); setIsSettingsOpen(true); }} className="p-3 bg-white/10 rounded-full hover:bg-white/20 active:scale-90 transition-all"><SettingsIcon className="h-6 w-6" /></button></div>
             <div className="flex flex-col items-center gap-4 mb-8">
-              <div className="relative"><Avatar className="h-32 w-32 border-4 border-white/20 shadow-2xl"><AvatarImage src={ownerProfile?.avatarUrl || undefined} /><AvatarFallback className="bg-slate-800 text-4xl">{(ownerProfile?.username || 'U').charAt(0)}</AvatarFallback></Avatar><div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-500 rounded-full p-1.5 shadow-lg"><Crown className="h-6 w-6 text-black fill-current" /></div></div>
-              <div className="text-center space-y-1"><h2 className="text-3xl font-black uppercase tracking-tighter">{ownerProfile?.username || room.title}</h2><div className="flex items-center justify-center gap-2 text-white/60"><span className="text-xs font-bold uppercase tracking-widest">ID:{room.roomNumber}</span><button onClick={() => { navigator.clipboard.writeText(room.roomNumber); toast({ title: 'ID Copied' }); }} className="p-1 hover:text-white transition-colors"><Copy className="h-3 w-3" /></button></div></div>
+              <div className="relative">
+                <Avatar className="h-32 w-32 border-4 border-white/20 shadow-2xl">
+                  <AvatarImage src={room.coverUrl || undefined} />
+                  <AvatarFallback className="bg-slate-800 text-4xl">UM</AvatarFallback>
+                </Avatar>
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-500 rounded-full p-1.5 shadow-lg">
+                  <Crown className="h-6 w-6 text-black fill-current" />
+                </div>
+              </div>
+              <div className="text-center space-y-1">
+                <h2 className="text-3xl font-black uppercase tracking-tighter">{room.title}</h2>
+                <div className="flex items-center justify-center gap-2 text-white/60">
+                  <span className="text-xs font-bold uppercase tracking-widest">ID:{room.roomNumber}</span>
+                  <span className="text-xs text-white/20">•</span>
+                  <span className="text-xs font-black text-primary uppercase">{onlineCount} Members Live</span>
+                  <button onClick={() => { navigator.clipboard.writeText(room.roomNumber); toast({ title: 'ID Copied' }); }} className="p-1 hover:text-white transition-colors"><Copy className="h-3 w-3" /></button>
+                </div>
+              </div>
             </div>
             <div className="flex gap-12 border-b border-white/10 w-full justify-center mb-8"><button onClick={() => setInfoTab('profile')} className={cn("pb-4 text-lg font-black uppercase tracking-widest border-b-4 transition-all", infoTab === 'profile' ? "border-primary text-white" : "border-transparent text-white/40")}>Profile</button><button onClick={() => setInfoTab('members')} className={cn("pb-4 text-lg font-black uppercase tracking-widest border-b-4 transition-all", infoTab === 'members' ? "border-primary text-white" : "border-transparent text-white/40")}>Member</button></div>
             <ScrollArea className="w-full max-w-sm flex-1 no-scrollbar"><div className="space-y-8 pb-20">{infoTab === 'profile' ? (<><div className="w-full bg-white/5 rounded-[2rem] p-4 flex items-center gap-4 border border-white/5 shadow-inner"><Avatar className="h-14 w-14 rounded-2xl border-2 border-white/10"><AvatarImage src={ownerProfile?.avatarUrl || undefined} /><AvatarFallback>U</AvatarFallback></Avatar><div className="flex-1"><p className="font-black text-lg uppercase tracking-tight">{ownerProfile?.username || 'Host'}</p><p className="text-[10px] font-black uppercase text-white/40 tracking-[0.2em]">Room Owner</p></div><div className="flex items-center gap-1 bg-primary/20 px-3 py-1 rounded-full border border-primary/30"><Crown className="h-3 w-3 text-primary" /><span className="text-[10px] font-black text-primary uppercase">Elite</span></div></div><div className="w-full space-y-4"><div className="flex items-center gap-2 px-2"><Info className="h-4 w-4 text-white/40" /><h3 className="text-xs font-black uppercase tracking-widest text-white/40">Announcement</h3></div><div className="bg-white/5 rounded-[2rem] p-6 border border-white/5 min-h-[120px]"><p className="text-lg font-medium text-white/80 leading-relaxed">{room.announcement || "Welcome to the frequency!"}</p></div></div></>) : (<div className="w-full space-y-3"><div className="flex items-center gap-2 px-2 mb-2"><ShieldCheck className="h-4 w-4 text-blue-400" /><h3 className="text-xs font-black uppercase tracking-widest text-white/40">Room Administrators</h3></div><div className="space-y-3">{room.moderatorIds?.map(id => (<ModeratorItem key={id} userId={id} />))}{(!room.moderatorIds || room.moderatorIds.length === 0) && (<p className="text-center py-10 text-white/20 uppercase font-black text-xs italic">No admins assigned</p>)}</div></div>)}</div></ScrollArea>
