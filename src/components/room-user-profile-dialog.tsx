@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -49,7 +50,8 @@ interface RoomUserProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canManage: boolean;
-  isOwner: boolean;
+  isOwner: boolean; // Viewer is owner
+  roomOwnerId: string;
   roomModeratorIds: string[];
   onSilence: (uid: string, current: boolean) => void;
   onKick: (uid: string, durationMinutes: number) => void;
@@ -62,9 +64,8 @@ interface RoomUserProfileDialogProps {
 
 /**
  * High-Fidelity Room User Card.
- * Mirroring the blueprint with dark translucent overlays, large counts, and bottom action portals.
  * Management row (Kick, Seat Leave, Mute) is strictly visible to Room Owner/Admin.
- * Normal users can only see "Leave Seat" on their own profile.
+ * OWNER IMMUNITY: Admins cannot kick, mute, or force-remove the Room Owner.
  */
 export function RoomUserProfileDialog({ 
   userId, 
@@ -72,6 +73,7 @@ export function RoomUserProfileDialog({
   onOpenChange, 
   canManage, 
   isOwner,
+  roomOwnerId,
   roomModeratorIds,
   onSilence,
   onKick,
@@ -93,6 +95,7 @@ export function RoomUserProfileDialog({
     }
   };
 
+  const isTargetOwner = userId === roomOwnerId;
   const isTargetPMod = roomModeratorIds.includes(userId);
 
   return (
@@ -246,12 +249,12 @@ export function RoomUserProfileDialog({
                     </div>
                   </div>
 
-                  {/* Management Row: Conditional rendering based on Authority */}
+                  {/* Management Row: OWNER IMMUNITY ENFORCED */}
                   {(canManage || isMe) && (
                     <div className="grid grid-cols-3 gap-4 px-2 pt-4 border-t border-white/10">
                        
-                       {/* Mute: Admin only, never on self */}
-                       {canManage && !isMe ? (
+                       {/* Mute: Admin only on non-owners */}
+                       {canManage && !isMe && !isTargetOwner ? (
                          <div 
                            onClick={() => onSilence(userId, isSilenced)}
                            className="flex flex-col items-center gap-2 group active:scale-95 transition-all cursor-pointer"
@@ -273,21 +276,30 @@ export function RoomUserProfileDialog({
                          </div>
                        )}
 
-                       {/* Seat Leave: Admin on others, OR Self on self */}
-                       <div 
-                         onClick={() => onLeaveSeat(userId)}
-                         className="flex flex-col items-center gap-2 group active:scale-95 transition-all cursor-pointer"
-                       >
-                          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-500/20 border border-white/10">
-                             <LogOut className="h-7 w-7 text-black" />
-                          </div>
-                          <span className="text-[10px] font-black uppercase text-white/60 tracking-tight">
-                            {isMe ? 'Leave Seat' : 'Seat Leave'}
-                          </span>
-                       </div>
+                       {/* Seat Leave: Allowed for Self OR Admin on non-owners */}
+                       {isMe || (canManage && !isTargetOwner) ? (
+                         <div 
+                           onClick={() => onLeaveSeat(userId)}
+                           className="flex flex-col items-center gap-2 group active:scale-95 transition-all cursor-pointer"
+                         >
+                            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-500/20 border border-white/10">
+                               <LogOut className="h-7 w-7 text-black" />
+                            </div>
+                            <span className="text-[10px] font-black uppercase text-white/60 tracking-tight">
+                              {isMe ? 'Leave Seat' : 'Seat Leave'}
+                            </span>
+                         </div>
+                       ) : (
+                         <div className="flex flex-col items-center gap-2 opacity-20 pointer-events-none">
+                            <div className="h-14 w-14 rounded-2xl bg-slate-800 flex items-center justify-center border border-white/10">
+                               <LogOut className="h-7 w-7 text-white/40" />
+                            </div>
+                            <span className="text-[10px] font-black uppercase text-white/20 tracking-tight">Seat Leave</span>
+                         </div>
+                       )}
 
-                       {/* Kick Out: Admin only, never on self */}
-                       {canManage && !isMe ? (
+                       {/* Kick Out: Admin only on non-owners */}
+                       {canManage && !isMe && !isTargetOwner ? (
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                <div className="flex flex-col items-center gap-2 group active:scale-95 transition-all cursor-pointer">

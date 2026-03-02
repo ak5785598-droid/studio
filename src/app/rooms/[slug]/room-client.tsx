@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -554,7 +555,7 @@ export function RoomClient({ room }: { room: Room }) {
     router.push('/rooms');
   };
 
-  const takeSeat = (index: number) => { if (!firestore || !room.id || !currentUser || !userProfile) return; if (room.lockedSeats?.includes(index)) { toast({ variant: 'destructive', title: 'Seat Locked' }); return; } updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { uid: currentUser.uid, name: userProfile.username || 'Guest', avatarUrl: userProfile.avatarUrl || '', seatIndex: index, isMuted: true, activeWave: userProfile.inventory?.activeWave || 'Default' }); };
+  const takeSeat = (index: number) => { if (!firestore || !room.id || !currentUser || !userProfile) return; if (room.lockedSeats?.includes(index)) { toast({ variant: 'destructive', title: 'Seat Locked' }); return; } updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { [`participants.${currentUser.uid}`]: { uid: currentUser.uid, name: userProfile.username || 'Guest', avatarUrl: userProfile.avatarUrl || '', seatIndex: index, isMuted: true, activeWave: userProfile.inventory?.activeWave || 'Default' } }); };
   const leaveSeat = () => { if (!firestore || !room.id || !currentUser) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: 0, isMuted: true }); setIsActionMenuOpen(false); setIsUserProfileCardOpen(false); };
   
   const handleMicToggle = () => { 
@@ -1173,6 +1174,7 @@ export function RoomClient({ room }: { room: Room }) {
         onOpenChange={setIsUserProfileCardOpen}
         canManage={canManageRoom}
         isOwner={isOwner}
+        roomOwnerId={room.ownerId}
         roomModeratorIds={room.moderatorIds || []}
         onSilence={silenceParticipant}
         onKick={kickParticipant}
