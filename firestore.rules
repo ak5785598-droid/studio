@@ -96,6 +96,11 @@ service cloud.firestore {
         allow create: if isSignedIn();
         allow delete: if isRoomAdmin(chatRoomId);
       }
+
+      match /bans/{userId} {
+        allow read: if isSignedIn();
+        allow write: if isRoomAdmin(chatRoomId);
+      }
     }
 
     match /privateChats/{chatId} {

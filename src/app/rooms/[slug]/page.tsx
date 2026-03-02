@@ -6,13 +6,14 @@ import { RoomClient } from './room-client';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { Loader, ShieldAlert, Ghost } from 'lucide-react';
+import { Loader, ShieldAlert, Ghost, Ban } from 'lucide-react';
 import type { Room } from '@/lib/types';
 import { useRoomContext } from '@/components/room-provider';
+import { format } from 'date-fns';
 
 /**
  * Chat Room Entry Page Gateway.
- * Manages identity synchronization and room metadata retrieval.
+ * Manages identity synchronization, ban checks, and room metadata retrieval.
  * Includes a Permanent Protocol for the Official Help Desk.
  */
 export default function RoomPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -28,12 +29,26 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     }
   }, [isUserLoading, currentUser, router]);
 
+  // Exclusion List Handshake
+  const banDocRef = useMemoFirebase(() => {
+    if (!firestore || !slug || isUserLoading || !currentUser) return null;
+    return doc(firestore, 'chatRooms', slug, 'bans', currentUser.uid);
+  }, [firestore, slug, isUserLoading, currentUser]);
+
+  const { data: banData, isLoading: isBanLoading } = useDoc(banDocRef);
+
   const roomDocRef = useMemoFirebase(() => {
     if (!firestore || !slug || isUserLoading || !currentUser) return null;
     return doc(firestore, 'chatRooms', slug);
   }, [firestore, slug, isUserLoading, currentUser]);
 
   const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
+
+  const bannedUntil = useMemo(() => {
+    if (!banData) return null;
+    const expires = banData.expiresAt?.toDate();
+    return (expires && expires > new Date()) ? expires : null;
+  }, [banData]);
 
   // Elite Permanent Fallback Protocol: Ensures Ummy Help Desk is never "Disbanded"
   const activeRoom: Room | null = useMemo(() => {
@@ -85,11 +100,31 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   }, [firestoreRoom, slug]);
 
   useEffect(() => {
-    if (activeRoom) {
+    if (activeRoom && !bannedUntil) {
       setActiveRoom(activeRoom);
       setIsMinimized(false);
     }
-  }, [activeRoom, setActiveRoom, setIsMinimized]);
+  }, [activeRoom, setActiveRoom, setIsMinimized, bannedUntil]);
+
+  if (bannedUntil) {
+    return (
+      <AppLayout>
+        <div className="flex h-[60vh] flex-col items-center justify-center space-y-6 text-center px-6 animate-in zoom-in duration-500">
+          <div className="h-24 w-24 bg-red-500/10 rounded-full flex items-center justify-center shadow-xl shadow-red-500/10 border-2 border-red-500/20">
+            <Ban className="h-12 w-12 text-red-500" />
+          </div>
+          <h1 className="text-3xl font-black uppercase tracking-tighter italic">Frequency Exclusion</h1>
+          <div className="space-y-2">
+            <p className="text-muted-foreground font-body text-lg">You were kicked from this room.</p>
+            <p className="text-primary font-black uppercase text-xs tracking-widest bg-primary/10 px-4 py-2 rounded-full inline-block">
+              Restricted until {format(bannedUntil, 'MMM d, HH:mm')}
+            </p>
+          </div>
+          <button onClick={() => router.push('/rooms')} className="bg-primary text-white font-black uppercase tracking-widest text-xs px-10 py-4 rounded-full shadow-lg shadow-primary/20 hover:scale-105 transition-transform">Explore Others</button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (docError && slug !== 'ummy-help-center') {
      return (
@@ -104,7 +139,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
      );
   }
 
-  const isWaiting = isUserLoading || (!!roomDocRef && isDocLoading && slug !== 'ummy-help-center');
+  const isWaiting = isUserLoading || isBanLoading || (!!roomDocRef && isDocLoading && slug !== 'ummy-help-center');
 
   if (isWaiting) {
     return (

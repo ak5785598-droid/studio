@@ -510,13 +510,24 @@ export function RoomClient({ room }: { room: Room }) {
   const toggleSeatLock = (index: number) => { if (!canManageRoom || !firestore || !room.id) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { lockedSeats: room.lockedSeats?.includes(index) ? arrayRemove(index) : arrayUnion(index) }); };
   const silenceParticipant = (uid: string, currentState: boolean) => { if (!canManageRoom || !firestore || !room.id) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid), { isSilenced: !currentState, isMuted: true }); };
   
-  const kickParticipant = async (uid: string) => {
+  const kickParticipant = async (uid: string, durationMinutes: number) => {
     if (!canManageRoom || !firestore || !room.id) return;
     const pRef = doc(firestore, 'chatRooms', room.id, 'participants', uid);
+    const banRef = doc(firestore, 'chatRooms', room.id, 'bans', uid);
+    
+    const expiresAt = new Date(Date.now() + durationMinutes * 60000);
+    
     deleteDocumentNonBlocking(pRef);
+    setDocumentNonBlocking(banRef, {
+      uid,
+      expiresAt,
+      kickedAt: serverTimestamp(),
+      kickedBy: currentUser?.uid
+    }, { merge: true });
+
     setIsActionMenuOpen(false);
     setIsUserProfileCardOpen(false);
-    toast({ title: 'Member Kicked' });
+    toast({ title: 'Member Kicked & Restricted' });
   };
 
   const forceLeaveSeat = async (uid: string) => {
@@ -873,22 +884,18 @@ export function RoomClient({ room }: { room: Room }) {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                   <Button 
-                     variant="outline" 
-                     size="sm" 
+                   <button 
                      onClick={() => roomDpInputRef.current?.click()}
-                     className="rounded-full h-10 px-6 text-[10px] font-black uppercase italic border-2"
+                     className="rounded-full h-10 px-6 text-[10px] font-black uppercase italic border-2 flex items-center gap-2"
                    >
-                     <Upload className="h-3 w-3 mr-2" /> Upload
-                   </Button>
-                   <Button 
-                     variant="outline" 
-                     size="sm" 
+                     <Upload className="h-3 w-3" /> Upload
+                   </button>
+                   <button 
                      onClick={() => setIsCameraOpen(true)}
-                     className="rounded-full h-10 px-6 text-[10px] font-black uppercase italic border-2 bg-primary/5 border-primary/20 text-primary"
+                     className="rounded-full h-10 px-6 text-[10px] font-black uppercase italic border-2 bg-primary/5 border-primary/20 text-primary flex items-center gap-2"
                    >
-                     <Camera className="h-3 w-3 mr-2" /> Camera
-                   </Button>
+                     <Camera className="h-3 w-3" /> Camera
+                   </button>
                 </div>
               </section>
 
@@ -1144,7 +1151,7 @@ export function RoomClient({ room }: { room: Room }) {
             {selectedOccupant && canManageRoom && selectedOccupant.uid !== currentUser?.uid && (
               <>
                 <ToolTile icon={selectedOccupant.isSilenced ? Volume2 : MicOff} label={selectedOccupant.isSilenced ? "Unsilence" : "Silence"} color="text-orange-400" onClick={() => silenceParticipant(selectedOccupant.uid, !!selectedOccupant.isSilenced)} />
-                <ToolTile icon={Ban} label="Kick Tribe" color="text-red-400" onClick={() => kickParticipant(selectedOccupant.uid)} />
+                <ToolTile icon={Ban} label="Seat Leave" color="text-red-400" onClick={() => forceLeaveSeat(selectedOccupant.uid)} />
                 {isOwner && (
                   <ToolTile 
                     icon={room.moderatorIds?.includes(selectedOccupant.uid) ? ShieldCheck : UserPlus} 

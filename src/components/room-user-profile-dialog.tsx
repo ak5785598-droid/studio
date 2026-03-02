@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   Loader,
   LogOut,
-  Mic
+  Mic,
+  Clock
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -51,7 +52,7 @@ interface RoomUserProfileDialogProps {
   isOwner: boolean;
   roomModeratorIds: string[];
   onSilence: (uid: string, current: boolean) => void;
-  onKick: (uid: string) => void;
+  onKick: (uid: string, durationMinutes: number) => void;
   onLeaveSeat: (uid: string) => void;
   onToggleMod: (uid: string) => void;
   onOpenGiftPicker: (recipient: any) => void;
@@ -63,6 +64,7 @@ interface RoomUserProfileDialogProps {
  * High-Fidelity Room User Card.
  * Mirroring the blueprint with dark translucent overlays, large counts, and bottom action portals.
  * Management row (Kick, Seat Leave, Mute) is visible only to Owner/Admin.
+ * Upgraded "Kick Out" with Timed Ban selection menu (5m, 1h, 24h).
  */
 export function RoomUserProfileDialog({ 
   userId, 
@@ -273,18 +275,43 @@ export function RoomUserProfileDialog({
                           <span className="text-[10px] font-black uppercase text-white/60 tracking-tight">Seat Leave</span>
                        </div>
 
-                       <div 
-                         onClick={() => onKick(userId)}
-                         className={cn(
-                           "flex flex-col items-center gap-2 group active:scale-95 transition-all cursor-pointer",
-                           (isMe || !canManage) && "opacity-30 pointer-events-none"
-                         )}
-                       >
-                          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg shadow-red-500/20 border border-white/10">
-                             <Ban className="h-7 w-7 text-white" />
-                          </div>
-                          <span className="text-[10px] font-black uppercase text-white/60 tracking-tight">Kick Out</span>
-                       </div>
+                       {/* UPGRADED KICK OUT PORTAL */}
+                       {!isMe && canManage ? (
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                               <div className="flex flex-col items-center gap-2 group active:scale-95 transition-all cursor-pointer">
+                                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg shadow-red-500/20 border border-white/10">
+                                     <Ban className="h-7 w-7 text-white" />
+                                  </div>
+                                  <span className="text-[10px] font-black uppercase text-white/60 tracking-tight">Kick Out</span>
+                               </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-slate-900 border-white/10 text-white rounded-[1.5rem] p-2 min-w-[160px] shadow-2xl">
+                               <div className="px-3 py-2 border-b border-white/5 mb-1">
+                                  <p className="text-[8px] font-black uppercase tracking-widest text-white/40">Exclusion Duration</p>
+                               </div>
+                               <DropdownMenuItem onClick={() => onKick(userId, 5)} className="flex items-center gap-3 p-3 focus:bg-white/10 rounded-xl cursor-pointer">
+                                  <Clock className="h-4 w-4 text-primary" />
+                                  <span className="font-black uppercase text-[10px]">5 Minutes</span>
+                               </DropdownMenuItem>
+                               <DropdownMenuItem onClick={() => onKick(userId, 60)} className="flex items-center gap-3 p-3 focus:bg-white/10 rounded-xl cursor-pointer">
+                                  <Clock className="h-4 w-4 text-orange-400" />
+                                  <span className="font-black uppercase text-[10px]">1 Hour</span>
+                               </DropdownMenuItem>
+                               <DropdownMenuItem onClick={() => onKick(userId, 1440)} className="flex items-center gap-3 p-3 focus:bg-white/10 rounded-xl cursor-pointer text-red-400">
+                                  <Ban className="h-4 w-4" />
+                                  <span className="font-black uppercase text-[10px]">24 Hours</span>
+                               </DropdownMenuItem>
+                            </DropdownMenuContent>
+                         </DropdownMenu>
+                       ) : (
+                         <div className="opacity-30 pointer-events-none flex flex-col items-center gap-2">
+                            <div className="h-14 w-14 rounded-2xl bg-slate-800 flex items-center justify-center border border-white/10">
+                               <Ban className="h-7 w-7 text-white/40" />
+                            </div>
+                            <span className="text-[10px] font-black uppercase text-white/20 tracking-tight">Kick Out</span>
+                         </div>
+                       )}
                     </div>
                   )}
                </div>
