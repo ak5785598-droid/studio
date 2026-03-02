@@ -8,11 +8,10 @@ import { getStorage } from 'firebase/storage';
 
 /**
  * PRODUCTION FIREBASE INITIALIZATION
- * Re-engineered to explicitly use the firebaseConfig to ensure Storage Bucket availability.
+ * Re-engineered to simplify service retrieval and ensure absolute storage bucket stability.
  */
 export function initializeFirebase() {
   if (!getApps().length) {
-    // Force use of firebaseConfig to guarantee storageBucket and apiKey presence in Studio environment
     const firebaseApp = initializeApp(firebaseConfig);
     return getSdks(firebaseApp);
   }
@@ -21,16 +20,12 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
-  // Ensure bucket is prefixed correctly for maximum SDK compatibility
-  const bucketUrl = firebaseConfig.storageBucket.startsWith('gs://') 
-    ? firebaseConfig.storageBucket 
-    : `gs://${firebaseConfig.storageBucket}`;
-
+  // Use default service initialization to inherit config signatures correctly
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
     firestore: getFirestore(firebaseApp),
-    storage: getStorage(firebaseApp, bucketUrl)
+    storage: getStorage(firebaseApp)
   };
 }
 
