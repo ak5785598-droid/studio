@@ -46,7 +46,10 @@ import {
   LayoutGrid,
   ChevronRight,
   Armchair,
-  Crown
+  Crown,
+  Settings as SettingsIcon,
+  Copy,
+  Info
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -147,8 +150,6 @@ const AVAILABLE_GIFTS: Gift[] = [
   { id: 'celebration', name: 'Celebration', emoji: '🥳', price: 1000000, animationType: 'zoom' },
 ];
 
-const AVAILABLE_EMOJIS = ['😀', '😂', '😘', '🥰', '😎', '🤗', '😡', '😭', '💋'];
-
 const MUSIC_TRACKS = [
   { id: 'lofi', name: 'Lofi Vibes', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
   { id: 'jazz', name: 'Midnight Jazz', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
@@ -181,7 +182,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [showGiftEffects, setShowGiftEffects] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
   const [isClaimingTree, setIsClaimingTree] = useState(false);
-  const [hasJoined, setHasJoined] = useState(false);
+  const [isRoomInfoOpen, setIsRoomInfoOpen] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const roomDpInputRef = useRef<HTMLInputElement>(null);
@@ -190,6 +191,7 @@ export function RoomClient({ room }: { room: Room }) {
   const router = useRouter();
   const { user: currentUser } = useUser();
   const { userProfile } = useUserProfile(currentUser?.uid);
+  const { userProfile: ownerProfile } = useUserProfile(room.ownerId);
   const firestore = useFirestore();
   const { isUploading: isRoomImageUploading, uploadRoomImage } = useRoomImageUpload(room.id);
   const { setActiveRoom } = useRoomContext();
@@ -234,23 +236,6 @@ export function RoomClient({ room }: { room: Room }) {
   }, [userProfile, showTutorial]);
 
   useEffect(() => {
-    if (participants && currentUser && !isOwner) {
-      const isStillInRoom = participants.some(p => p.uid === currentUser.uid);
-      if (isStillInRoom) {
-        setHasJoined(true);
-      } else if (hasJoined) {
-        toast({ 
-          variant: 'destructive', 
-          title: 'Connection Lost', 
-          description: 'You have been removed from the frequency by a manager.' 
-        });
-        setActiveRoom(null);
-        router.push('/rooms');
-      }
-    }
-  }, [participants, currentUser, hasJoined, isOwner, router, toast, setActiveRoom]);
-
-  useEffect(() => {
     if (!showGiftEffects) return;
     const lastMsg = firestoreMessages?.[firestoreMessages.length - 1];
     if (lastMsg?.type === 'gift' && lastMsg.giftId) {
@@ -277,19 +262,6 @@ export function RoomClient({ room }: { room: Room }) {
     });
     setMessageText('');
     setIsSending(false);
-  };
-
-  const handleSendEmoji = async (emoji: string) => {
-    if (!currentUser || !firestore || !userProfile) return;
-    if (currentUserParticipant) {
-      const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
-      updateDocumentNonBlocking(participantRef, { activeEmoji: emoji });
-      setTimeout(() => { updateDocumentNonBlocking(participantRef, { activeEmoji: null }); }, 4000);
-    }
-    addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
-      content: emoji, senderId: currentUser.uid, senderName: userProfile.username || 'User', senderAvatar: userProfile.avatarUrl || '', chatRoomId: room.id, timestamp: serverTimestamp(), type: 'emoji'
-    });
-    setIsEmojiPickerOpen(false);
   };
 
   const handleSendGift = async (gift: Gift) => {
@@ -395,7 +367,7 @@ export function RoomClient({ room }: { room: Room }) {
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), {
       moderatorIds: isPMod ? arrayRemove(targetUid) : arrayUnion(targetUid)
     });
-    toast({ title: isPMod ? 'Admin Granted' : 'Admin Granted', description: 'Tribe role has been synchronized.' });
+    toast({ title: isPMod ? 'Admin Revoked' : 'Admin Granted', description: 'Tribe role has been synchronized.' });
   };
 
   const handleTutorialComplete = () => {
@@ -408,6 +380,12 @@ export function RoomClient({ room }: { room: Room }) {
   const handleSeatClick = (index: number, occupant?: RoomParticipant) => {
     setSelectedSeatIndex(index);
     setIsActionMenuOpen(true);
+  };
+
+  const handleCopyInvite = () => {
+    const link = `${window.location.origin}/rooms/${room.id}`;
+    navigator.clipboard.writeText(link);
+    toast({ title: 'Invite Copied', description: 'Share the frequency link with your tribe.' });
   };
 
   const hostParticipant = participants?.find(p => p.seatIndex === 1);
@@ -490,10 +468,16 @@ export function RoomClient({ room }: { room: Room }) {
       </div>
 
       <header className="relative z-50 flex items-center justify-between p-4 pt-8">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 rounded-xl border border-white/20"><AvatarImage src={room.coverUrl} /><AvatarFallback>UM</AvatarFallback></Avatar>
+        <div 
+          className="flex items-center gap-3 cursor-pointer group active:scale-[0.98] transition-transform"
+          onClick={() => setIsRoomInfoOpen(true)}
+        >
+          <Avatar className="h-10 w-10 rounded-xl border border-white/20 group-hover:border-primary transition-colors"><AvatarImage src={room.coverUrl} /><AvatarFallback>UM</AvatarFallback></Avatar>
           <div>
-            <h1 className="font-black text-sm uppercase tracking-tight">{room.title}</h1>
+            <div className="flex items-center gap-1">
+              <h1 className="font-black text-sm uppercase tracking-tight">{room.title}</h1>
+              <ChevronRight className="h-3 w-3 text-white/40 group-hover:text-primary" />
+            </div>
             <p className="text-[10px] font-bold text-white/60 uppercase">ID:{room.roomNumber}</p>
           </div>
         </div>
@@ -503,7 +487,7 @@ export function RoomClient({ room }: { room: Room }) {
             <span className="text-[10px] font-black">{onlineCount}</span>
           </div>
           <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsSettingsOpen(true)}><Hexagon className="h-4 w-4" /></button>
-          <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all"><Share2 className="h-4 w-4" /></button>
+          <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" onClick={handleCopyInvite}><Share2 className="h-4 w-4" /></button>
           <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" onClick={leaveRoom}><Power className="h-4 w-4" /></button>
         </div>
       </header>
@@ -627,6 +611,82 @@ export function RoomClient({ room }: { room: Room }) {
           </button>
         </div>
       </footer>
+
+      {/* Frequency Identity Portal (Room Info Dialog) */}
+      <Dialog open={isRoomInfoOpen} onOpenChange={setIsRoomInfoOpen}>
+        <DialogContent className="w-screen h-screen max-w-none m-0 rounded-none border-none bg-black/95 backdrop-blur-xl text-white p-0 flex flex-col animate-in slide-in-from-bottom duration-500 overflow-hidden font-headline">
+          <div className="relative flex-1 flex flex-col items-center pt-20 px-6">
+            
+            {/* Command Corners */}
+            <div className="absolute top-8 left-6">
+              <button onClick={handleCopyInvite} className="p-3 bg-white/10 rounded-full hover:bg-white/20 active:scale-90 transition-all"><Share2 className="h-6 w-6" /></button>
+            </div>
+            <div className="absolute top-8 right-6">
+              <button onClick={() => { setIsRoomInfoOpen(false); setIsSettingsOpen(true); }} className="p-3 bg-white/10 rounded-full hover:bg-white/20 active:scale-90 transition-all"><SettingsIcon className="h-6 w-6" /></button>
+            </div>
+
+            {/* Room Owner Identity Section */}
+            <div className="flex flex-col items-center gap-4 mb-8">
+              <div className="relative">
+                <Avatar className="h-32 w-32 border-4 border-white/20 shadow-2xl">
+                  <AvatarImage src={ownerProfile?.avatarUrl} />
+                  <AvatarFallback className="bg-slate-800 text-4xl">{(ownerProfile?.username || 'U').charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-500 rounded-full p-1.5 shadow-lg"><Crown className="h-6 w-6 text-black fill-current" /></div>
+              </div>
+              <div className="text-center space-y-1">
+                <h2 className="text-3xl font-black uppercase tracking-tighter">{ownerProfile?.username || room.title}</h2>
+                <div className="flex items-center justify-center gap-2 text-white/60">
+                  <span className="text-xs font-bold uppercase tracking-widest">ID:{room.roomNumber}</span>
+                  <button onClick={() => { navigator.clipboard.writeText(room.roomNumber); toast({ title: 'ID Copied' }); }} className="p-1 hover:text-white transition-colors"><Copy className="h-3 w-3" /></button>
+                </div>
+              </div>
+            </div>
+
+            {/* Portal Tab System */}
+            <div className="flex gap-12 border-b border-white/10 w-full justify-center mb-8">
+              <button className="pb-4 text-lg font-black uppercase tracking-widest border-b-4 border-primary text-white">Profile</button>
+              <button className="pb-4 text-lg font-black uppercase tracking-widest border-b-4 border-transparent text-white/40">Member</button>
+            </div>
+
+            {/* Owner Identity Card */}
+            <div className="w-full max-w-sm bg-white/5 rounded-[2rem] p-4 flex items-center gap-4 mb-10 border border-white/5 shadow-inner">
+              <Avatar className="h-14 w-14 rounded-2xl border-2 border-white/10">
+                <AvatarImage src={ownerProfile?.avatarUrl} />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="font-black text-lg uppercase tracking-tight">{ownerProfile?.username || 'Host'}</p>
+                <p className="text-[10px] font-black uppercase text-white/40 tracking-[0.2em]">Room owner</p>
+              </div>
+              <div className="flex items-center gap-1 bg-primary/20 px-3 py-1 rounded-full border border-primary/30">
+                <Crown className="h-3 w-3 text-primary" />
+                <span className="text-[10px] font-black text-primary uppercase">Elite</span>
+              </div>
+            </div>
+
+            {/* Announcement Broadcast Section */}
+            <div className="w-full max-w-sm space-y-4">
+              <div className="flex items-center gap-2 px-2">
+                <Info className="h-4 w-4 text-white/40" />
+                <h3 className="text-xs font-black uppercase tracking-widest text-white/40">Announcement</h3>
+              </div>
+              <div className="bg-white/5 rounded-[2rem] p-6 border border-white/5 min-h-[120px]">
+                <p className="text-lg font-medium italic text-white/80 leading-relaxed">
+                  {room.announcement || "Welcome to the tribe! Enjoy the frequency."}
+                </p>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setIsRoomInfoOpen(false)}
+              className="mt-auto mb-12 text-[10px] font-black uppercase tracking-[0.5em] text-white/20 hover:text-white transition-colors"
+            >
+              Tap anywhere to close
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isActionMenuOpen} onOpenChange={setIsActionMenuOpen}>
         <DialogContent className="sm:max-w-[425px] bg-white text-black p-0 rounded-t-[3rem] overflow-hidden border-none shadow-2xl animate-in slide-in-from-bottom-full duration-500">
