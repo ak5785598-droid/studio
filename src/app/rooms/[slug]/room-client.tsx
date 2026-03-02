@@ -51,7 +51,8 @@ import {
   X,
   Settings as SettingsIcon,
   Copy,
-  Info
+  Info,
+  Calculator as CalculatorIcon
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -218,6 +219,55 @@ const SettingsListItem = ({ label, value, onClick, icon: Icon, showChevron = tru
   </div>
 );
 
+/**
+ * Functional Calculator Component for in-room utility.
+ */
+function CalculatorPortal() {
+  const [display, setDisplay] = useState('0');
+  const [equation, setEquation] = useState('');
+
+  const handleKey = (key: string) => {
+    if (key === 'C') { setDisplay('0'); setEquation(''); return; }
+    if (key === '=') {
+      try {
+        const result = eval(equation);
+        setDisplay(String(result));
+        setEquation(String(result));
+      } catch { setDisplay('Error'); setEquation(''); }
+      return;
+    }
+    const newEquation = equation + key;
+    setEquation(newEquation);
+    setDisplay(key);
+  };
+
+  const keys = ['7','8','9','/', '4','5','6','*', '1','2','3','-', '0','.','=','+', 'C'];
+
+  return (
+    <div className="p-4 bg-slate-900 rounded-[2rem] border-2 border-white/10 shadow-2xl space-y-4">
+      <div className="bg-black/40 p-4 rounded-xl text-right">
+        <p className="text-[10px] text-white/40 uppercase font-black tracking-widest mb-1">Exchange Calc</p>
+        <p className="text-3xl font-black text-primary truncate">{display}</p>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {keys.map(k => (
+          <button 
+            key={k} 
+            onClick={() => handleKey(k)}
+            className={cn(
+              "h-12 rounded-xl font-black transition-all active:scale-90",
+              k === '=' ? "bg-primary text-white" : "bg-white/5 text-white hover:bg-white/10",
+              k === 'C' && "col-span-4 bg-red-500/20 text-red-500"
+            )}
+          >
+            {k}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -226,6 +276,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isGamesDialogOpen, setIsGamesDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isClearChatConfirmOpen, setIsClearChatConfirmOpen] = useState(false);
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isMusicMenuOpen, setIsMusicMenuOpen] = useState(false);
   const [isParticipantListOpen, setIsParticipantListOpen] = useState(false);
   const [selectedSeatIndex, setSelectedSeatIndex] = useState<number | null>(null);
@@ -696,6 +747,40 @@ export function RoomClient({ room }: { room: Room }) {
             <div className="grid grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto p-2 no-scrollbar">{AVAILABLE_GIFTS.map(g => (<button key={g.id} onClick={() => handleSendGift(g)} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-secondary/50 hover:bg-primary/20 transition-all border-2 border-transparent hover:border-primary group active:scale-90"><span className="text-4xl group-hover:scale-125 transition-transform duration-300">{g.emoji}</span><div className="text-center"><p className="text-[10px] font-black uppercase truncate w-20 tracking-tighter">{g.name}</p><div className="flex items-center justify-center gap-1 text-[10px] font-black text-primary"><GoldCoinIcon className="h-3 w-3" />{g.price}</div></div></button>))}</div>
             <div className="bg-secondary/30 p-4 rounded-2xl flex items-center justify-between shadow-inner"><span className="text-xs font-black uppercase opacity-60 tracking-widest">Your Balance</span><div className="flex items-center gap-2 font-black text-primary text-xl"><GoldCoinIcon className="h-5 w-5" />{userProfile?.wallet?.coins || 0}</div></div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isGamesDialogOpen} onOpenChange={setIsGamesDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden animate-in slide-in-from-bottom-full duration-500">
+          <DialogHeader className="p-8 pb-4 text-center border-b">
+            <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Room Tools</DialogTitle>
+          </DialogHeader>
+          <div className="p-8 grid grid-cols-3 gap-6">
+            <ToolTile icon={CalculatorIcon} label="Calculator" onClick={() => { setIsCalculatorOpen(true); setIsGamesDialogOpen(false); }} />
+            {canManageRoom && (
+              <>
+                <ToolTile 
+                  icon={room.isChatMuted ? MessageSquare : MessageSquareOff} 
+                  label={room.isChatMuted ? "Open Msg" : "Close Msg"} 
+                  onClick={toggleRoomMessages} 
+                  active={room.isChatMuted}
+                />
+                <ToolTile 
+                  icon={Trash2} 
+                  label="Clear Chat" 
+                  onClick={() => { setIsClearChatConfirmOpen(true); setIsGamesDialogOpen(false); }} 
+                />
+              </>
+            )}
+            <ToolTile icon={Music} label="Music" onClick={() => { setIsMusicMenuOpen(true); setIsGamesDialogOpen(false); }} />
+            <ToolTile icon={Gamepad2} label="Games" onClick={() => { router.push('/games'); setIsGamesDialogOpen(false); }} />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCalculatorOpen} onOpenChange={setIsCalculatorOpen}>
+        <DialogContent className="sm:max-w-xs bg-transparent border-none p-0">
+          <CalculatorPortal />
         </DialogContent>
       </Dialog>
 
