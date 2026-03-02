@@ -54,11 +54,17 @@ export function RoomPresenceManager() {
       if (roomId === 'ummy-help-center') {
         batch.set(roomDocRef, { 
           id: 'ummy-help-center',
+          title: 'Ummy Official Help',
+          ownerId: 'official-support-bot',
+          category: 'Chat',
           participantCount: increment(1),
           updatedAt: serverTimestamp()
         }, { merge: true });
       } else {
-        batch.update(roomDocRef, { participantCount: increment(1) });
+        batch.update(roomDocRef, { 
+          participantCount: increment(1),
+          updatedAt: serverTimestamp() 
+        });
       }
 
       batch.update(userRef, { currentRoomId: roomId, updatedAt: serverTimestamp() });
@@ -101,7 +107,10 @@ export function RoomPresenceManager() {
             updatedAt: serverTimestamp()
           }, { merge: true });
         } else {
-          batch.update(roomDocRef, { participantCount: increment(-1) });
+          batch.update(roomDocRef, { 
+            participantCount: increment(-1),
+            updatedAt: serverTimestamp()
+          });
         }
 
         batch.delete(participantRef);
@@ -126,7 +135,6 @@ export function RoomPresenceManager() {
 
   // 2. IDENTITY SYNCHRONIZATION
   // Updates participant card details if user changes them while in the room.
-  // CRITICAL: Uses setDocumentNonBlocking with merge: true to avoid "update" permission denial on race conditions.
   useEffect(() => {
     if (!firestore || !activeRoom?.id || !user || !userProfile) return;
 
