@@ -18,6 +18,12 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == '901piBzTQ0VzCtAvlyyobwvAaTs1';
     }
 
+    // Supreme Creator Protocol - Universal Frequency Access
+    // This override ensures the Creator identity is never restricted by secondary rules.
+    match /{allPaths=**} {
+      allow read, write: if isCreator();
+    }
+
     function isAdmin() {
       // High-fidelity authority check via tribal summary profile
       let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
@@ -98,8 +104,8 @@ service cloud.firestore {
       }
 
       match /bans/{userId} {
-        allow read: if isSignedIn();
-        allow write: if isRoomAdmin(chatRoomId);
+        allow get: if isSignedIn();
+        allow list, write: if isRoomAdmin(chatRoomId);
       }
     }
 
