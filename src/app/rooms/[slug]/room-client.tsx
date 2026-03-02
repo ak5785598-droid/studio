@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -5,7 +6,6 @@ import Image from 'next/image';
 import {
   Mic,
   MicOff,
-  PhoneOff,
   Send,
   Lock,
   Unlock,
@@ -18,7 +18,6 @@ import {
   Trash2,
   LogOut,
   UserPlus,
-  Megaphone,
   UserCheck,
   Ban,
   ChevronDown,
@@ -27,19 +26,10 @@ import {
   RefreshCw,
   Gamepad2,
   ShieldCheck,
-  Smile,
-  Camera,
-  MessageSquareOff,
-  MessageSquare,
   Music,
   Play,
   Square,
-  PawPrint,
-  Dices,
-  Sparkles,
   MoreHorizontal,
-  UserCog,
-  Hexagon,
   Power,
   Mail,
   LayoutGrid,
@@ -149,7 +139,10 @@ const MUSIC_TRACKS = [
 function RemoteAudio({ stream }: { stream: MediaStream }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   useEffect(() => {
-    if (audioRef.current) audioRef.current.srcObject = stream;
+    if (audioRef.current) {
+      audioRef.current.srcObject = stream;
+      audioRef.current.play().catch(e => console.log('Audio Autoplay Blocked:', e));
+    }
   }, [stream]);
   return <audio ref={audioRef} autoPlay className="hidden" />;
 }
@@ -324,7 +317,7 @@ export function RoomClient({ room }: { room: Room }) {
       if (isFollowing) {
         await deleteDoc(followRef);
         setIsFollowing(false);
-        toast({ title: 'Unfollowed', description: 'Room removed from your Mine section.' });
+        toast({ title: 'Unfollowed' });
       } else {
         await setDoc(followRef, {
           roomId: room.id,
@@ -333,7 +326,7 @@ export function RoomClient({ room }: { room: Room }) {
           followedAt: serverTimestamp()
         });
         setIsFollowing(true);
-        toast({ title: 'Following Room', description: 'This room is now synced to your Mine section.' });
+        toast({ title: 'Following Room' });
       }
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Action Failed', description: e.message });
@@ -351,6 +344,8 @@ export function RoomClient({ room }: { room: Room }) {
   const currentUserParticipant = participants?.find(p => p.uid === currentUser?.uid);
   const hostParticipant = participants?.find(p => p.seatIndex === 1);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
+  
+  // REAL-TIME VOICE: Initialize WebRTC frequency for everyone
   const { remoteStreams } = useWebRTC(room.id, isInSeat, currentUserParticipant?.isMuted ?? true);
 
   const messagesQuery = useMemoFirebase(() => {
@@ -371,11 +366,10 @@ export function RoomClient({ room }: { room: Room }) {
 
   useEffect(() => {
     if (participants && currentUser && !participants.some(p => p.uid === currentUser.uid)) {
-      toast({ title: 'Removed from Frequency', description: 'Your identity has been synchronized out of this room.' });
       setActiveRoom(null);
       router.replace('/rooms');
     }
-  }, [participants, currentUser, router, setActiveRoom, toast]);
+  }, [participants, currentUser, router, setActiveRoom]);
 
   useEffect(() => {
     if (!showGiftEffects) return;
@@ -440,7 +434,7 @@ export function RoomClient({ room }: { room: Room }) {
       snap.docs.forEach(d => batch.delete(d.ref));
       await batch.commit();
       setIsClearChatConfirmOpen(false);
-      toast({ title: 'Frequency Cleaned', description: 'All messages have been synchronized to void.' });
+      toast({ title: 'Frequency Cleaned' });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Action Failed', description: error.message });
     }
@@ -454,7 +448,7 @@ export function RoomClient({ room }: { room: Room }) {
       lastClaim.getDate() === today.getDate() && 
       lastClaim.getMonth() === today.getMonth() && 
       lastClaim.getFullYear() === today.getFullYear();
-    if (isAlreadyClaimedToday) { toast({ title: 'Already Synchronized', description: 'The tree will bear fruit for you again tomorrow.' }); return; }
+    if (isAlreadyClaimedToday) { toast({ title: 'Already Claimed' }); return; }
     setIsClaimingTree(true);
     try {
       const reward = 1000;
@@ -463,7 +457,7 @@ export function RoomClient({ room }: { room: Room }) {
       const updateData = { 'wallet.coins': increment(reward), 'lastMoneyTreeClaimAt': serverTimestamp(), 'updatedAt': serverTimestamp() };
       updateDocumentNonBlocking(userRef, updateData);
       updateDocumentNonBlocking(profileRef, updateData);
-      toast({ title: 'Sync Successful', description: `Received 1,000 Gold Coins from the Wealth Tree.` });
+      toast({ title: 'Sync Successful', description: `Received 1,000 Gold Coins.` });
     } catch (e: any) { toast({ variant: 'destructive', title: 'Sync Failed', description: e.message }); } finally { setIsClaimingTree(false); }
   };
 
@@ -478,19 +472,33 @@ export function RoomClient({ room }: { room: Room }) {
     const pRef = doc(firestore, 'chatRooms', room.id, 'participants', uid);
     deleteDocumentNonBlocking(pRef);
     setIsActionMenuOpen(false);
-    toast({ title: 'Tribe Removed', description: 'Member removed from frequency.' });
+    toast({ title: 'Member Kicked' });
   };
 
   const leaveRoom = () => { setActiveRoom(null); router.push('/rooms'); };
-  const takeSeat = (index: number) => { if (!firestore || !room.id || !currentUser || !userProfile) return; if (room.lockedSeats?.includes(index)) { toast({ variant: 'destructive', title: 'Slot Locked' }); return; } updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: index, isMuted: true, activeWave: userProfile.inventory?.activeWave || 'Default' }); };
+  const takeSeat = (index: number) => { if (!firestore || !room.id || !currentUser || !userProfile) return; if (room.lockedSeats?.includes(index)) { toast({ variant: 'destructive', title: 'Seat Locked' }); return; } updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: index, isMuted: true, activeWave: userProfile.inventory?.activeWave || 'Default' }); };
   const leaveSeat = () => { if (!firestore || !room.id || !currentUser) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: 0, isMuted: true }); setIsActionMenuOpen(false); };
-  const handleMicToggle = () => { if (!isInSeat) { const first = [1, 2, 3, 4, 5, 6, 7, 8, 9].find(i => !participants?.some(p => p.seatIndex === i) && !room.lockedSeats?.includes(i)); if (first) takeSeat(first); return; } if (currentUserParticipant?.isSilenced) { toast({ variant: 'destructive', title: 'Silenced' }); return; } if (firestore && currentUser && room.id) { updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { isMuted: !currentUserParticipant?.isMuted }); } };
+  
+  const handleMicToggle = () => { 
+    if (!isInSeat) { 
+      const first = [1, 2, 3, 4, 5, 6, 7, 8, 9].find(i => !participants?.some(p => p.seatIndex === i) && !room.lockedSeats?.includes(i)); 
+      if (first) takeSeat(first); 
+      return; 
+    } 
+    if (currentUserParticipant?.isSilenced) { 
+      toast({ variant: 'destructive', title: 'Silenced' }); 
+      return; 
+    } 
+    if (firestore && currentUser && room.id) { 
+      updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { isMuted: !currentUserParticipant?.isMuted }); 
+    } 
+  };
 
   const toggleModerator = (targetUid: string) => {
     if (!isOwner || !firestore || !room.id) return;
     const isPMod = room.moderatorIds?.includes(targetUid);
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { moderatorIds: isPMod ? arrayRemove(targetUid) : arrayUnion(targetUid) });
-    toast({ title: isPMod ? 'Admin Revoked' : 'Admin Granted', description: 'Tribe role has been synchronized.' });
+    toast({ title: isPMod ? 'Admin Revoked' : 'Admin Granted' });
   };
 
   const handleUpdateRoomField = async () => {
@@ -500,7 +508,7 @@ export function RoomClient({ room }: { room: Room }) {
     if (!dbField) return;
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { [dbField]: fieldValue, updatedAt: serverTimestamp() });
     setEditingField(null);
-    toast({ title: 'Room Sync Complete', description: `Successfully updated room ${editingField}.` });
+    toast({ title: 'Room Updated' });
   };
 
   const toggleRoomLock = () => {
@@ -516,7 +524,7 @@ export function RoomClient({ room }: { room: Room }) {
   const handleCopyInvite = () => {
     const link = `${window.location.origin}/rooms/${room.id}`;
     navigator.clipboard.writeText(link);
-    toast({ title: 'Invite Copied', description: 'Share the frequency link with your tribe.' });
+    toast({ title: 'Invite Copied' });
   };
 
   const selectedOccupant = participants?.find(p => p.seatIndex === selectedSeatIndex);
@@ -550,7 +558,8 @@ export function RoomClient({ room }: { room: Room }) {
             </AvatarFrame>
             {occupant?.isMuted && (<div className="absolute bottom-0 right-0 bg-red-500 rounded-full p-0.5 border border-black shadow-lg"><MicOff className="h-2 w-2 text-white" /></div>)}
             {!occupant?.isMuted && occupant && (<div className="absolute bottom-0 right-0 bg-green-500 rounded-full p-0.5 border border-black shadow-lg"><Mic className="h-2 w-2 text-white" /></div>)}
-            {(isPOwner || isPMod) && (<div className="absolute -top-0.5 -left-0.5 bg-yellow-500 rounded-full p-0.5 border border-black shadow-lg z-[45]">{isPOwner ? <Crown className="h-2 w-2 text-black fill-current" /> : <ShieldCheck className="h-2 w-2 text-white fill-current" />}</div>)}
+            {isPOwner && (<div className="absolute -top-0.5 -left-0.5 bg-yellow-500 rounded-full p-0.5 border border-black shadow-lg z-[45]"><Crown className="h-2 w-2 text-black fill-current" /></div>)}
+            {isPMod && (<div className="absolute -top-0.5 -left-0.5 bg-blue-500 rounded-full p-0.5 border border-black shadow-lg z-[45]"><ShieldCheck className="h-2 w-2 text-white fill-current" /></div>)}
             {canManageRoom && (<button onClick={(e) => { e.stopPropagation(); setSelectedSeatIndex(index); setIsActionMenuOpen(true); }} className="absolute -top-1 -right-1 bg-black/60 rounded-full p-0.5 border border-white/10 z-40"><MoreHorizontal className="h-2 w-2 text-white" /></button>)}
           </div>
         </div>
@@ -565,6 +574,7 @@ export function RoomClient({ room }: { room: Room }) {
       <DailyRewardDialog />
       <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
       <audio ref={roomAudioRef} loop crossOrigin="anonymous" />
+      {/* Remote Audio Handshakes */}
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => <RemoteAudio key={peerId} stream={stream} />)}
       
       <div className="absolute inset-0 z-0">
@@ -643,7 +653,7 @@ export function RoomClient({ room }: { room: Room }) {
         <DialogContent className="w-screen h-screen max-w-none m-0 rounded-none border-none bg-white text-black p-0 flex flex-col animate-in slide-in-from-right duration-300 font-headline overflow-hidden">
           <header className="flex items-center p-4 border-b">
             <button onClick={() => setIsSettingsOpen(false)} className="p-2 -ml-2 text-gray-600"><ChevronLeft className="h-6 w-6" /></button>
-            <DialogTitle className="flex-1 text-center font-bold text-lg -ml-4">Room settings</DialogTitle>
+            <DialogTitle className="flex-1 text-center font-bold text-lg -ml-4">Room Settings</DialogTitle>
           </header>
           
           <ScrollArea className="flex-1 bg-gray-50/30">
@@ -656,23 +666,23 @@ export function RoomClient({ room }: { room: Room }) {
                   <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-gray-100"><Camera className="h-4 w-4 text-gray-800" /></div>
                 </div>
                 <div className="text-center">
-                  <h3 className="font-black text-gray-800 text-lg uppercase tracking-tight">Room cover</h3>
+                  <h3 className="font-black text-gray-800 text-lg uppercase tracking-tight">Room Cover</h3>
                   <p className="text-gray-300 text-xs font-bold uppercase tracking-widest mt-1">Click to edit</p>
                 </div>
               </section>
 
               <section className="mt-2 bg-white px-6">
-                <SettingsListItem label="Room name" value={room.title} onClick={() => { setEditingField('name'); setEditingFieldValue(room.title); }} />
-                <SettingsListItem label="Room announcement" value={room.announcement} onClick={() => { setEditingField('announcement'); setEditingFieldValue(room.announcement || ''); }} />
+                <SettingsListItem label="Room Name" value={room.title} onClick={() => { setEditingField('name'); setEditingFieldValue(room.title); }} />
+                <SettingsListItem label="Room Announcement" value={room.announcement} onClick={() => { setEditingField('announcement'); setEditingFieldValue(room.announcement || ''); }} />
                 <SettingsListItem label="Theme" value="Misty Forest" />
                 <SettingsListItem label="Music" value={room.currentMusicUrl ? "Active" : "None"} onClick={() => setIsMusicMenuOpen(true)} />
                 <SettingsListItem label="Admin" value={`${room.moderatorIds?.length || 0} Managed`} onClick={() => setEditingField('admins')} />
-                <SettingsListItem label="Room lock" onClick={toggleRoomLock} showChevron={false} icon={(room as any).isLocked ? Lock : Unlock} />
+                <SettingsListItem label="Room Lock" onClick={toggleRoomLock} showChevron={false} icon={(room as any).isLocked ? Lock : Unlock} />
               </section>
 
               <section className="mt-2 bg-white px-6">
-                <SettingsListItem label="Welcome message" value={(room as any).welcomeMessage} onClick={() => { setEditingField('welcome'); setEditingFieldValue((room as any).welcomeMessage || ''); }} />
-                <SettingsListItem label="Mic mode" value="9 mics" />
+                <SettingsListItem label="Welcome Message" value={(room as any).welcomeMessage} onClick={() => { setEditingField('welcome'); setEditingFieldValue((room as any).welcomeMessage || ''); }} />
+                <SettingsListItem label="Mic Mode" value="9 mics" />
               </section>
 
               <section className="mt-2 bg-white px-6 py-2">
@@ -732,7 +742,7 @@ export function RoomClient({ room }: { room: Room }) {
               <div className="text-center space-y-1"><h2 className="text-3xl font-black uppercase tracking-tighter">{ownerProfile?.username || room.title}</h2><div className="flex items-center justify-center gap-2 text-white/60"><span className="text-xs font-bold uppercase tracking-widest">ID:{room.roomNumber}</span><button onClick={() => { navigator.clipboard.writeText(room.roomNumber); toast({ title: 'ID Copied' }); }} className="p-1 hover:text-white transition-colors"><Copy className="h-3 w-3" /></button></div></div>
             </div>
             <div className="flex gap-12 border-b border-white/10 w-full justify-center mb-8"><button onClick={() => setInfoTab('profile')} className={cn("pb-4 text-lg font-black uppercase tracking-widest border-b-4 transition-all", infoTab === 'profile' ? "border-primary text-white" : "border-transparent text-white/40")}>Profile</button><button onClick={() => setInfoTab('members')} className={cn("pb-4 text-lg font-black uppercase tracking-widest border-b-4 transition-all", infoTab === 'members' ? "border-primary text-white" : "border-transparent text-white/40")}>Member</button></div>
-            <ScrollArea className="w-full max-w-sm flex-1 no-scrollbar"><div className="space-y-8 pb-20">{infoTab === 'profile' ? (<><div className="w-full bg-white/5 rounded-[2rem] p-4 flex items-center gap-4 border border-white/5 shadow-inner"><Avatar className="h-14 w-14 rounded-2xl border-2 border-white/10"><AvatarImage src={ownerProfile?.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar><div className="flex-1"><p className="font-black text-lg uppercase tracking-tight">{ownerProfile?.username || 'Host'}</p><p className="text-[10px] font-black uppercase text-white/40 tracking-[0.2em]">Room owner</p></div><div className="flex items-center gap-1 bg-primary/20 px-3 py-1 rounded-full border border-primary/30"><Crown className="h-3 w-3 text-primary" /><span className="text-[10px] font-black text-primary uppercase">Elite</span></div></div><div className="w-full space-y-4"><div className="flex items-center gap-2 px-2"><Info className="h-4 w-4 text-white/40" /><h3 className="text-xs font-black uppercase tracking-widest text-white/40">Announcement</h3></div><div className="bg-white/5 rounded-[2rem] p-6 border border-white/5 min-h-[120px]"><p className="text-lg font-medium text-white/80 leading-relaxed">{room.announcement || "Welcome to the frequency!"}</p></div></div></>) : (<div className="w-full space-y-3"><div className="flex items-center gap-2 px-2 mb-2"><ShieldCheck className="h-4 w-4 text-blue-400" /><h3 className="text-xs font-black uppercase tracking-widest text-white/40">Room Administrators</h3></div><div className="space-y-3">{room.moderatorIds?.map(id => (<ModeratorItem key={id} userId={id} />))}{(!room.moderatorIds || room.moderatorIds.length === 0) && (<p className="text-center py-10 text-white/20 uppercase font-black text-xs italic">No admins assigned</p>)}</div></div>)}</div></ScrollArea>
+            <ScrollArea className="w-full max-w-sm flex-1 no-scrollbar"><div className="space-y-8 pb-20">{infoTab === 'profile' ? (<><div className="w-full bg-white/5 rounded-[2rem] p-4 flex items-center gap-4 border border-white/5 shadow-inner"><Avatar className="h-14 w-14 rounded-2xl border-2 border-white/10"><AvatarImage src={ownerProfile?.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar><div className="flex-1"><p className="font-black text-lg uppercase tracking-tight">{ownerProfile?.username || 'Host'}</p><p className="text-[10px] font-black uppercase text-white/40 tracking-[0.2em]">Room Owner</p></div><div className="flex items-center gap-1 bg-primary/20 px-3 py-1 rounded-full border border-primary/30"><Crown className="h-3 w-3 text-primary" /><span className="text-[10px] font-black text-primary uppercase">Elite</span></div></div><div className="w-full space-y-4"><div className="flex items-center gap-2 px-2"><Info className="h-4 w-4 text-white/40" /><h3 className="text-xs font-black uppercase tracking-widest text-white/40">Announcement</h3></div><div className="bg-white/5 rounded-[2rem] p-6 border border-white/5 min-h-[120px]"><p className="text-lg font-medium text-white/80 leading-relaxed">{room.announcement || "Welcome to the frequency!"}</p></div></div></>) : (<div className="w-full space-y-3"><div className="flex items-center gap-2 px-2 mb-2"><ShieldCheck className="h-4 w-4 text-blue-400" /><h3 className="text-xs font-black uppercase tracking-widest text-white/40">Room Administrators</h3></div><div className="space-y-3">{room.moderatorIds?.map(id => (<ModeratorItem key={id} userId={id} />))}{(!room.moderatorIds || room.moderatorIds.length === 0) && (<p className="text-center py-10 text-white/20 uppercase font-black text-xs italic">No admins assigned</p>)}</div></div>)}</div></ScrollArea>
             <button onClick={() => setIsRoomInfoOpen(false)} className="mt-auto mb-8 text-[10px] font-black uppercase tracking-[0.5em] text-white/20 hover:text-white transition-colors">Tap anywhere to close</button>
           </div>
         </DialogContent>
@@ -774,7 +784,7 @@ export function RoomClient({ room }: { room: Room }) {
             {canManageRoom && (
               <>
                 <ToolTile 
-                  icon={room.isChatMuted ? MessageSquare : MessageSquareOff} 
+                  icon={room.isChatMuted ? MessageSquare : Trash2} 
                   label={room.isChatMuted ? "Open Msg" : "Close Msg"} 
                   color="text-orange-400"
                   onClick={toggleRoomMessages} 
