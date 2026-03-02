@@ -121,10 +121,6 @@ export function RoomUserProfileDialog({
                   <DropdownMenuContent className="bg-slate-900 border-white/5 text-white rounded-2xl p-2 w-48 shadow-2xl">
                      {canManage && !isMe && (
                        <>
-                         <DropdownMenuItem onClick={() => onSilence(userId, isSilenced)} className="flex items-center gap-3 p-3 focus:bg-white/10 rounded-xl cursor-pointer">
-                            {isSilenced ? <Volume2 className="h-4 w-4 text-green-400" /> : <MicOff className="h-4 w-4 text-orange-400" />}
-                            <span className="font-black uppercase text-[10px]">{isSilenced ? 'Unsilence' : 'Silence'}</span>
-                         </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => onKick(userId)} className="flex items-center gap-3 p-3 focus:bg-white/10 rounded-xl text-red-400 cursor-pointer">
                             <Ban className="h-4 w-4" />
                             <span className="font-black uppercase text-[10px]">Kick from Room</span>
