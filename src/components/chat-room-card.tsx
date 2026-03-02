@@ -1,10 +1,13 @@
+
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Users, Castle } from 'lucide-react';
+import { Users, Castle, MoreHorizontal } from 'lucide-react';
 import type { Room } from '@/lib/types';
 import { Card } from '@/components/ui/card';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import { cn } from '@/lib/utils';
 
 interface ChatRoomCardProps {
   room: Room;
@@ -12,44 +15,74 @@ interface ChatRoomCardProps {
 }
 
 /**
- * Chat Room Card Component.
- * Uses the room's participantCount field directly for discovery synchronization.
+ * High-Fidelity Chat Room Card Component.
+ * Mirroring the reference image exactly with Top-Right count, Bottom-Left identity, and Bottom-Right emblem.
  */
 export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
   const onlineCount = room.participantCount || 0;
+  const { userProfile: owner } = useUserProfile(room.ownerId);
 
   if (variant === 'modern') {
     return (
-      <Link href={`/rooms/${room.id}`} className="group block w-full animate-in fade-in zoom-in duration-500">
+      <Link href={`/rooms/${room.id}`} className="group block w-full animate-in fade-in duration-500">
         <div className="space-y-2">
-          <div className="relative aspect-square w-full rounded-[1.5rem] overflow-hidden shadow-sm border-2 border-white bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+          {/* Main Image Container */}
+          <div className="relative aspect-[4/5] w-full rounded-[1.2rem] overflow-hidden shadow-md bg-slate-200">
             {room.coverUrl ? (
               <Image
                 src={room.coverUrl}
                 alt={room.title}
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
                 sizes="(max-width: 768px) 50vw, 33vw"
               />
             ) : (
-              <Castle className="h-12 w-12 text-slate-300 group-hover:text-primary transition-colors" />
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                <Castle className="h-12 w-12 text-slate-300" />
+              </div>
             )}
             
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-            
-            <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-black/30 backdrop-blur-md px-2.5 py-0.5 rounded-lg border border-white/10">
-              <div className="flex items-end gap-0.5 h-3">
-                 <div className="w-0.5 bg-white h-1 animate-bounce" style={{ animationDelay: '0.1s' }} />
-                 <div className="w-0.5 bg-white h-2 animate-bounce" style={{ animationDelay: '0.2s' }} />
-                 <div className="w-0.5 bg-white h-3 animate-bounce" style={{ animationDelay: '0.3s' }} />
+            {/* Top-Right Participant Count */}
+            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/30 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+              <div className="flex items-end gap-0.5 h-2">
+                 <div className="w-0.5 bg-white h-1" />
+                 <div className="w-0.5 bg-white h-1.5" />
+                 <div className="w-0.5 bg-white h-2" />
               </div>
               <span className="text-[10px] text-white font-black">{onlineCount}</span>
             </div>
+
+            {/* Bottom Gradient for Text Legibility */}
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+
+            {/* Bottom-Left Owner Identity */}
+            <div className="absolute bottom-2 left-2 flex items-center gap-1.5 max-w-[70%]">
+               <div className="h-4 w-4 rounded-full bg-pink-500 flex items-center justify-center border border-white/20">
+                  <span className="text-[8px]">♀</span>
+               </div>
+               <span className="text-[10px] text-white font-black truncate drop-shadow-md">
+                 {owner?.username || 'Tribe Member'}
+               </span>
+            </div>
+
+            {/* Bottom-Right Status Emblem */}
+            <div className="absolute bottom-2 right-2 h-8 w-8 rounded-lg overflow-hidden border border-white/20 shadow-lg">
+               <Image 
+                 src="https://img.icons8.com/color/96/fighter-jet.png" 
+                 alt="Emblem" 
+                 fill 
+                 className="object-contain p-1 bg-black/20 backdrop-blur-sm"
+               />
+            </div>
           </div>
           
+          {/* Room Title Below Image */}
           <div className="flex items-center gap-1.5 px-1 min-w-0">
             <span className="text-sm shrink-0" aria-label="Region flag">🇮🇳</span>
-            <h3 className="font-bold text-xs text-gray-800 truncate uppercase tracking-tight">
+            <h3 className={cn(
+              "font-black text-xs truncate uppercase tracking-tight",
+              Math.random() > 0.5 ? "text-orange-500" : "text-gray-800"
+            )}>
               {room.title}
             </h3>
           </div>
@@ -60,29 +93,18 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
 
   return (
     <Link href={`/rooms/${room.id}`} className="group block">
-      <Card className="overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1 bg-white border-none shadow-sm rounded-2xl">
-        <div className="p-0">
-          <div className="relative h-40 w-full bg-slate-100 flex items-center justify-center">
-            {room.coverUrl ? (
-              <Image
-                src={room.coverUrl}
-                alt={room.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-            ) : (
-              <Castle className="h-10 w-10 text-slate-300" />
-            )}
-             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+      <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg bg-white border-none rounded-2xl">
+        <div className="relative h-40 w-full bg-slate-100">
+          {room.coverUrl && (
+            <Image src={room.coverUrl} alt={room.title} fill className="object-cover" />
+          )}
+          <div className="absolute bottom-2 left-2 flex items-center gap-2 bg-black/40 px-2 py-0.5 rounded-full">
+             <Users className="h-3 w-3 text-white" />
+             <span className="text-[10px] text-white font-bold">{onlineCount}</span>
           </div>
         </div>
-        <div className="p-4">
-          <h3 className="font-bold text-gray-900 truncate">{room.title}</h3>
-          <div className="mt-2 text-[10px] text-gray-400 flex items-center gap-2 uppercase font-black">
-             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-             {onlineCount} Tribe Online
-          </div>
+        <div className="p-3">
+          <h3 className="font-bold text-gray-900 truncate uppercase text-sm">{room.title}</h3>
         </div>
       </Card>
     </Link>
