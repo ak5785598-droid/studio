@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Users, Castle, MoreHorizontal } from 'lucide-react';
+import { Users, Castle } from 'lucide-react';
 import type { Room } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { useUserProfile } from '@/hooks/use-user-profile';
@@ -16,7 +16,11 @@ interface ChatRoomCardProps {
 
 /**
  * High-Fidelity Chat Room Card Component.
- * Mirroring the reference image exactly with Top-Right count, Bottom-Left identity, and Bottom-Right emblem.
+ * Mirroring the reference blueprint:
+ * - Top-Right: Participant count pill.
+ * - Bottom-Left: Owner identity overlay.
+ * - Bottom-Right: Level/Emblem icon.
+ * - Below: Flag + Regional Identity.
  */
 export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
   const onlineCount = room.participantCount || 0;
@@ -24,7 +28,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
 
   if (variant === 'modern') {
     return (
-      <Link href={`/rooms/${room.id}`} className="group block w-full animate-in fade-in duration-500">
+      <Link href={`/rooms/${room.id}`} className="group block w-full animate-in fade-in duration-500 font-headline">
         <div className="space-y-2">
           {/* Main Image Container */}
           <div className="relative aspect-[4/5] w-full rounded-[1.2rem] overflow-hidden shadow-md bg-slate-200">
@@ -43,7 +47,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
             )}
             
             {/* Top-Right Participant Count */}
-            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/30 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/30 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 z-20">
               <div className="flex items-end gap-0.5 h-2">
                  <div className="w-0.5 bg-white h-1" />
                  <div className="w-0.5 bg-white h-1.5" />
@@ -53,12 +57,12 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
             </div>
 
             {/* Bottom Gradient for Text Legibility */}
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent z-10" />
 
             {/* Bottom-Left Owner Identity */}
-            <div className="absolute bottom-2 left-2 flex items-center gap-1.5 max-w-[70%]">
-               <div className="h-4 w-4 rounded-full bg-pink-500 flex items-center justify-center border border-white/20">
-                  <span className="text-[8px]">♀</span>
+            <div className="absolute bottom-2 left-2 flex items-center gap-1.5 max-w-[70%] z-20">
+               <div className="h-4 w-4 rounded-full bg-pink-500 flex items-center justify-center border border-white/20 shrink-0">
+                  <span className="text-[8px] text-white font-bold">♀</span>
                </div>
                <span className="text-[10px] text-white font-black truncate drop-shadow-md">
                  {owner?.username || 'Tribe Member'}
@@ -66,7 +70,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
             </div>
 
             {/* Bottom-Right Status Emblem */}
-            <div className="absolute bottom-2 right-2 h-8 w-8 rounded-lg overflow-hidden border border-white/20 shadow-lg">
+            <div className="absolute bottom-2 right-2 h-8 w-8 rounded-lg overflow-hidden border border-white/20 shadow-lg z-20">
                <Image 
                  src="https://img.icons8.com/color/96/fighter-jet.png" 
                  alt="Emblem" 
@@ -81,7 +85,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
             <span className="text-sm shrink-0" aria-label="Region flag">🇮🇳</span>
             <h3 className={cn(
               "font-black text-xs truncate uppercase tracking-tight",
-              Math.random() > 0.5 ? "text-orange-500" : "text-gray-800"
+              Math.random() > 0.5 ? "text-orange-500" : "text-pink-500"
             )}>
               {room.title}
             </h3>

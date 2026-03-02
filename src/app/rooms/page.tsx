@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ChatRoomCard } from '@/components/chat-room-card';
 import { Loader, Search, Plus, Trophy, Users, Heart } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -10,8 +10,11 @@ import { UserSearchDialog } from '@/components/user-search-dialog';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, limit, orderBy } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
 
+/**
+ * High-Fidelity Home / Discovery Hub.
+ * Re-engineered to match the "Popular" grid layout exactly.
+ */
 export default function RoomsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -28,7 +31,7 @@ export default function RoomsPage() {
 
   const { data: roomsData, isLoading: isRoomsLoading } = useCollection(roomsQuery);
 
-  const CategoryCard = ({ title, label, color, gradient }: any) => (
+  const CategoryCard = ({ title, label, gradient }: { title: string, label: string, gradient: string }) => (
     <div className={cn(
       "relative flex-1 min-w-0 rounded-2xl h-24 overflow-hidden border-2 border-white/20 shadow-lg flex flex-col items-center justify-center gap-1 group active:scale-95 transition-all cursor-pointer",
       gradient
@@ -48,14 +51,32 @@ export default function RoomsPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-full bg-[#f8f9fa] flex flex-col space-y-6 pb-32">
+      <div className="min-h-full bg-[#f8f9fa] flex flex-col space-y-6 pb-32 font-headline">
         {/* Top Header Navigation */}
-        <header className="flex items-center justify-between px-6 pt-6 bg-white">
+        <header className="flex items-center justify-between px-6 pt-6 bg-white shrink-0">
           <div className="flex items-center gap-8">
-            <button className="text-gray-400 text-xl font-black uppercase italic">Me</button>
+            <button 
+              onClick={() => setActiveTab('Me')}
+              className={cn(
+                "text-xl font-black uppercase italic transition-colors",
+                activeTab === 'Me' ? "text-gray-900" : "text-gray-400"
+              )}
+            >
+              Me
+            </button>
             <div className="relative">
-              <button className="text-gray-900 text-2xl font-black uppercase italic tracking-tighter">Popular</button>
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-[#00E5FF] rounded-full" />
+              <button 
+                onClick={() => setActiveTab('Popular')}
+                className={cn(
+                  "text-2xl font-black uppercase italic tracking-tighter transition-colors",
+                  activeTab === 'Popular' ? "text-gray-900" : "text-gray-400"
+                )}
+              >
+                Popular
+              </button>
+              {activeTab === 'Popular' && (
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-[#00E5FF] rounded-full" />
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -64,7 +85,7 @@ export default function RoomsPage() {
           </div>
         </header>
 
-        <div className="px-4 space-y-6">
+        <div className="px-4 space-y-6 overflow-y-auto no-scrollbar flex-1">
           {/* Top Category Row */}
           <div className="flex gap-2">
              <CategoryCard title="Ranking" label="Ranking" gradient="bg-gradient-to-br from-orange-400 to-yellow-600" />
@@ -80,6 +101,9 @@ export default function RoomsPage() {
               {roomsData?.map((room: any) => (
                 <ChatRoomCard key={room.id} room={room} variant="modern" />
               ))}
+              {(!roomsData || roomsData.length === 0) && (
+                <div className="col-span-2 text-center py-20 opacity-30 italic uppercase font-black text-xs">No active frequencies found</div>
+              )}
             </div>
           )}
         </div>
