@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { notFound, useParams, useRouter } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { 
   Loader, 
   ChevronRight, 
@@ -47,7 +47,6 @@ const SupporterIcon = ({ color, rank }: { color: string, rank: number }) => (
       "border-[#b45309] bg-gradient-to-br from-[#451a03] to-black"
     )}>
        <div className="absolute top-0 left-0 w-full h-full bg-white/5 pointer-events-none" />
-       {/* High-fidelity sofa/chair icon for the supporter slot */}
        <svg viewBox="0 0 24 24" className="h-8 w-8 text-white/40 fill-current" xmlns="http://www.w3.org/2000/svg">
           <path d="M19 13V5c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v8H3v2h2v5h2v-5h10v5h2v-5h2v-2h-2zm-2-8v8H7V5h10z"/>
        </svg>
@@ -82,14 +81,11 @@ const MenuItem = ({ label, extra, icon: Icon, onClick }: any) => (
   </div>
 );
 
-export default function ProfilePage() {
-  const params = useParams();
+export default function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: profileId } = use(params);
   const router = useRouter();
   const firestore = useFirestore();
   const { toast } = useToast();
-  
-  // High-fidelity parameter extraction
-  const profileId = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : null;
   
   const { user: currentUser, isUserLoading } = useUser();
   const { userProfile: profile, isLoading: isProfileLoading } = useUserProfile(profileId || undefined);
@@ -108,8 +104,10 @@ export default function ProfilePage() {
 
   const isOwnProfile = currentUser?.uid === profileId;
 
-  // Handshake verification
-  if (isUserLoading || isProfileLoading || !profileId) {
+  // Handshake verification - Ensure we wait for data if we have an ID
+  const isWait = isUserLoading || isProfileLoading || (!!profileId && !profile && !isProfileLoading);
+
+  if (isWait) {
     return (
       <AppLayout>
         <div className="flex h-full w-full flex-col items-center justify-center bg-white space-y-4">
@@ -123,21 +121,6 @@ export default function ProfilePage() {
   }
   
   if (!profile) { 
-    if (isOwnProfile) {
-      return (
-        <AppLayout>
-          <div className="min-h-full bg-[#f8f9fa] text-gray-900 font-headline relative flex flex-col pb-24 overflow-x-hidden">
-            <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-               <Loader className="h-12 w-12 animate-spin text-primary" />
-               <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-black uppercase italic tracking-tighter">Establishing Identity</h2>
-                  <p className="text-muted-foreground font-body text-base max-w-xs mx-auto">Please wait while we synchronize your frequency with the tribal social graph.</p>
-               </div>
-            </div>
-          </div>
-        </AppLayout>
-      );
-    }
     notFound(); 
     return null; 
   }
@@ -254,11 +237,10 @@ export default function ProfilePage() {
     );
   }
 
-  // OTHERS VIEW (Atmospheric Emerald - MATCHING BLUEPRINT)
+  // OTHERS VIEW (Atmospheric Emerald)
   return (
     <AppLayout hideSidebarOnMobile>
       <div className="min-h-[100dvh] bg-[#051a05] text-white font-headline relative flex flex-col overflow-x-hidden">
-        {/* Deep Atmospheric Backdrop */}
         <div className="absolute top-0 left-0 w-full h-[65vh] z-0 overflow-hidden">
            <div className="absolute inset-0 bg-black/40 z-10" />
            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#051a05]/80 to-[#051a05] z-20" />
@@ -270,7 +252,6 @@ export default function ProfilePage() {
                 className="object-cover"
               />
            </div>
-           {/* Sharp central identity image used as top background */}
            <div className="absolute top-0 left-0 w-full h-full opacity-40">
               <Image 
                 src={profile.avatarUrl || 'https://picsum.photos/seed/ammy/800/1200'} 
@@ -281,14 +262,12 @@ export default function ProfilePage() {
            </div>
         </div>
 
-        {/* Top Management Bar */}
         <header className="relative z-50 flex items-center justify-between p-6 pt-10">
            <button onClick={() => router.back()} className="p-2 bg-black/20 backdrop-blur-md rounded-full text-white active:scale-90 transition-transform shadow-lg"><ChevronLeft className="h-6 w-6" /></button>
            <button className="p-2 bg-black/20 backdrop-blur-md rounded-full text-white shadow-lg"><ShieldIcon className="h-6 w-6" /></button>
         </header>
 
         <div className="relative z-30 flex flex-col items-center px-6 mt-[15vh] space-y-6 flex-1 pb-40">
-           {/* Central Signature Avatar */}
            <div className="relative">
               <AvatarFrame frameId={profile.inventory?.activeFrame || 'f5'} size="xl">
                 <div className="relative">
@@ -306,7 +285,6 @@ export default function ProfilePage() {
               </AvatarFrame>
            </div>
 
-           {/* Identity Row - Matching Screenshot Labels */}
            <div className="text-center space-y-2">
               <h1 className="text-4xl font-black tracking-tighter drop-shadow-lg">{profile.username}</h1>
               <div className="flex items-center justify-center gap-2">
@@ -320,20 +298,18 @@ export default function ProfilePage() {
                  </div>
               </div>
               
-              {/* Level Badges Row */}
               <div className="flex items-center justify-center gap-3 mt-3">
                  <div className="bg-gradient-to-r from-blue-400 to-indigo-600 px-4 py-1 rounded-full flex items-center gap-1.5 shadow-xl border border-white/20">
                     <div className="h-3 w-3 bg-white/20 rounded-full flex items-center justify-center"><ShieldIcon className="h-2 w-2 text-white" /></div>
-                    <span className="text-[10px] font-black uppercase italic">{profile.level?.rich || 13}</span>
+                    <span className="text-[10px] font-black uppercase italic">{profile.level?.rich || 1}</span>
                  </div>
                  <div className="bg-gradient-to-r from-[#10b981] to-[#059669] px-4 py-1 rounded-full flex items-center gap-1.5 shadow-xl border border-white/20">
                     <div className="h-3 w-3 bg-white/20 rounded-full flex items-center justify-center">💎</div>
-                    <span className="text-[10px] font-black uppercase italic">{profile.level?.charm || 3}</span>
+                    <span className="text-[10px] font-black uppercase italic">{profile.level?.charm || 1}</span>
                  </div>
               </div>
            </div>
 
-           {/* "My Room" link card - Atmospheric Emerald */}
            {activeRoom && (
              <Link href={`/rooms/${activeRoom.id}`} className="w-full max-w-xs">
                 <div className="bg-[#0a2e1a]/80 backdrop-blur-xl border border-white/5 rounded-2xl p-3 flex items-center justify-between group active:scale-[0.98] transition-transform shadow-2xl">
@@ -351,7 +327,6 @@ export default function ProfilePage() {
              </Link>
            )}
 
-           {/* Social Stats Matrix */}
            <div className="w-full bg-black/20 backdrop-blur-sm rounded-3xl border border-white/5 p-6 flex justify-around items-center shadow-inner">
               <div className="flex flex-col items-center gap-1">
                  <span className="text-xl font-black">0</span>
@@ -364,7 +339,7 @@ export default function ProfilePage() {
               </div>
               <div className="h-8 w-px bg-white/5" />
               <div className="flex flex-col items-center gap-1">
-                 <span className="text-xl font-black">{profile.stats?.followers || 78}</span>
+                 <span className="text-xl font-black">{profile.stats?.followers || 0}</span>
                  <span className="text-[9px] font-black uppercase text-[#10b981] tracking-widest opacity-60">Followers</span>
               </div>
               <div className="h-8 w-px bg-white/5" />
@@ -374,7 +349,6 @@ export default function ProfilePage() {
               </div>
            </div>
 
-           {/* Elite Supporter Section */}
            <section className="w-full space-y-4">
               <div className="flex items-center justify-between px-2">
                  <h3 className="text-base font-black uppercase text-yellow-500 tracking-tighter italic">Supporter</h3>
@@ -388,7 +362,6 @@ export default function ProfilePage() {
            </section>
         </div>
 
-        {/* Sticky Interaction Hub - High-Fidelity Blueprint Alignment */}
         <footer className="fixed bottom-0 left-0 right-0 p-6 pt-10 bg-gradient-to-t from-[#051a05] via-[#051a05]/95 to-transparent z-[60] flex items-center justify-around gap-4 border-t border-white/5">
            <div className="flex flex-col items-center gap-1.5 group cursor-pointer active:scale-95 transition-all">
               <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#4ade80] to-[#16a34a] flex items-center justify-center shadow-[0_0_20px_rgba(22,163,74,0.4)] border border-white/20">
