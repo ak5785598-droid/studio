@@ -599,7 +599,26 @@ export function RoomClient({ room }: { room: Room }) {
         <div className="flex-1 flex flex-col mt-2 px-4 pb-2 justify-end"><div className="space-y-1"><div className="bg-emerald-500/10 border border-emerald-500/20 p-1.5 rounded-xl animate-in fade-in duration-1000"><p className="text-emerald-400 text-[9px] font-black uppercase leading-relaxed text-center">Welcome to Ummy! Please show respect to one another and be courteous.</p></div>{!isInSeat && (<Button onClick={handleMicToggle} className="w-full bg-gradient-to-r from-emerald-400 to-emerald-600 text-white rounded-xl h-9 px-8 font-black uppercase shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-[10px]">Join Voice Chat <ChevronRight className="ml-2 h-3 w-3" /></Button>)}<ScrollArea className="h-20" ref={scrollRef}><div className="space-y-1">{activeMessages.map((msg) => (<div key={msg.id} className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-300">{msg.type === 'entrance' ? (<p className="text-[8px] font-black uppercase text-white/60">welcome <span className="text-yellow-400">{msg.user.name}</span> entered the room</p>) : (<div className="bg-black/20 backdrop-blur-sm px-2 py-0.5 rounded-lg border border-white/5 flex gap-2 max-w-[90%]"><span className="text-[8px] font-black text-blue-400 shrink-0 uppercase">{msg.user.name}:</span><p className="text-[8px] font-medium text-white/80">{msg.text}</p></div>)}</div>))}</div></ScrollArea></div></div>
       </main>
 
-      <footer className="relative z-50 px-4 pb-4 flex items-center justify-between gap-3 bg-gradient-to-t from-black via-black/80 to-transparent pt-1"><form className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-9 px-4 flex items-center border border-white/5" onSubmit={handleSendMessage}><Input placeholder="Say Hi" className="bg-transparent border-none text-[9px] font-black uppercase tracking-widest placeholder:text-white/40 focus-visible:ring-0 h-full" value={messageText} onChange={(e) => setMessageText(e.target.value)} /></form><div className="flex items-center gap-2"><button onClick={() => setIsParticipantListOpen(true)} className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Users className="h-4 w-4" /></button><button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Mail className="h-4 w-4" /></button><button className="bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 p-2 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all" onClick={() => setIsGiftPickerOpen(true)}><GiftIcon className="h-4 w-4 text-white" /></button><button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsGamesDialogOpen(true)}><LayoutGrid className="h-4 w-4" /></button></div></footer>
+      <footer className="relative z-50 px-4 pb-4 flex items-center justify-between gap-3 bg-gradient-to-t from-black via-black/80 to-transparent pt-1">
+        <button 
+          onClick={handleMicToggle}
+          className={cn(
+            "p-2 rounded-full border border-white/10 backdrop-blur-md transition-all active:scale-90",
+            isInSeat && !currentUserParticipant?.isMuted ? "bg-green-500 text-white shadow-lg shadow-green-500/20" : "bg-white/10 text-white"
+          )}
+        >
+          {isInSeat && !currentUserParticipant?.isMuted ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+        </button>
+        <form className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-9 px-4 flex items-center border border-white/5" onSubmit={handleSendMessage}>
+          <Input placeholder="Say Hi" className="bg-transparent border-none text-[9px] font-black uppercase tracking-widest placeholder:text-white/40 focus-visible:ring-0 h-full" value={messageText} onChange={(e) => setMessageText(e.target.value)} />
+        </form>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setIsParticipantListOpen(true)} className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Users className="h-4 w-4" /></button>
+          <button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><Mail className="h-4 w-4" /></button>
+          <button className="bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 p-2 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all" onClick={() => setIsGiftPickerOpen(true)}><GiftIcon className="h-4 w-4 text-white" /></button>
+          <button className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all" onClick={() => setIsGamesDialogOpen(true)}><LayoutGrid className="h-4 w-4" /></button>
+        </div>
+      </footer>
 
       <Dialog open={isParticipantListOpen} onOpenChange={setIsParticipantListOpen}>
         <DialogContent className="w-screen h-screen max-w-none m-0 rounded-none border-none bg-black/95 backdrop-blur-xl text-white p-0 flex flex-col animate-in slide-in-from-bottom duration-500 font-headline overflow-hidden">
