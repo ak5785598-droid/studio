@@ -84,12 +84,12 @@ export default function ProfilePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const profileId = Array.isArray(params?.id) ? params.id[0] : params?.id as string;
-  const { user: currentUser, isLoading: isAuthLoading } = useUser();
+  const { user: currentUser, isUserLoading } = useUser();
   const { userProfile: profile, isLoading: isProfileLoading } = useUserProfile(profileId);
 
   useEffect(() => { 
-    if (!isAuthLoading && !currentUser) router.replace('/login'); 
-  }, [currentUser, isAuthLoading, router]);
+    if (!isUserLoading && !currentUser) router.replace('/login'); 
+  }, [currentUser, isUserLoading, router]);
 
   const userRoomQuery = useMemoFirebase(() => {
     if (!firestore || !profileId) return null;
@@ -99,10 +99,24 @@ export default function ProfilePage() {
   const { data: rooms } = useCollection(userRoomQuery);
   const activeRoom = rooms?.[0];
 
-  if (isAuthLoading || isProfileLoading) return <AppLayout><div className="flex h-full w-full flex-col items-center justify-center bg-white space-y-4"><Loader className="animate-spin h-8 w-8 text-primary" /><p className="text-[10px] font-black uppercase tracking-widest animate-pulse text-gray-400">Syncing Tribal Identity...</p></div></AppLayout>;
-  if (!profile) { notFound(); return null; }
-
   const isOwnProfile = currentUser?.uid === profileId;
+
+  if (isUserLoading || isProfileLoading) return <AppLayout><div className="flex h-full w-full flex-col items-center justify-center bg-white space-y-4"><Loader className="animate-spin h-8 w-8 text-primary" /><p className="text-[10px] font-black uppercase tracking-widest animate-pulse text-gray-400">Syncing Tribal Identity...</p></div></AppLayout>;
+  
+  if (!profile) { 
+    if (isOwnProfile) {
+      return (
+        <AppLayout>
+          <div className="flex h-full w-full flex-col items-center justify-center bg-white space-y-4">
+            <Loader className="animate-spin h-8 w-8 text-primary" />
+            <p className="text-[10px] font-black uppercase tracking-widest animate-pulse text-gray-400">Establishing Identity Dimensions...</p>
+          </div>
+        </AppLayout>
+      );
+    }
+    notFound(); 
+    return null; 
+  }
 
   // OWN PROFILE VIEW (Misty Forest Dashboard)
   if (isOwnProfile) {
@@ -131,7 +145,7 @@ export default function ProfilePage() {
                 <AvatarFrame frameId={profile.inventory?.activeFrame || 'f5'} size="lg" className="w-24 h-24">
                   <div className="relative">
                     <Avatar className="h-full w-full border-2 border-white shadow-xl">
-                      <AvatarImage src={profile.avatarUrl} />
+                      <AvatarImage src={profile.avatarUrl || undefined} />
                       <AvatarFallback className="text-3xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback>
                     </Avatar>
                     {/* Activity Indicator */}
@@ -252,7 +266,7 @@ export default function ProfilePage() {
                 <div className="relative">
                   <div className="h-32 w-32 rounded-full border-4 border-white/20 p-1 shadow-2xl backdrop-blur-md bg-white/5">
                     <Avatar className="h-full w-full border-2 border-white">
-                        <AvatarImage src={profile.avatarUrl} />
+                        <AvatarImage src={profile.avatarUrl || undefined} />
                         <AvatarFallback className="text-4xl font-black bg-slate-100 text-black">{(profile.username || 'A').charAt(0)}</AvatarFallback>
                     </Avatar>
                   </div>

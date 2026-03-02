@@ -13,7 +13,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
  * Uses a single-source redirection protocol to prevent hydration loops.
  */
 export default function Home() {
-  const { user, isLoading } = useUser();
+  const { user, isUserLoading } = useUser();
   const [showFailSafe, setShowFailSafe] = useState(false);
   const router = useRouter();
 
@@ -21,7 +21,7 @@ export default function Home() {
     // Fail-safe: If auto-redirection doesn't trigger within 2s, show manual entry
     const timer = setTimeout(() => setShowFailSafe(true), 2000);
 
-    if (!isLoading) {
+    if (!isUserLoading) {
       const destination = user ? '/rooms' : '/login';
       
       // Client-side push for smooth transition
@@ -38,7 +38,7 @@ export default function Home() {
     }
 
     return () => clearTimeout(timer);
-  }, [isLoading, user, router]);
+  }, [isUserLoading, user, router]);
 
   const handleManualEntry = () => {
     window.location.href = user ? '/rooms' : '/login';

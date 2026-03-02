@@ -50,7 +50,7 @@ export function AppLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isLoading: isUserLoading } = useUser();
+  const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);

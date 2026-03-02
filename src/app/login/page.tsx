@@ -26,7 +26,7 @@ import Link from 'next/link';
 export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
-  const { user, isLoading: isUserLoading } = useUser();
+  const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
   const [isSigningIn, setIsSigningIn] = useState(false);

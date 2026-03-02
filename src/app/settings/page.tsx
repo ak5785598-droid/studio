@@ -51,7 +51,7 @@ const MenuItem = ({ icon: Icon, label, href, extra, iconColor, onClick }: any) =
 
 export default function SettingsPage() {
   const auth = useAuth();
-  const { user, isLoading: isUserLoading } = useUser();
+  const { user, isUserLoading } = useUser();
   const { isLoading: isProfileLoading } = useUserProfile(user?.uid);
   const router = useRouter();
   const { toast } = useToast();

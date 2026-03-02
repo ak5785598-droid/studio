@@ -18,19 +18,19 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
   const { slug } = use(params);
   const router = useRouter();
   const firestore = useFirestore();
-  const { user: currentUser, isLoading: isAuthLoading } = useUser();
+  const { user: currentUser, isUserLoading } = useUser();
   const { setActiveRoom, setIsMinimized } = useRoomContext();
   
   useEffect(() => {
-    if (!isAuthLoading && !currentUser) {
+    if (!isUserLoading && !currentUser) {
       router.replace('/login');
     }
-  }, [isAuthLoading, currentUser, router]);
+  }, [isUserLoading, currentUser, router]);
 
   const roomDocRef = useMemoFirebase(() => {
-    if (!firestore || !slug || isAuthLoading || !currentUser) return null;
+    if (!firestore || !slug || isUserLoading || !currentUser) return null;
     return doc(firestore, 'chatRooms', slug);
-  }, [firestore, slug, isAuthLoading, currentUser]);
+  }, [firestore, slug, isUserLoading, currentUser]);
 
   const { data: firestoreRoom, isLoading: isDocLoading, error: docError } = useDoc(roomDocRef);
 
@@ -95,7 +95,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
      );
   }
 
-  const isWaiting = isAuthLoading || (!!roomDocRef && isDocLoading);
+  const isWaiting = isUserLoading || (!!roomDocRef && isDocLoading);
 
   if (isWaiting) {
     return (
