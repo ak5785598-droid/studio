@@ -16,6 +16,7 @@ import Link from 'next/link';
  * High-Fidelity Home / Discovery Hub.
  * Re-engineered to match the "Popular" grid layout exactly.
  * Includes a persistent "Official Help" frequency at the apex of the grid.
+ * "Me" button updated to handle room creation directly.
  */
 export default function RoomsPage() {
   const { user } = useUser();
@@ -79,15 +80,18 @@ export default function RoomsPage() {
         {/* Top Header Navigation */}
         <header className="flex items-center justify-between px-6 pt-6 bg-white shrink-0">
           <div className="flex items-center gap-8">
-            <button 
-              onClick={() => setActiveTab('Me')}
-              className={cn(
-                "text-xl font-black uppercase italic transition-colors",
-                activeTab === 'Me' ? "text-gray-900" : "text-gray-400"
-              )}
-            >
-              Me
-            </button>
+            <CreateRoomDialog
+              trigger={
+                <button 
+                  className={cn(
+                    "text-xl font-black uppercase italic transition-colors",
+                    activeTab === 'Me' ? "text-gray-900" : "text-gray-400"
+                  )}
+                >
+                  Me
+                </button>
+              }
+            />
             <div className="relative">
               <button 
                 onClick={() => setActiveTab('Popular')}

@@ -17,16 +17,19 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
-export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
+interface CreateRoomDialogProps {
+  iconOnly?: boolean;
+  trigger?: React.ReactNode;
+}
+
+/**
+ * Production Room Creation Portal.
+ * Enforces the "One user, one room" tribal protocol.
+ * Redirects to existing room if detected.
+ */
+export function CreateRoomDialog({ iconOnly = false, trigger }: CreateRoomDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useUser();
@@ -45,17 +48,23 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
     setIsSubmitting(true);
 
     try {
+      // 1. Identity Verification (One Room Protocol)
       const q = query(collection(firestore, 'chatRooms'), where('ownerId', '==', user.uid));
       const snap = await getDocs(q);
       
       if (!snap.empty) {
-        toast({ variant: 'destructive', title: 'Limit Reached', description: 'One user can create only one voice chat room.' });
+        toast({ 
+          variant: 'destructive', 
+          title: 'Limit Reached', 
+          description: 'One user can create only one room.' 
+        });
         const existingId = snap.docs[0].id;
         router.push(`/rooms/${existingId}`);
         setOpen(false);
         return;
       }
 
+      // 2. Sequential Room Number Dispatch
       const countersRef = doc(firestore, 'appConfig', 'counters');
       const roomNumber = await runTransaction(firestore, async (transaction) => {
         const countersSnap = await transaction.get(countersRef);
@@ -68,8 +77,19 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
         return String(nextRoomNum);
       });
 
+      // 3. Frequency Initialization
       const docRef = await addDoc(collection(firestore, 'chatRooms'), {
-        name, description: topic, roomNumber, ownerId: user.uid, moderatorIds: [user.uid], createdAt: serverTimestamp(), category, stats: { totalGifts: 0, dailyGifts: 0 }, lockedSeats: [], participantCount: 0, announcement: 'Welcome to the frequency!'
+        name, 
+        description: topic, 
+        roomNumber, 
+        ownerId: user.uid, 
+        moderatorIds: [user.uid], 
+        createdAt: serverTimestamp(), 
+        category, 
+        stats: { totalGifts: 0, dailyGifts: 0 }, 
+        lockedSeats: [], 
+        participantCount: 0, 
+        announcement: 'Welcome to the frequency!'
       });
       
       setOpen(false);
@@ -84,20 +104,37 @@ export function CreateRoomDialog({ iconOnly = false }: { iconOnly?: boolean }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {iconOnly ? (
-          <button className="bg-primary text-black p-1.5 rounded-xl border-2 border-white shadow-lg flex items-center justify-center text-sm leading-none">🏠</button>
-        ) : (
-          <Button className="rounded-full font-black uppercase italic tracking-widest text-[10px] px-6 h-10"><Plus className="h-4 w-4 mr-2" />Create</Button>
+        {trigger ? trigger : (
+          iconOnly ? (
+            <button className="bg-primary text-black p-1.5 rounded-xl border-2 border-white shadow-lg flex items-center justify-center text-sm leading-none">🏠</button>
+          ) : (
+            <Button className="rounded-full font-black uppercase italic tracking-widest text-[10px] px-6 h-10"><Plus className="h-4 w-4 mr-2" />Create</Button>
+          )
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] rounded-t-[2.5rem] bg-white text-black p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[425px] rounded-t-[2.5rem] bg-white text-black p-0 overflow-hidden border-none shadow-2xl">
         <form onSubmit={handleSubmit}>
-          <DialogHeader className="p-8 pb-0 text-center"><DialogTitle className="font-headline text-3xl uppercase italic tracking-tighter">Launch Tribe</DialogTitle></DialogHeader>
+          <DialogHeader className="p-8 pb-0 text-center">
+            <DialogTitle className="font-headline text-3xl uppercase italic tracking-tighter">Launch Tribe</DialogTitle>
+            <DialogDescription className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mt-1">
+              By clicking on this we can create our room.... One user can create only one room
+            </DialogDescription>
+          </DialogHeader>
           <div className="grid gap-6 py-8 px-8">
-            <div className="grid gap-2"><Label htmlFor="name" className="text-[10px] font-black uppercase text-gray-400">Room Name</Label><Input id="name" placeholder="Vibe Name" value={name} onChange={(e) => setName(e.target.value)} className="h-14 rounded-2xl border-2" required /></div>
-            <div className="grid gap-2"><Label htmlFor="topic" className="text-[10px] font-black uppercase text-gray-400">Vibe Topic</Label><Input id="topic" placeholder="Vibe Topic" value={topic} onChange={(e) => setTopic(e.target.value)} className="h-14 rounded-2xl border-2" required /></div>
+            <div className="grid gap-2">
+              <Label htmlFor="name" className="text-[10px] font-black uppercase text-gray-400 ml-1">Room Name</Label>
+              <Input id="name" placeholder="Vibe Name" value={name} onChange={(e) => setName(e.target.value)} className="h-14 rounded-2xl border-2 focus:border-primary transition-all" required />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="topic" className="text-[10px] font-black uppercase text-gray-400 ml-1">Vibe Topic</Label>
+              <Input id="topic" placeholder="Vibe Topic" value={topic} onChange={(e) => setTopic(e.target.value)} className="h-14 rounded-2xl border-2 focus:border-primary transition-all" required />
+            </div>
           </div>
-          <DialogFooter className="p-8 pt-0"><Button type="submit" className="w-full h-16 text-xl font-black uppercase italic rounded-3xl" disabled={isSubmitting}>{isSubmitting ? <Loader className="animate-spin" /> : 'Start Frequency'}</Button></DialogFooter>
+          <DialogFooter className="p-8 pt-0">
+            <Button type="submit" className="w-full h-16 text-xl font-black uppercase italic rounded-3xl shadow-xl shadow-primary/20" disabled={isSubmitting}>
+              {isSubmitting ? <Loader className="animate-spin" /> : 'Start Frequency'}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
