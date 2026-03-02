@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -83,7 +82,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, useDoc } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { 
   collection, 
@@ -168,6 +167,39 @@ const ModeratorItem = ({ userId }: { userId: string }) => {
         <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">Room Admin</p>
       </div>
       <ShieldCheck className="h-5 w-5 text-blue-400" />
+    </div>
+  );
+};
+
+const TribeMemberItem = ({ participant, ownerId }: { participant: RoomParticipant, ownerId: string }) => {
+  const { userProfile } = useUserProfile(participant.uid);
+  const isPOwner = participant.uid === ownerId;
+  
+  return (
+    <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 group active:bg-white/10 transition-all">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <Avatar className="h-14 w-14 border-2 border-white/10">
+            <AvatarImage src={participant.avatarUrl} />
+            <AvatarFallback>{participant.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          {/* Online Presence Indicator */}
+          <div className={cn(
+            "absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-black",
+            userProfile?.isOnline ? "bg-green-500" : "bg-black"
+          )} />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <p className="font-black text-sm uppercase tracking-tight">{participant.name}</p>
+            {isPOwner && <Crown className="h-3 w-3 text-yellow-500 fill-current" />}
+          </div>
+          <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">
+            {isPOwner ? "Room Owner" : "Tribe Member"}
+          </p>
+        </div>
+      </div>
+      <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white" />
     </div>
   );
 };
@@ -531,31 +563,9 @@ export function RoomClient({ room }: { room: Room }) {
           </header>
           <ScrollArea className="flex-1 px-6">
             <div className="py-6 space-y-4">
-              {participants?.map((p) => {
-                const isPOwner = p.uid === room.ownerId;
-                const isPMod = room.moderatorIds?.includes(p.uid) && !isPOwner;
-                return (
-                  <div key={p.uid} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 group active:bg-white/10 transition-all">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-14 w-14 border-2 border-white/10">
-                        <AvatarImage src={p.avatarUrl} />
-                        <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-black text-sm uppercase tracking-tight">{p.name}</p>
-                          {isPOwner && <Crown className="h-3 w-3 text-yellow-500 fill-current" />}
-                          {isPMod && <ShieldCheck className="h-3 w-3 text-blue-400 fill-current" />}
-                        </div>
-                        <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">
-                          {isPOwner ? "Room Owner" : isPMod ? "Room Admin" : "Tribe Member"}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white" />
-                  </div>
-                );
-              })}
+              {participants?.map((p) => (
+                <TribeMemberItem key={p.uid} participant={p} ownerId={room.ownerId} />
+              ))}
             </div>
           </ScrollArea>
           <div className="p-8 text-center bg-white/5">

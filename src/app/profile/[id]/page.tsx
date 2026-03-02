@@ -32,7 +32,6 @@ import { Badge } from '@/components/ui/badge';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { EditProfileDialog } from '@/components/edit-profile-dialog';
 import { SellerTransferDialog } from '@/components/seller-transfer-dialog';
-import { OfficialTag } from '@/components/official-tag';
 import { SellerTag } from '@/components/seller-tag';
 
 const SupporterIcon = ({ color, rank }: { color: string, rank: number }) => (
@@ -129,14 +128,20 @@ export default function ProfilePage() {
             <div className="flex items-center gap-4">
               <div className="flex flex-col items-center gap-1">
                 <AvatarFrame frameId={profile.inventory?.activeFrame || 'f5'} size="lg" className="w-24 h-24">
-                  <Avatar className="h-full w-full border-2 border-white shadow-xl">
-                    <AvatarImage src={profile.avatarUrl} />
-                    <AvatarFallback className="text-3xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="h-full w-full border-2 border-white shadow-xl">
+                      <AvatarImage src={profile.avatarUrl} />
+                      <AvatarFallback className="text-3xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {/* Activity Indicator */}
+                    <div className={cn(
+                      "absolute bottom-1 right-1 h-5 w-5 rounded-full border-2 border-white shadow-lg",
+                      profile.isOnline ? "bg-green-500" : "bg-black"
+                    )} />
+                  </div>
                 </AvatarFrame>
                 {/* Vertically Stacked Tags with Minimal Gap */}
                 <div className="flex flex-col -space-y-3.5 h-[48px] justify-start mt-1">
-                  <OfficialTag size="sm" />
                   <SellerTag size="sm" />
                 </div>
               </div>
@@ -242,11 +247,18 @@ export default function ProfilePage() {
         <div className="relative z-30 flex flex-col items-center px-6 mt-[20vh] space-y-6">
            <div className="relative">
               <AvatarFrame frameId={profile.inventory?.activeFrame} size="xl">
-                <div className="h-32 w-32 rounded-full border-4 border-white/20 p-1 shadow-2xl backdrop-blur-md bg-white/5">
-                   <Avatar className="h-full w-full border-2 border-white">
-                      <AvatarImage src={profile.avatarUrl} />
-                      <AvatarFallback className="text-4xl font-black bg-slate-100 text-black">{(profile.username || 'A').charAt(0)}</AvatarFallback>
-                   </Avatar>
+                <div className="relative">
+                  <div className="h-32 w-32 rounded-full border-4 border-white/20 p-1 shadow-2xl backdrop-blur-md bg-white/5">
+                    <Avatar className="h-full w-full border-2 border-white">
+                        <AvatarImage src={profile.avatarUrl} />
+                        <AvatarFallback className="text-4xl font-black bg-slate-100 text-black">{(profile.username || 'A').charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  {/* Activity Indicator */}
+                  <div className={cn(
+                    "absolute bottom-2 right-2 h-6 w-6 rounded-full border-4 border-[#051a05] shadow-lg",
+                    profile.isOnline ? "bg-green-500" : "bg-black"
+                  )} />
                 </div>
               </AvatarFrame>
            </div>
@@ -254,7 +266,6 @@ export default function ProfilePage() {
            <div className="text-center space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <h1 className="text-4xl font-black tracking-tighter drop-shadow-lg">{profile.username}</h1>
-                {profile.tags?.includes('Official') && <OfficialTag size="sm" />}
               </div>
               <div className="flex items-center justify-center gap-2">
                  <span className="text-xl">🇮🇳</span>
