@@ -8,15 +8,28 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirestore, useDoc, useUser, useCollection, useMemoFirebase, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import { doc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch } from 'firebase/firestore';
-import { Shield, Loader, Search, ClipboardList, Gift, CheckCircle2 } from 'lucide-react';
+import { doc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { Shield, Loader, Search, ClipboardList, Gift, CheckCircle2, UserCheck, Star, Crown, Zap, Heart, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+
+const CREATOR_ID = '901piBzTQ0VzCtAvlyyobwvAaTs1';
+
+const AUTHORITY_ROLES = [
+  { id: 'Super Admin', label: 'Super Admin', icon: Zap, color: 'text-red-500' },
+  { id: 'Admin Management', label: 'Admin Management', icon: Shield, color: 'text-blue-500' },
+  { id: 'App Manager', label: 'App Manager', icon: Star, color: 'text-purple-500' },
+  { id: 'Customer Service', label: 'Customer Service', icon: MessageSquare, color: 'text-cyan-500' },
+  { id: 'Coin Seller', label: 'Coin Seller', icon: Heart, color: 'text-pink-500' },
+  { id: 'Assistant', label: 'Assistant', icon: UserCheck, color: 'text-green-500' },
+];
 
 /**
- * Ummy Command Center - High-Tier Reward Oversight.
- * Implements atomic distribution and subsequent leaderboard reset protocol based on 11:59:59 IST cycles.
+ * Ummy Command Center - Supreme Authority Oversight.
+ * Creator-exclusive portal for tribal role management.
  */
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -42,7 +55,8 @@ export default function AdminPage() {
   }, [firestore, user]);
   const { data: logs } = useCollection(logsQuery);
 
-  const isAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
+  const isCreator = user?.uid === CREATOR_ID;
+  const isAdmin = userProfile?.tags?.some((t: string) => ['Admin', 'Official', 'Super Admin', 'Admin Management', 'App Manager'].includes(t)) || isCreator;
 
   const handleDistributeDailyRewards = async () => {
     if (!firestore || !isAdmin) return;
@@ -160,7 +174,7 @@ export default function AdminPage() {
         collection(firestore, 'users'),
         where('username', '>=', searchQuery),
         where('username', '<=', searchQuery + '\uf8ff'),
-        limit(5)
+        limit(10)
       );
       const snap = await getDocs(q);
       setFoundUsers(snap.docs.map(d => ({ ...d.data(), id: d.id })));
@@ -206,19 +220,49 @@ export default function AdminPage() {
       .finally(() => setIsSaving(false));
   };
 
-  if (!isAdmin) return <AppLayout><div className="flex h-[50vh] items-center justify-center text-destructive"><Shield className="h-12 w-12 mr-2" /> Unauthorized</div></AppLayout>;
+  const toggleUserRole = async (targetUid: string, roleId: string, currentTags: string[] = []) => {
+    if (!firestore || !isCreator) return;
+    const hasRole = currentTags.includes(roleId);
+    
+    const userRef = doc(firestore, 'users', targetUid);
+    const profileRef = doc(firestore, 'users', targetUid, 'profile', targetUid);
+    
+    const updateData = {
+      tags: hasRole ? arrayRemove(roleId) : arrayUnion(roleId),
+      updatedAt: serverTimestamp()
+    };
+
+    updateDocumentNonBlocking(userRef, updateData);
+    updateDocumentNonBlocking(profileRef, updateData);
+    
+    toast({ title: 'Authority Updated', description: `${roleId} ${hasRole ? 'revoked' : 'granted'} successfully.` });
+    
+    // Refresh local list
+    setFoundUsers(prev => prev.map(u => {
+      if (u.id === targetUid) {
+        const nextTags = hasRole ? u.tags.filter((t: string) => t !== roleId) : [...(u.tags || []), roleId];
+        return { ...u, tags: nextTags };
+      }
+      return u;
+    }));
+
+    await logAdminAction(`Toggle Role: ${roleId}`, targetUid, { action: hasRole ? 'revoke' : 'grant' });
+  };
+
+  if (!isAdmin) return <AppLayout><div className="flex h-[50vh] items-center justify-center text-destructive font-headline"><Shield className="h-12 w-12 mr-2" /> Unauthorized</div></AppLayout>;
 
   return (
     <AppLayout>
-      <div className="space-y-8 max-w-6xl mx-auto p-4 animate-in fade-in duration-700">
+      <div className="space-y-8 max-w-6xl mx-auto p-4 animate-in fade-in duration-700 font-headline">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
           <div className="flex items-center gap-4">
              <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20"><Shield className="h-8 w-8 text-white" /></div>
              <div>
-                <h1 className="text-4xl font-bold uppercase italic tracking-tighter">Ummy Command Center</h1>
-                <p className="text-muted-foreground">Elite Rewards & Official 11:59:59 IST Distribution.</p>
+                <h1 className="text-4xl font-bold uppercase italic tracking-tighter">{isCreator ? 'Supreme Command' : 'Ummy Command Center'}</h1>
+                <p className="text-muted-foreground">{isCreator ? 'Supreme Authority Active' : 'Elite Rewards & Official 11:59:59 IST Distribution.'}</p>
              </div>
           </div>
+          {isCreator && <Badge className="bg-red-500 text-white font-black uppercase italic px-4 py-1.5 h-10 rounded-xl shadow-xl shadow-red-500/20">Supreme Creator</Badge>}
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
@@ -226,14 +270,75 @@ export default function AdminPage() {
             <TabsTrigger value="overview" className="rounded-full px-6 font-black uppercase text-[10px]">Overview</TabsTrigger>
             <TabsTrigger value="rewards" className="rounded-full px-6 font-black uppercase text-[10px]">Rewards Hub</TabsTrigger>
             <TabsTrigger value="users" className="rounded-full px-6 font-black uppercase text-[10px]">Users</TabsTrigger>
+            {isCreator && <TabsTrigger value="authority" className="rounded-full px-6 font-black uppercase text-[10px] bg-red-500/10 text-red-500">Authority Hub</TabsTrigger>}
             <TabsTrigger value="logs" className="rounded-full px-6 font-black uppercase text-[10px]">Audit Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Economy Status</CardTitle></CardHeader><CardContent><p className="text-3xl font-black uppercase italic">Active</p></CardContent></Card>
+                <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Economy Status</CardTitle></CardHeader><CardContent><p className="text-3xl font-black uppercase italic text-green-500">Active</p></CardContent></Card>
                 <Card><CardHeader><CardTitle className="text-xs uppercase opacity-50">Last Distribution (IST)</CardTitle></CardHeader><CardContent><p className="text-3xl font-black uppercase italic">{config?.lastRewardReset ? format(config.lastRewardReset.toDate(), 'MMM d, HH:mm') : 'Pending'}</p></CardContent></Card>
              </div>
+          </TabsContent>
+
+          <TabsContent value="authority" className="space-y-6">
+             <Card className="rounded-[2.5rem] border-none shadow-xl bg-gradient-to-br from-red-500/10 to-transparent">
+                <CardHeader>
+                   <CardTitle className="text-2xl uppercase italic flex items-center gap-2 text-red-500">
+                      <Zap className="h-6 w-6" /> Tribal Authority Protocol
+                   </CardTitle>
+                   <CardDescription>Exclusive Creator Portal: Define and dispatch elite tribal signatures.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                   <div className="flex gap-4">
+                      <div className="relative flex-1">
+                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                         <Input placeholder="Search member to set role..." className="pl-10 h-12 rounded-xl" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearchUsers()} />
+                      </div>
+                      <Button onClick={handleSearchUsers} className="h-12 rounded-xl bg-red-500 text-white hover:bg-red-600" disabled={isSearching}>{isSearching ? <Loader className="animate-spin" /> : 'Search Social Graph'}</Button>
+                   </div>
+
+                   <div className="space-y-4">
+                      {foundUsers.map((u) => (
+                        <div key={u.id} className="p-6 bg-white rounded-3xl border shadow-sm space-y-6">
+                           <div className="flex items-center gap-4">
+                              <Avatar className="h-16 w-16 border-4 border-secondary shadow-lg"><AvatarImage src={u.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar>
+                              <div className="flex-1">
+                                 <p className="font-black text-lg uppercase italic tracking-tighter">{u.username}</p>
+                                 <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Tribe ID: {u.specialId}</p>
+                                 <div className="flex gap-1 mt-2">
+                                    {u.tags?.map((t: string) => (
+                                      <Badge key={t} variant="secondary" className="text-[8px] px-2 py-0 h-4 uppercase font-black">{t}</Badge>
+                                    ))}
+                                 </div>
+                              </div>
+                           </div>
+                           
+                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                              {AUTHORITY_ROLES.map(role => {
+                                const active = u.tags?.includes(role.id);
+                                return (
+                                  <Button 
+                                    key={role.id} 
+                                    variant={active ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => toggleUserRole(u.id, role.id, u.tags)}
+                                    className={cn(
+                                      "rounded-2xl h-12 flex items-center justify-start gap-3 px-4 font-black uppercase text-[9px] transition-all",
+                                      active ? "bg-red-500 text-white shadow-lg shadow-red-500/20" : "hover:bg-red-50 text-muted-foreground"
+                                    )}
+                                  >
+                                    <role.icon className={cn("h-4 w-4", !active && role.color)} />
+                                    {role.label}
+                                  </Button>
+                                );
+                              })}
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </CardContent>
+             </Card>
           </TabsContent>
 
           <TabsContent value="rewards" className="space-y-6">
