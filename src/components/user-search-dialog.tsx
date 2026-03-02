@@ -30,9 +30,11 @@ export function UserSearchDialog() {
 
     setIsSearching(true);
     try {
+      // Normalizes input (e.g. "1" to "001") to match sequential identity signatures.
+      const paddedId = searchId.padStart(3, '0');
       const q = query(
         collection(firestore, 'users'),
-        where('specialId', '==', searchId),
+        where('specialId', '==', paddedId),
         limit(1)
       );
       
@@ -47,7 +49,7 @@ export function UserSearchDialog() {
         toast({
           variant: 'destructive',
           title: 'Identity Not Found',
-          description: `No tribe member exists with ID ${searchId}.`,
+          description: `No tribe member exists with ID ${paddedId}.`,
         });
       }
     } catch (e: any) {
@@ -101,7 +103,7 @@ export function UserSearchDialog() {
             <div className="relative group">
               <User className="absolute left-6 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-300 group-focus-within:text-primary transition-colors" />
               <Input 
-                placeholder="ID" 
+                placeholder="ID (any digits)" 
                 className="pl-16 h-24 rounded-[2rem] border-4 border-gray-100 focus:border-primary transition-all text-5xl font-black tracking-[0.3em] text-center placeholder:text-gray-100"
                 value={searchId}
                 autoFocus

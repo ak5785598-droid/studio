@@ -206,6 +206,7 @@ export default function AdminPage() {
     if (!firestore || !tagSearchId || !isCreator) return;
     setIsSearching(true);
     try {
+      // Normalizes 1 to 001, 10 to 010, etc. while preserving longer IDs.
       const paddedId = tagSearchId.padStart(3, '0');
       const q = query(
         collection(firestore, 'users'),
@@ -404,7 +405,7 @@ export default function AdminPage() {
                    <div className="flex gap-4">
                       <div className="relative flex-1">
                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                         <Input placeholder="Enter User ID (e.g. 001)" className="pl-10 h-12 rounded-xl" value={tagSearchId} onChange={(e) => setTagSearchId(e.target.value.replace(/\D/g, ''))} onKeyDown={(e) => e.key === 'Enter' && handleSearchByTagId()} />
+                         <Input placeholder="Enter User ID (any digits)" className="pl-10 h-12 rounded-xl" value={tagSearchId} onChange={(e) => setTagSearchId(e.target.value.replace(/\D/g, ''))} onKeyDown={(e) => e.key === 'Enter' && handleSearchByTagId()} />
                       </div>
                       <Button onClick={handleSearchByTagId} className="h-12 rounded-xl bg-green-600 text-white hover:bg-green-700" disabled={isSearching}>{isSearching ? <Loader className="animate-spin" /> : 'Find Tribe Member'}</Button>
                    </div>
