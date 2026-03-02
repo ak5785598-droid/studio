@@ -555,7 +555,20 @@ export function RoomClient({ room }: { room: Room }) {
     router.push('/rooms');
   };
 
-  const takeSeat = (index: number) => { if (!firestore || !room.id || !currentUser || !userProfile) return; if (room.lockedSeats?.includes(index)) { toast({ variant: 'destructive', title: 'Seat Locked' }); return; } updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { [`participants.${currentUser.uid}`]: { uid: currentUser.uid, name: userProfile.username || 'Guest', avatarUrl: userProfile.avatarUrl || '', seatIndex: index, isMuted: true, activeWave: userProfile.inventory?.activeWave || 'Default' } }); };
+  const takeSeat = (index: number) => { 
+    if (!firestore || !room.id || !currentUser || !userProfile) return; 
+    if (room.lockedSeats?.includes(index)) { 
+      toast({ variant: 'destructive', title: 'Seat Locked' }); 
+      return; 
+    } 
+    const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid);
+    updateDocumentNonBlocking(participantRef, { 
+      seatIndex: index, 
+      isMuted: true,
+      updatedAt: serverTimestamp() 
+    }); 
+  };
+
   const leaveSeat = () => { if (!firestore || !room.id || !currentUser) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: 0, isMuted: true }); setIsActionMenuOpen(false); setIsUserProfileCardOpen(false); };
   
   const handleMicToggle = () => { 

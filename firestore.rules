@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -78,7 +79,7 @@ service cloud.firestore {
       allow update: if isSignedIn() && (
         isOwner(resource.data.ownerId) || 
         (resource.data.moderatorIds != null && request.auth.uid in resource.data.moderatorIds) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasAny(['participantCount', 'updatedAt', 'isChatMuted', 'currentMusicUrl', 'roomThemeId', 'maxActiveMics']) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'updatedAt', 'isChatMuted', 'currentMusicUrl', 'roomThemeId', 'maxActiveMics']) ||
         chatRoomId == 'ummy-help-center' ||
         isAdmin()
       );
@@ -134,6 +135,10 @@ service cloud.firestore {
     match /appConfig/{configId} {
       allow get: if isSignedIn();
       allow write: if isAdmin();
+    }
+    
+    match /adminLogs/{logId} {
+      allow get, list, create: if isAdmin();
     }
     
     match /adminLogs/{logId} {
