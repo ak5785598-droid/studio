@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -439,31 +438,31 @@ export function RoomClient({ room }: { room: Room }) {
     const isPMod = room.moderatorIds?.includes(occupant?.uid || '') && !isPOwner;
 
     return (
-      <div className="flex flex-col items-center gap-1 w-full">
+      <div className="flex flex-col items-center gap-0.5 w-full">
         <div className="relative">
           <EmojiReactionOverlay emoji={occupant?.activeEmoji} size={index === 1 ? "xl" : "lg"} />
           <div className="relative">
-            {occupant && !occupant.isMuted && (<div className={cn("absolute -inset-1.5 rounded-full border-2 animate-voice-wave", getWaveColor(occupant.activeWave))} />)}
+            {occupant && !occupant.isMuted && (<div className={cn("absolute -inset-1 rounded-full border-2 animate-voice-wave", getWaveColor(occupant.activeWave))} />)}
             <AvatarFrame frameId={occupant?.activeFrame} size={index === 1 ? "lg" : "md"}>
               <button 
                 onClick={() => handleSeatClick(index, occupant)}
                 className={cn(
                   "rounded-full flex items-center justify-center transition-all bg-black/40 border-2 border-white/10 backdrop-blur-sm shadow-xl relative overflow-hidden",
-                  index === 1 ? "h-16 w-16" : "h-14 w-14",
+                  index === 1 ? "h-14 w-14" : "h-12 w-12",
                   isLocked && "border-red-500/50 bg-red-500/10"
                 )}
               >
                 {occupant ? (
                   <Avatar className="h-full w-full"><AvatarImage src={occupant.avatarUrl} /><AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback></Avatar>
                 ) : isLocked ? (
-                  <Lock className="h-5 w-5 text-red-500/60" />
+                  <Lock className="h-4 w-4 text-red-500/60" />
                 ) : (
-                  <Armchair className={cn("text-white/20", index === 1 ? "h-8 w-8" : "h-6 w-6")} />
+                  <Armchair className={cn("text-white/20", index === 1 ? "h-6 w-6" : "h-5 w-5")} />
                 )}
               </button>
             </AvatarFrame>
-            {occupant?.isMuted && (<div className="absolute bottom-0 right-0 bg-red-500 rounded-full p-0.5 border border-black shadow-lg"><MicOff className="h-2.5 w-2.5 text-white" /></div>)}
-            {!occupant?.isMuted && occupant && (<div className="absolute bottom-0 right-0 bg-green-500 rounded-full p-0.5 border border-black shadow-lg"><Mic className="h-2.5 w-2.5 text-white" /></div>)}
+            {occupant?.isMuted && (<div className="absolute bottom-0 right-0 bg-red-500 rounded-full p-0.5 border border-black shadow-lg"><MicOff className="h-2 w-2 text-white" /></div>)}
+            {!occupant?.isMuted && occupant && (<div className="absolute bottom-0 right-0 bg-green-500 rounded-full p-0.5 border border-black shadow-lg"><Mic className="h-2 w-2 text-white" /></div>)}
             
             {(isPOwner || isPMod) && (
               <div className="absolute -top-0.5 -left-0.5 bg-yellow-500 rounded-full p-0.5 border border-black shadow-lg z-[45]">
@@ -476,12 +475,12 @@ export function RoomClient({ room }: { room: Room }) {
                 onClick={(e) => { e.stopPropagation(); handleSeatClick(index, occupant); }}
                 className="absolute -top-1 -right-1 bg-black/60 rounded-full p-0.5 border border-white/10 z-40"
               >
-                <MoreHorizontal className="h-2.5 w-2.5 text-white" />
+                <MoreHorizontal className="h-2 w-2 text-white" />
               </button>
             )}
           </div>
         </div>
-        <span className={cn("text-[9px] font-black uppercase drop-shadow-md truncate w-14 text-center", occupant ? "text-yellow-400" : "text-white/60")}>
+        <span className={cn("text-[8px] font-black uppercase drop-shadow-md truncate w-12 text-center", occupant ? "text-yellow-400" : "text-white/60")}>
           {occupant ? occupant.name : `No.${index}`}
         </span>
       </div>
@@ -507,7 +506,7 @@ export function RoomClient({ room }: { room: Room }) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
       </div>
 
-      <header className="relative z-50 flex items-center justify-between p-4 pt-8">
+      <header className="relative z-50 flex items-center justify-between p-4 pt-4">
         <div 
           className="flex items-center gap-3 cursor-pointer group active:scale-[0.98] transition-transform"
           onClick={() => setIsRoomInfoOpen(true)}
@@ -546,7 +545,7 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </header>
 
-      <div className="relative z-50 px-4 mt-1">
+      <div className="relative z-50 px-4 mt-0">
         <div className="bg-yellow-500/20 backdrop-blur-md border border-yellow-500/30 rounded-full py-1 px-3 w-fit flex items-center gap-2">
           <Trophy className="h-3 w-3 text-yellow-500" />
           <span className="text-[10px] font-black text-yellow-500 uppercase">{(room.stats?.totalGifts || 0).toLocaleString()}</span>
@@ -557,10 +556,10 @@ export function RoomClient({ room }: { room: Room }) {
       <button 
         onClick={handleMoneyTreeClick}
         disabled={isClaimingTree}
-        className="absolute top-24 right-4 z-40 animate-bounce hover:scale-110 active:scale-95 transition-transform" 
+        className="absolute top-20 right-4 z-40 animate-bounce hover:scale-110 active:scale-95 transition-transform" 
         style={{ animationDuration: '4s' }}
       >
-        <div className="relative h-12 w-12">
+        <div className="relative h-10 w-10">
           {isClaimingTree ? (
             <Loader className="h-full w-full animate-spin text-yellow-500" />
           ) : (
@@ -569,26 +568,26 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </button>
 
-      <main className="relative z-10 flex-1 flex flex-col pt-2 overflow-hidden">
-        <div className="px-4 space-y-2 flex flex-col items-center">
-          <div className="w-20">
+      <main className="relative z-10 flex-1 flex flex-col pt-1 overflow-hidden">
+        <div className="px-4 space-y-1 flex flex-col items-center">
+          <div className="w-16">
             <Seat index={1} />
           </div>
 
-          <div className="grid grid-cols-4 gap-2 w-full max-w-sm">
+          <div className="grid grid-cols-4 gap-1 w-full max-w-sm">
             {[2, 3, 4, 5].map(i => <Seat key={i} index={i} />)}
           </div>
 
-          <div className="grid grid-cols-4 gap-2 w-full max-w-sm">
+          <div className="grid grid-cols-4 gap-1 w-full max-w-sm">
             {[6, 7, 8, 9].map(i => <Seat key={i} index={i} />)}
           </div>
         </div>
 
         <div className="absolute right-2 top-1/2 -translate-y-1/2 z-40">
           <div className="bg-gradient-to-b from-amber-200 to-amber-600 p-0.5 rounded-xl shadow-2xl">
-            <div className="bg-black/80 rounded-lg p-1.5 flex flex-col items-center gap-1 border border-white/5">
-              <Trophy className="h-6 w-6 text-yellow-500" />
-              <p className="text-[7px] font-black uppercase text-center text-white/60 leading-none">Room Support</p>
+            <div className="bg-black/80 rounded-lg p-1 flex flex-col items-center gap-0.5 border border-white/5">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              <p className="text-[6px] font-black uppercase text-center text-white/60 leading-none">Room Support</p>
               <div className="flex gap-0.5 mt-0.5">
                 {[1, 2, 3, 4, 5].map(i => <div key={i} className={cn("h-1 w-1 rounded-full", i === 1 ? "bg-white" : "bg-white/20")} />)}
               </div>
@@ -596,10 +595,10 @@ export function RoomClient({ room }: { room: Room }) {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col mt-4 px-4 pb-4 justify-end">
-          <div className="space-y-2">
-            <div className="bg-emerald-500/10 border border-emerald-500/20 p-2 rounded-xl animate-in fade-in duration-1000">
-              <p className="text-emerald-400 text-[10px] font-black uppercase leading-relaxed text-center">
+        <div className="flex-1 flex flex-col mt-2 px-4 pb-2 justify-end">
+          <div className="space-y-1">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 p-1.5 rounded-xl animate-in fade-in duration-1000">
+              <p className="text-emerald-400 text-[9px] font-black uppercase leading-relaxed text-center">
                 Welcome to Ummy! Please show respect to one another and be courteous.
               </p>
             </div>
@@ -607,24 +606,24 @@ export function RoomClient({ room }: { room: Room }) {
             {!isInSeat && (
               <Button 
                 onClick={handleMicToggle}
-                className="w-full bg-gradient-to-r from-emerald-400 to-emerald-600 text-white rounded-xl h-10 px-8 font-black uppercase shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-xs"
+                className="w-full bg-gradient-to-r from-emerald-400 to-emerald-600 text-white rounded-xl h-9 px-8 font-black uppercase shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-[10px]"
               >
                 Join Voice Chat <ChevronRight className="ml-2 h-3 w-3" />
               </Button>
             )}
 
-            <ScrollArea className="h-24" ref={scrollRef}>
-              <div className="space-y-1.5">
+            <ScrollArea className="h-20" ref={scrollRef}>
+              <div className="space-y-1">
                 {activeMessages.map((msg) => (
                   <div key={msg.id} className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-300">
                     {msg.type === 'entrance' ? (
-                      <p className="text-[9px] font-black uppercase text-white/60">
+                      <p className="text-[8px] font-black uppercase text-white/60">
                         welcome <span className="text-yellow-400">{msg.user.name}</span> entered the room
                       </p>
                     ) : (
                       <div className="bg-black/20 backdrop-blur-sm px-2 py-0.5 rounded-lg border border-white/5 flex gap-2 max-w-[90%]">
-                        <span className="text-[9px] font-black text-blue-400 shrink-0 uppercase">{msg.user.name}:</span>
-                        <p className="text-[9px] font-medium text-white/80">{msg.text}</p>
+                        <span className="text-[8px] font-black text-blue-400 shrink-0 uppercase">{msg.user.name}:</span>
+                        <p className="text-[8px] font-medium text-white/80">{msg.text}</p>
                       </div>
                     )}
                   </div>
@@ -635,9 +634,9 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </main>
 
-      <footer className="relative z-50 px-4 pb-6 flex items-center justify-between gap-3 bg-gradient-to-t from-black via-black/80 to-transparent pt-2">
+      <footer className="relative z-50 px-4 pb-4 flex items-center justify-between gap-3 bg-gradient-to-t from-black via-black/80 to-transparent pt-1">
         <form 
-          className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-10 px-4 flex items-center border border-white/5"
+          className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-9 px-4 flex items-center border border-white/5"
           onSubmit={handleSendMessage}
         >
           <Input 
