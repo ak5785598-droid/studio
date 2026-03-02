@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -91,18 +90,21 @@ export default function RoomsPage() {
         {/* Top Header Navigation */}
         <header className="flex items-center justify-between px-6 pt-6 bg-white shrink-0">
           <div className="flex items-center gap-8">
-            <button 
-              onClick={() => setActiveTab('Me')}
-              className={cn(
-                "text-xl font-black uppercase italic transition-colors relative",
-                activeTab === 'Me' ? "text-gray-900" : "text-gray-400"
-              )}
-            >
-              Me
-              {activeTab === 'Me' && (
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-1 bg-primary rounded-full" />
-              )}
-            </button>
+            <CreateRoomDialog 
+              trigger={
+                <button 
+                  className={cn(
+                    "text-xl font-black uppercase italic transition-colors relative",
+                    activeTab === 'Me' ? "text-gray-900" : "text-gray-400"
+                  )}
+                >
+                  Me
+                  {activeTab === 'Me' && (
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-1 bg-primary rounded-full" />
+                  )}
+                </button>
+              }
+            />
             <div className="relative">
               <button 
                 onClick={() => setActiveTab('Popular')}

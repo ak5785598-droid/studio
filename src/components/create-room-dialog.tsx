@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface CreateRoomDialogProps {
   iconOnly?: boolean;
@@ -27,7 +28,7 @@ interface CreateRoomDialogProps {
 /**
  * Production Room Creation Portal.
  * Enforces the "One user, one room" tribal protocol.
- * Redirects to existing room if detected.
+ * DIRECT ENTRY: If iconOnly is true, clicking skips to existing room if found.
  */
 export function CreateRoomDialog({ iconOnly = false, trigger }: CreateRoomDialogProps) {
   const [open, setOpen] = useState(false);
@@ -40,6 +41,34 @@ export function CreateRoomDialog({ iconOnly = false, trigger }: CreateRoomDialog
   const [name, setName] = useState('');
   const [topic, setTopic] = useState('');
   const [category, setCategory] = useState('Chat');
+
+  const handleDirectEntryCheck = async (e: React.MouseEvent) => {
+    if (!user || !firestore) return;
+
+    // Direct entry protocol for icon or specific triggers
+    if (iconOnly || !open) {
+      e.preventDefault();
+      setIsSubmitting(true);
+      
+      try {
+        const q = query(collection(firestore, 'chatRooms'), where('ownerId', '==', user.uid));
+        const snap = await getDocs(q);
+        
+        if (!snap.empty) {
+          const existingId = snap.docs[0].id;
+          router.push(`/rooms/${existingId}`);
+          return;
+        }
+        
+        // No room found, proceed to show dialog
+        setOpen(true);
+      } catch (error: any) {
+        setOpen(true); // Fallback to dialog
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,11 +133,21 @@ export function CreateRoomDialog({ iconOnly = false, trigger }: CreateRoomDialog
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger ? trigger : (
+        {trigger ? (
+          <div onClick={handleDirectEntryCheck}>{trigger}</div>
+        ) : (
           iconOnly ? (
-            <button className="bg-primary text-black p-1.5 rounded-xl border-2 border-white shadow-lg flex items-center justify-center text-sm leading-none">🏠</button>
+            <button 
+              onClick={handleDirectEntryCheck}
+              disabled={isSubmitting}
+              className="bg-primary text-black p-1.5 rounded-xl border-2 border-white shadow-lg flex items-center justify-center text-sm leading-none transition-transform active:scale-90"
+            >
+              {isSubmitting ? <Loader className="h-4 w-4 animate-spin" /> : '🏠'}
+            </button>
           ) : (
-            <Button className="rounded-full font-black uppercase italic tracking-widest text-[10px] px-6 h-10"><Plus className="h-4 w-4 mr-2" />Create</Button>
+            <Button className="rounded-full font-black uppercase italic tracking-widest text-[10px] px-6 h-10" onClick={() => setOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />Create
+            </Button>
           )
         )}
       </DialogTrigger>
@@ -117,7 +156,7 @@ export function CreateRoomDialog({ iconOnly = false, trigger }: CreateRoomDialog
           <DialogHeader className="p-8 pb-0 text-center">
             <DialogTitle className="font-headline text-3xl uppercase italic tracking-tighter">Launch Tribe</DialogTitle>
             <DialogDescription className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mt-1">
-              By clicking on this we can create our room.... One user can create only one room
+              By clicking on this icon we can directly enter to our room
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-8 px-8">
