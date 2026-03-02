@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ChatRoomCard } from '@/components/chat-room-card';
 import { Loader, Search, Plus, Trophy, Users, Heart } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -18,6 +19,7 @@ import Link from 'next/link';
 export default function RoomsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('Popular');
 
   const roomsQuery = useMemoFirebase(() => {
@@ -31,8 +33,10 @@ export default function RoomsPage() {
 
   const { data: roomsData, isLoading: isRoomsLoading } = useCollection(roomsQuery);
 
-  const CategoryCard = ({ title, label, gradient }: { title: string, label: string, gradient: string }) => (
-    <div className={cn(
+  const CategoryCard = ({ title, label, gradient, onClick }: { title: string, label: string, gradient: string, onClick?: () => void }) => (
+    <div 
+      onClick={onClick}
+      className={cn(
       "relative flex-1 min-w-0 rounded-2xl h-24 overflow-hidden border-2 border-white/20 shadow-lg flex flex-col items-center justify-center gap-1 group active:scale-95 transition-all cursor-pointer",
       gradient
     )}>
@@ -88,7 +92,12 @@ export default function RoomsPage() {
         <div className="px-4 space-y-6 overflow-y-auto no-scrollbar flex-1">
           {/* Top Category Row */}
           <div className="flex gap-2">
-             <CategoryCard title="Ranking" label="Ranking" gradient="bg-gradient-to-br from-orange-400 to-yellow-600" />
+             <CategoryCard 
+               title="Ranking" 
+               label="Ranking" 
+               gradient="bg-gradient-to-br from-orange-400 to-yellow-600" 
+               onClick={() => router.push('/leaderboard')}
+             />
              <CategoryCard title="Family" label="Family" gradient="bg-gradient-to-br from-blue-400 to-indigo-600" />
              <CategoryCard title="CP" label="CP" gradient="bg-gradient-to-br from-pink-400 to-purple-600" />
           </div>
