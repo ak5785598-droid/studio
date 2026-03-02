@@ -108,6 +108,7 @@ import { DailyRewardDialog } from '@/components/daily-reward-dialog';
 import { VoiceTutorial } from '@/components/voice-tutorial';
 import { CameraCaptureDialog } from '@/components/camera-capture-dialog';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { RoomUserProfileDialog } from '@/components/room-user-profile-dialog';
 
 const ROOM_THEMES = [
   { id: 'misty', name: 'Misty Forest', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000' },
@@ -293,7 +294,9 @@ export function RoomClient({ room }: { room: Room }) {
   const [isMicOptionPickerOpen, setIsMicOptionPickerOpen] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isExitPortalOpen, setIsExitPortalOpen] = useState(false);
+  const [isUserProfileCardOpen, setIsUserProfileCardOpen] = useState(false);
   const [selectedSeatIndex, setSelectedSeatIndex] = useState<number | null>(null);
+  const [selectedParticipantUid, setSelectedParticipantUid] = useState<string | null>(null);
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
   const [showGiftEffects, setShowGiftEffects] = useState(true);
@@ -513,6 +516,7 @@ export function RoomClient({ room }: { room: Room }) {
     const pRef = doc(firestore, 'chatRooms', room.id, 'participants', uid);
     deleteDocumentNonBlocking(pRef);
     setIsActionMenuOpen(false);
+    setIsUserProfileCardOpen(false);
     toast({ title: 'Member Kicked' });
   };
 
@@ -532,7 +536,7 @@ export function RoomClient({ room }: { room: Room }) {
   };
 
   const takeSeat = (index: number) => { if (!firestore || !room.id || !currentUser || !userProfile) return; if (room.lockedSeats?.includes(index)) { toast({ variant: 'destructive', title: 'Seat Locked' }); return; } updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { uid: currentUser.uid, name: userProfile.username || 'Guest', avatarUrl: userProfile.avatarUrl || '', seatIndex: index, isMuted: true, activeWave: userProfile.inventory?.activeWave || 'Default' }); };
-  const leaveSeat = () => { if (!firestore || !room.id || !currentUser) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: 0, isMuted: true }); setIsActionMenuOpen(false); };
+  const leaveSeat = () => { if (!firestore || !room.id || !currentUser) return; updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: 0, isMuted: true }); setIsActionMenuOpen(false); setIsUserProfileCardOpen(false); };
   
   const handleMicToggle = () => { 
     const max = room.maxActiveMics || 9;
@@ -611,6 +615,17 @@ export function RoomClient({ room }: { room: Room }) {
     const isPOwner = occupant?.uid === room.ownerId;
     const isPMod = room.moderatorIds?.includes(occupant?.uid || '') && !isPOwner;
 
+    const handleSeatClick = () => {
+      setSelectedSeatIndex(index);
+      if (occupant) {
+        setSelectedParticipantUid(occupant.uid);
+        setIsUserProfileCardOpen(true);
+      } else {
+        setSelectedParticipantUid(null);
+        setIsActionMenuOpen(true);
+      }
+    };
+
     return (
       <div className="flex flex-col items-center gap-0.5 w-full">
         <div className="relative">
@@ -619,7 +634,7 @@ export function RoomClient({ room }: { room: Room }) {
             {occupant && !occupant.isMuted && (<div className={cn("absolute -inset-1 rounded-full border-2 animate-voice-wave", getWaveColor(occupant.activeWave))} />)}
             <AvatarFrame frameId={occupant?.activeFrame} size={index === 1 ? "lg" : "md"}>
               <button 
-                onClick={() => { setSelectedSeatIndex(index); setIsActionMenuOpen(true); }}
+                onClick={handleSeatClick}
                 className={cn(
                   "rounded-full flex items-center justify-center transition-all bg-black/40 border-2 border-white/10 backdrop-blur-sm shadow-xl relative overflow-hidden",
                   index === 1 ? "h-14 w-14" : "h-12 w-12",
@@ -1110,6 +1125,21 @@ export function RoomClient({ room }: { room: Room }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* New High-Fidelity Room User Profile Card */}
+      <RoomUserProfileDialog 
+        userId={selectedParticipantUid}
+        open={isUserProfileCardOpen}
+        onOpenChange={setIsUserProfileCardOpen}
+        canManage={canManageRoom}
+        isOwner={isOwner}
+        roomModeratorIds={room.moderatorIds || []}
+        onSilence={silenceParticipant}
+        onKick={kickParticipant}
+        onToggleMod={toggleModerator}
+        onOpenGiftPicker={(recipient) => { setGiftRecipient(recipient); setIsGiftPickerOpen(true); }}
+        isSilenced={participants?.find(p => p.uid === selectedParticipantUid)?.isSilenced || false}
+      />
 
       <CameraCaptureDialog 
         open={isCameraOpen} 
