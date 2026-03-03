@@ -12,7 +12,7 @@ interface AvatarFrameProps {
 
 /**
  * High-fidelity Avatar Frame component.
- * Expanded to support f1-f5 and the new elite f6 'Bronze Sky' frame.
+ * Expanded to support f1-f7 including the new high-tier Celestial Wings frame.
  */
 export function AvatarFrame({ frameId, children, className, size = 'md' }: AvatarFrameProps) {
   if (!frameId || frameId === 'None' || frameId === 'Default') {
@@ -25,11 +25,71 @@ export function AvatarFrame({ frameId, children, className, size = 'md' }: Avata
   const isRoyal = frameId === 'f3'; // Royal Purple
   const isWings = frameId === 'f5'; // Golden wings
   const isBronzeSky = frameId === 'f6'; // Bronze Sky
+  const isCelestial = frameId === 'f7'; // Celestial Wings
 
   return (
     <div className={cn('relative flex items-center justify-center p-1', className)}>
       {/* Frame Layer */}
       <div className="absolute inset-0 z-20 pointer-events-none scale-110">
+        {isCelestial && (
+          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-2xl animate-in fade-in duration-1000 overflow-visible">
+            <defs>
+              <linearGradient id="celestialBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#c7d2fe" />
+                <stop offset="50%" stopColor="#818cf8" />
+                <stop offset="100%" stopColor="#4f46e5" />
+              </linearGradient>
+              <linearGradient id="celestialGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#fef08a" />
+                <stop offset="50%" stopColor="#facc15" />
+                <stop offset="100%" stopColor="#a16207" />
+              </linearGradient>
+              <filter id="celestialGlow">
+                <feGaussianBlur stdDeviation="1" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            {/* Top Spikes (Gold) */}
+            <g fill="url(#celestialGold)" stroke="#854d0e" strokeWidth="0.2">
+               {/* Left Spike */}
+               <path d="M25 15 L35 10 L30 25 Z" />
+               {/* Center Spike */}
+               <path d="M40 5 L60 5 L50 15 Z" />
+               {/* Right Spike */}
+               <path d="M75 15 L65 10 L70 25 Z" />
+            </g>
+
+            {/* Side Wings (Lavender Blue) */}
+            <g fill="url(#celestialBlue)" stroke="#3730a3" strokeWidth="0.2" className="animate-wing-flap origin-center">
+               {/* Left Wing Layers */}
+               <path d="M15 50 C 0 45, -10 60, 5 70 L15 65 Z" />
+               <path d="M12 60 C -5 55, -15 75, 5 85 L12 75 Z" opacity="0.8" />
+               <path d="M18 40 C 5 35, -5 50, 10 55 L18 50 Z" opacity="0.9" />
+               {/* Right Wing Layers */}
+               <path d="M85 50 C 100 45, 110 60, 95 70 L85 65 Z" />
+               <path d="M88 60 C 105 55, 115 75, 95 85 L88 75 Z" opacity="0.8" />
+               <path d="M82 40 C 95 35, 105 50, 90 55 L82 50 Z" opacity="0.9" />
+            </g>
+
+            {/* Main Ring Structure */}
+            <circle cx="50" cy="50" r="46" fill="none" stroke="url(#celestialBlue)" strokeWidth="5" />
+            <circle cx="50" cy="50" r="42" fill="none" stroke="url(#celestialGold)" strokeWidth="2" className="animate-shimmer-gold" />
+            <circle cx="50" cy="50" r="38" fill="none" stroke="url(#celestialBlue)" strokeWidth="1.5" />
+
+            {/* Bottom Talons */}
+            <g fill="url(#celestialBlue)" stroke="#3730a3" strokeWidth="0.2">
+               <path d="M35 92 L30 98 L40 95 Z" />
+               <path d="M65 92 L70 98 L60 95 Z" />
+            </g>
+
+            {/* Animated Shine Streak */}
+            <rect x="0" y="0" width="10" height="150" fill="white" opacity="0.2" transform="rotate(45) translate(0, -100)">
+               <animateTransform attributeName="transform" type="translate" from="-100, -100" to="200, 100" dur="4s" repeatCount="indefinite" />
+            </rect>
+          </svg>
+        )}
+
         {isBronzeSky && (
           <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-2xl animate-in fade-in duration-1000 overflow-visible">
             <defs>
@@ -78,11 +138,9 @@ export function AvatarFrame({ frameId, children, className, size = 'md' }: Avata
             <circle cx="10" cy="55" r="2.5" fill="url(#cyanGemGrad)" opacity="0.8" />
             <circle cx="90" cy="55" r="2.5" fill="url(#cyanGemGrad)" opacity="0.8" />
 
-            {/* Bottom Sovereign Pink Diamond - Positioned and Fitted at Bottom Middle */}
+            {/* Bottom Sovereign Pink Diamond */}
             <g transform="translate(50, 90)" className="animate-reaction-heartbeat">
-               {/* Outer Diamond Glow */}
                <circle cx="0" cy="0" r="10" fill="#f472b6" opacity="0.2" className="animate-pulse" />
-               {/* High-Fidelity Diamond Cut Path */}
                <path 
                  d="M 0 8 L -7 0 L 0 -8 L 7 0 Z" 
                  fill="url(#pinkGemGrad)" 
@@ -90,7 +148,6 @@ export function AvatarFrame({ frameId, children, className, size = 'md' }: Avata
                  strokeWidth="0.5" 
                  filter="url(#gemGlow)" 
                />
-               {/* Specular Facet Highlights */}
                <path d="M -3 0 L 0 -5 L 3 0 L 0 5 Z" fill="white" opacity="0.3" />
                <path d="M 0 -8 L 2 -2 L 0 0 L -2 -2 Z" fill="white" opacity="0.2" />
             </g>
