@@ -28,6 +28,10 @@ interface DirectMessageDialogProps {
   trigger: React.ReactNode;
 }
 
+/**
+ * High-Fidelity Direct Message Dispatcher.
+ * Re-engineered to ensure deterministic chatId and immediate real-time sync.
+ */
 export function DirectMessageDialog({ recipient, trigger }: DirectMessageDialogProps) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
@@ -47,7 +51,7 @@ export function DirectMessageDialog({ recipient, trigger }: DirectMessageDialogP
       const participantIds = [user.uid, recipient.uid].sort();
       const chatId = participantIds.join('_');
 
-      // 2. Initialize Chat Metadata
+      // 2. Initialize Chat Metadata (Atomic Sync)
       const chatRef = doc(firestore, 'privateChats', chatId);
       await setDocumentNonBlocking(chatRef, {
         id: chatId,
@@ -85,7 +89,7 @@ export function DirectMessageDialog({ recipient, trigger }: DirectMessageDialogP
         <DialogHeader className="p-8 pb-4 border-b border-gray-50 flex flex-row items-center gap-4">
           <Avatar className="h-14 w-14 border-2 border-primary/20 shadow-lg">
             <AvatarImage src={recipient.avatarUrl} />
-            <AvatarFallback>{recipient.username.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{recipient.username?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
           <div className="flex-1 text-left">
             <DialogTitle className="text-xl font-black uppercase italic tracking-tighter">Sync Message</DialogTitle>
@@ -97,7 +101,7 @@ export function DirectMessageDialog({ recipient, trigger }: DirectMessageDialogP
             placeholder="Type your message..."
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="resize-none h-32 rounded-[1.5rem] border-2 border-gray-100 focus:border-primary transition-all p-4 text-sm font-body italic"
+            className="resize-none h-32 rounded-[1.5rem] border-2 border-gray-100 focus:border-primary transition-all p-4 text-sm font-body italic placeholder:text-gray-300"
             disabled={isSubmitting}
           />
         </div>

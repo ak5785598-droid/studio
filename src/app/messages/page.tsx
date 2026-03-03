@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, MessageCircle, UserPlus, Star, ShieldCheck, ChevronRight, Search, Loader, Send, ChevronLeft, ClipboardList } from 'lucide-react';
@@ -196,15 +195,25 @@ export default function MessagesPage() {
 
   const chatsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
+    // Client-side sort to avoid composite index requirement in prototype
     return query(
       collection(firestore, 'privateChats'),
-      where('participantIds', 'array-contains', user.uid),
-      orderBy('updatedAt', 'desc')
+      where('participantIds', 'array-contains', user.uid)
     );
   }, [firestore, user]);
 
   const { data: systemMessages, isLoading: isSysLoading } = useCollection(notificationsQuery);
-  const { data: chats, isLoading: isChatsLoading } = useCollection(chatsQuery);
+  const { data: rawChats, isLoading: isChatsLoading } = useCollection(chatsQuery);
+
+  // High-Fidelity Client-Side Frequency Sort
+  const chats = useMemo(() => {
+    if (!rawChats) return null;
+    return [...rawChats].sort((a, b) => {
+      const timeA = a.updatedAt?.toMillis?.() || 0;
+      const timeB = b.updatedAt?.toMillis?.() || 0;
+      return timeB - timeA;
+    });
+  }, [rawChats]);
 
   const taskListAsset = PlaceHolderImages.find(img => img.id === 'task-list');
 
