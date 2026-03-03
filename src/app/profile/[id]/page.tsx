@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, use } from 'react';
@@ -59,6 +58,7 @@ const AVAILABLE_GIFTS: GiftType[] = [
   { id: 'rocket', name: 'Rocket', emoji: '🚀', price: 25000, animationType: 'zoom' },
   { id: 'castle', name: 'Castle', emoji: '🏰', price: 50000, animationType: 'bounce' },
   { id: 'galaxy', name: 'Galaxy', emoji: '🌌', price: 100000, animationType: 'zoom' },
+  { id: 'propose-ring', name: 'Propose Ring', emoji: '💍', price: 100000, animationType: 'zoom' },
   { id: 'supernova', name: 'Supernova', emoji: '💥', price: 250000, animationType: 'zoom' },
   { id: 'rolex', name: 'Rolex', emoji: '⌚', price: 500000, animationType: 'zoom' },
   { id: 'celebration', name: 'Celebration', emoji: '🥳', price: 1000000, animationType: 'zoom' },
@@ -108,8 +108,8 @@ const ToolTile = ({ label, icon: Icon, onClick }: any) => (
 const MenuItem = ({ label, extra, icon: Icon, onClick }: any) => (
   <div onClick={onClick} className="flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer group border-b border-gray-50 last:border-0">
     <div className="flex items-center gap-4">
-      <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center">
-        {Icon && <Icon className="h-4 w-4 text-blue-400" />}
+      <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+        {Icon && <Icon className="h-4 w-4 text-blue-500" />}
       </div>
       <span className="font-black text-xs uppercase text-gray-800">{label}</span>
     </div>

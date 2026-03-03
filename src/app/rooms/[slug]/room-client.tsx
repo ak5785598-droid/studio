@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -159,6 +158,7 @@ const AVAILABLE_GIFTS: Gift[] = [
   { id: 'rocket', name: 'Rocket', emoji: '🚀', price: 25000, animationType: 'zoom' },
   { id: 'castle', name: 'Castle', emoji: '🏰', price: 50000, animationType: 'bounce' },
   { id: 'galaxy', name: 'Galaxy', emoji: '🌌', price: 100000, animationType: 'zoom' },
+  { id: 'propose-ring', name: 'Propose Ring', emoji: '💍', price: 100000, animationType: 'zoom' },
   { id: 'supernova', name: 'Supernova', emoji: '💥', price: 250000, animationType: 'zoom' },
   { id: 'rolex', name: 'Rolex', emoji: '⌚', price: 500000, animationType: 'zoom' },
   { id: 'celebration', name: 'Celebration', emoji: '🥳', price: 1000000, animationType: 'zoom' },
@@ -563,7 +563,7 @@ export function RoomClient({ room }: { room: Room }) {
       const data = { 'wallet.coins': increment(reward), 'lastMoneyTreeClaimAt': serverTimestamp(), 'updatedAt': serverTimestamp() };
       updateDocumentNonBlocking(userRef, data);
       updateDocumentNonBlocking(profileRef, data);
-      toast({ title: 'Sync Successful', description: `Received 1,000 Gold Coins.` });
+      toast({ title: 'Sync Successful', description: `Received 1,00,0 Gold Coins.` });
     } catch (e: any) { toast({ variant: 'destructive', title: 'Sync Failed', description: e.message }); } finally { setIsClaimingTree(false); }
   };
 

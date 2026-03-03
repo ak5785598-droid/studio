@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -12,119 +11,135 @@ interface GiftAnimationOverlayProps {
 /**
  * High-Fidelity Propose Ring SVGA-style Animation component.
  * Re-engineered to match the red heart jewelry box visual.
+ * sequence: closed -> opening -> ring reveal -> sparkles.
  */
 const ProposeRingAnimation = () => {
   return (
     <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
-      <div className="absolute inset-0 bg-pink-500/10 backdrop-blur-[2px] animate-in fade-in duration-700" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[4px] animate-in fade-in duration-700" />
       
-      {/* SVGA Simulation Layer */}
-      <div className="relative z-10 w-80 h-80 flex items-center justify-center">
+      {/* Container for the 3D-ish SVG animation */}
+      <div className="relative z-10 w-[400px] h-[400px] flex items-center justify-center perspective-1000">
         
-        {/* Sparkles / Particles */}
-        <div className="absolute inset-0 overflow-visible">
-           {Array.from({ length: 25 }).map((_, i) => (
-             <div 
+        {/* Sparkles Layer */}
+        <div className="absolute inset-0 z-50">
+           {[1, 2, 3, 4, 5, 6].map((_, i) => (
+             <svg 
                key={i} 
-               className="absolute h-3 w-3 bg-white rounded-full animate-ping opacity-0"
+               viewBox="0 0 24 24" 
+               className="absolute h-8 w-8 text-white fill-current opacity-0 animate-sparkle-elite"
                style={{ 
-                 top: `${Math.random() * 100}%`, 
-                 left: `${Math.random() * 100}%`,
-                 animationDelay: `${2.0 + Math.random() * 2.5}s`,
-                 animationFillMode: 'forwards'
-               }} 
+                 top: `${20 + Math.random() * 60}%`, 
+                 left: `${20 + Math.random() * 60}%`,
+                 animationDelay: `${2.5 + i * 0.4}s`
+               }}
              >
-                <svg viewBox="0 0 24 24" className="w-full h-full text-white fill-current">
-                   <path d="M12 2l2 8 8 2-8 2-2 8-2-8-8-2 8-2 2-8z" />
-                </svg>
-             </div>
+                <path d="M12 2l2.4 7.2L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" />
+             </svg>
            ))}
         </div>
 
-        {/* The Heart Box - Base */}
-        <div className="relative animate-in zoom-in duration-1000">
-           <div className="relative w-72 h-72">
-              {/* Bottom Box Piece (Red Heart) */}
-              <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)]">
-                 <path 
-                   d="M 50 95 C 20 80, 0 50, 0 35 C 0 15, 20 5, 50 30 C 80 5, 100 15, 100 35 C 100 50, 80 80, 50 95" 
-                   fill="#e11d48" 
-                   stroke="#991b1b" 
-                   strokeWidth="1.5" 
-                 />
-                 {/* Cushioned White Interior */}
-                 <path 
-                   d="M 50 88 C 25 78, 10 50, 10 40 C 10 28, 25 18, 50 42 C 75 18, 90 28, 90 40 C 90 50, 75 78, 50 88" 
-                   fill="#ffffff" 
-                   opacity="0.9"
-                 />
-                 <ellipse cx="50" cy="65" rx="20" ry="10" fill="#f3f4f6" opacity="0.5" />
+        <div className="relative transform-gpu animate-box-entrance">
+           {/* Shadow */}
+           <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-48 h-10 bg-black/40 blur-xl rounded-full scale-x-150 animate-shadow-pulse" />
+
+           <div className="relative w-80 h-80">
+              {/* Box Base (Lower Part of Heart) */}
+              <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full drop-shadow-2xl">
+                 <defs>
+                    <linearGradient id="boxRed" x1="0%" y1="0%" x2="0%" y2="100%">
+                       <stop offset="0%" stopColor="#ff1a1a" />
+                       <stop offset="100%" stopColor="#990000" />
+                    </linearGradient>
+                    <radialGradient id="cushionGrad" cx="50%" cy="50%" r="50%">
+                       <stop offset="0%" stopColor="#ffffff" />
+                       <stop offset="100%" stopColor="#e6e6e6" />
+                    </radialGradient>
+                 </defs>
+                 {/* The 3D side/depth of the bottom part */}
+                 <path d="M100 180 C40 160 10 110 10 80 C10 50 40 35 100 70 C160 35 190 50 190 80 C190 110 160 160 100 180" fill="#660000" transform="translate(0, 10)" />
+                 {/* The main bottom face */}
+                 <path d="M100 180 C40 160 10 110 10 80 C10 50 40 35 100 70 C160 35 190 50 190 80 C190 110 160 160 100 180" fill="url(#boxRed)" stroke="#4d0000" strokeWidth="1" />
+                 {/* The white cushion inside (visible when open) */}
+                 <path d="M100 170 C50 155 25 110 25 85 C25 60 50 50 100 80 C150 50 175 60 175 85 C175 110 150 155 100 170" fill="url(#cushionGrad)" className="animate-cushion-reveal opacity-0" />
               </svg>
 
-              {/* The Diamond Ring - Floating Reveal */}
-              <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 animate-ring-reveal">
-                 <svg viewBox="0 0 100 100" className="w-32 h-32 drop-shadow-[0_0_20px_rgba(255,255,255,0.9)]">
-                    {/* Gold Band */}
-                    <circle cx="50" cy="65" r="22" fill="none" stroke="#fbbf24" strokeWidth="5" />
-                    {/* Diamond */}
-                    <path 
-                      d="M 50 45 L 68 28 L 50 10 L 32 28 Z" 
-                      fill="url(#diamondShinyGrad)" 
-                      stroke="#fff" 
-                      strokeWidth="0.5" 
-                    />
-                    <path d="M 50 10 L 50 45" stroke="white" strokeWidth="0.5" opacity="0.5" />
-                    <path d="M 32 28 L 68 28" stroke="white" strokeWidth="0.5" opacity="0.5" />
-                    
+              {/* The Diamond Ring */}
+              <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 opacity-0 animate-ring-rise">
+                 <svg viewBox="0 0 100 100" className="w-40 h-40 drop-shadow-2xl">
                     <defs>
-                      <linearGradient id="diamondShinyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#ffffff" />
-                        <stop offset="40%" stopColor="#e0f2fe" />
-                        <stop offset="70%" stopColor="#bae6fd" />
-                        <stop offset="100%" stopColor="#0ea5e9" />
-                      </linearGradient>
+                       <linearGradient id="goldRing" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#fff281" />
+                          <stop offset="50%" stopColor="#ffd700" />
+                          <stop offset="100%" stopColor="#b8860b" />
+                       </linearGradient>
+                       <radialGradient id="diamondShine" cx="30%" cy="30%" r="50%">
+                          <stop offset="0%" stopColor="#ffffff" />
+                          <stop offset="50%" stopColor="#e0f2fe" />
+                          <stop offset="100%" stopColor="#bae6fd" />
+                       </radialGradient>
                     </defs>
+                    {/* Ring Band */}
+                    <ellipse cx="50" cy="70" rx="25" ry="15" fill="none" stroke="url(#goldRing)" strokeWidth="6" />
+                    {/* Ring Top Setting */}
+                    <path d="M40 55 L50 65 L60 55" fill="url(#goldRing)" stroke="#b8860b" strokeWidth="1" />
+                    {/* Large Diamond */}
+                    <path d="M50 15 L75 40 L50 65 L25 40 Z" fill="url(#diamondShine)" stroke="#fff" strokeWidth="0.5" className="animate-diamond-glint" />
+                    <path d="M50 15 L50 65 M25 40 L75 40" stroke="white" strokeWidth="0.5" opacity="0.5" />
                  </svg>
               </div>
 
-              {/* The Box Lid (Red Heart) - Animating Open */}
-              <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full z-30 animate-box-lid-open origin-[50%_35%]">
-                 <path 
-                   d="M 50 95 C 20 80, 0 50, 0 35 C 0 15, 20 5, 50 30 C 80 5, 100 15, 100 35 C 100 50, 80 80, 50 95" 
-                   fill="#f43f5e" 
-                   stroke="#991b1b" 
-                   strokeWidth="1" 
-                 />
-                 <path 
-                   d="M 50 25 L 55 15 L 50 5 L 45 15 Z" 
-                   fill="white" 
-                   className="animate-pulse"
-                   opacity="0.3"
-                 />
+              {/* Box Lid (Upper Part of Heart) */}
+              <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full z-30 origin-[50%_40%] animate-lid-open">
+                 <path d="M100 180 C40 160 10 110 10 80 C10 50 40 35 100 70 C160 35 190 50 190 80 C190 110 160 160 100 180" fill="url(#boxRed)" stroke="#4d0000" strokeWidth="1" />
+                 {/* Lid inner side (darker red) */}
+                 <path d="M100 170 C50 155 25 110 25 85 C25 60 50 50 100 80 C150 50 175 60 175 85 C175 110 150 155 100 170" fill="#800000" opacity="0.8" />
               </svg>
            </div>
         </div>
       </div>
 
       <style jsx>{`
-        @keyframes box-lid-open {
-          0% { transform: scale(1) rotateX(0deg); opacity: 1; }
-          25% { transform: scale(1.05) rotateX(0deg); }
-          50% { transform: scale(1.05) rotateX(-120deg) translateY(-30px); opacity: 0.9; }
-          100% { transform: scale(1.05) rotateX(-120deg) translateY(-60px); opacity: 0; }
+        @keyframes box-entrance {
+          0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+          60% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
-        @keyframes ring-reveal {
-          0% { opacity: 0; transform: scale(0.4) translateY(30px); }
-          50% { opacity: 0; transform: scale(0.4) translateY(30px); }
-          75% { opacity: 1; transform: scale(1.3) translateY(-15px); }
-          100% { opacity: 1; transform: scale(1.1) translateY(-25px); }
+        @keyframes shadow-pulse {
+          0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.4; }
+          50% { transform: translateX(-50%) scaleX(1.2); opacity: 0.6; }
         }
-        .animate-box-lid-open {
-          animation: box-lid-open 4.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        @keyframes lid-open {
+          0% { transform: rotateX(0deg) translateY(0); }
+          20% { transform: rotateX(0deg) translateY(0); }
+          55% { transform: rotateX(-110deg) translateY(-40px) translateZ(50px); opacity: 1; }
+          100% { transform: rotateX(-110deg) translateY(-100px) translateZ(100px); opacity: 0; }
         }
-        .animate-ring-reveal {
-          animation: ring-reveal 5.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        @keyframes cushion-reveal {
+          0%, 30% { opacity: 0; }
+          40%, 100% { opacity: 1; }
         }
+        @keyframes ring-rise {
+          0%, 40% { opacity: 0; transform: translate(-50%, 20px) scale(0.5); }
+          65% { opacity: 1; transform: translate(-50%, -20px) scale(1.3); }
+          100% { opacity: 1; transform: translate(-50%, -40px) scale(1.1); }
+        }
+        @keyframes diamond-glint {
+          0%, 100% { filter: brightness(1) drop-shadow(0 0 0 white); }
+          50% { filter: brightness(1.5) drop-shadow(0 0 25px rgba(255,255,255,0.8)); }
+        }
+        @keyframes sparkle-elite {
+          0% { transform: scale(0) rotate(0deg); opacity: 0; }
+          50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+          100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+        .animate-box-entrance { animation: box-entrance 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .animate-shadow-pulse { animation: shadow-pulse 3s ease-in-out infinite; }
+        .animate-lid-open { animation: lid-open 6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .animate-cushion-reveal { animation: cushion-reveal 6s forwards; }
+        .animate-ring-rise { animation: ring-rise 6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .animate-diamond-glint { animation: diamond-glint 2s ease-in-out infinite; }
+        .animate-sparkle-elite { animation: sparkle-elite 2s ease-in-out forwards; }
       `}</style>
     </div>
   );
