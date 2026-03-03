@@ -315,6 +315,9 @@ export function RoomClient({ room }: { room: Room }) {
   const [isFollowingLoading, setIsFollowingLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
 
+  // Privacy Protocol: Capture the moment the user joins this frequency
+  const [sessionJoinTime] = useState(() => new Date());
+
   // Precision Crop States
   const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null);
   const [isCropDialogOpen, setIsCropDialogOpen] = useState(false);
@@ -395,7 +398,6 @@ export function RoomClient({ room }: { room: Room }) {
     return rawParticipants.filter(p => {
       if (!p.joinedAt) return true;
       const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
-      // If lastSeen is missing, give them a grace period based on joinedAt
       const referenceTime = lastSeen || p.joinedAt?.toDate?.()?.getTime?.() || 0;
       return (now - referenceTime) < 90000; // 90 seconds limit
     });
@@ -415,15 +417,23 @@ export function RoomClient({ room }: { room: Room }) {
   }, [firestore, room.id, currentUser]);
 
   const { data: firestoreMessages } = useCollection(messagesQuery);
+  
+  // PRIVACY SYNC: Filter messages so only those sent AFTER joining are visible to new coming users
   const activeMessages = useMemo(() => {
-    return firestoreMessages?.map((m: any) => ({
-      id: m.id,
-      text: m.content,
-      type: m.type || 'text',
-      giftId: m.giftId,
-      user: { id: m.senderId, name: m.senderName || 'User', avatarUrl: m.senderAvatar || '' }
-    })) || [];
-  }, [firestoreMessages]);
+    if (!firestoreMessages) return [];
+    return firestoreMessages
+      .filter((m: any) => {
+        if (!m.timestamp) return true; // Show local optimistic messages
+        return m.timestamp.toDate() >= sessionJoinTime;
+      })
+      .map((m: any) => ({
+        id: m.id,
+        text: m.content,
+        type: m.type || 'text',
+        giftId: m.giftId,
+        user: { id: m.senderId, name: m.senderName || 'User', avatarUrl: m.senderAvatar || '' }
+      })) || [];
+  }, [firestoreMessages, sessionJoinTime]);
 
   useEffect(() => {
     if (!showGiftEffects) return;
@@ -568,7 +578,20 @@ export function RoomClient({ room }: { room: Room }) {
   };
 
   const handleMinimize = () => { setIsMinimized(true); router.push('/rooms'); };
-  const handleExit = () => { if (firestore && currentUser && room.id) { const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid); deleteDocumentNonBlocking(participantRef); } setActiveRoom(null); setIsMinimized(false); router.push('/rooms'); };
+  
+  const handleExit = async () => { 
+    if (firestore && currentUser && room.id) { 
+      // EPHEMERAL SYNC: If the owner exits, purge the frequency chat permanently
+      if (isOwner) {
+        await handleClearChat();
+      }
+      const participantRef = doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid); 
+      deleteDocumentNonBlocking(participantRef); 
+    } 
+    setActiveRoom(null); 
+    setIsMinimized(false); 
+    router.push('/rooms'); 
+  };
 
   const takeSeat = (index: number) => { 
     if (!firestore || !room.id || !currentUser || !userProfile) return; 
