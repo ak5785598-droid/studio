@@ -269,7 +269,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                   <button onClick={() => { navigator.clipboard.writeText(profile?.specialId || ''); toast({ title: 'ID Copied' }); }} className="text-gray-300 hover:text-primary transition-colors"><Copy className="h-3 w-3" /></button>
                 </div>
                 <div className="flex items-center gap-1 mt-1 flex-wrap">
-                  <Badge className="bg-orange-500 text-white text-[8px] h-4 font-black px-2 border-none">Sr.</Badge>
+                  <Badge className="bg-gradient-to-r from-blue-400 to-indigo-600 text-white text-[8px] h-4 font-black px-2 border-none uppercase">Rich Lv. {profile?.level?.rich || 1}</Badge>
                   <Badge className="bg-blue-500 text-white text-[8px] h-4 font-black px-2 border-none">SVIP</Badge>
                   <CustomerServiceTag size="sm" />
                 </div>
