@@ -3,7 +3,7 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 /**
@@ -26,11 +26,14 @@ export function getSdks(firebaseApp: FirebaseApp) {
   
   console.log(`[Firebase Init] Storage Bucket: ${storageUrl}`);
   
-  // Use explicit bucket initialization to ensure high-fidelity storage sync
+  // Re-engineered with Long Polling Auto-Detection for extreme network resilience.
+  // This resolves connectivity hangs in specific proxy/cloud development environments.
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp),
+    firestore: initializeFirestore(firebaseApp, {
+      experimentalAutoDetectLongPolling: true,
+    }),
     storage: getStorage(firebaseApp, storageUrl || undefined)
   };
 }
