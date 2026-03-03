@@ -62,6 +62,8 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     if (!auth || !user || !firestore) return;
     try {
+      console.log("[Identity Sync] Commencing absolute logout cleanup...");
+      
       // 1. Pro-active Identity Disconnect Handshake
       const userRef = doc(firestore, 'users', user.uid);
       const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
@@ -85,6 +87,7 @@ export default function SettingsPage() {
 
       // 3. Atomic Removal from Frequencies
       if (currentRoomId) {
+        console.log(`[Identity Sync] Purging presence from room: ${currentRoomId}`);
         const roomRef = doc(firestore, 'chatRooms', currentRoomId);
         const participantRef = doc(firestore, 'chatRooms', currentRoomId, 'participants', user.uid);
         batch.delete(participantRef);
@@ -95,11 +98,13 @@ export default function SettingsPage() {
       }
 
       await batch.commit();
+      console.log("[Identity Sync] Cleanup complete. Finalizing sign out.");
+      
       await signOut(auth);
       window.location.href = '/login';
     } catch (e: any) {
       console.error("[Identity Sync] Logout Cleanup Error:", e);
-      // Fallback: Hard sign out regardless of cleanup success
+      // Fallback: Hard sign out regardless of cleanup success to prevent lock-out
       await signOut(auth);
       window.location.href = '/login';
     }

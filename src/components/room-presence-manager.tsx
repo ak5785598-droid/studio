@@ -10,6 +10,7 @@ import { doc, serverTimestamp, collection, increment, writeBatch } from 'firebas
  * Maintains Firestore presence while a room is active.
  * RE-ENGINEERED: Separates Join/Leave lifecycle from Identity updates to prevent auto-kick loops.
  * GHOST PREVENTION: Uses an atomic batch for entry and exit to ensure counts and presence stay synced.
+ * ACTIVATED: Explicitly handles immediate cleanup on component unmount and beforeunload.
  */
 export function RoomPresenceManager() {
   const { activeRoom } = useRoomContext();
@@ -31,6 +32,7 @@ export function RoomPresenceManager() {
       if (lastRoomId.current === roomId) return;
       lastRoomId.current = roomId;
 
+      console.log(`[Presence Sync] Activating presence for room: ${roomId}`);
       const batch = writeBatch(firestore);
       const roomDocRef = doc(firestore, 'chatRooms', roomId);
       const userRef = doc(firestore, 'users', uid);
@@ -91,6 +93,7 @@ export function RoomPresenceManager() {
 
     const handleExit = async () => {
       if (lastRoomId.current === roomId) {
+        console.log(`[Presence Sync] Deactivating presence for room: ${roomId}`);
         const batch = writeBatch(firestore);
         const roomDocRef = doc(firestore, 'chatRooms', roomId);
         const userRef = doc(firestore, 'users', uid);
@@ -124,7 +127,7 @@ export function RoomPresenceManager() {
       }
     };
 
-    // Attempt to cleanup on tab close
+    // Explicit cleanup on tab close
     window.addEventListener('beforeunload', handleExit);
 
     return () => {

@@ -72,6 +72,8 @@ export function AppLayout({
   const handleLogout = async () => {
     if (!auth || !user || !firestore) return;
     try {
+      console.log("[Identity Sync] Sidebar: Initiating cleanup...");
+      
       // 1. Pro-active Identity Disconnect Handshake
       const userRef = doc(firestore, 'users', user.uid);
       const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
@@ -95,6 +97,7 @@ export function AppLayout({
 
       // 3. Atomic Removal from Frequencies
       if (currentRoomId) {
+        console.log(`[Identity Sync] Sidebar: Purging presence from room ${currentRoomId}`);
         const roomRef = doc(firestore, 'chatRooms', currentRoomId);
         const participantRef = doc(firestore, 'chatRooms', currentRoomId, 'participants', user.uid);
         batch.delete(participantRef);
@@ -105,6 +108,8 @@ export function AppLayout({
       }
 
       await batch.commit();
+      console.log("[Identity Sync] Sidebar: Cleanup complete.");
+      
       await signOut(auth);
       window.location.href = '/login';
     } catch (error: any) {

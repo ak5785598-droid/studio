@@ -24,30 +24,29 @@ export function ProfileInitializer() {
       try {
         const userSnap = await getDoc(userRef);
         
-        // 1. STALE IDENTITY PURGE PROTOCOL
+        // 1. STALE IDENTITY PURGE PROTOCOL (Anti-Ghost Startup)
         if (userSnap.exists()) {
           const userData = userSnap.data();
           const staleRoomId = userData.currentRoomId;
           
           if (staleRoomId) {
-            // User was abruptly disconnected from a room. Clean up tribal graph.
+            console.log(`[Identity Sync] Detected stale presence in room: ${staleRoomId}. Activating purge...`);
             try {
               const batch = writeBatch(firestore);
               const roomRef = doc(firestore, 'chatRooms', staleRoomId);
               const participantRef = doc(firestore, 'chatRooms', staleRoomId, 'participants', profileId);
               const profileRef = doc(firestore, 'users', profileId, 'profile', profileId);
               
-              // We use set/update with merge/increment to be safe
+              // Atomic Cleanup
               batch.update(roomRef, { participantCount: increment(-1), updatedAt: serverTimestamp() });
               batch.delete(participantRef);
               batch.update(userRef, { currentRoomId: null, isOnline: true, updatedAt: serverTimestamp() });
               batch.update(profileRef, { currentRoomId: null, isOnline: true, updatedAt: serverTimestamp() });
               
               await batch.commit();
-              console.log(`[Identity Sync] Purged stale presence from room: ${staleRoomId}`);
+              console.log(`[Identity Sync] Ghost identity successfully purged.`);
             } catch (e) {
-              // Silently fail if room no longer exists or permissions were lost
-              console.warn(`[Identity Sync] Cleanup failed for room ${staleRoomId}:`, e);
+              console.warn(`[Identity Sync] Cleanup failed or room no longer exists:`, e);
             }
           }
           
