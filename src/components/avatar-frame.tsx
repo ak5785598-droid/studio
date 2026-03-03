@@ -12,7 +12,7 @@ interface AvatarFrameProps {
 
 /**
  * High-fidelity Avatar Frame component.
- * Expanded to support f1, f2, f3, f4 and the elite f5 'Golden wings' frame.
+ * Expanded to support f1-f5 and the new elite f6 'Bronze Sky' frame.
  */
 export function AvatarFrame({ frameId, children, className, size = 'md' }: AvatarFrameProps) {
   if (!frameId || frameId === 'None' || frameId === 'Default') {
@@ -24,11 +24,69 @@ export function AvatarFrame({ frameId, children, className, size = 'md' }: Avata
   const isCyber = frameId === 'f2'; // Cyberpunk Red
   const isRoyal = frameId === 'f3'; // Royal Purple
   const isWings = frameId === 'f5'; // Golden wings
+  const isBronzeSky = frameId === 'f6'; // Bronze Sky
 
   return (
     <div className={cn('relative flex items-center justify-center p-1', className)}>
       {/* Frame Layer */}
       <div className="absolute inset-0 z-20 pointer-events-none scale-110">
+        {isBronzeSky && (
+          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-2xl animate-in fade-in duration-1000 overflow-visible">
+            <defs>
+              <linearGradient id="bronzeLeaf" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#fbbf24" />
+                <stop offset="50%" stopColor="#d97706" />
+                <stop offset="100%" stopColor="#78350f" />
+              </linearGradient>
+              <radialGradient id="pinkGemGrad" cx="35%" cy="35%" r="50%">
+                <stop offset="0%" stopColor="#ff80ab" />
+                <stop offset="100%" stopColor="#c2185b" />
+              </radialGradient>
+              <radialGradient id="cyanGemGrad" cx="35%" cy="35%" r="50%">
+                <stop offset="0%" stopColor="#67e8f9" />
+                <stop offset="100%" stopColor="#0891b2" />
+              </radialGradient>
+              <filter id="gemGlow">
+                <feGaussianBlur stdDeviation="1" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            {/* Bronze Laurel Wreath (Symmetrical paths) */}
+            <g fill="url(#bronzeLeaf)" stroke="#451a03" strokeWidth="0.2">
+               {/* Left Wreath */}
+               <path d="M50 90 C30 90 10 75 5 50 C5 25 25 10 45 5 L48 8 C30 12 15 25 15 50 C15 70 30 85 50 85 Z" />
+               {/* Right Wreath */}
+               <path d="M50 90 C70 90 90 75 95 50 C95 25 75 10 55 5 L52 8 C70 12 85 25 85 50 C85 70 70 85 50 85 Z" />
+               
+               {/* Individual Leaf Accents */}
+               {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg, i) => (
+                 <g key={deg} transform={`rotate(${deg}, 50, 50)`}>
+                    <path d="M50 4 L54 12 L50 10 L46 12 Z" opacity={0.8} />
+                 </g>
+               ))}
+            </g>
+
+            {/* Shining Streak Overlay */}
+            <rect x="0" y="0" width="10" height="150" fill="white" opacity="0.2" transform="rotate(45) translate(0, -100)">
+               <animateTransform attributeName="transform" type="translate" from="-100, -100" to="200, 100" dur="3s" repeatCount="indefinite" />
+            </rect>
+
+            {/* Side Cyan Gems */}
+            <circle cx="15" cy="35" r="3" fill="url(#cyanGemGrad)" filter="url(#gemGlow)" className="animate-pulse" />
+            <circle cx="85" cy="35" r="3" fill="url(#cyanGemGrad)" filter="url(#gemGlow)" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
+            <circle cx="10" cy="55" r="2.5" fill="url(#cyanGemGrad)" opacity="0.8" />
+            <circle cx="90" cy="55" r="2.5" fill="url(#cyanGemGrad)" opacity="0.8" />
+
+            {/* Bottom Sovereign Pink Gem */}
+            <g transform="translate(50, 88)" className="animate-reaction-heartbeat">
+               <path d="M-8 -8 L0 4 L8 -8 L0 -12 Z" fill="url(#pinkGemGrad)" stroke="#880e4f" strokeWidth="0.5" filter="url(#gemGlow)" />
+               <circle cx="0" cy="-6" r="6" fill="url(#pinkGemGrad)" />
+               <path d="M-2 -8 L0 -10 L2 -8 L0 -6 Z" fill="white" opacity="0.4" />
+            </g>
+          </svg>
+        )}
+
         {isWings && (
           <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-2xl animate-in fade-in duration-1000 overflow-visible">
             <defs>

@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 
 const STORE_ITEMS = [
+  { id: 'f6', name: 'Bronze Sky', type: 'Frame', price: 10000, description: 'Exquisite bronze laurel wreath with radiant pink and cyan gemstones.', icon: Sparkles, color: 'text-orange-400' },
   { id: 'f5', name: 'Golden wings', type: 'Frame', price: 200000, description: 'Ultra-detailed 3D luxury angelic frame with gemstone inlays.', icon: Sparkles, color: 'text-yellow-400' },
   { id: 'f4', name: 'Imperial Bloom', type: 'Frame', price: 20000, description: 'Exquisite purple roses and a majestic golden crown.', icon: Crown, color: 'text-purple-600' },
   { id: 'f1', name: 'Golden Official', type: 'Frame', price: 15000, description: 'The mark of ultimate authority.', icon: Star, color: 'text-yellow-500' },
@@ -135,7 +136,7 @@ export default function StorePage() {
                     <Card key={item.id} className="relative overflow-hidden group border-none shadow-lg rounded-[2.5rem] bg-white hover:scale-105 transition-all duration-300">
                       <div className={cn(
                         "aspect-square bg-gradient-to-b from-secondary/30 to-transparent flex flex-col items-center justify-center p-10 relative",
-                        item.id === 'f5' && "bg-gradient-to-br from-yellow-100 via-white to-yellow-50"
+                        (item.id === 'f5' || item.id === 'f6') && "bg-gradient-to-br from-yellow-100 via-white to-yellow-50"
                       )}>
                         {item.type === 'Frame' ? (
                           <AvatarFrame frameId={item.id} className="w-32 h-32">
@@ -148,7 +149,7 @@ export default function StorePage() {
                           <item.icon className={cn("h-24 w-24 opacity-20 group-hover:scale-110 group-hover:opacity-40 transition-all duration-500", item.color)} />
                         )}
                         <Badge className="absolute top-6 right-6 bg-secondary/80 text-foreground border-none font-black uppercase text-[10px] tracking-widest px-3">
-                          {item.id === 'f5' ? 'Elite' : item.type}
+                          {item.id === 'f5' ? 'Elite' : item.id === 'f6' ? 'Sovereign' : item.type}
                         </Badge>
                       </div>
                       <CardHeader className="text-center pb-2">
