@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState } from 'react';
-import { useStorage, useFirestore, useUser, setDocumentNonBlocking } from '@/firebase';
+import { useStorage, useFirestore, useUser, updateDocumentNonBlocking } from '@/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from './use-toast';
@@ -45,13 +46,12 @@ export function useRoomImageUpload(roomId: string) {
       const roomRef = doc(firestore, 'chatRooms', roomId);
       
       const updateData = { 
-        id: roomId,
         coverUrl: downloadURL,
         updatedAt: serverTimestamp()
       };
 
       console.log('[Visual Sync] Dispatching room cover metadata to Firestore');
-      setDocumentNonBlocking(roomRef, updateData, { merge: true });
+      updateDocumentNonBlocking(roomRef, updateData);
 
       toast({
         title: 'Frequency Cover Updated!',

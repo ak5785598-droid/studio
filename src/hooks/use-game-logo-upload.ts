@@ -1,15 +1,16 @@
+
 'use client';
 
 import { useState } from 'react';
-import { useStorage, useFirestore, useUser, setDocumentNonBlocking } from '@/firebase';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { useStorage, useFirestore, useUser, updateDocumentNonBlocking } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from './use-toast';
 import type { Game } from '@/lib/types';
 
 /**
  * Hook to handle game logo/cover uploads to Firebase Storage and update Firestore.
- * Re-engineered with Resumable Upload Protocol for high-fidelity resilience.
+ * Re-engineered with high-speed direct upload protocol.
  */
 export function useGameLogoUpload() {
   const storage = useStorage();
@@ -38,46 +39,19 @@ export function useGameLogoUpload() {
       const storagePath = `games/${game.id}/logo_${timestamp}.${fileExtension}`;
       const storageRef = ref(storage, storagePath);
       
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      // Create completion promise
-      const downloadURL = await new Promise<string>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log(`[Visual Sync] Game upload is ${progress.toFixed(2)}% complete`);
-          },
-          (error) => {
-            console.error('[Visual Sync] Game Upload Task Error:', error);
-            reject(error);
-          },
-          async () => {
-            try {
-              console.log('[Visual Sync] Task finished, resolving URL...');
-              const url = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve(url);
-            } catch (urlError) {
-              console.error('[Visual Sync] getDownloadURL Error:', urlError);
-              reject(urlError);
-            }
-          }
-        );
-      });
+      const result = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(result.ref);
 
       // 2. Firestore Sync (Non-Blocking)
       const gameRef = doc(firestore, 'games', game.id);
       
       const updateData = { 
-        id: game.id,
-        title: game.title,
-        slug: game.slug,
         coverUrl: downloadURL,
         updatedAt: serverTimestamp()
       };
 
       console.log('[Visual Sync] Dispatching game logo metadata to Firestore');
-      setDocumentNonBlocking(gameRef, updateData, { merge: true });
+      updateDocumentNonBlocking(gameRef, updateData);
 
       toast({
         title: 'Game Logo Updated!',

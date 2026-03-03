@@ -80,7 +80,7 @@ service cloud.firestore {
       allow update: if isSignedIn() && (
         isOwner(resource.data.ownerId) || 
         (resource.data.moderatorIds != null && request.auth.uid in resource.data.moderatorIds) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'updatedAt', 'isChatMuted', 'currentMusicUrl', 'roomThemeId', 'maxActiveMics', 'isLocked', 'announcement', 'welcomeMessage', 'name']) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'updatedAt', 'isChatMuted', 'currentMusicUrl', 'roomThemeId', 'maxActiveMics', 'isLocked', 'announcement', 'welcomeMessage', 'name', 'coverUrl']) ||
         chatRoomId == 'ummy-help-center' ||
         isAdmin()
       );
