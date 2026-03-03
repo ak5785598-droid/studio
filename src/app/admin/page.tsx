@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirestore, useDoc, useUser, useCollection, useMemoFirebase, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError, useStorage } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch, arrayUnion, arrayRemove, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Shield, Loader, Search, ClipboardList, Gift, CheckCircle2, UserCheck, Star, Crown, Zap, Heart, MessageSquare, Tag, BadgeCheck, Upload, Type, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -322,18 +322,40 @@ export default function AdminPage() {
     if (!storage || !isCreator || !bannerConfigRef) return;
     setIsUploadingBanner(index);
     try {
-      const sRef = ref(storage, `banners/slide_${index}_${Date.now()}.jpg`);
-      const result = await uploadBytes(sRef, file);
-      const url = await getDownloadURL(result.ref);
+      const timestamp = Date.now();
+      const sRef = ref(storage, `banners/slide_${index}_${timestamp}.jpg`);
+      
+      // Use Resumable protocol for high-fidelity sync
+      const uploadTask = uploadBytesResumable(sRef, file);
+      
+      const url = await new Promise<string>((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log(`[Admin] Slide ${index} sync is ${progress.toFixed(2)}% complete`);
+          },
+          (error) => reject(error),
+          async () => {
+            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(downloadUrl);
+          }
+        );
+      });
       
       const currentSlides = bannerConfig?.slides || DEFAULT_SLIDES;
       const newSlides = [...currentSlides];
+      // Ensure index safety
+      if (!newSlides[index]) {
+        newSlides[index] = { ...DEFAULT_SLIDES[index] };
+      }
       newSlides[index] = { ...newSlides[index], imageUrl: url };
       
       await setDoc(bannerConfigRef, { slides: newSlides }, { merge: true });
       toast({ title: 'Banner Updated', description: `Slide ${index + 1} image synchronized.` });
       await logAdminAction('Update Banner Image', `slot/${index}`, { url });
     } catch (e: any) {
+      console.error('[Admin] Banner Sync Error:', e);
       toast({ variant: 'destructive', title: 'Upload Failed', description: e.message });
     } finally {
       setIsUploadingBanner(null);
@@ -345,6 +367,9 @@ export default function AdminPage() {
     try {
       const currentSlides = bannerConfig?.slides || DEFAULT_SLIDES;
       const newSlides = [...currentSlides];
+      if (!newSlides[index]) {
+        newSlides[index] = { ...DEFAULT_SLIDES[index] };
+      }
       newSlides[index] = { ...newSlides[index], title, subtitle };
       await setDoc(bannerConfigRef, { slides: newSlides }, { merge: true });
       toast({ title: 'Banner Text Updated' });
@@ -419,18 +444,19 @@ export default function AdminPage() {
                               <div className="w-full md:w-1/2 space-y-4">
                                  <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Banner Title</label>
-                                    <Input value={slide.title} onChange={(e) => {
-                                      const updated = [...activeSlides];
-                                      updated[idx].title = e.target.value;
-                                      // Local update for responsiveness
-                                    }} onBlur={(e) => handleUpdateBannerText(idx, e.target.value, slide.subtitle)} className="rounded-xl h-12 border-2" />
+                                    <Input 
+                                      defaultValue={slide.title} 
+                                      onBlur={(e) => handleUpdateBannerText(idx, e.target.value, slide.subtitle)} 
+                                      className="rounded-xl h-12 border-2" 
+                                    />
                                  </div>
                                  <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Banner Subtitle</label>
-                                    <Input value={slide.subtitle} onChange={(e) => {
-                                      const updated = [...activeSlides];
-                                      updated[idx].subtitle = e.target.value;
-                                    }} onBlur={(e) => handleUpdateBannerText(idx, slide.title, e.target.value)} className="rounded-xl h-12 border-2" />
+                                    <Input 
+                                      defaultValue={slide.subtitle} 
+                                      onBlur={(e) => handleUpdateBannerText(idx, slide.title, e.target.value)} 
+                                      className="rounded-xl h-12 border-2" 
+                                    />
                                  </div>
                                  <div className="flex items-center gap-2 text-[8px] font-black uppercase text-orange-500 italic">
                                     <Type className="h-3 w-3" /> Auto-saves on blur
