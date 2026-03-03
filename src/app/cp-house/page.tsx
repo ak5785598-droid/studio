@@ -130,14 +130,17 @@ export default function CpHousePage() {
            </button>
         </header>
 
-        {/* CP Rank Badge */}
+        {/* CP Rank Badge - Navigates to Challenge Leaderboard */}
         <div className="relative z-50 flex justify-end px-6 mt-4">
-           <div className="bg-gradient-to-r from-orange-400 to-orange-600 pl-4 pr-1 py-1 rounded-full flex items-center gap-2 shadow-xl border border-white/20">
+           <button 
+             onClick={() => router.push('/cp-challenge')}
+             className="bg-gradient-to-r from-orange-400 to-orange-600 pl-4 pr-1 py-1 rounded-full flex items-center gap-2 shadow-xl border border-white/20 active:scale-95 transition-transform"
+           >
               <span className="text-[10px] font-black uppercase italic tracking-widest text-white">CP Rank</span>
               <div className="bg-amber-200 rounded-full p-1 border border-amber-600 shadow-inner">
                  <Award className="h-3 w-3 text-amber-800" />
               </div>
-           </div>
+           </button>
         </div>
 
         {/* Main Sync Portal: Dual Avatars */}

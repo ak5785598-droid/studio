@@ -198,6 +198,12 @@
       "description": "Red heart shaped jewelry box with diamond ring",
       "imageUrl": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=800",
       "imageHint": "heart ringbox"
+    },
+    {
+      "id": "cp-challenge-hero",
+      "description": "Anime style romantic couple in soft light with flowers",
+      "imageUrl": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1200",
+      "imageHint": "anime couple romantic"
     }
   ]
 }
