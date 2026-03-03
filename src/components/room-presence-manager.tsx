@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -41,8 +42,9 @@ export function RoomPresenceManager() {
       const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', uid);
 
       // Broadcast entrance (Non-blocking)
+      // HIGH-FIDELITY: Normalized to "entered the room" for cinematic entry cards.
       addDocumentNonBlocking(collection(firestore, 'chatRooms', roomId, 'messages'), {
-        content: 'entered the frequency',
+        content: 'entered the room',
         senderId: uid,
         senderName: userProfile?.username || 'Tribe Member',
         senderAvatar: userProfile?.avatarUrl || '',
@@ -51,11 +53,10 @@ export function RoomPresenceManager() {
         type: 'entrance'
       });
 
-      // SELF-HEALING PROTOCOL: Fetch actual participant size to fix "Aarohi" style ghost counts
+      // SELF-HEALING PROTOCOL: Fetch actual participant size to fix ghost counts
       let actualCount = 1;
       try {
         const participantsSnap = await getDocs(collection(firestore, 'chatRooms', roomId, 'participants'));
-        // Count includes everyone minus the current user (if they weren't already in)
         actualCount = participantsSnap.docs.filter(d => d.id !== uid).length + 1;
       } catch (e) {
         console.warn("[Presence Sync] Could not fetch participant size for healing, falling back to document field.");
@@ -64,7 +65,6 @@ export function RoomPresenceManager() {
       const batch = writeBatch(firestore);
 
       // Atomic Entry & Healing Protocol
-      // CREATOR PROTOCOL: Synchronizing sovereignty for the help desk portal.
       if (roomId === 'ummy-help-center') {
         batch.set(roomDocRef, { 
           id: 'ummy-help-center',
@@ -120,7 +120,6 @@ export function RoomPresenceManager() {
       }
 
       if (lastRoomId.current === roomId) {
-        // DETACH LOCK IMMEDIATELY to prevent double-decrement race conditions
         lastRoomId.current = null;
         
         console.log(`[Presence Sync] Deactivating presence for room: ${roomId}`);
@@ -130,7 +129,6 @@ export function RoomPresenceManager() {
         const profileRef = doc(firestore, 'users', uid, 'profile', uid);
         const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', uid);
 
-        // Atomic Exit Protocol (Zero-Floor safe via decrement)
         batch.update(roomDocRef, { 
           participantCount: increment(-1),
           updatedAt: serverTimestamp()
@@ -148,7 +146,6 @@ export function RoomPresenceManager() {
       }
     };
 
-    // Explicit cleanup on tab close
     window.addEventListener('beforeunload', handleExit);
 
     return () => {

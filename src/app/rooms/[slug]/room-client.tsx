@@ -95,7 +95,8 @@ import {
   arrayRemove,
   getDoc,
   setDoc,
-  deleteDoc
+  deleteDoc,
+  where
 } from 'firebase/firestore';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { useRouter } from 'next/navigation';
@@ -195,6 +196,36 @@ const SettingsListItem = ({ label, value, onClick, icon: Icon, showChevron = tru
   </div>
 );
 
+/**
+ * High-Fidelity Entry Card Component.
+ * Displays a specialized green pill notification for new entrants.
+ */
+function EntryCard({ entrant, onComplete }: { entrant: any, onComplete: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onComplete, 5000);
+    return () => clearTimeout(timer);
+  }, [entrant, onComplete]);
+
+  if (!entrant) return null;
+
+  return (
+    <div className="fixed top-40 left-0 z-[150] animate-in slide-in-from-left-full duration-700 pointer-events-none">
+      <div className="bg-[#00a859] rounded-r-full py-1.5 pl-2 pr-8 flex items-center gap-3 shadow-[0_10px_30px_rgba(0,168,89,0.3)] border-y border-r border-white/20 backdrop-blur-md">
+        <Avatar className="h-8 w-8 border-2 border-white/40 shadow-sm">
+          <AvatarImage src={entrant.senderAvatar} />
+          <AvatarFallback className="bg-green-700 text-white text-[10px] font-black">{entrant.senderName?.charAt(0)}</AvatarFallback>
+        </Avatar>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[13px] font-black uppercase italic tracking-tighter text-white drop-shadow-md">
+            {entrant.senderName} 🇮🇳
+          </span>
+          <span className="text-[12px] font-black italic text-white/90">entered the room</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -217,6 +248,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isClaimingTree, setIsClaimingTree] = useState(false);
   const [editingField, setEditingField] = useState<'name' | 'announcement' | 'welcome' | null>(null);
   const [fieldValue, setEditingFieldValue] = useState('');
+  const [latestEntrance, setLatestEntrance] = useState<any>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const roomAudioRef = useRef<HTMLAudioElement>(null);
@@ -252,7 +284,16 @@ export function RoomClient({ room }: { room: Room }) {
   
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [firestoreMessages]);
+    
+    // Entry Card Logic
+    if (firestoreMessages && firestoreMessages.length > 0) {
+      const lastMsg = firestoreMessages[firestoreMessages.length - 1];
+      // Only trigger for OTHERS entering
+      if (lastMsg.type === 'entrance' && lastMsg.senderId !== currentUser?.uid) {
+        setLatestEntrance(lastMsg);
+      }
+    }
+  }, [firestoreMessages, currentUser?.uid]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -281,11 +322,6 @@ export function RoomClient({ room }: { room: Room }) {
     updateDocumentNonBlocking(participantRef, { seatIndex: index, isMuted: true, updatedAt: serverTimestamp() }); 
   };
 
-  const leaveSeat = () => { 
-    if (!firestore || !room.id || !currentUser) return; 
-    updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: 0, isMuted: true }); 
-  };
-  
   const handleMicToggle = () => { 
     if (!isInSeat || !firestore || !currentUser || !room.id) return;
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { isMuted: !currentUserParticipant?.isMuted }); 
@@ -323,6 +359,7 @@ export function RoomClient({ room }: { room: Room }) {
     <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl">
       <DailyRewardDialog />
       <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
+      <EntryCard entrant={latestEntrance} onComplete={() => setLatestEntrance(null)} />
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
       
       <div className="absolute inset-0 z-0">
@@ -385,7 +422,6 @@ export function RoomClient({ room }: { room: Room }) {
         <div className="flex items-center gap-2">
           <button onClick={() => setIsEmojiPickerOpen(true)} className="bg-white/10 p-3 rounded-full"><Smile className="h-5 w-5" /></button>
           
-          {/* Golden Game Remote Portal */}
           <div className="relative group">
             <div className="absolute -top-1 w-full h-full bg-yellow-500/20 blur-lg animate-pulse rounded-full" />
             <button 
@@ -400,7 +436,6 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </footer>
 
-      {/* Exit Protocol Portal */}
       <Dialog open={isExitPortalOpen} onOpenChange={setIsExitPortalOpen}>
         <DialogContent className="sm:max-w-md bg-black/90 backdrop-blur-2xl border-none p-0 rounded-t-[3rem] overflow-hidden">
           <DialogHeader className="p-8 pb-4 border-b border-white/10 text-center">
@@ -420,7 +455,6 @@ export function RoomClient({ room }: { room: Room }) {
         </DialogContent>
       </Dialog>
 
-      {/* Tribe List Portal */}
       <Dialog open={isParticipantListOpen} onOpenChange={setIsParticipantListOpen}>
         <DialogContent className="w-screen h-screen max-w-none m-0 border-none bg-black/95 text-white p-0 flex flex-col font-headline">
           <DialogHeader className="p-4 border-b border-white/10 mt-10">
@@ -436,7 +470,6 @@ export function RoomClient({ room }: { room: Room }) {
         </DialogContent>
       </Dialog>
 
-      {/* Game Zone Portal */}
       <Dialog open={isGamesDialogOpen} onOpenChange={setIsGamesDialogOpen}>
         <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden animate-in slide-in-from-bottom-full duration-500 font-headline">
           <DialogHeader className="p-8 pb-4 text-center border-b border-gray-50">
@@ -465,7 +498,6 @@ export function RoomClient({ room }: { room: Room }) {
         </DialogContent>
       </Dialog>
 
-      {/* Boutique Portal (Gift Picker) */}
       <Dialog open={isGiftPickerOpen} onOpenChange={setIsGiftPickerOpen}>
         <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden font-headline">
           <DialogHeader className="p-8 pb-4 text-center border-b">
@@ -510,7 +542,3 @@ export function RoomClient({ room }: { room: Room }) {
     </div>
   );
 }
-
-const ToolTile = ({ icon: Icon, label, active, onClick, disabled, color }: any) => (
-  <button onClick={onClick} disabled={disabled} className={cn("flex flex-col items-center gap-2 transition-all active:scale-95", disabled && "opacity-30 grayscale cursor-not-allowed")}><div className={cn("h-16 w-16 rounded-2xl flex items-center justify-center border-2 transition-colors shadow-sm", active ? "bg-primary/20 border-primary text-primary" : "bg-slate-800/50 border-white/5 text-white/60 hover:bg-slate-800")}><Icon className={cn("h-7 w-7", !active && color ? color : "")} /></div><span className="text-[10px] font-black uppercase tracking-tighter text-white/80">{label}</span></button>
-);
