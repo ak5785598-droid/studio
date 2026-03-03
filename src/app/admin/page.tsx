@@ -1,20 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useFirestore, useDoc, useUser, useCollection, useMemoFirebase, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useFirestore, useDoc, useUser, useCollection, useMemoFirebase, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError, useStorage } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import { doc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { Shield, Loader, Search, ClipboardList, Gift, CheckCircle2, UserCheck, Star, Crown, Zap, Heart, MessageSquare, Tag, BadgeCheck } from 'lucide-react';
+import { doc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch, arrayUnion, arrayRemove, setDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Shield, Loader, Search, ClipboardList, Gift, CheckCircle2, UserCheck, Star, Crown, Zap, Heart, MessageSquare, Tag, BadgeCheck, Upload, Type, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 const CREATOR_ID = '901piBzTQ0VzCtAvlyyobwvAaTs1';
 
@@ -33,12 +35,19 @@ const ELITE_TAGS = [
   { id: 'Seller', label: 'Seller', color: 'bg-purple-500', icon: Heart },
 ];
 
+const DEFAULT_SLIDES = [
+  { id: 0, title: "Tribe Events", subtitle: "Global Frequency Sync", iconName: "Sparkles", color: "from-orange-500/40", imageUrl: 'https://picsum.photos/seed/banner1/800/200' },
+  { id: 1, title: "Elite Rewards", subtitle: "Claim Your Daily Throne", iconName: "Trophy", color: "from-yellow-500/40", imageUrl: 'https://picsum.photos/seed/banner2/800/200' },
+  { id: 2, title: "Game Zone", subtitle: "Enter the 3D Arena", iconName: "Gamepad2", color: "from-purple-500/40", imageUrl: 'https://picsum.photos/seed/banner3/800/200' }
+];
+
 /**
  * Ummy Command Center - Supreme Authority Oversight.
  * Restricted exclusively to the Supreme Creator.
  */
 export default function AdminPage() {
   const firestore = useFirestore();
+  const storage = useStorage();
   const { user } = useUser();
   const { userProfile } = useUserProfile(user?.uid);
   const { toast } = useToast();
@@ -52,6 +61,10 @@ export default function AdminPage() {
   const [targetUserForTags, setTargetUserForTags] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Banner state
+  const [isUploadingBanner, setIsUploadingBanner] = useState<number | null>(null);
+  const fileInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   // Hardcoded redirect/state lock
   useEffect(() => {
@@ -65,6 +78,12 @@ export default function AdminPage() {
     return doc(firestore, 'appConfig', 'global');
   }, [firestore, isCreator]);
   const { data: config } = useDoc(configRef);
+
+  const bannerConfigRef = useMemoFirebase(() => {
+    if (!firestore || !isCreator) return null;
+    return doc(firestore, 'appConfig', 'banners');
+  }, [firestore, isCreator]);
+  const { data: bannerConfig } = useDoc(bannerConfigRef);
 
   const logsQuery = useMemoFirebase(() => {
     if (!firestore || !isCreator) return null;
@@ -206,7 +225,6 @@ export default function AdminPage() {
     if (!firestore || !tagSearchId || !isCreator) return;
     setIsSearching(true);
     try {
-      // Normalizes 1 to 001, 10 to 010, etc. while preserving longer IDs.
       const paddedId = tagSearchId.padStart(3, '0');
       const q = query(
         collection(firestore, 'users'),
@@ -300,7 +318,45 @@ export default function AdminPage() {
     await logAdminAction(`Toggle Role/Tag: ${roleId}`, targetUid, { action: hasRole ? 'revoke' : 'grant' });
   };
 
+  const handleBannerImageUpload = async (index: number, file: File) => {
+    if (!storage || !isCreator || !bannerConfigRef) return;
+    setIsUploadingBanner(index);
+    try {
+      const sRef = ref(storage, `banners/slide_${index}_${Date.now()}.jpg`);
+      const result = await uploadBytes(sRef, file);
+      const url = await getDownloadURL(result.ref);
+      
+      const currentSlides = bannerConfig?.slides || DEFAULT_SLIDES;
+      const newSlides = [...currentSlides];
+      newSlides[index] = { ...newSlides[index], imageUrl: url };
+      
+      await setDoc(bannerConfigRef, { slides: newSlides }, { merge: true });
+      toast({ title: 'Banner Updated', description: `Slide ${index + 1} image synchronized.` });
+      await logAdminAction('Update Banner Image', `slot/${index}`, { url });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Upload Failed', description: e.message });
+    } finally {
+      setIsUploadingBanner(null);
+    }
+  };
+
+  const handleUpdateBannerText = async (index: number, title: string, subtitle: string) => {
+    if (!isCreator || !bannerConfigRef) return;
+    try {
+      const currentSlides = bannerConfig?.slides || DEFAULT_SLIDES;
+      const newSlides = [...currentSlides];
+      newSlides[index] = { ...newSlides[index], title, subtitle };
+      await setDoc(bannerConfigRef, { slides: newSlides }, { merge: true });
+      toast({ title: 'Banner Text Updated' });
+      await logAdminAction('Update Banner Text', `slot/${index}`, { title, subtitle });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Update Failed', description: e.message });
+    }
+  };
+
   if (!isCreator) return <AppLayout><div className="flex h-[50vh] items-center justify-center text-destructive font-headline"><Shield className="h-12 w-12 mr-2" /> Unauthorized Portal Access Restricted</div></AppLayout>;
+
+  const activeSlides = bannerConfig?.slides || DEFAULT_SLIDES;
 
   return (
     <AppLayout>
@@ -321,10 +377,72 @@ export default function AdminPage() {
             <TabsTrigger value="authority" className="rounded-full px-6 font-black uppercase text-[10px] bg-red-500/10 text-red-500 data-[state=active]:bg-red-500 data-[state=active]:text-white">Authority Hub</TabsTrigger>
             <TabsTrigger value="overview" className="rounded-full px-6 font-black uppercase text-[10px]">Overview</TabsTrigger>
             <TabsTrigger value="rewards" className="rounded-full px-6 font-black uppercase text-[10px]">Rewards Hub</TabsTrigger>
+            <TabsTrigger value="banners" className="rounded-full px-6 font-black uppercase text-[10px]">Banners</TabsTrigger>
             <TabsTrigger value="users" className="rounded-full px-6 font-black uppercase text-[10px]">Users</TabsTrigger>
             <TabsTrigger value="tags" className="rounded-full px-6 font-black uppercase text-[10px]">Assign Tags</TabsTrigger>
             <TabsTrigger value="logs" className="rounded-full px-6 font-black uppercase text-[10px]">Audit Logs</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="banners" className="space-y-6">
+             <Card className="rounded-[2.5rem] border-none shadow-xl bg-gradient-to-br from-orange-500/10 to-transparent">
+                <CardHeader>
+                   <CardTitle className="text-2xl uppercase italic flex items-center gap-2 text-orange-600">
+                      <ImageIcon className="h-6 w-6" /> Discovery Banner Sync
+                   </CardTitle>
+                   <CardDescription>Manage the rotating high-fidelity tribal banners displayed in the Rooms Hub.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                   <div className="grid grid-cols-1 gap-8">
+                      {activeSlides.map((slide: any, idx: number) => (
+                        <div key={idx} className="p-6 bg-white rounded-[2rem] border shadow-sm space-y-6 animate-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
+                           <div className="flex flex-col md:flex-row gap-6">
+                              <div className="w-full md:w-1/2 space-y-4">
+                                 <div className="relative aspect-[8/2] w-full rounded-2xl overflow-hidden border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center">
+                                    {slide.imageUrl ? (
+                                      <Image src={slide.imageUrl} alt={`Slide ${idx + 1}`} fill className="object-cover" />
+                                    ) : (
+                                      <ImageIcon className="h-10 w-10 text-gray-200" />
+                                    )}
+                                    {isUploadingBanner === idx && (
+                                      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10">
+                                         <Loader className="h-8 w-8 animate-spin text-white" />
+                                      </div>
+                                    )}
+                                 </div>
+                                 <div className="flex justify-center">
+                                    <input type="file" ref={fileInputRefs[idx]} className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && handleBannerImageUpload(idx, e.target.files[0])} />
+                                    <Button onClick={() => fileInputRefs[idx].current?.click()} className="rounded-full px-8 h-10 font-black uppercase text-[10px] italic bg-orange-500 text-white" disabled={isUploadingBanner !== null}>
+                                       <Upload className="h-3 w-3 mr-2" /> Change Image
+                                    </Button>
+                                 </div>
+                              </div>
+                              <div className="w-full md:w-1/2 space-y-4">
+                                 <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Banner Title</label>
+                                    <Input value={slide.title} onChange={(e) => {
+                                      const updated = [...activeSlides];
+                                      updated[idx].title = e.target.value;
+                                      // Local update for responsiveness
+                                    }} onBlur={(e) => handleUpdateBannerText(idx, e.target.value, slide.subtitle)} className="rounded-xl h-12 border-2" />
+                                 </div>
+                                 <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Banner Subtitle</label>
+                                    <Input value={slide.subtitle} onChange={(e) => {
+                                      const updated = [...activeSlides];
+                                      updated[idx].subtitle = e.target.value;
+                                    }} onBlur={(e) => handleUpdateBannerText(idx, slide.title, e.target.value)} className="rounded-xl h-12 border-2" />
+                                 </div>
+                                 <div className="flex items-center gap-2 text-[8px] font-black uppercase text-orange-500 italic">
+                                    <Type className="h-3 w-3" /> Auto-saves on blur
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </CardContent>
+             </Card>
+          </TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

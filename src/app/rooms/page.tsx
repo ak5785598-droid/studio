@@ -3,68 +3,84 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChatRoomCard } from '@/components/chat-room-card';
-import { Loader, Search, Plus, Trophy, Users, Heart, ArrowRight, Gamepad2, Sparkles } from 'lucide-react';
+import { Loader, Search, Plus, Trophy, Users, Heart, ArrowRight, Gamepad2, Sparkles, Zap, Flame, Star } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { UserSearchDialog } from '@/components/user-search-dialog';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, limit, orderBy } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, limit, orderBy, doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
+const ICON_MAP: Record<string, any> = {
+  Sparkles,
+  Trophy,
+  Gamepad2,
+  Zap,
+  Flame,
+  Star,
+  Users,
+  Heart
+};
+
+const DEFAULT_SLIDES = [
+  {
+    title: "Tribe Events",
+    subtitle: "Global Frequency Sync",
+    iconName: "Sparkles",
+    color: "from-orange-500/40",
+    imageUrl: 'https://picsum.photos/seed/banner1/800/200'
+  },
+  {
+    title: "Elite Rewards",
+    subtitle: "Claim Your Daily Throne",
+    iconName: "Trophy",
+    color: "from-yellow-500/40",
+    imageUrl: 'https://picsum.photos/seed/banner2/800/200'
+  },
+  {
+    title: "Game Zone",
+    subtitle: "Enter the 3D Arena",
+    iconName: "Gamepad2",
+    color: "from-purple-500/40",
+    imageUrl: 'https://picsum.photos/seed/banner3/800/200'
+  }
+];
+
 /**
  * ScrollingBanner Component.
  * Cycles through high-fidelity tribal promotions every 5 seconds.
+ * Synchronized with the appConfig/banners Firestore document.
  */
-function ScrollingBanner() {
+function ScrollingBanner({ slides: customSlides }: { slides?: any[] }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const discoveryBanner = PlaceHolderImages.find(img => img.id === 'discovery-banner');
   
-  const slides = [
-    {
-      title: "Tribe Events",
-      subtitle: "Global Frequency Sync",
-      icon: Sparkles,
-      color: "from-orange-500/40",
-      image: discoveryBanner?.imageUrl || 'https://picsum.photos/seed/banner1/800/200'
-    },
-    {
-      title: "Elite Rewards",
-      subtitle: "Claim Your Daily Throne",
-      icon: Trophy,
-      color: "from-yellow-500/40",
-      image: 'https://picsum.photos/seed/banner2/800/200'
-    },
-    {
-      title: "Game Zone",
-      subtitle: "Enter the 3D Arena",
-      icon: Gamepad2,
-      color: "from-purple-500/40",
-      image: 'https://picsum.photos/seed/banner3/800/200'
-    }
-  ];
+  const slides = customSlides || DEFAULT_SLIDES;
 
   useEffect(() => {
+    if (slides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
   }, [slides.length]);
 
+  if (slides.length === 0) return null;
+
   const slide = slides[currentSlide];
-  const Icon = slide.icon;
+  const Icon = ICON_MAP[slide.iconName] || Sparkles;
 
   return (
     <div className="col-span-2 my-2 rounded-[1.5rem] overflow-hidden relative h-28 shadow-xl border-2 border-white/20 group active:scale-[0.98] transition-all cursor-pointer bg-black">
       <div key={currentSlide} className="absolute inset-0 animate-in fade-in slide-in-from-right-4 duration-700">
         <Image 
-          src={slide.image} 
+          src={slide.imageUrl} 
           alt={slide.title} 
           fill 
           className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-[5000ms]"
         />
-        <div className={cn("absolute inset-0 bg-gradient-to-r via-transparent to-transparent flex flex-col justify-center px-8", slide.color)}>
+        <div className={cn("absolute inset-0 bg-gradient-to-r via-transparent to-transparent flex flex-col justify-center px-8", slide.color || "from-black/40")}>
           <div className="flex items-center gap-2 mb-1">
              <Icon className="h-4 w-4 text-white animate-pulse" />
              <h4 className="text-white font-black uppercase italic text-xl tracking-tighter leading-none drop-shadow-lg">{slide.title}</h4>
@@ -79,9 +95,8 @@ function ScrollingBanner() {
         </div>
       </div>
 
-      {/* Progress Dots */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-        {slides.map((_, i) => (
+        {slides.map((_: any, i: number) => (
           <div key={i} className={cn("h-1 rounded-full transition-all duration-500", currentSlide === i ? "bg-white w-4" : "bg-white/30 w-1")} />
         ))}
       </div>
@@ -119,8 +134,14 @@ export default function RoomsPage() {
     );
   }, [firestore, user]);
 
+  const bannerRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'appConfig', 'banners');
+  }, [firestore]);
+
   const { data: roomsData, isLoading: isRoomsLoading } = useCollection(roomsQuery);
   const { data: followedRooms, isLoading: isFollowingLoading } = useCollection(followingQuery);
+  const { data: bannerConfig } = useDoc(bannerRef);
 
   // Elite Help Room Protocol: Ensures Ummy Official Help is always first.
   const displayRooms = useMemo(() => {
@@ -222,7 +243,7 @@ export default function RoomsPage() {
                   {displayRooms.map((room: any, index: number) => (
                     <React.Fragment key={room.id}>
                       <ChatRoomCard room={room} variant="modern" />
-                      {index === 3 && <ScrollingBanner />}
+                      {index === 3 && <ScrollingBanner slides={bannerConfig?.slides} />}
                     </React.Fragment>
                   ))}
                 </div>
