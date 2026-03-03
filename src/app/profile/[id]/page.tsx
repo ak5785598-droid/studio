@@ -271,7 +271,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                 <div className="flex items-center gap-1 mt-1 flex-wrap">
                   <Badge className="bg-orange-500 text-white text-[8px] h-4 font-black px-2 border-none">Sr.</Badge>
                   <Badge className="bg-blue-500 text-white text-[8px] h-4 font-black px-2 border-none">SVIP</Badge>
-                  <Badge className="bg-cyan-500 text-white text-[8px] h-4 font-black px-2 border-none">CP</Badge>
                   <CustomerServiceTag size="sm" />
                 </div>
               </div>
