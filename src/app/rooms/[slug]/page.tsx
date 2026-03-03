@@ -11,6 +11,8 @@ import type { Room } from '@/lib/types';
 import { useRoomContext } from '@/components/room-provider';
 import { format } from 'date-fns';
 
+const CREATOR_ID = '901piBzTQ0VzCtAvlyyobwvAaTs1';
+
 /**
  * Chat Room Entry Page Gateway.
  * Manages identity synchronization, ban checks, and room metadata retrieval.
@@ -75,6 +77,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
     }
 
     // Return hardcoded metadata for the official support portal if DB entry is missing
+    // CREATOR PROTOCOL: Assigning ownership to Supreme Creator for administrative sovereignty.
     if (slug === 'ummy-help-center') {
       return {
         id: 'ummy-help-center',
@@ -84,7 +87,7 @@ export default function RoomPage({ params }: { params: Promise<{ slug: string }>
         topic: 'Ask any app related question quick and fast.',
         category: 'Chat',
         coverUrl: 'https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=1000',
-        ownerId: 'official-support-bot',
+        ownerId: CREATOR_ID,
         moderatorIds: [],
         lockedSeats: [],
         announcement: 'Welcome to official support! How can we help you today?',

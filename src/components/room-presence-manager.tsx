@@ -6,6 +6,8 @@ import { useUser, useFirestore, addDocumentNonBlocking, updateDocumentNonBlockin
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, serverTimestamp, collection, increment, writeBatch, getDocs } from 'firebase/firestore';
 
+const CREATOR_ID = '901piBzTQ0VzCtAvlyyobwvAaTs1';
+
 /**
  * Maintains Firestore presence while a room is active.
  * RE-ENGINEERED: Includes a High-Fidelity Heartbeat to prevent ghost identities.
@@ -62,11 +64,12 @@ export function RoomPresenceManager() {
       const batch = writeBatch(firestore);
 
       // Atomic Entry & Healing Protocol
+      // CREATOR PROTOCOL: Synchronizing sovereignty for the help desk portal.
       if (roomId === 'ummy-help-center') {
         batch.set(roomDocRef, { 
           id: 'ummy-help-center',
           title: 'Ummy Official Help',
-          ownerId: 'official-support-bot',
+          ownerId: CREATOR_ID,
           category: 'Chat',
           participantCount: actualCount,
           updatedAt: serverTimestamp()
