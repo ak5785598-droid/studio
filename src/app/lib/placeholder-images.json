@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     {
@@ -187,10 +188,10 @@
       "imageHint": "golden crown"
     },
     {
-      "id": "discovery-banner",
-      "description": "Textured orange and red banner for room discovery",
-      "imageUrl": "https://picsum.photos/seed/banner1/800/200",
-      "imageHint": "red orange texture"
+      "id": "cp-house-bg",
+      "description": "Romantic pink heart theme background for CP House",
+      "imageUrl": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1000",
+      "imageHint": "romantic heart pink"
     }
   ]
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, use } from 'react';
@@ -20,7 +21,8 @@ import {
   Shield as ShieldIcon,
   MessageCircle,
   UserPlus,
-  Search
+  Search,
+  Heart
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -315,7 +317,11 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
             <div className="space-y-3">
               <Card className="rounded-[1.5rem] border-none shadow-sm overflow-hidden bg-white">
-                <MenuItem label="COMBINED CP 💕" icon={Activity} />
+                <MenuItem 
+                  label="COMBINED CP 💕" 
+                  icon={Heart} 
+                  onClick={() => router.push('/cp-house')} 
+                />
                 <MenuItem label="Invite Friends" icon={Users} />
               </Card>
 
