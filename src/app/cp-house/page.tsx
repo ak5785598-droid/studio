@@ -1,32 +1,89 @@
 
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { AppLayout } from '@/components/layout/app-layout';
-import { ChevronLeft, HelpCircle, Plus, Heart, Award, Home, CreditCard, Scroll } from 'lucide-react';
+import { ChevronLeft, HelpCircle, Plus, Heart, Award, Home, CreditCard, Scroll, Loader, Gift as GiftIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { doc, increment, serverTimestamp, collection } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { GoldCoinIcon } from '@/components/icons';
+import { GiftAnimationOverlay } from '@/components/gift-animation-overlay';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 /**
  * CP House - High-Fidelity Love House Dimension.
  * Designed to mirror the provided blueprint exactly.
+ * Injected: Propose Ring Sync Portal.
  */
 export default function CpHousePage() {
   const router = useRouter();
   const { user } = useUser();
   const { userProfile } = useUserProfile(user?.uid);
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const [isProposeDialogOpen, setIsProposeDialogOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
 
   const backgroundAsset = PlaceHolderImages.find(img => img.id === 'cp-house-bg');
+  const ringAsset = PlaceHolderImages.find(img => img.id === 'propose-ring');
+
+  const handleSendProposeRing = async () => {
+    if (!user || !firestore || !userProfile) return;
+    
+    const ringCost = 100000;
+    if ((userProfile.wallet?.coins || 0) < ringCost) {
+      toast({ variant: 'destructive', title: 'Insufficient Coins', description: 'Head to the vault to recharge.' });
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const userRef = doc(firestore, 'users', user.uid);
+      const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+
+      const updateData = {
+        'wallet.coins': increment(-ringCost),
+        'updatedAt': serverTimestamp()
+      };
+
+      updateDocumentNonBlocking(userRef, updateData);
+      updateDocumentNonBlocking(profileRef, updateData);
+
+      // Trigger Cinematic SVGA-Style Animation
+      setActiveGiftAnimation('propose-ring');
+      setIsProposeDialogOpen(false);
+      
+      toast({ title: 'Propose Sent!', description: 'Your romantic vibe is synchronized.' });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Proposal Failed', description: e.message });
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
     <AppLayout fullScreen>
       <div className="h-[100dvh] w-full bg-pink-100 flex flex-col relative overflow-hidden font-headline text-white select-none">
         
+        <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
+
         {/* Cinematic Romantic Background */}
         <div className="absolute inset-0 z-0">
            {backgroundAsset && (
@@ -94,12 +151,18 @@ export default function CpHousePage() {
 
               {/* Partner Placeholder */}
               <div className="flex flex-col items-center gap-3">
-                 <div className="relative group cursor-pointer active:scale-95 transition-transform">
+                 <div 
+                   className="relative group cursor-pointer active:scale-95 transition-transform"
+                   onClick={() => setIsProposeDialogOpen(true)}
+                 >
                     <div className="h-28 w-28 rounded-full border-[6px] border-white shadow-2xl flex items-center justify-center bg-white/20 backdrop-blur-md hover:bg-white/30 transition-colors">
                        <Plus className="h-12 w-12 text-white/60 group-hover:text-white transition-colors" />
                     </div>
                  </div>
-                 <button className="bg-gradient-to-r from-orange-400 to-red-500 px-8 py-1.5 rounded-full font-black uppercase text-xs shadow-xl border border-white/20 active:scale-90 transition-transform">
+                 <button 
+                   onClick={() => setIsProposeDialogOpen(true)}
+                   className="bg-gradient-to-r from-orange-400 to-red-500 px-8 py-1.5 rounded-full font-black uppercase text-xs shadow-xl border border-white/20 active:scale-90 transition-transform"
+                 >
                     ADD
                  </button>
               </div>
@@ -137,6 +200,51 @@ export default function CpHousePage() {
               </div>
            </div>
         </main>
+
+        {/* Propose Ring Dialog */}
+        <Dialog open={isProposeDialogOpen} onOpenChange={setIsProposeDialogOpen}>
+          <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden animate-in slide-in-from-bottom-10 duration-500 font-headline">
+            <DialogHeader className="p-8 pb-4 text-center border-b">
+              <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter text-pink-600">Propose Identity</DialogTitle>
+              <DialogDescription className="sr-only">Sync with your partner using the elite Propose Ring.</DialogDescription>
+            </DialogHeader>
+            <div className="p-8 space-y-8 flex flex-col items-center">
+               <div className="relative h-48 w-48 rounded-[2rem] overflow-hidden border-4 border-pink-100 shadow-xl bg-pink-50 flex items-center justify-center">
+                  {ringAsset && (
+                    <Image 
+                      src={ringAsset.imageUrl} 
+                      alt="Propose Ring" 
+                      fill 
+                      className="object-cover" 
+                      data-ai-hint={ringAsset.imageHint} 
+                    />
+                  )}
+                  <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-lg">ELITE</div>
+               </div>
+               
+               <div className="text-center space-y-2">
+                  <h3 className="text-2xl font-black uppercase italic tracking-tight">Propose Ring</h3>
+                  <div className="flex items-center justify-center gap-2 text-2xl font-black text-primary italic">
+                     <GoldCoinIcon className="h-8 w-8" />
+                     100,000
+                  </div>
+                  <p className="text-xs text-muted-foreground font-body italic max-w-[240px] mx-auto">
+                    Synchronize your frequency with a partner. Triggers a full-screen box opening cinematic animation.
+                  </p>
+               </div>
+            </div>
+            <DialogFooter className="p-8 pt-0">
+               <Button 
+                 onClick={handleSendProposeRing}
+                 disabled={isSending}
+                 className="w-full h-16 rounded-[1.5rem] bg-gradient-to-r from-pink-500 to-red-600 text-white font-black uppercase italic text-xl shadow-xl shadow-pink-500/20 active:scale-95 transition-all"
+               >
+                  {isSending ? <Loader className="mr-2 h-6 w-6 animate-spin" /> : <Heart className="mr-2 h-6 w-6 fill-current" />}
+                  Propose Now
+               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Footer Sync Indicator */}
         <footer className="relative z-50 p-10 text-center">

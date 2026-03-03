@@ -166,7 +166,7 @@
     {
       "id": "task-list",
       "description": "Icon for daily tribe tasks",
-      "imageUrl": "https://images.unsplash.com/photo-1644329771977-0a8c6e3928ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0b2RvJTIwbGlzdHxlbnwwfHx8fDE3NzI0NjY4NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1644329771977-0a8c6e3928ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0b2RvJTIwbGlzdHxlbnwwfHx8fDE3NzI0NTgwODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "todo list"
     },
     {
@@ -192,6 +192,12 @@
       "description": "Romantic pink heart theme background for CP House",
       "imageUrl": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1000",
       "imageHint": "romantic heart pink"
+    },
+    {
+      "id": "propose-ring",
+      "description": "Elite heart-shaped ring box with diamond ring",
+      "imageUrl": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=800",
+      "imageHint": "diamond ring box"
     }
   ]
 }
