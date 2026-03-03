@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { useStorage, useFirestore, useUser, setDocumentNonBlocking } from '@/firebase';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from './use-toast';
 
 /**
  * Elite Visual Identity Sync Hook.
- * Re-engineered with Resumable Upload Protocol for high-fidelity resilience.
+ * Optimized for High-Speed uploads by utilizing the direct uploadBytes protocol.
  */
 export function useProfilePictureUpload() {
   const storage = useStorage();
@@ -28,41 +28,17 @@ export function useProfilePictureUpload() {
     }
 
     setIsUploading(true);
-    console.log(`[Visual Sync] Starting profile upload for: ${user.uid}`, file.name);
+    console.log(`[Visual Sync] Starting high-speed profile upload for: ${user.uid}`, file.name);
 
     try {
-      // 1. Storage Upload Handshake
+      // 1. High-Speed Storage Upload
       const timestamp = Date.now();
       const fileExtension = file.name.split('.').pop() || 'jpg';
       const storagePath = `users/${user.uid}/profile_${timestamp}.${fileExtension}`;
       const storageRef = ref(storage, storagePath);
       
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      // Create completion promise
-      const downloadURL = await new Promise<string>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log(`[Visual Sync] Upload is ${progress.toFixed(2)}% complete`);
-          },
-          (error) => {
-            console.error('[Visual Sync] Upload Task Error:', error);
-            reject(error);
-          },
-          async () => {
-            try {
-              console.log('[Visual Sync] Task finished, resolving URL...');
-              const url = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve(url);
-            } catch (urlError) {
-              console.error('[Visual Sync] getDownloadURL Error:', urlError);
-              reject(urlError);
-            }
-          }
-        );
-      });
+      const result = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(result.ref);
 
       // 2. Firestore Sync (Non-Blocking)
       const userSummaryRef = doc(firestore, 'users', user.uid);

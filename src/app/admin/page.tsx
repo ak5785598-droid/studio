@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirestore, useDoc, useUser, useCollection, useMemoFirebase, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError, useStorage } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, increment, collection, query, orderBy, limit, serverTimestamp, addDoc, getDocs, where, writeBatch, arrayUnion, arrayRemove, setDoc } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Shield, Loader, Search, ClipboardList, Gift, CheckCircle2, UserCheck, Star, Crown, Zap, Heart, MessageSquare, Tag, BadgeCheck, Upload, Type, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -43,7 +43,6 @@ const DEFAULT_SLIDES = [
 
 /**
  * Ummy Command Center - Supreme Authority Oversight.
- * Restricted exclusively to the Supreme Creator.
  */
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -66,7 +65,6 @@ export default function AdminPage() {
   const [isUploadingBanner, setIsUploadingBanner] = useState<number | null>(null);
   const fileInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
-  // Hardcoded redirect/state lock
   useEffect(() => {
     if (!isCreator && user) {
       setActiveTab('unauthorized');
@@ -181,7 +179,6 @@ export default function AdminPage() {
       });
 
     } catch (e: any) {
-      // Logic errors handled here, permission errors handled by emitter
     } finally {
       setIsSaving(false);
     }
@@ -325,27 +322,12 @@ export default function AdminPage() {
       const timestamp = Date.now();
       const sRef = ref(storage, `banners/slide_${index}_${timestamp}.jpg`);
       
-      // Use Resumable protocol for high-fidelity sync
-      const uploadTask = uploadBytesResumable(sRef, file);
-      
-      const url = await new Promise<string>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log(`[Admin] Slide ${index} sync is ${progress.toFixed(2)}% complete`);
-          },
-          (error) => reject(error),
-          async () => {
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(downloadUrl);
-          }
-        );
-      });
+      // Optimized for speed: using direct uploadBytes for tribal promotional assets
+      const result = await uploadBytes(sRef, file);
+      const url = await getDownloadURL(result.ref);
       
       const currentSlides = bannerConfig?.slides || DEFAULT_SLIDES;
       const newSlides = [...currentSlides];
-      // Ensure index safety
       if (!newSlides[index]) {
         newSlides[index] = { ...DEFAULT_SLIDES[index] };
       }

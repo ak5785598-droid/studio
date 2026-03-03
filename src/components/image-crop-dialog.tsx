@@ -22,8 +22,7 @@ interface ImageCropDialogProps {
 
 /**
  * High-Fidelity Precision Cropping Dimension.
- * Handles the extraction of visual signatures with absolute accuracy.
- * RE-ENGINEERED: Hardened for local blob frequency and resilient image loading.
+ * Optimized for high-speed uploads by utilizing a 0.8 quality compression signature.
  */
 export function ImageCropDialog({ image, open, onOpenChange, onCropComplete, aspect = 4 / 5 }: ImageCropDialogProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -44,7 +43,6 @@ export function ImageCropDialog({ image, open, onOpenChange, onCropComplete, asp
         reject(new Error('Failed to load visual frequency for cropping.'));
       });
       
-      // Atomic Check: Local blobs do not require crossOrigin handshake
       if (!url.startsWith('blob:')) {
         img.setAttribute('crossOrigin', 'anonymous');
       }
@@ -79,11 +77,12 @@ export function ImageCropDialog({ image, open, onOpenChange, onCropComplete, asp
     );
 
     return new Promise((resolve) => {
+      // QUALITY OPTIMIZATION: 0.8 provides elite mobile fidelity with significantly reduced upload time.
       canvas.toBlob((blob) => {
         if (!blob) return resolve(null);
         const file = new File([blob], `sync_${Date.now()}.jpg`, { type: 'image/jpeg' });
         resolve(file);
-      }, 'image/jpeg', 0.95);
+      }, 'image/jpeg', 0.8);
     });
   };
 
