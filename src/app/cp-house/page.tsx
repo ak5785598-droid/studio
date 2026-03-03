@@ -215,11 +215,10 @@ export default function CpHousePage() {
                       src={ringAsset.imageUrl} 
                       alt="Propose Ring" 
                       fill 
-                      className="object-cover" 
+                      className="object-cover transition-transform group-hover:scale-110" 
                       data-ai-hint={ringAsset.imageHint} 
                     />
                   )}
-                  <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-lg">ELITE</div>
                </div>
                
                <div className="text-center space-y-2">
