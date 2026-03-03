@@ -67,11 +67,10 @@ export function calculateLevelProgress(totalSpent: number = 0): LevelProgress {
   currentLevel = Math.min(currentLevel, 100);
   
   const remaining = Math.max(0, nextLevelThreshold - totalSpent);
-  const prevThreshold = currentLevel === 0 ? 0 : nextLevelThreshold - (nextLevelThreshold - totalSpent + (totalSpent - (currentLevel === 0 ? 0 : 0))); // simplified
   
-  // Progress within the current level's step
-  // To keep it simple for UI, we show progress toward the next level up
-  const progressPercent = currentLevel >= 100 ? 100 : (1 - (remaining / (nextLevelThreshold / (currentLevel + 1)))) * 100; // rough visual
+  // Progress within the current level's step toward the next level up
+  const rangeSize = nextLevelThreshold - (nextLevelThreshold - (nextLevelThreshold / (currentLevel + 1))); // rough
+  const progressPercent = currentLevel >= 100 ? 100 : (1 - (remaining / (nextLevelThreshold - (totalSpent - (totalSpent % 1000))))) * 100; // simplified for UI
 
   return {
     currentLevel,
@@ -83,16 +82,19 @@ export function calculateLevelProgress(totalSpent: number = 0): LevelProgress {
   };
 }
 
+/**
+ * Data mapping for the Level Icon table matching the blueprint image.
+ */
 export const LEVEL_RANGES = [
-  { range: 'Lv.0', cost: '10,000', type: 'star', color: 'bg-gray-300' },
-  { range: 'Lv.1~Lv.10', cost: '100,000', type: 'star', color: 'bg-blue-500' },
-  { range: 'Lv.11~Lv.20', cost: '200,000', type: 'star', color: 'bg-blue-600' },
-  { range: 'Lv.21~Lv.30', cost: '300,000', type: 'moon', color: 'bg-purple-500' },
-  { range: 'Lv.31~Lv.40', cost: '500,000', type: 'sun', color: 'bg-blue-400', strip: 'cyan' },
-  { range: 'Lv.41~Lv.50', cost: '1,000,000', type: 'diamond', color: 'bg-blue-500', strip: 'green' },
-  { range: 'Lv.51~Lv.60', cost: '5,000,000', type: 'shield', color: 'bg-blue-600', strip: 'orange' },
-  { range: 'Lv.61~Lv.70', cost: '10,000,000', type: 'wing', color: 'bg-blue-700', strip: 'red' },
-  { range: 'Lv.71~Lv.80', cost: '50,000,000', type: 'crown-white', color: 'bg-blue-400', strip: 'pink' },
-  { range: 'Lv.81~Lv.90', cost: '200,000,000', type: 'crown-gold', color: 'bg-yellow-500', strip: 'gold-purple' },
-  { range: 'Lv.91~Lv.100', cost: '1,000,000,000', type: 'crown-ultimate', color: 'bg-yellow-600', strip: 'ultimate' },
+  { range: 'Lv.0', cost: '10,000', type: 'star', color: 'bg-[#cbd5e1]' },
+  { range: 'Lv.1~Lv.10', cost: '100,000', type: 'star', color: 'bg-[#3b82f6]' },
+  { range: 'Lv.11~Lv.20', cost: '200,000', type: 'star', color: 'bg-[#2563eb]' },
+  { range: 'Lv.21~Lv.30', cost: '300,000', type: 'moon', color: 'bg-[#8b5cf6]' },
+  { range: 'Lv.31~Lv.40', cost: '500,000', type: 'sun', color: 'bg-[#3b82f6]', strip: 'cyan' },
+  { range: 'Lv.41~Lv.50', cost: '1,000,000', type: 'diamond', color: 'bg-[#3b82f6]', strip: 'green' },
+  { range: 'Lv.51~Lv.60', cost: '5,000,000', type: 'diamond', color: 'bg-[#2563eb]', strip: 'orange' },
+  { range: 'Lv.61~Lv.70', cost: '10,000,000', type: 'crown-white', color: 'bg-[#3b82f6]', strip: 'red' },
+  { range: 'Lv.71~Lv.80', cost: '50,000,000', type: 'crown-white', color: 'bg-[#2563eb]', strip: 'pink' },
+  { range: 'Lv.81~Lv.90', cost: '200,000,000', type: 'crown-gold', color: 'bg-[#f59e0b]', strip: 'gold-purple' },
+  { range: 'Lv.91~Lv.100', cost: '1,000,000,000', type: 'crown-ultimate', color: 'bg-[#d97706]', strip: 'ultimate' },
 ];
