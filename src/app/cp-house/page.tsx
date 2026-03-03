@@ -179,12 +179,13 @@ export default function CpHousePage() {
                  </div>
 
                  {/* Icons Grid */}
-                 <div className="grid grid-cols-4 gap-4">
+                 <div className="grid grid-cols-5 gap-4">
                     {[
                       { label: 'CP token', icon: Heart, color: 'text-pink-400' },
                       { label: 'CP house', icon: Home, color: 'text-pink-400' },
                       { label: 'CP card', icon: CreditCard, color: 'text-pink-400' },
                       { label: 'Entry strip', icon: Scroll, color: 'text-pink-400' },
+                      { label: 'Purpose ring', icon: GiftIcon, color: 'text-pink-400' },
                     ].map((item, i) => (
                       <div key={i} className="flex flex-col items-center gap-2 group cursor-pointer active:scale-90 transition-transform">
                          <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center shadow-md border border-pink-50 relative overflow-hidden group-hover:shadow-lg">
