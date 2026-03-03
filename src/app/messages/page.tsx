@@ -25,7 +25,7 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const ChatListItem = ({ chat, currentUid, onSelect }: any) => {
-  const participantIds = chat.participantIds || [];
+  const participantIds = chat?.participantIds || [];
   const otherUid = participantIds.find((id: string) => id !== currentUid) || currentUid;
   const { userProfile: otherUser, isLoading } = useUserProfile(otherUid);
 
