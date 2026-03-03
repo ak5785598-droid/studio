@@ -144,9 +144,9 @@ export default function CpHousePage() {
               </div>
 
               {/* Heart Centerpiece */}
-              <div className="relative animate-pulse">
-                 <div className="absolute inset-0 bg-pink-500 blur-2xl opacity-40 scale-150" />
-                 <span className="text-6xl drop-shadow-2xl filter saturate-150">❤️</span>
+              <div className="relative">
+                 <div className="absolute inset-0 bg-pink-500 blur-2xl opacity-40 scale-150 animate-pulse" />
+                 <span className="text-6xl drop-shadow-2xl filter saturate-150 animate-reaction-heartbeat block">❤️</span>
               </div>
 
               {/* Partner Placeholder */}
