@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg 
         viewBox="0 0 100 100"
@@ -10,22 +12,13 @@ export const UmmyLogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
                 <stop offset="100%" stopColor="#FFCC00" />
             </linearGradient>
         </defs>
-        {/* Rounded white background box */}
         <rect x="10" y="10" width="80" height="80" rx="24" fill="white" />
-        
-        {/* Ears */}
         <circle cx="32" cy="38" r="14" fill="url(#earGradient)" />
         <circle cx="68" cy="38" r="14" fill="url(#earGradient)" />
-        
-        {/* Face */}
         <circle cx="50" cy="55" r="28" fill="#FFCC00" />
-        
-        {/* Features */}
         <circle cx="40" cy="50" r="3.5" fill="#1A1A1A" />
         <circle cx="60" cy="50" r="3.5" fill="#1A1A1A" />
         <circle cx="50" cy="60" r="4.5" fill="#1A1A1A" />
-        
-        {/* Simple Smile */}
         <path 
             d="M 42 68 Q 50 74 58 68" 
             fill="none" 
@@ -53,20 +46,12 @@ export const GoldCoinIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <stop offset="100%" stopColor="#FF8C00" />
       </linearGradient>
     </defs>
-    
-    {/* Coin Body */}
     <circle cx="50" cy="50" r="48" fill="url(#goldBase)" stroke="#8B4513" strokeWidth="0.5" />
     <circle cx="50" cy="50" r="42" fill="none" stroke="#DAA520" strokeWidth="1.5" strokeDasharray="2 2" />
-    
-    {/* Wheat decoration */}
     <path d="M18 45 C 15 50, 15 60, 20 65" fill="none" stroke="#8B4513" strokeWidth="1" strokeLinecap="round" />
     <path d="M82 45 C 85 50, 85 60, 80 65" fill="none" stroke="#8B4513" strokeWidth="1" strokeLinecap="round" />
-    
-    {/* Top/Bottom Stars */}
     <path d="M50 10 L52 15 L58 15 L53 18 L55 24 L50 21 L45 24 L47 18 L42 15 L48 15 Z" fill="#8B4513" />
     <path d="M50 90 L52 85 L58 85 L53 82 L55 76 L50 79 L45 76 L47 82 L42 85 L48 85 Z" fill="#8B4513" />
-
-    {/* The Bear Character */}
     <circle cx="35" cy="42" r="9" fill="url(#bearEar)" stroke="#8B4513" strokeWidth="0.5" />
     <circle cx="65" cy="42" r="9" fill="url(#bearEar)" stroke="#8B4513" strokeWidth="0.5" />
     <circle cx="50" cy="55" r="22" fill="#FFCC00" stroke="#8B4513" strokeWidth="0.5" />
@@ -78,15 +63,11 @@ export const GoldCoinIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/**
- * High-Fidelity 3D Golden Remote component.
- * Features emerald green buttons, metallic gradients, and SVGA-style floating animations.
- */
-export const GameControllerIcon = (props: React.SVGProps<SVGSVGElement>) => (
+export const GameControllerIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
   <svg
     viewBox="0 0 200 150"
     xmlns="http://www.w3.org/2000/svg"
-    className="animate-reaction-float"
+    className={cn("animate-reaction-float", className)}
     {...props}
   >
     <defs>
@@ -115,38 +96,28 @@ export const GameControllerIcon = (props: React.SVGProps<SVGSVGElement>) => (
         </feMerge>
       </filter>
     </defs>
-
     <g filter="url(#remoteShadow)">
-      {/* Main Remote Body (3D Mesh Simulation) */}
       <path 
         d="M40 40 Q20 40 20 70 L25 110 Q30 130 60 125 L80 115 L120 115 L140 125 Q170 130 175 110 L180 70 Q180 40 160 40 Z" 
         fill="url(#remoteGold)" 
         stroke="#8B4513" 
         strokeWidth="0.5"
       />
-      
-      {/* Glossy Top Overlay */}
       <path 
         d="M40 42 Q25 42 25 65 L30 100 Q35 115 55 112 L75 105 L125 105 L145 112 Q165 115 170 100 L175 65 Q175 42 160 42 Z" 
         fill="white" 
         opacity="0.15"
       />
-
-      {/* Central Touchpad Area */}
       <rect x="75" y="45" width="50" height="35" rx="4" fill="#8B4513" opacity="0.2" stroke="white" strokeWidth="0.2" />
       <g opacity="0.3">
         {Array.from({length: 5}).map((_, i) => (
           <line key={i} x1="80" y1={50 + i*6} x2="120" y2={50 + i*6} stroke="white" strokeWidth="0.5" />
         ))}
       </g>
-
-      {/* Left D-Pad (Green) */}
       <g transform="translate(45, 75)">
         <path d="M-12 -4 L-4 -4 L-4 -12 L4 -12 L4 -4 L12 -4 L12 4 L4 4 L4 12 L-4 12 L-4 4 L-12 4 Z" fill="url(#emeraldGreen)" stroke="#064e3b" strokeWidth="1" />
         <circle cx="0" cy="0" r="12" fill="url(#buttonShine)" pointerEvents="none" />
       </g>
-
-      {/* Right Action Buttons (Green) */}
       <g transform="translate(155, 75)">
         <circle cx="0" cy="-10" r="6" fill="url(#emeraldGreen)" stroke="#064e3b" strokeWidth="1" />
         <circle cx="10" cy="0" r="6" fill="url(#emeraldGreen)" stroke="#064e3b" strokeWidth="1" />
@@ -157,8 +128,6 @@ export const GameControllerIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <circle cx="0" cy="10" r="6" fill="url(#buttonShine)" />
         <circle cx="-10" cy="0" r="6" fill="url(#buttonShine)" />
       </g>
-
-      {/* Center Sticks (Green) */}
       <g transform="translate(80, 100)">
         <circle cx="0" cy="0" r="10" fill="#4d3a00" opacity="0.4" />
         <circle cx="0" cy="0" r="8" fill="url(#emeraldGreen)" stroke="#064e3b" strokeWidth="1" />
@@ -169,13 +138,9 @@ export const GameControllerIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <circle cx="0" cy="0" r="8" fill="url(#emeraldGreen)" stroke="#064e3b" strokeWidth="1" />
         <circle cx="-2" cy="-2" r="4" fill="url(#buttonShine)" />
       </g>
-
-      {/* Small Accessory Buttons */}
       <circle cx="70" cy="55" r="2.5" fill="#064e3b" opacity="0.6" />
       <circle cx="130" cy="55" r="2.5" fill="#064e3b" opacity="0.6" />
     </g>
-
-    {/* Dynamic Shine Streak */}
     <rect x="0" y="0" width="20" height="200" fill="white" opacity="0.2" transform="rotate(30) translate(0, -100)">
       <animateTransform attributeName="transform" type="translate" from="-200, -100" to="400, -100" dur="3s" repeatCount="indefinite" />
     </rect>
