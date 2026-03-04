@@ -121,7 +121,7 @@ export default function StorePage() {
             onClick={() => router.push('/wallet')}
             className="bg-gradient-to-br from-primary/20 to-primary/5 px-8 py-4 rounded-[2rem] border-2 border-primary/20 flex items-center gap-4 shadow-xl cursor-pointer hover:scale-[1.02] transition-transform active:scale-95"
           >
-            <GoldCoinIcon className="h-10 w-10" />
+            < GoldCoinIcon className="h-10 w-10" />
             <div className="flex flex-col">
               <span className="text-3xl font-black text-primary">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
               <span className="text-[10px] uppercase font-black tracking-widest text-primary/60">Tap to Recharge</span>
@@ -177,7 +177,7 @@ export default function StorePage() {
                           
                           {item.isNew && (
                             <div className="absolute top-6 left-6 z-20">
-                               <div className="bg-red-500 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full animate-pulse shadow-lg">New Frequency</div>
+                               <div className="bg-red-50 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full animate-pulse shadow-lg">New Frequency</div>
                             </div>
                           )}
                         </div>
