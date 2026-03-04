@@ -2,7 +2,26 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
-import { Mic, MicOff, Lock, Gift as GiftIcon, Users, Share2, Power, ChevronRight, ChevronLeft, X, ShieldCheck, LogOut, Minimize2, Smile, Zap, Crown, Armchair } from 'lucide-react';
+import { 
+  Mic, 
+  MicOff, 
+  Lock, 
+  Gift as GiftIcon, 
+  Users, 
+  Share2, 
+  Power, 
+  ChevronRight, 
+  ChevronLeft, 
+  X, 
+  ShieldCheck, 
+  LogOut, 
+  Minimize2, 
+  Smile, 
+  Zap, 
+  Crown, 
+  Armchair,
+  Loader
+} from 'lucide-react';
 import { GoldCoinIcon, GameControllerIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,11 +49,6 @@ const ROOM_THEMES = [
 ];
 
 const TRIBE_EMOJIS = ['😀', '😂', '😘', '🥰', '😎', '🤗', '😡', '😭', '💋'];
-
-const GAME_LIST = [
-  { id: 'ludo', title: 'Ludo Masters', icon: '🎲', color: 'bg-green-500' },
-  { id: 'fruit-party', title: 'Fruit Party', icon: '🎡', color: 'bg-purple-500' },
-];
 
 function RemoteAudio({ stream }: { stream: MediaStream }) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -75,7 +89,6 @@ export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
   const [isGiftPickerOpen, setIsGiftPickerOpen] = useState(false);
   const [isGamesDialogOpen, setIsGamesDialogOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isParticipantListOpen, setIsParticipantListOpen] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isExitPortalOpen, setIsExitPortalOpen] = useState(false);
@@ -102,7 +115,13 @@ export function RoomClient({ room }: { room: Room }) {
   const messagesQuery = useMemoFirebase(() => (!firestore || !room.id ? null : query(collection(firestore, 'chatRooms', room.id, 'messages'), orderBy('timestamp', 'asc'), limitToLast(50))), [firestore, room.id]);
   const { data: firestoreMessages } = useCollection(messagesQuery);
   
-  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; if (firestoreMessages && firestoreMessages.length > 0) { const lastMsg = firestoreMessages[firestoreMessages.length - 1]; if (lastMsg.type === 'entrance' && lastMsg.senderId !== currentUser?.uid) setLatestEntrance(lastMsg); } }, [firestoreMessages, currentUser?.uid]);
+  useEffect(() => { 
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; 
+    if (firestoreMessages && firestoreMessages.length > 0) { 
+      const lastMsg = firestoreMessages[firestoreMessages.length - 1]; 
+      if (lastMsg.type === 'entrance' && lastMsg.senderId !== currentUser?.uid) setLatestEntrance(lastMsg); 
+    } 
+  }, [firestoreMessages, currentUser?.uid]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +144,7 @@ export function RoomClient({ room }: { room: Room }) {
     return (
       <div className="flex flex-col items-center gap-1 w-full">
         <AvatarFrame frameId={occupant?.activeFrame} size="md">
-          <button onClick={() => { if (occupant) { setSelectedParticipantUid((occupant as any).uid); setIsUserProfileCardOpen(true); } else takeSeat(index); }} className={cn("h-14 w-14 rounded-full flex items-center justify-center bg-black/40 border-2 border-white/10 backdrop-blur-sm relative overflow-hidden", isLocked && "border-red-500/50")}>
+          <button onClick={() => { if (occupant) { setSelectedParticipantUid((occupant as any).uid || occupant.id); setIsUserProfileCardOpen(true); } else takeSeat(index); }} className={cn("h-14 w-14 rounded-full flex items-center justify-center bg-black/40 border-2 border-white/10 backdrop-blur-sm relative overflow-hidden", isLocked && "border-red-500/50")}>
             {occupant ? <Avatar className="h-full w-full p-0.5"><AvatarImage src={occupant.avatarUrl} /><AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback></Avatar> : isLocked ? <Lock className="h-4 w-4 text-red-500/40" /> : <Armchair className="text-white/20 h-6 w-6" />}
           </button>
         </AvatarFrame>
@@ -136,27 +155,129 @@ export function RoomClient({ room }: { room: Room }) {
 
   return (
     <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl">
-      <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} /><EntryCard entrant={latestEntrance} onComplete={() => setLatestEntrance(null)} />
+      <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
+      <EntryCard entrant={latestEntrance} onComplete={() => setLatestEntrance(null)} />
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
-      <div className="absolute inset-0 z-0"><Image src={currentTheme.url} alt="Background" fill className="object-cover opacity-60" priority /><div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" /></div>
+      
+      <div className="absolute inset-0 z-0">
+        <Image src={currentTheme.url} alt="Background" fill className="object-cover opacity-60" priority />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
+      </div>
+
       <header className="relative z-50 flex items-center justify-between p-4 pt-6">
-        <div className="flex items-center gap-3"><Avatar className="h-12 w-12 rounded-xl border-2 border-white/20"><AvatarImage src={room.coverUrl || undefined} /><AvatarFallback>UM</AvatarFallback></Avatar><div><h1 className="font-black text-[15px] uppercase tracking-tighter text-white">{room.title}</h1><p className="text-[10px] font-bold text-white/60 uppercase">ID:{room.roomNumber}</p></div></div>
-        <div className="flex items-center gap-2"><button onClick={() => setIsParticipantListOpen(true)} className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2"><Users className="h-3 w-3 text-white/60" /><span className="text-[10px] font-black">{participants?.length || 0}</span></button><button onClick={() => setIsExitPortalOpen(true)} className="p-2 bg-white/10 rounded-full"><Power className="h-4 w-4" /></button></div>
+        <div className="flex items-center gap-3">
+          <Avatar className="h-12 w-12 rounded-xl border-2 border-white/20">
+            <AvatarImage src={room.coverUrl || undefined} />
+            <AvatarFallback>UM</AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="font-black text-[15px] uppercase tracking-tighter text-white">{room.title}</h1>
+            <p className="text-[10px] font-bold text-white/60 uppercase">ID:{room.roomNumber}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setIsParticipantListOpen(true)} className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
+            <Users className="h-3 w-3 text-white/60" />
+            <span className="text-[10px] font-black">{participants?.length || 0}</span>
+          </button>
+          <button onClick={() => setIsExitPortalOpen(true)} className="p-2 bg-white/10 rounded-full">
+            <Power className="h-4 w-4" />
+          </button>
+        </div>
       </header>
-      <div className="relative z-50 px-4 py-1 flex items-center gap-3 bg-black/20 backdrop-blur-sm border-y border-white/5"><div className="bg-primary/20 p-1 rounded-md"><Zap className="h-3 w-3 text-primary animate-pulse" /></div><div className="flex-1 overflow-hidden"><p className="text-[10px] font-black uppercase italic whitespace-nowrap animate-marquee tracking-widest text-primary/80">{room.announcement || "Welcome to the tribe frequency! Stay active and earn rewards."}</p></div></div>
+
+      <div className="relative z-50 px-4 py-1 flex items-center gap-3 bg-black/20 backdrop-blur-sm border-y border-white/5">
+        <div className="bg-primary/20 p-1 rounded-md"><Zap className="h-3 w-3 text-primary animate-pulse" /></div>
+        <div className="flex-1 overflow-hidden">
+          <p className="text-[10px] font-black uppercase italic whitespace-nowrap animate-marquee tracking-widest text-primary/80">
+            {room.announcement || "Welcome to the tribe frequency! Stay active and earn rewards."}
+          </p>
+        </div>
+      </div>
+
       <main className="relative z-10 flex-1 flex flex-col pt-4 overflow-hidden">
-        <ScrollArea className="flex-1"><div className="px-4 py-2 flex flex-wrap justify-center gap-x-4 gap-y-6 max-w-sm mx-auto">{Array.from({ length: maxMics }).map((_, i) => (<div key={`seat-${i+1}`} className="w-[22%]"><Seat index={i + 1} /></div>))}</div></ScrollArea>
-        <div className="px-4 pb-2"><ScrollArea className="h-32" ref={scrollRef}><div className="space-y-1">{firestoreMessages?.map((msg: any) => (<div key={msg.id} className="flex items-start gap-2"><div className="bg-black/20 backdrop-blur-sm px-2 py-1 rounded-lg border border-white/5 flex gap-2 max-w-[90%]"><span className={cn("text-[9px] font-black shrink-0 uppercase", msg.type === 'gift' ? "text-pink-400" : "text-blue-400")}>{msg.senderName}:</span><p className="text-[9px] font-medium text-white/80">{msg.content}</p></div></div>))}</div></ScrollArea></div>
+        <ScrollArea className="flex-1">
+          <div className="px-4 py-2 flex flex-wrap justify-center gap-x-4 gap-y-6 max-w-sm mx-auto">
+            {Array.from({ length: maxMics }).map((_, i) => (
+              <div key={`seat-${i+1}`} className="w-[22%]"><Seat index={i + 1} /></div>
+            ))}
+          </div>
+        </ScrollArea>
+        <div className="px-4 pb-2">
+          <ScrollArea className="h-32" ref={scrollRef}>
+            <div className="space-y-1">
+              {firestoreMessages?.map((msg: any) => (
+                <div key={msg.id} className="flex items-start gap-2">
+                  <div className="bg-black/20 backdrop-blur-sm px-2 py-1 rounded-lg border border-white/5 flex gap-2 max-w-[90%]">
+                    <span className={cn("text-[9px] font-black shrink-0 uppercase", msg.type === 'gift' ? "text-pink-400" : "text-blue-400")}>{msg.senderName}:</span>
+                    <p className="text-[9px] font-medium text-white/80">{msg.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       </main>
+
       <footer className="relative z-50 px-4 pb-10 flex items-center justify-between gap-3 bg-gradient-to-t from-black via-black/80 to-transparent pt-4">
-        <button onClick={handleMicToggle} className={cn("p-3 rounded-full border border-white/10 backdrop-blur-md", isInSeat && !currentUserParticipant?.isMuted ? "bg-green-500 shadow-lg shadow-green-500/20" : "bg-white/10")}>{isInSeat && !currentUserParticipant?.isMuted ? <Mic className="h-5 w-5 text-white" /> : <MicOff className="h-5 w-5 text-white/60" />}</button>
-        <form className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-12 px-4 flex items-center border border-white/5" onSubmit={handleSendMessage}><Input placeholder="Say Hi to Tribe" className="bg-transparent border-none text-xs font-black uppercase tracking-widest focus-visible:ring-0 h-full" value={messageText} onChange={(e) => setMessageText(e.target.value)} /></form>
-        <div className="flex items-center gap-2"><button onClick={() => setIsEmojiPickerOpen(true)} className="bg-white/10 p-3 rounded-full"><Smile className="h-5 w-5 text-white/80" /></button><button className="bg-gradient-to-br from-yellow-300 via-yellow-500 to-orange-600 p-2.5 rounded-full" onClick={() => setIsGamesDialogOpen(true)}><GameControllerIcon className="h-6 w-6" /></button><button className="bg-gradient-to-br from-pink-400 to-indigo-600 p-3 rounded-full" onClick={() => setIsGiftPickerOpen(true)}><GiftIcon className="h-5 w-5 text-white" /></button></div>
+        <button onClick={handleMicToggle} className={cn("p-3 rounded-full border border-white/10 backdrop-blur-md", isInSeat && !currentUserParticipant?.isMuted ? "bg-green-500 shadow-lg shadow-green-500/20" : "bg-white/10")}>
+          {isInSeat && !currentUserParticipant?.isMuted ? <Mic className="h-5 w-5 text-white" /> : <MicOff className="h-5 w-5 text-white/60" />}
+        </button>
+        <form className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-12 px-4 flex items-center border border-white/5" onSubmit={handleSendMessage}>
+          <Input placeholder="Say Hi to Tribe" className="bg-transparent border-none text-xs font-black uppercase tracking-widest focus-visible:ring-0 h-full" value={messageText} onChange={(e) => setMessageText(e.target.value)} />
+        </form>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setIsEmojiPickerOpen(true)} className="bg-white/10 p-3 rounded-full">
+            <Smile className="h-5 w-5 text-white/80" />
+          </button>
+          <button className="bg-gradient-to-br from-yellow-300 via-yellow-500 to-orange-600 p-2.5 rounded-full" onClick={() => setIsGamesDialogOpen(true)}>
+            <GameControllerIcon className="h-6 w-6" />
+          </button>
+          <button className="bg-gradient-to-br from-pink-400 to-indigo-600 p-3 rounded-full" onClick={() => setIsGiftPickerOpen(true)}>
+            <GiftIcon className="h-5 w-5 text-white" />
+          </button>
+        </div>
       </footer>
-      <Dialog open={isExitPortalOpen} onOpenChange={setIsExitPortalOpen}><DialogContent className="sm:max-w-md bg-black/90 backdrop-blur-2xl border-none p-0 rounded-t-[3rem] overflow-hidden"><DialogHeader className="p-8 pb-4 text-center border-b border-white/10"><DialogTitle className="text-white font-black uppercase text-2xl">Exit Frequency</DialogTitle></DialogHeader><div className="p-12 flex items-center justify-around gap-8"><button onClick={handleMinimize} className="flex flex-col items-center gap-4"><div className="h-20 w-20 rounded-full bg-white flex items-center justify-center"><Minimize2 className="h-8 w-8 text-black" /></div><span className="text-white font-black uppercase text-xs italic">Minimize</span></button><button onClick={handleExit} className="flex flex-col items-center gap-4"><div className="h-20 w-20 rounded-full bg-white flex items-center justify-center"><LogOut className="h-8 w-8 text-pink-500" /></div><span className="text-white font-black uppercase text-xs italic">Exit Room</span></button></div></DialogContent></Dialog>
-      <Dialog open={isParticipantListOpen} onOpenChange={setIsParticipantListOpen}><DialogContent className="w-screen h-screen max-w-none m-0 border-none bg-black/95 text-white p-0 flex flex-col"><DialogHeader className="p-4 border-b border-white/10 mt-10"><DialogTitle className="text-center font-black uppercase text-lg">Tribe List</DialogTitle></DialogHeader><ScrollArea className="flex-1 px-6"><div className="py-6 space-y-4">{participants?.map((p) => (<TribeMemberItem key={(p as any).uid} participant={p} ownerId={room.ownerId} />))}</div></ScrollArea></DialogContent></Dialog>
+
+      <Dialog open={isExitPortalOpen} onOpenChange={setIsExitPortalOpen}>
+        <DialogContent className="sm:max-w-md bg-black/90 backdrop-blur-2xl border-none p-0 rounded-t-[3rem] overflow-hidden">
+          <DialogHeader className="p-8 pb-4 text-center border-b border-white/10">
+            <DialogTitle className="text-white font-black uppercase text-2xl">Exit Frequency</DialogTitle>
+          </DialogHeader>
+          <div className="p-12 flex items-center justify-around gap-8">
+            <button onClick={handleMinimize} className="flex flex-col items-center gap-4">
+              <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center"><Minimize2 className="h-8 w-8 text-black" /></div>
+              <span className="text-white font-black uppercase text-xs italic">Minimize</span>
+            </button>
+            <button onClick={handleExit} className="flex flex-col items-center gap-4">
+              <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center"><LogOut className="h-8 w-8 text-pink-500" /></div>
+              <span className="text-white font-black uppercase text-xs italic">Exit Room</span>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isParticipantListOpen} onOpenChange={setIsParticipantListOpen}>
+        <DialogContent className="w-screen h-screen max-w-none m-0 border-none bg-black/95 text-white p-0 flex flex-col">
+          <DialogHeader className="p-4 border-b border-white/10 mt-10">
+            <DialogTitle className="text-center font-black uppercase text-lg">Tribe List</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1 px-6">
+            <div className="py-6 space-y-4">
+              {participants?.map((p) => (
+                <TribeMemberItem key={(p as any).uid || p.id} participant={p} ownerId={room.ownerId} />
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
       <RoomUserProfileDialog userId={selectedParticipantUid} open={isUserProfileCardOpen} onOpenChange={setIsUserProfileCardOpen} canManage={false} isOwner={false} roomOwnerId={room.ownerId} roomModeratorIds={room.moderatorIds || []} onSilence={() => {}} onKick={() => {}} onLeaveSeat={() => {}} onToggleMod={() => {}} onOpenGiftPicker={(recipient) => { setGiftRecipient(recipient); setIsGiftPickerOpen(true); }} isSilenced={false} isMe={selectedParticipantUid === currentUser?.uid} />
-      <style jsx global>{` @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } } .animate-marquee { display: inline-block; animation: marquee 15s linear infinite; } `}</style>
+      
+      <style jsx global>{` 
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } } 
+        .animate-marquee { display: inline-block; animation: marquee 15s linear infinite; } 
+      `}</style>
     </div>
   );
 }
