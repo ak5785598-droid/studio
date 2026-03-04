@@ -1,13 +1,14 @@
+
 'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
-import { Loader } from 'lucide-react';
+import { UmmyLogoIcon } from '@/components/icons';
 
 /**
  * Root Profile Gateway
- * Safely redirects the user to their specific profile or the login screen.
+ * Redirects to the user's specific high-fidelity persona card.
  */
 export default function ProfileGateway() {
   const { user, isUserLoading } = useUser();
@@ -24,10 +25,10 @@ export default function ProfileGateway() {
   }, [user, isUserLoading, router]);
 
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center bg-background space-y-4">
-      <Loader className="h-10 w-10 animate-spin text-primary" />
-      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">
-        Synchronizing Identity...
+    <div className="flex h-screen w-full flex-col items-center justify-center bg-[#FFCC00] space-y-4">
+      <UmmyLogoIcon className="h-16 w-16 animate-pulse" />
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white animate-pulse">
+        Identifying Tribe Member...
       </p>
     </div>
   );

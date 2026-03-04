@@ -1,7 +1,8 @@
+
 'use client';
 
 import * as React from "react";
-import { Home, Settings, ShoppingBag, Mail, Crown, Gamepad2, Power, Zap, ShieldAlert } from "lucide-react";
+import { Home, Settings, ShoppingBag, Mail, Crown, Gamepad2, Power, Zap, ShieldAlert, Castle, Compass, MessageSquare, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -23,12 +24,11 @@ import { useUser, useAuth, useFirestore } from "@/firebase";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { UmmyLogoIcon } from "@/components/icons";
 import { signOut } from "firebase/auth";
-import { useToast } from "@/hooks/use-toast";
 import { FloatingRoomBar } from "@/components/floating-room-bar";
 import { doc, getDoc, writeBatch, serverTimestamp, increment } from "firebase/firestore";
 
 const sidebarItems = [
-  { href: "/rooms", label: "Home", icon: Home },
+  { href: "/rooms", label: "Home", icon: Castle },
   { href: "/messages", label: "Messages", icon: Mail },
   { href: "/store", label: "Boutique", icon: ShoppingBag },
   { href: "/leaderboard", label: "Rankings", icon: Crown },
@@ -36,12 +36,25 @@ const sidebarItems = [
 ];
 
 const mobileNavItems = [
-  { href: "/rooms", label: "HOME", icon: Zap },
-  { href: "/messages", label: "MESSAGE", icon: Mail },
-  { href: "/profile", label: "MINE", icon: Crown },
+  { href: "/rooms", label: "Rooms", icon: Castle },
+  { href: "/discover", label: "Discover", icon: Compass },
+  { href: "/messages", label: "Message", icon: MessageSquare },
+  { href: "/profile", label: "Mine", icon: User },
 ];
 
 const CREATOR_ID = '901piBzTQ0VzCtAvlyyobwvAaTs1';
+
+/**
+ * High-Fidelity Green Smiley SVG Signature.
+ */
+const GreenSmileyIcon = ({ className, active }: { className?: string, active?: boolean }) => (
+  <svg viewBox="0 0 100 100" className={cn(className, "transition-all")} xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="45" fill={active ? "#00FF00" : "#E0E0E0"} />
+    <circle cx="35" cy="40" r="5" fill="#000" />
+    <circle cx="65" cy="40" r="5" fill="#000" />
+    <path d="M 30 65 Q 50 80 70 65" stroke="#000" strokeWidth="5" fill="none" strokeLinecap="round" />
+  </svg>
+);
 
 export function AppLayout({ 
   children, 
@@ -58,7 +71,6 @@ export function AppLayout({
   const { userProfile } = useUserProfile(user?.uid);
   const auth = useAuth();
   const firestore = useFirestore();
-  const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
@@ -72,45 +84,23 @@ export function AppLayout({
   const handleLogout = async () => {
     if (!auth || !user || !firestore) return;
     try {
-      console.log("[Identity Sync] Sidebar: Initiating cleanup...");
-      
       const userRef = doc(firestore, 'users', user.uid);
       const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
-      
       const userSnap = await getDoc(userRef);
       const currentRoomId = userSnap.data()?.currentRoomId;
-
       const batch = writeBatch(firestore);
-      
-      batch.update(userRef, { 
-        isOnline: false, 
-        currentRoomId: null, 
-        updatedAt: serverTimestamp() 
-      });
-      batch.update(profileRef, { 
-        isOnline: false, 
-        currentRoomId: null, 
-        updatedAt: serverTimestamp() 
-      });
-
+      batch.update(userRef, { isOnline: false, currentRoomId: null, updatedAt: serverTimestamp() });
+      batch.update(profileRef, { isOnline: false, currentRoomId: null, updatedAt: serverTimestamp() });
       if (currentRoomId) {
-        console.log(`[Identity Sync] Sidebar: Purging presence from room ${currentRoomId}`);
         const roomRef = doc(firestore, 'chatRooms', currentRoomId);
         const participantRef = doc(firestore, 'chatRooms', currentRoomId, 'participants', user.uid);
         batch.delete(participantRef);
-        batch.update(roomRef, { 
-          participantCount: increment(-1),
-          updatedAt: serverTimestamp()
-        });
+        batch.update(roomRef, { participantCount: increment(-1), updatedAt: serverTimestamp() });
       }
-
       await batch.commit();
-      console.log("[Identity Sync] Sidebar: Cleanup complete.");
-      
       await signOut(auth);
       window.location.href = '/login';
     } catch (error: any) {
-      console.error("[Identity Sync] Sidebar Logout Error:", error);
       await signOut(auth);
       window.location.href = '/login';
     }
@@ -140,11 +130,7 @@ export function AppLayout({
             <SidebarMenu>
               {sidebarItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={pathname.startsWith(item.href)} 
-                    className={cn("h-14 rounded-xl px-4", pathname.startsWith(item.href) && "bg-black/10 font-black")}
-                  >
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} className={cn("h-14 rounded-xl px-4", pathname.startsWith(item.href) && "bg-black/10 font-black")}>
                     <Link href={item.href} className="flex items-center gap-4">
                       <item.icon className="h-6 w-6" />
                       <span className="text-base font-black uppercase italic">{item.label}</span>
@@ -154,14 +140,10 @@ export function AppLayout({
               ))}
               {isOfficial && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={pathname === '/admin'} 
-                    className={cn("h-14 rounded-xl px-4 mt-4 bg-red-500/10", pathname === '/admin' && "bg-red-500/20 font-black")}
-                  >
+                  <SidebarMenuButton asChild isActive={pathname === '/admin'} className={cn("h-14 rounded-xl px-4 mt-4 bg-red-500/10", pathname === '/admin' && "bg-red-500/20 font-black")}>
                     <Link href="/admin" className="flex items-center gap-4">
                       <ShieldAlert className="h-6 w-6 text-red-600" />
-                      <span className="text-base font-black uppercase italic text-red-600">Command Center</span>
+                      <span className="text-base font-black uppercase italic text-red-600">Admin Hub</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -171,11 +153,7 @@ export function AppLayout({
           <SidebarFooter className="bg-transparent p-6">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  isActive={pathname.startsWith('/settings')} 
-                  className="h-14 rounded-xl mb-2"
-                >
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')} className="h-14 rounded-xl mb-2">
                   <Link href="/settings" className="flex items-center gap-4">
                     <Settings className="h-6 w-6" />
                     <span className="text-base font-black uppercase italic">Settings</span>
@@ -184,9 +162,7 @@ export function AppLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <button onClick={handleLogout} className="flex items-center gap-4 px-4 h-14 w-full text-black transition-all group">
-                  <div className="h-10 w-10 bg-black rounded-full flex items-center justify-center text-[#FFCC00] group-active:scale-90 transition-transform">
-                    <Power className="h-5 w-5" />
-                  </div>
+                  <div className="h-10 w-10 bg-black rounded-full flex items-center justify-center text-[#FFCC00] group-active:scale-90 transition-transform"><Power className="h-5 w-5" /></div>
                   <span className="text-base font-black uppercase italic">Sign Out</span>
                 </button>
               </SidebarMenuItem>
@@ -202,19 +178,22 @@ export function AppLayout({
           <main className="flex-1 w-full overflow-y-auto bg-white rounded-tl-[2.5rem] shadow-2xl relative no-scrollbar">{children}</main>
           
           {!isInsideRoom && (
-            <nav className="md:hidden flex items-center justify-around bg-white border-t border-gray-100 h-14 pb-safe shrink-0 relative z-50 px-4">
+            <nav className="md:hidden flex items-center justify-around bg-white border-t border-gray-100 h-16 pb-safe shrink-0 relative z-50 px-2">
               {mobileNavItems.map((item) => {
                 const isActive = pathname === item.href || (item.href === '/profile' && pathname.startsWith('/profile'));
                 return (
-                  <Link key={item.label} href={item.href} className={cn("flex flex-col items-center gap-1 p-2 transition-all active:scale-90", isActive ? "text-primary" : "text-gray-300")}>
-                    <item.icon className={cn("h-6 w-6", isActive && "fill-current")} />
-                    <span className="text-[10px] font-black uppercase italic tracking-widest">{item.label}</span>
+                  <Link key={item.label} href={item.href} className={cn("flex flex-col items-center gap-1 p-2 transition-all active:scale-90", isActive ? "text-[#00FF00]" : "text-gray-300")}>
+                    {item.label === 'Mine' ? (
+                      <GreenSmileyIcon className="h-7 w-7" active={isActive} />
+                    ) : (
+                      <item.icon className={cn("h-7 w-7", isActive && "fill-current")} />
+                    )}
+                    <span className="text-[9px] font-black uppercase tracking-tighter">{item.label}</span>
                   </Link>
                 );
               })}
             </nav>
           )}
-          
           <FloatingRoomBar />
         </SidebarInset>
       </div>
