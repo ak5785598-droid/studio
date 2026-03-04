@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import {
   Mic,
@@ -95,7 +95,7 @@ function RemoteAudio({ stream }: { stream: MediaStream }) {
 }
 
 const TribeMemberItem = ({ participant, ownerId }: { participant: RoomParticipant, ownerId: string }) => {
-  const isPOwner = participant.uid === ownerId;
+  const isPOwner = (participant as any).uid === ownerId;
   return (
     <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 group active:bg-white/10 transition-all">
       <div className="flex items-center gap-4">
@@ -189,7 +189,7 @@ export function RoomClient({ room }: { room: Room }) {
 
   const { data: participants } = useCollection<RoomParticipant>(participantsQuery);
   const onlineCount = participants?.length || 0;
-  const currentUserParticipant = participants?.find(p => p.uid === currentUser?.uid);
+  const currentUserParticipant = participants?.find(p => (p as any).uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
   
   const { remoteStreams } = useWebRTC(room.id, isInSeat, currentUserParticipant?.isMuted ?? true);
@@ -259,7 +259,7 @@ export function RoomClient({ room }: { room: Room }) {
         <div className="relative">
           <AvatarFrame frameId={occupant?.activeFrame} size="md">
             <button 
-              onClick={() => { setSelectedSeatIndex(index); if (occupant) { setSelectedParticipantUid(occupant.uid); setIsUserProfileCardOpen(true); } else { takeSeat(index); } }}
+              onClick={() => { setSelectedSeatIndex(index); if (occupant) { setSelectedParticipantUid((occupant as any).uid); setIsUserProfileCardOpen(true); } else { takeSeat(index); } }}
               className={cn("h-14 w-14 rounded-full flex items-center justify-center bg-black/40 border-2 border-white/10 backdrop-blur-sm relative overflow-hidden", isLocked && "border-red-500/50")}
             >
               {occupant ? <Avatar className="h-full w-full p-0.5"><AvatarImage src={occupant.avatarUrl} /><AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback></Avatar> : isLocked ? <Lock className="h-4 w-4 text-red-500/40" /> : <Armchair className="text-white/20 h-6 w-6" />}
@@ -279,6 +279,8 @@ export function RoomClient({ room }: { room: Room }) {
     <div className="relative flex flex-col h-full bg-black overflow-hidden text-white font-headline rounded-[2.5rem] shadow-2xl">
       <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
       <EntryCard entrant={latestEntrance} onComplete={() => setLatestEntrance(null)} />
+      
+      {/* Remote Audio Mesh */}
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
       
       <div className="absolute inset-0 z-0">
@@ -363,6 +365,7 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </footer>
 
+      {/* Exit Portal */}
       <Dialog open={isExitPortalOpen} onOpenChange={setIsExitPortalOpen}>
         <DialogContent className="sm:max-w-md bg-black/90 backdrop-blur-2xl border-none p-0 rounded-t-[3rem] overflow-hidden">
           <DialogHeader className="p-8 pb-4 border-b border-white/10 text-center">
@@ -382,6 +385,7 @@ export function RoomClient({ room }: { room: Room }) {
         </DialogContent>
       </Dialog>
 
+      {/* Tribe List */}
       <Dialog open={isParticipantListOpen} onOpenChange={setIsParticipantListOpen}>
         <DialogContent className="w-screen h-screen max-w-none m-0 border-none bg-black/95 text-white p-0 flex flex-col font-headline">
           <DialogHeader className="p-4 border-b border-white/10 mt-10">
@@ -390,13 +394,14 @@ export function RoomClient({ room }: { room: Room }) {
           </DialogHeader>
           <ScrollArea className="flex-1 px-6">
             <div className="py-6 space-y-4">
-              {participants?.map((p) => (<TribeMemberItem key={p.id || p.uid} participant={p} ownerId={room.ownerId} />))}
+              {participants?.map((p) => (<TribeMemberItem key={p.id} participant={p} ownerId={room.ownerId} />))}
             </div>
           </ScrollArea>
           <div className="p-8 text-center bg-white/5"><button onClick={() => setIsParticipantListOpen(false)} className="text-xs font-black uppercase tracking-widest text-white/40">Close List</button></div>
         </DialogContent>
       </Dialog>
 
+      {/* Game Zone */}
       <Dialog open={isGamesDialogOpen} onOpenChange={setIsGamesDialogOpen}>
         <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden animate-in slide-in-from-bottom-full duration-500 font-headline">
           <DialogHeader className="p-8 pb-4 text-center border-b border-gray-50">
@@ -421,11 +426,29 @@ export function RoomClient({ room }: { room: Room }) {
       </Dialog>
 
       <Dialog open={isMicOptionPickerOpen} onOpenChange={setIsMicOptionPickerOpen}><DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] overflow-hidden"><DialogHeader className="p-8 pb-4 text-center border-b"><DialogTitle className="text-2xl font-black uppercase tracking-tighter">Mic Capacity</DialogTitle><DialogDescription className="sr-only">Max mic count.</DialogDescription></DialogHeader><div className="p-8 grid grid-cols-2 gap-4">{MIC_OPTIONS.map(opt => (<button key={`mic-${opt}`} onClick={() => { updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { maxActiveMics: opt }); setIsMicOptionPickerOpen(false); }} className={cn("h-16 rounded-2xl font-black text-xl transition-all flex items-center justify-center gap-2", maxMics === opt ? "bg-primary text-white" : "bg-gray-100")}>{opt} <Mic className="h-5 w-5" /></button>))}</div></DialogContent></Dialog>
+      
       <Dialog open={isThemePickerOpen} onOpenChange={setIsThemePickerOpen}><DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] overflow-hidden"><DialogHeader className="p-8 pb-4 text-center border-b"><DialogTitle className="text-2xl font-black uppercase tracking-tighter">Atmosphere Sync</DialogTitle><DialogDescription className="sr-only">Visual background selector.</DialogDescription></DialogHeader><div className="p-8 grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">{ROOM_THEMES.map(t => (<button key={`theme-${t.id}`} onClick={() => { updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), { roomThemeId: t.id }); setIsThemePickerOpen(false); }} className={cn("relative aspect-square rounded-2xl overflow-hidden border-4 transition-all", (room as any).roomThemeId === t.id ? "border-primary" : "border-transparent")}><Image src={t.url} alt={t.name} fill className="object-cover" /><div className="absolute inset-0 bg-black/40 flex items-center justify-center"><span className="text-white font-black text-[10px] uppercase text-center px-2 italic">{t.name}</span></div></button>))}</div></DialogContent></Dialog>
+      
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}><DialogContent className="w-screen h-screen max-w-none m-0 border-none bg-white text-black p-0 flex flex-col font-headline"><DialogHeader className="p-4 border-b"><button onClick={() => setIsSettingsOpen(false)} className="p-2 -ml-2 text-gray-600"><ChevronLeft className="h-6 w-6" /></button><DialogTitle className="flex-1 text-center font-black uppercase text-lg -ml-4 italic">Management Sync</DialogTitle><DialogDescription className="sr-only">Modify room metadata.</DialogDescription></DialogHeader><ScrollArea className="flex-1 bg-gray-50/30"><div className="space-y-4 p-6"><SettingsListItem label="Theme Atmosphere" value={currentTheme.name} onClick={() => setIsThemePickerOpen(true)} /><SettingsListItem label="Mic Slot Limit" value={`${maxMics} slots`} onClick={() => setIsMicOptionPickerOpen(true)} /><SettingsListItem label="Edit Announcement" icon={Zap} onClick={() => {}} /></div></ScrollArea></DialogContent></Dialog>
+      
       <Dialog open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}><DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none overflow-hidden"><DialogHeader className="p-8 pb-4 text-center border-b"><DialogTitle className="text-2xl font-black uppercase tracking-tighter italic">Reactions</DialogTitle><DialogDescription className="sr-only">Select emoji.</DialogDescription></DialogHeader><div className="p-8 grid grid-cols-3 gap-6">{TRIBE_EMOJIS.map(emoji => (<button key={`emoji-${emoji}`} onClick={() => { if (currentUser) updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { activeEmoji: emoji }); setIsEmojiPickerOpen(false); setTimeout(() => { if (currentUser) updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { activeEmoji: null }); }, 4000); }} className="text-5xl hover:scale-125 transition-transform">{emoji}</button>))}</div></DialogContent></Dialog>
 
-      <RoomUserProfileDialog userId={selectedParticipantUid} open={isUserProfileCardOpen} onOpenChange={setIsUserProfileCardOpen} canManage={canManageRoom} isOwner={isOwner} roomOwnerId={room.ownerId} roomModeratorIds={room.moderatorIds || []} onSilence={() => {}} onKick={() => {}} onLeaveSeat={() => {}} onToggleMod={() => {}} onOpenGiftPicker={(recipient) => { setGiftRecipient(recipient); setIsGiftPickerOpen(true); }} isSilenced={false} isMe={selectedParticipantUid === currentUser?.uid} />
+      <RoomUserProfileDialog 
+        userId={selectedParticipantUid} 
+        open={isUserProfileCardOpen} 
+        onOpenChange={setIsUserProfileCardOpen} 
+        canManage={canManageRoom} 
+        isOwner={isOwner} 
+        roomOwnerId={room.ownerId} 
+        roomModeratorIds={room.moderatorIds || []} 
+        onSilence={() => {}} 
+        onKick={() => {}} 
+        onLeaveSeat={() => {}} 
+        onToggleMod={() => {}} 
+        onOpenGiftPicker={(recipient) => { setGiftRecipient(recipient); setIsGiftPickerOpen(true); }} 
+        isSilenced={false} 
+        isMe={selectedParticipantUid === currentUser?.uid} 
+      />
 
       <style jsx global>{`
         @keyframes marquee {
