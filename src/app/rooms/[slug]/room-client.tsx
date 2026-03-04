@@ -161,6 +161,10 @@ const SettingsListItem = ({ label, value, onClick, icon: Icon, showChevron = tru
   </div>
 );
 
+/**
+ * High-Fidelity Entry Card Component.
+ * Slides in from the left when a tribe member enters the frequency.
+ */
 function EntryCard({ entrant, onComplete }: { entrant: any, onComplete: () => void }) {
   useEffect(() => {
     const timer = setTimeout(onComplete, 5000);
