@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, use } from 'react';
@@ -165,7 +164,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
           <MenuItem label="Invite Friends" icon={UserPlus} colorClass="bg-green-100 text-green-600" />
           <MenuItem label="Aristocracy" icon={Star} colorClass="bg-yellow-100 text-yellow-600" />
           <MenuItem label="Treasure Vault" icon={Gem} colorClass="bg-purple-100 text-purple-600" />
-          <MenuItem label="Family" icon={Gamepad2} colorClass="bg-blue-100 text-blue-600" extra="GAME TIME" />
           <MenuItem label="CP Space" icon={Heart} colorClass="bg-pink-100 text-pink-600" />
           <MenuItem label="Store" icon={ShoppingBag} colorClass="bg-orange-100 text-orange-600" href="/store" />
           <MenuItem label="Dress" icon={Shirt} colorClass="bg-cyan-100 text-cyan-600" />
