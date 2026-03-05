@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from "react";
-import { Home, Settings, ShoppingBag, Mail, Crown, Gamepad2, Power, ShieldAlert, Castle, Compass, MessageSquare, User } from "lucide-react";
+import { Settings, ShoppingBag, Mail, Crown, Gamepad2, Power, ShieldAlert, Castle, Compass, MessageSquare, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";

@@ -90,117 +90,88 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   
   if (!profile) return null;
 
-  if (isOwnProfile) {
-    return (
-      <AppLayout>
-        <div className="min-h-full bg-[#f8f9fa] text-gray-900 font-headline relative flex flex-col pb-32 overflow-x-hidden animate-in fade-in duration-700">
-          
-          {/* Header Dimension */}
-          <div className="bg-white px-6 pt-12 pb-8 flex flex-col items-center text-center space-y-4 border-b border-gray-50">
-            <div className="relative">
-              <AvatarFrame frameId={profile.inventory?.activeFrame || 'f5'} size="xl">
-                <Avatar className="h-28 w-28 border-4 border-gray-50 shadow-inner">
-                  <AvatarImage src={profile.avatarUrl} />
-                  <AvatarFallback className="text-3xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback>
-                </Avatar>
-              </AvatarFrame>
+  return (
+    <AppLayout>
+      <div className="min-h-full bg-[#f8f9fa] text-gray-900 font-headline relative flex flex-col pb-32 overflow-x-hidden animate-in fade-in duration-700">
+        
+        {/* Header Dimension */}
+        <div className="bg-white px-6 pt-12 pb-8 flex flex-col items-center text-center space-y-4 border-b border-gray-50">
+          <div className="relative">
+            <AvatarFrame frameId={profile.inventory?.activeFrame || 'f5'} size="xl">
+              <Avatar className="h-28 w-28 border-4 border-gray-50 shadow-inner">
+                <AvatarImage src={profile.avatarUrl} />
+                <AvatarFallback className="text-3xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback>
+              </Avatar>
+            </AvatarFrame>
+            {isOwnProfile && (
               <button className="absolute bottom-1 right-1 bg-white p-1.5 rounded-full shadow-lg border border-gray-100 active:scale-90 transition-transform">
                 <SettingsIcon className="h-4 w-4 text-gray-400" />
               </button>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center justify-center gap-2">
-                <h1 className="text-2xl font-black tracking-tighter uppercase">{profile.username}</h1>
-                <div className="bg-blue-500 rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-black text-white">♂</div>
-                <span className="text-lg">🇮🇳</span>
-              </div>
-              <div className="flex items-center justify-center gap-1.5 cursor-pointer" onClick={() => { navigator.clipboard.writeText(profile.specialId); toast({ title: 'ID Copied' }); }}>
-                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">ID: {profile.specialId}</span>
-                <Copy className="h-3 w-3 text-gray-300" />
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* Stats Bar Dimension */}
-          <div className="bg-white flex divide-x divide-gray-50 border-b border-gray-50 mb-4">
-            <StatItem label="Friend" value={0} />
-            <StatItem label="Following" value={0} />
-            <StatItem label="Fans" value={profile.stats?.fans || 0} />
-            <StatItem label="Visitors" value={0} hasNotification />
-          </div>
-
-          {/* Dual Visual Banners */}
-          <div className="px-4 grid grid-cols-2 gap-3 mb-6">
-            {/* SVIP Portal */}
-            <div className="h-24 rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 relative overflow-hidden shadow-lg group active:scale-95 transition-all cursor-pointer">
-               <div className="relative z-10 flex flex-col h-full justify-between">
-                  <span className="text-[13px] font-black text-yellow-500 uppercase tracking-tighter italic">SVIP Club</span>
-                  <span className="text-[10px] text-white/60 font-bold uppercase">Distinguished</span>
-               </div>
-               <div className="absolute -bottom-2 -right-2 opacity-40 group-hover:scale-110 transition-transform">
-                  <Crown className="h-16 w-16 text-yellow-500 fill-current" />
-               </div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-2xl font-black tracking-tighter uppercase">{profile.username}</h1>
+              <div className="bg-blue-500 rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-black text-white">♂</div>
+              <span className="text-lg">🇮🇳</span>
             </div>
-
-            {/* Wallet Portal */}
-            <div 
-              onClick={() => router.push('/wallet')}
-              className="h-24 rounded-2xl bg-gradient-to-br from-[#0ea5e9] to-[#0369a1] p-4 relative overflow-hidden shadow-lg group active:scale-95 transition-all cursor-pointer"
-            >
-               <div className="relative z-10 flex flex-col h-full justify-between">
-                  <span className="text-[13px] font-black text-white uppercase tracking-tighter italic">Wallet</span>
-                  <div className="flex items-center gap-1">
-                    <GoldCoinIcon className="h-3 w-3" />
-                    <span className="text-[10px] text-white font-black">{(profile.wallet?.coins || 0).toLocaleString()}</span>
-                  </div>
-               </div>
-               <div className="absolute -bottom-2 -right-2 opacity-40 group-hover:scale-110 transition-transform">
-                  <Briefcase className="h-16 w-16 text-yellow-400 fill-current" />
-               </div>
+            <div className="flex items-center justify-center gap-1.5 cursor-pointer" onClick={() => { navigator.clipboard.writeText(profile.specialId); toast({ title: 'ID Copied' }); }}>
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">ID: {profile.specialId}</span>
+              <Copy className="h-3 w-3 text-gray-300" />
             </div>
-          </div>
-
-          {/* Sequential Menu List */}
-          <div className="bg-white rounded-[2rem] mx-4 shadow-sm border border-gray-100 overflow-hidden mb-8">
-            <MenuItem label="Invite Friends" icon={UserPlus} colorClass="bg-green-100 text-green-600" />
-            <MenuItem label="Aristocracy" icon={Star} colorClass="bg-yellow-100 text-yellow-600" />
-            <MenuItem label="Treasure Vault" icon={Gem} colorClass="bg-purple-100 text-purple-600" />
-            <MenuItem label="Family" icon={Gamepad2} colorClass="bg-blue-100 text-blue-600" extra="GAME TIME" />
-            <MenuItem label="CP Space" icon={Heart} colorClass="bg-pink-100 text-pink-600" />
-            <MenuItem label="Store" icon={ShoppingBag} colorClass="bg-orange-100 text-orange-600" href="/store" />
-            <MenuItem label="Dress" icon={Shirt} colorClass="bg-cyan-100 text-cyan-600" />
-            <MenuItem label="Bag" icon={Briefcase} colorClass="bg-amber-100 text-amber-600" />
           </div>
         </div>
-      </AppLayout>
-    );
-  }
 
-  return (
-    <AppLayout hideSidebarOnMobile>
-      <div className="min-h-full bg-white text-gray-900 font-headline relative flex flex-col pb-32 animate-in fade-in duration-700">
-        <header className="p-6 pt-10 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-50">
-           <button onClick={() => router.back()} className="p-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-all"><ChevronLeft className="h-6 w-6" /></button>
-           <h1 className="text-lg font-black uppercase italic tracking-tighter">{profile.username}'s Identity</h1>
-           <div className="w-10" />
-        </header>
-        
-        <div className="p-8 flex flex-col items-center space-y-6">
-           <AvatarFrame frameId={profile.inventory?.activeFrame || 'f5'} size="xl">
-              <Avatar className="h-36 w-36 border-4 border-gray-100 shadow-xl">
-                 <AvatarImage src={profile.avatarUrl} />
-                 <AvatarFallback className="text-4xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback>
-              </Avatar>
-           </AvatarFrame>
-           
-           <div className="text-center space-y-2">
-              <h2 className="text-3xl font-black uppercase tracking-tighter">{profile.username}</h2>
-              <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 shadow-sm mx-auto w-fit cursor-pointer" onClick={handleCopyId}>
-                 <span className="text-[11px] font-black uppercase tracking-tight text-gray-400">ID:{profile.specialId}</span>
-                 <Copy className="h-3 w-3 text-gray-300" />
-              </div>
-           </div>
+        {/* Stats Bar Dimension */}
+        <div className="bg-white flex divide-x divide-gray-50 border-b border-gray-50 mb-4">
+          <StatItem label="Friend" value={0} />
+          <StatItem label="Following" value={0} />
+          <StatItem label="Fans" value={profile.stats?.fans || 0} />
+          <StatItem label="Visitors" value={0} hasNotification />
+        </div>
+
+        {/* Dual Visual Banners */}
+        <div className="px-4 grid grid-cols-2 gap-3 mb-6">
+          {/* SVIP Portal */}
+          <div className="h-24 rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 relative overflow-hidden shadow-lg group active:scale-95 transition-all cursor-pointer">
+             <div className="relative z-10 flex flex-col h-full justify-between">
+                <span className="text-[13px] font-black text-yellow-500 uppercase tracking-tighter italic">SVIP Club</span>
+                <span className="text-[10px] text-white/60 font-bold uppercase">Distinguished</span>
+             </div>
+             <div className="absolute -bottom-2 -right-2 opacity-40 group-hover:scale-110 transition-transform">
+                <Crown className="h-16 w-16 text-yellow-500 fill-current" />
+             </div>
+          </div>
+
+          {/* Wallet Portal */}
+          <div 
+            onClick={() => router.push('/wallet')}
+            className="h-24 rounded-2xl bg-gradient-to-br from-[#0ea5e9] to-[#0369a1] p-4 relative overflow-hidden shadow-lg group active:scale-95 transition-all cursor-pointer"
+          >
+             <div className="relative z-10 flex flex-col h-full justify-between">
+                <span className="text-[13px] font-black text-white uppercase tracking-tighter italic">Wallet</span>
+                <div className="flex items-center gap-1">
+                  <GoldCoinIcon className="h-3 w-3" />
+                  <span className="text-[10px] text-white font-black">{(profile.wallet?.coins || 0).toLocaleString()}</span>
+                </div>
+             </div>
+             <div className="absolute -bottom-2 -right-2 opacity-40 group-hover:scale-110 transition-transform">
+                <Briefcase className="h-16 w-16 text-yellow-400 fill-current" />
+             </div>
+          </div>
+        </div>
+
+        {/* Sequential Menu List */}
+        <div className="bg-white rounded-[2rem] mx-4 shadow-sm border border-gray-100 overflow-hidden mb-8">
+          <MenuItem label="Invite Friends" icon={UserPlus} colorClass="bg-green-100 text-green-600" />
+          <MenuItem label="Aristocracy" icon={Star} colorClass="bg-yellow-100 text-yellow-600" />
+          <MenuItem label="Treasure Vault" icon={Gem} colorClass="bg-purple-100 text-purple-600" />
+          <MenuItem label="Family" icon={Gamepad2} colorClass="bg-blue-100 text-blue-600" extra="GAME TIME" />
+          <MenuItem label="CP Space" icon={Heart} colorClass="bg-pink-100 text-pink-600" />
+          <MenuItem label="Store" icon={ShoppingBag} colorClass="bg-orange-100 text-orange-600" href="/store" />
+          <MenuItem label="Dress" icon={Shirt} colorClass="bg-cyan-100 text-cyan-600" />
+          <MenuItem label="Bag" icon={Briefcase} colorClass="bg-amber-100 text-amber-600" />
         </div>
       </div>
     </AppLayout>

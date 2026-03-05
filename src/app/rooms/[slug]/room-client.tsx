@@ -5,14 +5,10 @@ import Image from 'next/image';
 import {
   Mic,
   MicOff,
-  Send,
   Lock,
-  Unlock,
   Loader,
   Gift as GiftIcon,
   Users,
-  Trophy,
-  Share2,
   Volume2,
   Trash2,
   LogOut,
@@ -58,27 +54,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, useDoc, setDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { 
   collection, 
@@ -87,15 +73,7 @@ import {
   orderBy, 
   limitToLast, 
   doc, 
-  increment,
-  writeBatch,
-  getDocs,
-  arrayUnion,
-  arrayRemove,
-  getDoc,
-  setDoc,
-  deleteDoc,
-  where
+  increment
 } from 'firebase/firestore';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { useRouter } from 'next/navigation';
@@ -103,11 +81,7 @@ import { useRoomContext } from '@/components/room-provider';
 import { GiftAnimationOverlay } from '@/components/gift-animation-overlay';
 import { useWebRTC } from '@/hooks/use-webrtc';
 import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
-import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
 import { DailyRewardDialog } from '@/components/daily-reward-dialog';
-import { VoiceTutorial } from '@/components/voice-tutorial';
-import { CameraCaptureDialog } from '@/components/camera-capture-dialog';
-import { ImageCropDialog } from '@/components/image-crop-dialog';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { RoomUserProfileDialog } from '@/components/room-user-profile-dialog';
 
@@ -195,9 +169,6 @@ const SettingsListItem = ({ label, value, onClick, icon: Icon, showChevron = tru
   </div>
 );
 
-/**
- * High-Fidelity Entry Card Component.
- */
 function EntryCard({ entrant, onComplete }: { entrant: any, onComplete: () => void }) {
   useEffect(() => {
     const timer = setTimeout(onComplete, 5000);
@@ -226,11 +197,9 @@ function EntryCard({ entrant, onComplete }: { entrant: any, onComplete: () => vo
 
 export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
-  const [isSending, setIsSending] = useState(false);
   const [isGiftPickerOpen, setIsGiftPickerOpen] = useState(false);
   const [isGamesDialogOpen, setIsGamesDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isClearChatConfirmOpen, setIsClearChatConfirmOpen] = useState(false);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isMusicMenuOpen, setIsMusicMenuOpen] = useState(false);
   const [isParticipantListOpen, setIsParticipantListOpen] = useState(false);
@@ -243,13 +212,9 @@ export function RoomClient({ room }: { room: Room }) {
   const [selectedParticipantUid, setSelectedParticipantUid] = useState<string | null>(null);
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
-  const [isClaimingTree, setIsClaimingTree] = useState(false);
-  const [editingField, setEditingField] = useState<'name' | 'announcement' | 'welcome' | null>(null);
-  const [fieldValue, setEditingFieldValue] = useState('');
   const [latestEntrance, setLatestEntrance] = useState<any>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const roomAudioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
   const router = useRouter();
   const { user: currentUser } = useUser();

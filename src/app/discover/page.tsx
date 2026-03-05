@@ -3,10 +3,14 @@
 import { AppLayout } from '@/components/layout/app-layout';
 import { Compass, Loader } from 'lucide-react';
 
+/**
+ * Tribal Discovery Dimension.
+ * Placeholder for the "Discover" tab navigation sync.
+ */
 export default function DiscoverPage() {
   return (
     <AppLayout>
-      <div className="flex flex-col items-center justify-center h-[70vh] space-y-6 text-center px-8 font-headline animate-in fade-in duration-1000">
+      <div className="flex flex-col items-center justify-center h-[70vh] space-y-6 text-center px-8 font-headline animate-in fade-in duration-1000 bg-white">
         <div className="h-24 w-24 bg-primary/10 rounded-[2rem] flex items-center justify-center text-primary shadow-xl border-2 border-primary/20 animate-pulse">
           <Compass className="h-12 w-12" />
         </div>

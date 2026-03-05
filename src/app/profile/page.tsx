@@ -6,8 +6,9 @@ import { useUser } from '@/firebase';
 import { UmmyLogoIcon } from '@/components/icons';
 
 /**
- * Root Profile Gateway
- * Redirects to the user's specific high-fidelity persona card.
+ * Root Profile Gateway.
+ * Correctly identifies the authenticated user and redirects to their dynamic dashboard.
+ * Prevents 404 errors by serving as the prioritized entry point for the /profile path.
  */
 export default function ProfileGateway() {
   const { user, isUserLoading } = useUser();
@@ -24,11 +25,28 @@ export default function ProfileGateway() {
   }, [user, isUserLoading, router]);
 
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center bg-[#FFCC00] space-y-4 font-headline">
-      <UmmyLogoIcon className="h-16 w-16 animate-pulse" />
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white animate-pulse">
-        Syncing Identity...
-      </p>
+    <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-[#FFCC00] space-y-6 font-headline animate-in fade-in duration-700">
+      <div className="relative">
+        <div className="absolute inset-0 bg-white/20 blur-xl rounded-full animate-pulse" />
+        <UmmyLogoIcon className="h-24 w-24 relative z-10 animate-bounce" />
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white animate-pulse">
+          Syncing Tribal Identity
+        </p>
+        <div className="h-1 w-32 bg-white/20 rounded-full overflow-hidden">
+          <div className="h-full bg-white w-1/2 animate-loading-bar" />
+        </div>
+      </div>
+      <style jsx>{`
+        @keyframes loading-bar {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+        .animate-loading-bar {
+          animation: loading-bar 1.5s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }
