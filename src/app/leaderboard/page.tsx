@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
-import { Crown, TrendingUp, Loader, ChevronLeft, Trophy, Info, Timer, User as UserIcon, Castle, HelpCircle, ChevronRight } from 'lucide-react';
+import { Crown, TrendingUp, Loader, ChevronLeft, Trophy, Info, Timer, User as UserIcon, Castle, HelpCircle, ChevronRight, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -23,35 +23,23 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-const AngelicWings = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 400 200" className={cn("fill-yellow-500/80 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]", className)} xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="wingGold" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FFF281" />
-        <stop offset="50%" stopColor="#FFD700" />
-        <stop offset="100%" stopColor="#B8860B" />
-      </linearGradient>
-    </defs>
-    <g className="animate-wing-flap origin-right">
-      <path d="M180 150 C120 150, 20 100, 10 40 C10 20, 40 10, 80 40 C120 70, 160 120, 180 150 Z" fill="url(#wingGold)" />
-      <path d="M170 140 C110 140, 40 90, 30 50 C30 35, 55 25, 90 50 C120 75, 155 115, 170 140 Z" fill="url(#wingGold)" opacity="0.7" />
-    </g>
-    <g className="animate-wing-flap origin-left" style={{ transform: 'scaleX(-1) translateX(-400px)' }}>
-      <path d="M180 150 C120 150, 20 100, 10 40 C10 20, 40 10, 80 40 C120 70, 160 120, 180 150 Z" fill="url(#wingGold)" />
-      <path d="M170 140 C110 140, 40 90, 30 50 C30 35, 55 25, 90 50 C120 75, 155 115, 170 140 Z" fill="url(#wingGold)" opacity="0.7" />
-    </g>
-  </svg>
+/**
+ * High-Fidelity VIP Tag Component.
+ * Approximates the SVIP badges seen in the blueprint.
+ */
+const SVIPBadge = ({ level }: { level: number }) => (
+  <div className={cn(
+    "flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm border border-orange-500/50 shadow-lg scale-90 origin-left",
+    "bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 animate-shimmer-gold"
+  )}>
+    <span className="text-[7px] font-black text-white uppercase italic tracking-tighter">SVIP {level}</span>
+  </div>
 );
 
-const LionGuardian = ({ side }: { side: 'left' | 'right' }) => (
-  <div className={cn(
-    "absolute bottom-0 w-32 h-40 opacity-80 z-10 pointer-events-none",
-    side === 'left' ? "left-0" : "right-0 scale-x-[-1]"
-  )}>
-    <svg viewBox="0 0 100 150" className="w-full h-full">
-      <path d="M20 140 L80 140 L80 100 C80 80, 90 60, 70 40 C60 25, 40 25, 30 40 C10 60, 20 80, 20 100 Z" fill="#fbbf24" className="animate-shimmer-gold" />
-      <circle cx="50" cy="45" r="20" fill="#fbbf24" opacity="0.4" className="animate-pulse" />
-    </svg>
+const LevelBadge = ({ level }: { level: number }) => (
+  <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm bg-gradient-to-r from-green-500 to-green-700 border border-green-400/50 scale-90 origin-left shadow-md">
+    <Star className="h-2 w-2 text-white fill-current" />
+    <span className="text-[7px] font-black text-white italic">Lv.{level}</span>
   </div>
 );
 
@@ -68,7 +56,6 @@ const RankingList = ({ items, type, isLoading, currentUid }: any) => {
     if (type === 'rich') return item.wallet?.dailySpent || 0;
     if (type === 'charm') return item.stats?.dailyFans || 0;
     if (type === 'rooms') return item.stats?.dailyGifts || 0;
-    if (type === 'games') return item.stats?.dailyGameWins || 0;
     return 0;
   };
 
@@ -85,146 +72,130 @@ const RankingList = ({ items, type, isLoading, currentUid }: any) => {
   const formatValue = (val: number) => {
     if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M';
     if (val >= 1000) return (val / 1000).toFixed(1) + 'K';
-    return val.toString();
+    return val.toLocaleString();
   };
 
   return (
     <div className="space-y-4 animate-in fade-in duration-1000 relative pb-40">
-      <div className="relative pt-10 pb-6 flex flex-col items-center min-h-[60vh]">
-        <div className="absolute bottom-0 inset-x-0 h-full z-0 overflow-hidden pointer-events-none">
-           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-full bg-gradient-to-t from-yellow-900/40 via-transparent to-transparent flex flex-col-reverse items-center">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i} className="w-full border-t border-yellow-500/10 h-12" style={{ width: `${100 - i * 5}%` }} />
-              ))}
-           </div>
-           <LionGuardian side="left" />
-           <LionGuardian side="right" />
-        </div>
-
+      {/* Podium Dimension */}
+      <div className="relative pt-4 flex flex-col items-center">
+        
+        {/* Top 1 Sovereign Position */}
         {top1 && (
-          <Link href={type === 'rooms' ? `/rooms/${top1.id}` : `/profile/${top1.id}`} className="relative z-20 flex flex-col items-center mb-16 group active:scale-95 transition-transform mt-4">
+          <Link href={type === 'rooms' ? `/rooms/${top1.id}` : `/profile/${top1.id}`} className="relative z-30 flex flex-col items-center mb-12 group transition-all active:scale-95">
              <div className="relative">
-                <AngelicWings className="absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-40 z-0" />
-                <div className="relative z-10">
-                   <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-30 animate-bounce">
-                      <Crown className="h-14 w-14 text-yellow-400 drop-shadow-2xl fill-yellow-400" />
+                {/* Ornate Golden Crown Podium Platform */}
+                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-64 h-32 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yellow-500/20 via-transparent to-transparent blur-2xl" />
+                
+                <div className="relative z-10 w-44 h-44">
+                   {/* Lion Frame approximations */}
+                   <div className="absolute inset-0 z-20 pointer-events-none">
+                      <img src="https://img.icons8.com/color/512/lion.png" className="absolute -top-4 -left-4 w-12 h-12 rotate-[-15deg] opacity-80" alt="Lion" />
+                      <div className="absolute -top-10 left-1/2 -translate-x-1/2">
+                         <img src="https://img.icons8.com/color/96/crown.png" className="h-12 w-12 drop-shadow-2xl animate-bounce" alt="Crown" />
+                      </div>
                    </div>
-                   <div className="relative">
-                      <div className="absolute -inset-2 rounded-full border-[6px] border-yellow-500/40 animate-pulse shadow-[0_0_50px_rgba(251,191,36,0.4)]" />
-                      <Avatar className="h-36 w-36 border-[6px] border-yellow-500 shadow-2xl relative z-10">
-                         <AvatarImage src={getDisplayImage(top1)} />
-                         <AvatarFallback className="bg-black text-4xl">{type === 'rooms' ? <Castle className="h-12 w-12" /> : <UserIcon className="h-12 w-12" />}</AvatarFallback>
+                   
+                   <div className="relative w-full h-full p-2 bg-gradient-to-b from-yellow-300 via-yellow-500 to-yellow-700 rounded-full shadow-[0_0_40px_rgba(251,191,36,0.5)] border-[6px] border-[#1a1a1a]">
+                      <Avatar className="h-full w-full border-4 border-yellow-200">
+                         <AvatarImage src={getDisplayImage(top1)} className="object-cover" />
+                         <AvatarFallback className="bg-slate-900 text-white font-black">1</AvatarFallback>
                       </Avatar>
+                      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-b from-red-500 to-red-700 text-white px-6 py-1 rounded-full font-black text-xs shadow-xl border-2 border-yellow-400 italic">TOP 1</div>
                    </div>
-                   <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 z-40 bg-gradient-to-b from-yellow-300 via-yellow-500 to-yellow-700 text-black px-10 py-1.5 rounded-full font-black text-lg shadow-2xl ring-4 ring-[#1a1a1a] italic tracking-tighter">TOP 1</div>
                 </div>
              </div>
-             <div className="mt-12 text-center space-y-1">
-                <div className="flex items-center justify-center gap-2">
-                  <h2 className="text-2xl font-black text-white uppercase tracking-tighter drop-shadow-md">{getDisplayName(top1)}</h2>
-                  <span className="text-xl">🇮🇳</span>
+
+             <div className="mt-8 text-center space-y-1">
+                <h2 className="text-xl font-black text-white uppercase drop-shadow-md">{getDisplayName(top1)}</h2>
+                <div className="flex items-center justify-center gap-2 mb-1">
+                   <SVIPBadge level={8} />
+                   <LevelBadge level={91} />
                 </div>
-                <div className="flex items-center justify-center gap-1.5 mt-2 bg-black/40 backdrop-blur-md px-4 py-1 rounded-full border border-white/10">
-                   <span className="text-lg font-black text-yellow-500">{formatValue(getValue(top1))}</span>
-                   <GoldCoinIcon className="h-5 w-5" />
+                <div className="flex items-center justify-center gap-1.5 text-yellow-500 font-black">
+                   <GoldCoinIcon className="h-4 w-4" />
+                   <span className="text-sm">{formatValue(getValue(top1))}</span>
                 </div>
              </div>
           </Link>
         )}
 
-        <div className="flex items-end justify-center gap-4 w-full max-w-md px-4 relative z-20">
+        {/* Top 2 & 3 Dual Cards */}
+        <div className="flex items-end justify-center gap-3 w-full max-w-sm px-2 relative z-20">
            {top2 && (
-             <Link href={type === 'rooms' ? `/rooms/${top2.id}` : `/profile/${top2.id}`} className="flex-1 bg-gradient-to-b from-blue-900/60 to-black/80 rounded-[2.5rem] border-2 border-blue-400/40 p-6 flex flex-col items-center gap-3 shadow-2xl backdrop-blur-xl active:scale-95 transition-transform min-h-[220px]">
-                <div className="relative">
-                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30"><Crown className="h-8 w-8 text-blue-300 fill-blue-300 drop-shadow-lg" /></div>
-                   <Avatar className="h-24 w-24 border-4 border-blue-400/50 shadow-xl">
-                      <AvatarImage src={getDisplayImage(top2)} />
-                      <AvatarFallback className="bg-black">U</AvatarFallback>
-                   </Avatar>
-                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white h-8 w-8 rounded-full flex items-center justify-center font-black text-lg shadow-lg ring-2 ring-black">2</div>
-                </div>
-                <div className="text-center space-y-1 mt-2">
-                   <p className="font-black text-base text-white uppercase truncate w-32 tracking-tighter">{getDisplayName(top2)}</p>
-                   <div className="flex items-center justify-center gap-1 mt-2 bg-white/5 px-3 py-0.5 rounded-full border border-white/5">
-                      <span className="text-xs font-black text-yellow-500">{formatValue(getValue(top2))}</span>
-                      <GoldCoinIcon className="h-3.5 w-3.5" />
+             <Link href={type === 'rooms' ? `/rooms/${top2.id}` : `/profile/${top2.id}`} className="flex-1 bg-[#252b41] rounded-[2.5rem] border-2 border-blue-400/20 p-4 pt-10 flex flex-col items-center gap-2 shadow-2xl relative transition-all active:scale-95 group">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24">
+                   <div className="relative w-full h-full bg-gradient-to-b from-blue-200 to-blue-500 rounded-full p-1.5 border-4 border-[#1a1a1a]">
+                      <Avatar className="h-full w-full border-2 border-white/20">
+                         <AvatarImage src={getDisplayImage(top2)} />
+                         <AvatarFallback>2</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-b from-blue-600 to-blue-800 text-white px-3 py-0.5 rounded-full font-black text-[8px] border border-blue-200">TOP 2</div>
                    </div>
+                </div>
+                <p className="font-black text-xs text-[#fbc02d] uppercase truncate w-24 text-center mt-2 tracking-tighter">{getDisplayName(top2)}</p>
+                <div className="flex items-center gap-1 scale-75">
+                   <SVIPBadge level={5} />
+                   <LevelBadge level={61} />
+                </div>
+                <div className="flex items-center justify-center gap-1 mt-1 text-yellow-500">
+                   <GoldCoinIcon className="h-3 w-3" />
+                   <span className="text-[10px] font-black">{formatValue(getValue(top2))}</span>
                 </div>
              </Link>
            )}
+
            {top3 && (
-             <Link href={type === 'rooms' ? `/rooms/${top3.id}` : `/profile/${top3.id}`} className="flex-1 bg-gradient-to-b from-amber-900/60 to-black/80 rounded-[2.5rem] border-2 border-amber-400/40 p-6 flex flex-col items-center gap-3 shadow-2xl backdrop-blur-xl active:scale-95 transition-transform min-h-[220px]">
-                <div className="relative">
-                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30"><Crown className="h-8 w-8 text-amber-300 fill-amber-300 drop-shadow-lg" /></div>
-                   <Avatar className="h-24 w-24 border-4 border-amber-400/50 shadow-xl">
-                      <AvatarImage src={getDisplayImage(top3)} />
-                      <AvatarFallback className="bg-black">U</AvatarFallback>
-                   </Avatar>
-                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-white h-8 w-8 rounded-full flex items-center justify-center font-black text-lg shadow-lg ring-2 ring-black">3</div>
-                </div>
-                <div className="text-center space-y-1 mt-2">
-                   <p className="font-black text-base text-white uppercase truncate w-32 tracking-tighter">{getDisplayName(top3)}</p>
-                   <div className="flex items-center justify-center gap-1 mt-2 bg-white/5 px-3 py-0.5 rounded-full border border-white/5">
-                      <span className="text-xs font-black text-yellow-500">{formatValue(getValue(top3))}</span>
-                      <GoldCoinIcon className="h-3.5 w-3.5" />
+             <Link href={type === 'rooms' ? `/rooms/${top3.id}` : `/profile/${top3.id}`} className="flex-1 bg-[#2d221a] rounded-[2.5rem] border-2 border-amber-400/20 p-4 pt-10 flex flex-col items-center gap-2 shadow-2xl relative transition-all active:scale-95 group">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24">
+                   <div className="relative w-full h-full bg-gradient-to-b from-amber-200 to-amber-500 rounded-full p-1.5 border-4 border-[#1a1a1a]">
+                      <Avatar className="h-full w-full border-2 border-white/20">
+                         <AvatarImage src={getDisplayImage(top3)} />
+                         <AvatarFallback>3</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-b from-amber-600 to-amber-800 text-white px-3 py-0.5 rounded-full font-black text-[8px] border border-amber-200">TOP 3</div>
                    </div>
+                </div>
+                <p className="font-black text-xs text-[#fff] uppercase truncate w-24 text-center mt-2 tracking-tighter">{getDisplayName(top3)}</p>
+                <div className="flex items-center gap-1 scale-75">
+                   <SVIPBadge level={2} />
+                   <LevelBadge level={94} />
+                </div>
+                <div className="flex items-center justify-center gap-1 mt-1 text-yellow-500">
+                   <GoldCoinIcon className="h-3 w-3" />
+                   <span className="text-[10px] font-black">{formatValue(getValue(top3))}</span>
                 </div>
              </Link>
            )}
         </div>
       </div>
 
-      <div className="rounded-t-[3.5rem] bg-gradient-to-b from-[#1a1a1a] to-black border-t border-white/10 shadow-2xl overflow-hidden mt-8">
-        <CardContent className="p-0">
-          {others.map((item, index) => (
-            <Link key={item.id} href={type === 'rooms' ? `/rooms/${item.id}` : `/profile/${item.id}`} className="flex items-center gap-4 p-5 border-b border-white/5 last:border-0 hover:bg-white/5 transition-all">
-              <span className="w-10 text-center font-black text-white/20 text-lg">{index + 4}</span>
-              <div className="relative">
-                 <Avatar className="h-16 w-16 border-2 border-white/10">
-                   <AvatarImage src={getDisplayImage(item)} />
-                   <AvatarFallback>{type === 'rooms' ? <Castle className="h-6 w-6" /> : <UserIcon className="h-6 w-6" />}</AvatarFallback>
-                 </Avatar>
+      {/* List Dimension - Ranks 4+ */}
+      <div className="mt-10 space-y-2 px-2">
+        {others.map((item, index) => (
+          <Link key={item.id} href={type === 'rooms' ? `/rooms/${item.id}` : `/profile/${item.id}`} className="flex items-center gap-4 p-4 bg-black/40 backdrop-blur-md rounded-2xl border border-white/5 group hover:bg-white/5 transition-all active:scale-[0.98]">
+            <span className="w-6 text-center font-black text-white/20 text-sm">{index + 4}</span>
+            <Avatar className="h-14 w-14 border border-white/10 shrink-0">
+              <AvatarImage src={getDisplayImage(item)} />
+              <AvatarFallback>{(index + 4)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-sm uppercase text-yellow-500 truncate tracking-tight mb-1">{getDisplayName(item)}</p>
+              <div className="flex items-center gap-1">
+                 <SVIPBadge level={7} />
+                 <LevelBadge level={76} />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-black text-base uppercase text-white/90 truncate tracking-tighter">{getDisplayName(item)}</p>
-                  {item.tags?.includes('Official') && <OfficialTag size="sm" />}
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                   <Badge variant="outline" className="text-[8px] border-yellow-500/20 text-yellow-500/60 font-black h-4 px-2">
-                     {type === 'rooms' ? (item.category || 'Tribe') : `Lv.${(item.level?.rich || 1)}`}
-                   </Badge>
-                </div>
-              </div>
-              <div className="text-right flex items-center gap-1.5">
-                <span className={cn("font-black text-base text-yellow-500")}>
-                  {formatValue(getValue(item))}
-                </span>
-                <GoldCoinIcon className="h-4 w-4" />
-              </div>
-            </Link>
-          ))}
-        </CardContent>
+            </div>
+            <div className="text-right flex items-center gap-1.5 shrink-0">
+              <span className="font-black text-sm text-white/80">{formatValue(getValue(item))}</span>
+              <GoldCoinIcon className="h-4 w-4 text-yellow-500" />
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
 };
-
-const RewardItem = ({ rank, amount, color, emoji }: { rank: string, amount: string, color: string, emoji: string }) => (
-  <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-white/5">
-    <div className="flex items-center gap-3">
-      <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center font-black text-lg", color)}>{emoji}</div>
-      <div>
-        <p className="font-bold text-xs uppercase tracking-widest text-white/40">{rank}</p>
-        <p className="font-black text-sm uppercase text-white">Prize Pool</p>
-      </div>
-    </div>
-    <div className="flex items-center gap-2">
-      <GoldCoinIcon className="h-5 w-5" />
-      <span className="font-black text-xl text-primary">{amount}</span>
-    </div>
-  </div>
-);
 
 function LeaderboardContent() {
   const searchParams = useSearchParams();
@@ -233,8 +204,8 @@ function LeaderboardContent() {
   const firestore = useFirestore();
   const { userProfile: me } = useUserProfile(user?.uid);
   
-  const [rankingType, setRankingMode] = useState<'rich' | 'charm' | 'rooms' | 'games'>(initialType);
-  const [timePeriod, setTimePeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [rankingType, setRankingMode] = useState<'rich' | 'charm' | 'rooms'>(initialType);
+  const [timePeriod, setTimePeriod] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
   const [timeLeft, setTimeLeft] = useState('');
 
   useEffect(() => { if (initialType) setRankingMode(initialType); }, [initialType]);
@@ -254,66 +225,94 @@ function LeaderboardContent() {
 
   const { data: richUsers, isLoading: isLoadingRich } = useCollection(useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'users'), orderBy('wallet.dailySpent', 'desc'), limit(50)), [firestore]));
   const { data: charmUsers, isLoading: isLoadingCharm } = useCollection(useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'users'), orderBy('stats.dailyFans', 'desc'), limit(50)), [firestore]));
-  const { data: gamesUsers, isLoading: isLoadingGames } = useCollection(useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'users'), orderBy('stats.dailyGameWins', 'desc'), limit(50)), [firestore]));
   const { data: rankedRooms, isLoading: isLoadingRooms } = useCollection(useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'chatRooms'), orderBy('stats.dailyGifts', 'desc'), limit(50)), [firestore]));
 
-  const activeItems = rankingType === 'rich' ? richUsers : rankingType === 'charm' ? charmUsers : rankingType === 'games' ? gamesUsers : rankedRooms;
-  const isActiveLoading = rankingType === 'rich' ? isLoadingRich : rankingType === 'charm' ? isLoadingCharm : rankingType === 'games' ? isLoadingGames : isLoadingRooms;
+  const activeItems = rankingType === 'rich' ? richUsers : rankingType === 'charm' ? charmUsers : rankedRooms;
+  const isActiveLoading = rankingType === 'rich' ? isLoadingRich : rankingType === 'charm' ? isLoadingCharm : isLoadingRooms;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white relative font-headline overflow-x-hidden flex flex-col">
-        <div className="absolute inset-0 z-0 overflow-hidden">
-           <div className="absolute top-0 left-0 w-full h-[80vh] bg-gradient-to-b from-yellow-900/20 via-[#050505] to-[#050505]" />
-           <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[150%] h-[100%] bg-gradient-radial from-yellow-500/5 to-transparent opacity-40 animate-pulse" />
+        {/* Cinematic Backdrop */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+           <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-[#1a1a1a] via-[#050505] to-transparent" />
+           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
         </div>
 
         <header className="relative z-50 p-6 pt-10 shrink-0">
           <div className="flex items-center justify-between mb-8">
-             <Link href="/rooms" className="text-yellow-500 hover:scale-110 transition-transform shrink-0"><ChevronLeft className="h-8 w-8" /></Link>
-             <div className="flex gap-6 px-4">
-                {['Rich', 'Charm', 'Room', 'Game'].map((cat) => (
-                  <button key={cat} onClick={() => setRankingMode(cat.toLowerCase() as any)} className={cn("text-xl font-black uppercase italic tracking-tighter pb-1 border-b-4 transition-all", rankingType === cat.toLowerCase() ? "text-yellow-500 border-yellow-500" : "text-white/20 border-transparent")}>{cat}</button>
-                ))}
-             </div>
+             <Link href="/rooms" className="text-white hover:scale-110 transition-transform shrink-0"><ChevronLeft className="h-8 w-8" /></Link>
+             <h1 className="text-2xl font-black uppercase italic tracking-tighter">Ranking</h1>
              <Dialog>
-                <DialogTrigger asChild><button className="bg-yellow-500/20 p-1.5 rounded-full border border-yellow-500/40 animate-pulse shrink-0"><HelpCircle className="h-6 w-6 text-yellow-500" /></button></DialogTrigger>
-                <DialogContent className="bg-slate-900 border-none rounded-t-[3rem] text-white p-0 overflow-hidden h-[85vh] sm:max-w-md animate-in slide-in-from-bottom-full duration-500">
-                  <DialogHeader className="p-8 pb-4 text-center">
-                    <DialogTitle className="text-3xl font-black uppercase flex items-center justify-center gap-3"><Trophy className="h-8 w-8 text-yellow-400" />Daily Rewards</DialogTitle>
-                    <DialogDescription className="sr-only">Rules</DialogDescription>
-                  </DialogHeader>
-                  <div className="px-8 pb-12 space-y-4 h-full overflow-y-auto no-scrollbar">
-                    <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 flex items-center gap-3 mb-4"><Timer className="h-4 w-4 text-primary" /><p className="text-[10px] font-bold text-primary/80 uppercase">Next Reset in {timeLeft} (IST)</p></div>
-                    <RewardItem emoji="🥇" rank="Top 1" amount="100,000" color="bg-yellow-500/20" />
-                    <RewardItem emoji="🥈" rank="Top 2" amount="80,000" color="bg-slate-300/20" />
-                    <RewardItem emoji="🥉" rank="Top 3" amount="50,000" color="bg-amber-700/20" />
-                    <RewardItem emoji="🏅" rank="Top 4" amount="35,000" color="bg-slate-800/20" />
-                    <RewardItem emoji="🎗" rank="Top 5-10" amount="20,000" color="bg-slate-900/20 border border-white/5" />
+                <DialogTrigger asChild><button className="p-1.5 rounded-full border border-white/20 text-white/60 hover:text-white transition-all"><HelpCircle className="h-6 w-6" /></button></DialogTrigger>
+                <DialogContent className="bg-[#1a1a1a] border-none rounded-t-[3rem] text-white p-8">
+                  <DialogHeader><DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-yellow-500">Ranking Rules</DialogTitle></DialogHeader>
+                  <div className="space-y-4 font-body italic text-gray-400 leading-relaxed pt-4">
+                    <p>1. Honor rankings are based on the total Gold Coins spent during the selected period.</p>
+                    <p>2. Charm rankings reflect the increase in fan count during the period.</p>
+                    <p>3. Room rankings track the total gifts received in specific frequencies.</p>
                   </div>
                 </DialogContent>
              </Dialog>
           </div>
-          <div className="flex items-center justify-between gap-2 bg-[#1a1a1a]/80 backdrop-blur-md rounded-full p-1.5 border border-white/10 shadow-2xl relative">
+
+          {/* Main Category Tabs */}
+          <div className="flex items-center justify-between gap-2 bg-[#1a1a1a]/60 backdrop-blur-md rounded-full p-1.5 border border-white/5 shadow-2xl mb-6">
+             {[
+               { id: 'rich', label: 'Honor' },
+               { id: 'charm', label: 'Charm' },
+               { id: 'rooms', label: 'Room' }
+             ].map((cat) => (
+               <button 
+                 key={cat.id} 
+                 onClick={() => setRankingMode(cat.id as any)} 
+                 className={cn(
+                   "flex-1 py-3 rounded-full font-black uppercase italic text-sm transition-all duration-500", 
+                   rankingType === cat.id ? "bg-gradient-to-b from-[#f5e1a4] to-[#b88a44] text-black shadow-lg" : "text-white/40"
+                 )}
+               >
+                 {cat.label}
+               </button>
+             ))}
+          </div>
+
+          {/* Sub Time Tabs */}
+          <div className="flex items-center justify-center gap-12 px-4">
              {['Daily', 'Weekly', 'Monthly'].map((p) => (
-               <button key={p} onClick={() => setTimePeriod(p.toLowerCase() as any)} className={cn("flex-1 py-3 rounded-full font-black uppercase italic text-xs transition-all duration-500", timePeriod === p.toLowerCase() ? "bg-gradient-to-b from-yellow-100 to-yellow-500 text-black shadow-lg" : "text-white/40")}>{p}</button>
+               <button 
+                 key={p} 
+                 onClick={() => setTimePeriod(p.toLowerCase() as any)} 
+                 className={cn(
+                   "text-sm font-black uppercase italic transition-all relative", 
+                   timePeriod === p.toLowerCase() ? "text-yellow-500 scale-110" : "text-white/20 hover:text-white/40"
+                 )}
+               >
+                 {p}
+                 {timePeriod === p.toLowerCase() && <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-yellow-500 rounded-full" />}
+               </button>
              ))}
           </div>
         </header>
 
-        <div className="relative z-10 w-full py-3 bg-gradient-to-r from-transparent via-yellow-500/10 to-transparent border-y border-white/5 flex flex-col items-center gap-1 shrink-0">
-           <div className="flex items-center gap-2"><Timer className="h-4 w-4 text-yellow-500" /><span className="text-base font-mono font-bold text-yellow-500 tracking-[0.2em]">{timeLeft}</span></div>
-        </div>
-
-        <div className="relative z-10 px-4 flex-1 overflow-y-auto no-scrollbar">
+        <main className="relative z-10 flex-1 overflow-y-auto no-scrollbar px-2">
            <RankingList items={activeItems} type={rankingType} isLoading={isActiveLoading} currentUid={user?.uid} />
-        </div>
+        </main>
 
-        <footer className="fixed bottom-0 left-0 right-0 z-[100] bg-[#1a1a1a] border-t border-yellow-500/20 p-4">
-           <div className="max-w-4xl mx-auto flex items-center gap-4">
-              <span className="w-12 text-center font-black text-yellow-500 italic text-xl">50+</span>
-              <Avatar className="h-14 w-14 border-2 border-white/20"><AvatarImage src={me?.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar>
-              <div className="flex-1"><p className="font-black text-lg uppercase italic tracking-tighter">{me?.username || 'Tribe Member'}</p><Badge variant="outline" className="bg-yellow-500/10 border-yellow-500/30 text-yellow-500 font-black italic px-2 h-5">Lv. {me?.level?.rich || 1}</Badge></div>
-              <div className="text-right flex items-center gap-1"><span className="text-2xl font-black text-yellow-500 italic">0</span><GoldCoinIcon className="h-6 w-6" /></div>
+        {/* Sticky Self Ranking */}
+        <footer className="fixed bottom-0 left-0 right-0 z-[100] bg-gradient-to-r from-[#b88a44] via-[#f5e1a4] to-[#b88a44] p-4 h-20 flex items-center shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+           <div className="max-w-4xl mx-auto flex items-center gap-4 w-full">
+              <span className="w-12 text-center font-black text-black/60 italic text-xl">100+</span>
+              <Avatar className="h-14 w-14 border-2 border-black/20 shrink-0">
+                <AvatarImage src={me?.avatarUrl} />
+                <AvatarFallback className="bg-black text-white">ME</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-lg uppercase italic text-black truncate leading-none mb-1">{me?.username || 'king'}</p>
+                <div className="scale-75 origin-left"><LevelBadge level={me?.level?.rich || 3} /></div>
+              </div>
+              <div className="text-right flex items-center gap-1 shrink-0">
+                <span className="text-2xl font-black text-black italic leading-none">0</span>
+                <GoldCoinIcon className="h-6 w-6 text-black" />
+              </div>
            </div>
         </footer>
       </div>
@@ -323,7 +322,9 @@ function LeaderboardContent() {
 export default function LeaderboardPage() {
   return (
     <AppLayout hideSidebarOnMobile>
-      <Suspense fallback={<div className="flex h-screen items-center justify-center bg-black"><Loader className="animate-spin text-primary" /></div>}><LeaderboardContent /></Suspense>
+      <Suspense fallback={<div className="flex h-screen items-center justify-center bg-black"><Loader className="animate-spin text-primary" /></div>}>
+        <LeaderboardContent />
+      </Suspense>
     </AppLayout>
   );
 }
