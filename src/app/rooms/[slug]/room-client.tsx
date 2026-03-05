@@ -14,6 +14,8 @@ import {
   Armchair,
   ChevronDown,
   Minimize2,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -38,7 +40,9 @@ import {
   orderBy, 
   limitToLast, 
   doc, 
-  increment
+  increment,
+  arrayUnion,
+  arrayRemove
 } from 'firebase/firestore';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { useRouter } from 'next/navigation';
@@ -89,11 +93,81 @@ function EntryCard({ entrant, onComplete }: { entrant: any, onComplete: () => vo
   );
 }
 
+function SeatActionDialog({ 
+  open, 
+  onOpenChange, 
+  onAction, 
+  canManage,
+  isLocked 
+}: { 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void; 
+  onAction: (action: string) => void;
+  canManage: boolean;
+  isLocked: boolean;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[2.5rem] border-none shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full duration-500 font-headline">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Seat Actions</DialogTitle>
+          <DialogDescription>Choose an action for this mic slot.</DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col items-center py-4">
+          <button 
+            onClick={() => onAction('on-mic')} 
+            className="w-full py-5 text-center font-black text-lg uppercase tracking-tight hover:bg-gray-50 active:bg-gray-100 active:scale-95 transition-all"
+          >
+            On mic
+          </button>
+          <button 
+            onClick={() => onAction('invite')} 
+            className="w-full py-5 text-center font-black text-lg uppercase tracking-tight hover:bg-gray-50 active:bg-gray-100 active:scale-95 transition-all"
+          >
+            Invite
+          </button>
+          {canManage && (
+            <>
+              <button 
+                onClick={() => onAction('lock')} 
+                className="w-full py-5 text-center font-black text-lg uppercase tracking-tight hover:bg-gray-50 active:bg-gray-100 active:scale-95 transition-all"
+              >
+                {isLocked ? 'Unlock' : 'Lock'}
+              </button>
+              <button 
+                onClick={() => onAction('lock-all')} 
+                className="w-full py-5 text-center font-black text-lg uppercase tracking-tight hover:bg-gray-50 active:bg-gray-100 active:scale-95 transition-all"
+              >
+                Lock All
+              </button>
+              <button 
+                onClick={() => onAction('mute')} 
+                className="w-full py-5 text-center font-black text-lg uppercase tracking-tight hover:bg-gray-50 active:bg-gray-100 active:scale-95 transition-all"
+              >
+                Mute
+              </button>
+            </>
+          )}
+          <div className="w-full h-2 bg-gray-50" />
+          <button 
+            onClick={() => onOpenChange(false)} 
+            className="w-full py-6 text-center font-black text-lg uppercase tracking-tight text-gray-400 hover:bg-gray-50 active:bg-gray-100 transition-all"
+          >
+            Cancel
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
   const [isGiftPickerOpen, setIsGiftPickerOpen] = useState(false);
   const [isExitPortalOpen, setIsExitPortalOpen] = useState(false);
   const [isUserProfileCardOpen, setIsUserProfileCardOpen] = useState(false);
+  const [isSeatMenuOpen, setIsSeatMenuOpen] = useState(false);
+  const [selectedSeatIdx, setSelectedSeatIdx] = useState<number | null>(null);
   const [selectedParticipantUid, setSelectedParticipantUid] = useState<string | null>(null);
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
@@ -161,7 +235,52 @@ export function RoomClient({ room }: { room: Room }) {
 
   const takeSeat = (index: number) => { 
     if (!firestore || !room.id || !currentUser) return; 
+    
+    if (room.lockedSeats?.includes(index) && !canManageRoom) {
+      toast({ variant: 'destructive', title: 'Frequency Locked', description: 'This seat is restricted by the Room Admin.' });
+      return;
+    }
+
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: index, isMuted: true, updatedAt: serverTimestamp() }); 
+  };
+
+  const handleSeatAction = (action: string) => {
+    if (!selectedSeatIdx || !firestore || !room.id) return;
+
+    const roomRef = doc(firestore, 'chatRooms', room.id);
+
+    switch(action) {
+      case 'on-mic':
+        takeSeat(selectedSeatIdx);
+        break;
+      case 'lock':
+        const isCurrentlyLocked = room.lockedSeats?.includes(selectedSeatIdx);
+        updateDocumentNonBlocking(roomRef, {
+          lockedSeats: isCurrentlyLocked ? arrayRemove(selectedSeatIdx) : arrayUnion(selectedSeatIdx),
+          updatedAt: serverTimestamp()
+        });
+        toast({ title: isCurrentlyLocked ? 'Seat Unlocked' : 'Seat Locked' });
+        break;
+      case 'lock-all':
+        const allIndices = Array.from({ length: room.maxActiveMics || 9 }).map((_, i) => i + 1);
+        updateDocumentNonBlocking(roomRef, {
+          lockedSeats: room.lockedSeats?.length === allIndices.length ? [] : allIndices,
+          updatedAt: serverTimestamp()
+        });
+        toast({ title: 'Global Lock Toggled' });
+        break;
+      case 'mute':
+        updateDocumentNonBlocking(roomRef, {
+          isChatMuted: !room.isChatMuted,
+          updatedAt: serverTimestamp()
+        });
+        toast({ title: room.isChatMuted ? 'Room Unmuted' : 'Room Muted' });
+        break;
+      case 'invite':
+        toast({ title: 'Dispatching Invites', description: 'Scanning tribal frequency for friends...' });
+        break;
+    }
+    setIsSeatMenuOpen(false);
   };
 
   const handleMicToggle = () => { 
@@ -219,20 +338,44 @@ export function RoomClient({ room }: { room: Room }) {
             {Array.from({ length: maxMics }).map((_, i) => {
               const idx = i + 1;
               const occupant = participants?.find(p => p.seatIndex === idx);
+              const isLocked = room.lockedSeats?.includes(idx);
+
               return (
                 <div key={idx} className="w-[22%] flex flex-col items-center gap-1">
                   <div className="relative">
                     <AvatarFrame frameId={occupant?.activeFrame} size="md">
                       <button 
-                        onClick={() => { if (occupant) { setSelectedParticipantUid(occupant.uid); setIsUserProfileCardOpen(true); } else { takeSeat(idx); } }}
-                        className="h-14 w-14 rounded-full flex items-center justify-center bg-black/40 border-2 border-white/10 backdrop-blur-sm active:scale-90 transition-transform"
+                        onClick={() => { 
+                          if (occupant) { 
+                            setSelectedParticipantUid(occupant.uid); 
+                            setIsUserProfileCardOpen(true); 
+                          } else { 
+                            setSelectedSeatIdx(idx);
+                            setIsSeatMenuOpen(true);
+                          } 
+                        }}
+                        className={cn(
+                          "h-14 w-14 rounded-full flex items-center justify-center bg-black/40 border-2 backdrop-blur-sm active:scale-90 transition-transform",
+                          isLocked ? "border-red-500/40" : "border-white/10"
+                        )}
                       >
-                        {occupant ? <Avatar className="h-full w-full p-0.5"><AvatarImage src={occupant.avatarUrl} /><AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback></Avatar> : <Armchair className="text-white/20 h-6 w-6" />}
+                        {occupant ? (
+                          <Avatar className="h-full w-full p-0.5">
+                            <AvatarImage src={occupant.avatarUrl} />
+                            <AvatarFallback>{occupant.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                        ) : isLocked ? (
+                          <Lock className="text-red-500/40 h-6 w-6" />
+                        ) : (
+                          <Armchair className="text-white/20 h-6 w-6" />
+                        )}
                       </button>
                     </AvatarFrame>
                     {occupant?.isMuted && <div className="absolute bottom-0 right-0 bg-red-500 rounded-full p-0.5 border border-black shadow-lg"><MicOff className="h-2 w-2 text-white" /></div>}
                   </div>
-                  <span className="text-[8px] font-black uppercase text-white/60 truncate w-14 text-center">{occupant ? occupant.name : `Slot ${idx}`}</span>
+                  <span className="text-[8px] font-black uppercase text-white/60 truncate w-14 text-center">
+                    {occupant ? occupant.name : `No.${idx}`}
+                  </span>
                 </div>
               );
             })}
@@ -274,6 +417,14 @@ export function RoomClient({ room }: { room: Room }) {
       </Dialog>
 
       <RoomUserProfileDialog userId={selectedParticipantUid} open={isUserProfileCardOpen} onOpenChange={setIsUserProfileCardOpen} canManage={canManageRoom} isOwner={isOwner} roomOwnerId={room.ownerId} roomModeratorIds={room.moderatorIds || []} onSilence={() => {}} onKick={() => {}} onLeaveSeat={() => {}} onToggleMod={() => {}} onOpenGiftPicker={(recipient) => { setGiftRecipient(recipient); setIsGiftPickerOpen(true); }} isSilenced={false} isMe={selectedParticipantUid === currentUser?.uid} />
+      
+      <SeatActionDialog 
+        open={isSeatMenuOpen} 
+        onOpenChange={setIsSeatMenuOpen} 
+        onAction={handleSeatAction}
+        canManage={canManageRoom}
+        isLocked={!!selectedSeatIdx && (room.lockedSeats?.includes(selectedSeatIdx) || false)}
+      />
     </div>
   );
 }
