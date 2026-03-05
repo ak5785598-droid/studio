@@ -341,7 +341,7 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
                                <p className="font-black text-sm uppercase tracking-tight">{p.name}</p>
                                {p.uid === room.ownerId && <Badge className="bg-yellow-500 text-black text-[8px] font-black h-4">OWNER</Badge>}
                              </div>
-                             <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest opacity-60">Identity: {p.id.slice(0, 8)}</p>
+                             <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest opacity-60">Identity: {p.uid.slice(0, 8)}</p>
                           </div>
                        </div>
                        {p.uid !== room.ownerId && (
