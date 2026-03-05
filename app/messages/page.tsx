@@ -159,10 +159,10 @@ export default function MessagesPage() {
 
         <div className="flex-1 bg-white relative z-10">
           <div className="flex flex-col">
-            {/* Activity Category: Exact blueprint subtext and date */}
+            {/* Activity Category: Updated brand from Sama to Ummy */}
             <CategoryItem 
               icon={Flag} 
-              label="Sama Team" 
+              label="Ummy Team" 
               subtext={latestOfficial?.content || "[Image]"}
               date={latestOfficial?.timestamp ? format(latestOfficial.timestamp.toDate(), 'h:mm a') : "6:10 PM"}
               colorClass="bg-green-100"
@@ -173,8 +173,8 @@ export default function MessagesPage() {
             
             <CategoryItem 
               icon={Shield} 
-              label="Sama System" 
-              subtext="Welcome to SAMA! Reach out to us ..."
+              label="Ummy System" 
+              subtext="Welcome to Ummy! Reach out to us ..."
               date="Sunday"
               colorClass="bg-green-600"
               customIcon={<img src="https://img.icons8.com/color/96/appointment-reminders--v1.png" className="h-8 w-8" alt="System" />}
