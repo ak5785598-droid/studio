@@ -31,7 +31,16 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { 
+  useUser, 
+  useFirestore, 
+  useCollection, 
+  useMemoFirebase, 
+  addDocumentNonBlocking, 
+  updateDocumentNonBlocking, 
+  setDocumentNonBlocking,
+  deleteDocumentNonBlocking
+} from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { 
   collection, 
@@ -274,7 +283,7 @@ export function RoomClient({ room }: { room: Room }) {
           isChatMuted: !room.isChatMuted,
           updatedAt: serverTimestamp()
         });
-        toast({ title: room.isChatMuted ? 'Room Unmuted' : 'Room Muted' });
+        toast({ title: !room.isChatMuted ? 'Frequency Silenced' : 'Silence Revoked' });
         break;
       case 'invite':
         toast({ title: 'Dispatching Invites', description: 'Scanning tribal frequency for friends...' });
@@ -283,8 +292,59 @@ export function RoomClient({ room }: { room: Room }) {
     setIsSeatMenuOpen(false);
   };
 
+  const handleLeaveSeat = (uid: string) => {
+    if (!firestore || !room.id) return;
+    updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid), { 
+      seatIndex: 0, 
+      isMuted: true, 
+      updatedAt: serverTimestamp() 
+    });
+    toast({ title: 'Seat Vacated' });
+  };
+
+  const handleKick = (uid: string, durationMinutes: number) => {
+    if (!firestore || !room.id) return;
+    const expiresAt = new Date(Date.now() + durationMinutes * 60000);
+    // Record exclusion
+    setDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'bans', uid), {
+      uid,
+      expiresAt,
+      bannedAt: serverTimestamp(),
+      bannedBy: currentUser?.uid
+    }, { merge: true });
+    // Remove participant
+    deleteDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid));
+    toast({ title: 'Exclusion Synchronized', description: `Tribe member restricted for ${durationMinutes} minutes.` });
+  };
+
+  const handleToggleSilence = (uid: string, current: boolean) => {
+    if (!firestore || !room.id) return;
+    updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid), {
+      isSilenced: !current,
+      isMuted: true, // Force mute when silencing
+      updatedAt: serverTimestamp()
+    });
+    toast({ title: !current ? 'Frequency Silenced' : 'Silence Revoked' });
+  };
+
+  const handleToggleMod = (uid: string) => {
+    if (!firestore || !room.id) return;
+    const isCurrentlyMod = room.moderatorIds?.includes(uid);
+    updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), {
+      moderatorIds: isCurrentlyMod ? arrayRemove(uid) : arrayUnion(uid),
+      updatedAt: serverTimestamp()
+    });
+    toast({ title: isCurrentlyMod ? 'Admin Revoked' : 'Admin Granted' });
+  };
+
   const handleMicToggle = () => { 
-    if (!isInSeat || !firestore || !currentUser || !room.id) return;
+    const participant = participants?.find(p => p.uid === currentUser?.uid);
+    // Respect room global mute AND individual silence status
+    if (!isInSeat || !firestore || !currentUser || !room.id || participant?.isSilenced || room.isChatMuted) {
+      if (participant?.isSilenced) toast({ variant: 'destructive', title: 'Action Prohibited', description: 'Your frequency is currently silenced by an Admin.' });
+      else if (room.isChatMuted) toast({ variant: 'destructive', title: 'Action Prohibited', description: 'The room frequency is globally muted.' });
+      return;
+    }
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { isMuted: !currentUserParticipant?.isMuted }); 
   };
 
@@ -416,7 +476,22 @@ export function RoomClient({ room }: { room: Room }) {
         </DialogContent>
       </Dialog>
 
-      <RoomUserProfileDialog userId={selectedParticipantUid} open={isUserProfileCardOpen} onOpenChange={setIsUserProfileCardOpen} canManage={canManageRoom} isOwner={isOwner} roomOwnerId={room.ownerId} roomModeratorIds={room.moderatorIds || []} onSilence={() => {}} onKick={() => {}} onLeaveSeat={() => {}} onToggleMod={() => {}} onOpenGiftPicker={(recipient) => { setGiftRecipient(recipient); setIsGiftPickerOpen(true); }} isSilenced={false} isMe={selectedParticipantUid === currentUser?.uid} />
+      <RoomUserProfileDialog 
+        userId={selectedParticipantUid} 
+        open={isUserProfileCardOpen} 
+        onOpenChange={setIsUserProfileCardOpen} 
+        canManage={canManageRoom} 
+        isOwner={isOwner} 
+        roomOwnerId={room.ownerId} 
+        roomModeratorIds={room.moderatorIds || []} 
+        onSilence={handleToggleSilence} 
+        onKick={handleKick} 
+        onLeaveSeat={handleLeaveSeat} 
+        onToggleMod={handleToggleMod} 
+        onOpenGiftPicker={(recipient) => { setGiftRecipient(recipient); setIsGiftPickerOpen(true); }} 
+        isSilenced={participants?.find(p => p.uid === selectedParticipantUid)?.isSilenced || false} 
+        isMe={selectedParticipantUid === currentUser?.uid} 
+      />
       
       <SeatActionDialog 
         open={isSeatMenuOpen} 
