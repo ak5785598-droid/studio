@@ -3,7 +3,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useRoomContext } from './room-provider';
-import { useUser, useFirestore, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, serverTimestamp, collection, increment, writeBatch, getDocs } from 'firebase/firestore';
 
@@ -13,6 +13,7 @@ const CREATOR_ID = '901piBzTQ0VzCtAvlyyobwvAaTs1';
  * Maintains Firestore presence while a room is active.
  * RE-ENGINEERED: Includes a High-Fidelity Heartbeat to prevent ghost identities.
  * SELF-HEALING: Performs a hard count of participants on entry to fix stale data.
+ * ROBUST SYNC: Uses setDocumentNonBlocking with merge for heartbeats to ensure stability.
  */
 export function RoomPresenceManager() {
   const { activeRoom } = useRoomContext();
@@ -42,7 +43,6 @@ export function RoomPresenceManager() {
       const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', uid);
 
       // Broadcast entrance (Non-blocking)
-      // HIGH-FIDELITY: Normalized to "entered the room" for cinematic entry cards.
       addDocumentNonBlocking(collection(firestore, 'chatRooms', roomId, 'messages'), {
         content: 'entered the room',
         senderId: uid,
@@ -102,7 +102,9 @@ export function RoomPresenceManager() {
         // Start Heartbeat Frequency
         if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
         heartbeatInterval.current = setInterval(() => {
-          updateDocumentNonBlocking(participantRef, { lastSeen: serverTimestamp() });
+          // ELITE SYNC: Use set with merge instead of update to prevent permission race conditions 
+          // or missing document errors if the join batch hasn't fully propagated.
+          setDocumentNonBlocking(participantRef, { lastSeen: serverTimestamp() }, { merge: true });
         }, 30000); // 30s Heartbeat
 
       } catch (e) {

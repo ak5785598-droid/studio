@@ -28,7 +28,7 @@ service cloud.firestore {
       let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
       return isSignedIn() && (
         isCreator() || 
-        (exists(userPath) && get(userPath).data.tags.hasAny(['Admin', 'Official', 'Super Admin', 'Admin Management', 'App Manager']))
+        (exists(userPath) && get(userPath).data.get('tags', []).hasAny(['Admin', 'Official', 'Super Admin', 'Admin Management', 'App Manager']))
       );
     }
 
@@ -39,12 +39,12 @@ service cloud.firestore {
         isAdmin() ||
         (exists(roomPath) && (
           request.auth.uid == get(roomPath).data.ownerId || 
-          (get(roomPath).data.moderatorIds != null && request.auth.uid in get(roomPath).data.moderatorIds)
+          (get(roomPath).data.get('moderatorIds', []) != null && request.auth.uid in get(roomPath).data.get('moderatorIds', []))
         ))
       );
     }
 
-    // Public Configuration Mesh - Fixed for instant discovery
+    // Public Configuration Mesh
     match /appConfig/{configId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -66,7 +66,6 @@ service cloud.firestore {
       allow delete: if isAdmin();
 
       match /profile/{profileId} {
-        // Allow public GET for persona viewing - Fixed for profile gateway stability
         allow get: if true;
         allow write: if isOwner(userId) || isAdmin() || isCreator();
       }
@@ -91,7 +90,7 @@ service cloud.firestore {
       allow create: if isSignedIn() && (request.resource.data.ownerId == request.auth.uid || chatRoomId == 'ummy-help-center');
       allow update: if isSignedIn() && (
         isOwner(resource.data.ownerId) || 
-        (resource.data.moderatorIds != null && request.auth.uid in resource.data.moderatorIds) ||
+        (resource.data.get('moderatorIds', []) != null && request.auth.uid in resource.data.get('moderatorIds', [])) ||
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'updatedAt', 'isChatMuted', 'currentMusicUrl', 'roomThemeId', 'maxActiveMics', 'isLocked', 'announcement', 'welcomeMessage', 'name', 'coverUrl']) ||
         chatRoomId == 'ummy-help-center' ||
         isAdmin()
@@ -101,7 +100,9 @@ service cloud.firestore {
       match /participants/{participantId} {
         // Allow public read for room counts and active frequency display
         allow get, list: if true;
+        // Ensure participants can always update their own heartbeat frequency
         allow write: if isSignedIn() && (request.auth.uid == participantId || isRoomAdmin(chatRoomId));
+        
         match /signaling/{signalId} {
           allow get, list, write: if isSignedIn();
         }
