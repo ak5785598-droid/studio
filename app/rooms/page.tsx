@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -104,13 +105,13 @@ export default function RoomsPage() {
   const [activeTab, setActiveTab] = useState<'Popular' | 'Me'>('Popular');
 
   const roomsQuery = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
+    if (!firestore) return null;
     return query(
       collection(firestore, 'chatRooms'), 
       orderBy('participantCount', 'desc'),
       limit(50)
     );
-  }, [firestore, user]);
+  }, [firestore]);
 
   const bannerRef = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -164,21 +165,6 @@ export default function RoomsPage() {
       <div className="min-h-full bg-[#f8f9fa] flex flex-col space-y-6 pb-32 font-headline animate-in fade-in duration-700">
         <header className="flex items-center justify-between px-6 pt-6 bg-white shrink-0">
           <div className="flex items-center gap-8">
-            <CreateRoomDialog 
-              trigger={
-                <button 
-                  className={cn(
-                    "text-xl font-black uppercase italic transition-colors relative",
-                    activeTab === 'Me' ? "text-gray-900" : "text-gray-400"
-                  )}
-                >
-                  Me
-                  {activeTab === 'Me' && (
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-1 bg-primary rounded-full" />
-                  )}
-                </button>
-              }
-            />
             <div className="relative">
               <button 
                 onClick={() => setActiveTab('Popular')}

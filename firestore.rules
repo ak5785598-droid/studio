@@ -51,7 +51,6 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Allow public GET for identity resolution; protect LIST for privacy
       allow get: if true;
       allow list: if isSignedIn();
       
@@ -61,7 +60,7 @@ service cloud.firestore {
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['tags', 'specialId'])
       ) || (
         isAdmin() && 
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wallet', 'updatedAt'])
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wallet', 'updatedAt', 'isOnline', 'currentRoomId'])
       );
       allow delete: if isAdmin();
 
@@ -84,23 +83,22 @@ service cloud.firestore {
     }
 
     match /chatRooms/{chatRoomId} {
-      // Allow public GET/LIST for discovery and frequency joining
       allow get, list: if true;
       
       allow create: if isSignedIn() && (request.resource.data.ownerId == request.auth.uid || chatRoomId == 'ummy-help-center');
-      allow update: if isSignedIn() && (
-        isOwner(resource.data.ownerId) || 
-        (resource.data.get('moderatorIds', []) != null && request.auth.uid in resource.data.get('moderatorIds', [])) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'updatedAt', 'isChatMuted', 'currentMusicUrl', 'roomThemeId', 'maxActiveMics', 'isLocked', 'announcement', 'welcomeMessage', 'name', 'coverUrl']) ||
-        chatRoomId == 'ummy-help-center' ||
-        isAdmin()
+      allow update: if isCreator() || (
+        isSignedIn() && (
+          isOwner(resource.data.ownerId) || 
+          (resource.data.get('moderatorIds', []) != null && request.auth.uid in resource.data.get('moderatorIds', [])) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'updatedAt', 'isChatMuted', 'currentMusicUrl', 'roomThemeId', 'maxActiveMics', 'isLocked', 'announcement', 'welcomeMessage', 'name', 'coverUrl']) ||
+          chatRoomId == 'ummy-help-center' ||
+          isAdmin()
+        )
       );
       allow delete: if isExistingOwner(resource.data.ownerId) || isAdmin();
 
       match /participants/{participantId} {
-        // Allow public read for room counts and active frequency display
         allow get, list: if true;
-        // Ensure participants can always update their own heartbeat frequency
         allow write: if isSignedIn() && (request.auth.uid == participantId || isRoomAdmin(chatRoomId));
         
         match /signaling/{signalId} {
