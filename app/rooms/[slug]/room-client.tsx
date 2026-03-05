@@ -1,54 +1,21 @@
-
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import {
   Mic,
   MicOff,
-  Lock,
   Loader,
   Gift as GiftIcon,
   Users,
   Volume2,
-  Trash2,
   LogOut,
-  UserPlus,
-  UserCheck,
-  Ban,
-  ChevronDown,
-  AlertTriangle,
-  User as UserIcon,
-  RefreshCw,
-  Gamepad2,
-  ShieldCheck,
-  Music,
-  Play,
-  Square,
-  MoreHorizontal,
   Power,
-  Mail,
-  LayoutGrid,
-  ChevronRight,
   Armchair,
-  Crown,
-  Heart,
-  ChevronLeft,
-  X,
-  Settings as SettingsIcon,
-  Copy,
-  Info,
-  Calculator as CalculatorIcon,
-  Camera,
-  MessageSquare,
-  Palette,
-  Upload,
+  ChevronDown,
   Minimize2,
-  Smile,
-  Zap,
-  Flame
 } from 'lucide-react';
-import { GoldCoinIcon, GameControllerIcon } from '@/components/icons';
+import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -56,12 +23,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
@@ -86,12 +49,6 @@ const ROOM_THEMES = [
   { id: 'misty', name: 'Misty Forest', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000' },
   { id: 'neon', name: 'Neon Party', url: 'https://images.unsplash.com/photo-1514525253361-bee8718a300a?q=80&w=2000' },
   { id: 'royal', name: 'Royal Palace', url: 'https://images.unsplash.com/photo-1562664377-709f2c337eb2?q=80&w=2000' },
-];
-
-const AVAILABLE_GIFTS: Gift[] = [
-  { id: 'rose', name: 'Rose', emoji: '🌹', price: 10, animationType: 'pulse' },
-  { id: 'heart', name: 'Heart', emoji: '💖', price: 50, animationType: 'zoom' },
-  { id: 'ring', name: 'Ring', emoji: '💍', price: 500, animationType: 'bounce' },
 ];
 
 function RemoteAudio({ stream }: { stream: MediaStream }) {
@@ -131,7 +88,6 @@ function EntryCard({ entrant, onComplete }: { entrant: any, onComplete: () => vo
 export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
   const [isGiftPickerOpen, setIsGiftPickerOpen] = useState(false);
-  const [isGamesDialogOpen, setIsGamesDialogOpen] = useState(false);
   const [isExitPortalOpen, setIsExitPortalOpen] = useState(false);
   const [isUserProfileCardOpen, setIsUserProfileCardOpen] = useState(false);
   const [selectedParticipantUid, setSelectedParticipantUid] = useState<string | null>(null);
@@ -287,7 +243,6 @@ export function RoomClient({ room }: { room: Room }) {
         <button onClick={handleMicToggle} className={cn("p-3 rounded-full border border-white/10 backdrop-blur-md transition-all", isInSeat && !currentUserParticipant?.isMuted ? "bg-green-500" : "bg-white/10")}>{isInSeat && !currentUserParticipant?.isMuted ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}</button>
         <form className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-12 px-4 flex items-center border border-white/5" onSubmit={handleSendMessage}><Input placeholder="Say Hi" className="bg-transparent border-none text-xs font-black tracking-widest placeholder:text-white/40 focus-visible:ring-0 h-full" value={messageText} onChange={(e) => setMessageText(e.target.value)} /></form>
         <div className="flex items-center gap-2">
-          <button className="bg-gradient-to-br from-yellow-300 to-orange-600 p-2 rounded-full shadow-lg" onClick={() => setIsGamesDialogOpen(true)}><GameControllerIcon className="h-7 w-7" /></button>
           <button className="bg-gradient-to-br from-pink-400 to-indigo-600 p-3 rounded-full shadow-lg" onClick={() => setIsGiftPickerOpen(true)}><GiftIcon className="h-5 w-5 text-white" /></button>
         </div>
       </footer>

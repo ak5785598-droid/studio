@@ -19,7 +19,8 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == '901piBzTQ0VzCtAvlyyobwvAaTs1';
     }
 
-    // Supreme Creator Protocol - Universal Frequency Access
+    // Supreme Creator Protocol - Universal Sovereignty
+    // Automatically allows all operations for the specified UID.
     match /{allPaths=**} {
       allow read, write: if isCreator();
     }

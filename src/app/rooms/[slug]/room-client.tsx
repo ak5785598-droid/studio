@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -11,16 +10,12 @@ import {
   Users,
   Volume2,
   LogOut,
-  ChevronRight,
-  UserPlus,
   Power,
   Armchair,
-  Crown,
-  ChevronLeft,
-  Settings as SettingsIcon,
+  ChevronDown,
   Minimize2,
 } from 'lucide-react';
-import { GoldCoinIcon, GameControllerIcon } from '@/components/icons';
+import { GoldCoinIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -93,7 +88,6 @@ function EntryCard({ entrant, onComplete }: { entrant: any, onComplete: () => vo
 export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
   const [isGiftPickerOpen, setIsGiftPickerOpen] = useState(false);
-  const [isGamesDialogOpen, setIsGamesDialogOpen] = useState(false);
   const [isExitPortalOpen, setIsExitPortalOpen] = useState(false);
   const [isUserProfileCardOpen, setIsUserProfileCardOpen] = useState(false);
   const [selectedParticipantUid, setSelectedParticipantUid] = useState<string | null>(null);
@@ -249,7 +243,6 @@ export function RoomClient({ room }: { room: Room }) {
         <button onClick={handleMicToggle} className={cn("p-3 rounded-full border border-white/10 backdrop-blur-md transition-all", isInSeat && !currentUserParticipant?.isMuted ? "bg-green-500" : "bg-white/10")}>{isInSeat && !currentUserParticipant?.isMuted ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}</button>
         <form className="flex-1 bg-white/10 backdrop-blur-xl rounded-full h-12 px-4 flex items-center border border-white/5" onSubmit={handleSendMessage}><Input placeholder="Say Hi" className="bg-transparent border-none text-xs font-black tracking-widest placeholder:text-white/40 focus-visible:ring-0 h-full" value={messageText} onChange={(e) => setMessageText(e.target.value)} /></form>
         <div className="flex items-center gap-2">
-          <button className="bg-gradient-to-br from-yellow-300 to-orange-600 p-2 rounded-full shadow-lg" onClick={() => setIsGamesDialogOpen(true)}><GameControllerIcon className="h-7 w-7" /></button>
           <button className="bg-gradient-to-br from-pink-400 to-indigo-600 p-3 rounded-full shadow-lg" onClick={() => setIsGiftPickerOpen(true)}><GiftIcon className="h-5 w-5 text-white" /></button>
         </div>
       </footer>
