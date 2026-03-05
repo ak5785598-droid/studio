@@ -119,7 +119,7 @@ export default function WalletPage() {
                  <div key={record.id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
                     <div>
                       <p className="text-[10px] font-black text-gray-400 uppercase mb-1">{record.timestamp ? format(record.timestamp.toDate(), 'MMM d, HH:mm') : 'Syncing...'}</p>
-                      <p className="font-black text-sm uppercase italic">Purchase Coins</p>
+                      <p className="font-black text-sm uppercase italic">{record.type === 'exchange' ? 'Exchange Diamonds' : 'Purchase Coins'}</p>
                     </div>
                     <div className="text-right">
                       <span className="font-black text-green-600">+{record.coinAmount?.toLocaleString()}</span>
@@ -287,10 +287,10 @@ export default function WalletPage() {
             <footer className="p-6 bg-white border-t border-gray-50 fixed bottom-0 left-0 right-0 z-50 md:relative">
                <Button 
                  onClick={handleRechargeNow}
-                 disabled={isProcessing}
+                 disabled={isProcessing !== false}
                  className="w-full h-16 rounded-full bg-[#ffcc00] hover:bg-[#ffb300] text-black font-black uppercase italic text-xl shadow-xl shadow-yellow-500/20 active:scale-[0.98] transition-all"
                >
-                  {isProcessing ? <Loader className="animate-spin mr-2" /> : activeTab === 'Coins' ? 'Recharge Now' : 'Withdrawal'}
+                  {isProcessing !== false ? <Loader className="animate-spin mr-2" /> : activeTab === 'Coins' ? 'Recharge Now' : 'Withdrawal'}
                </Button>
             </footer>
           </div>
