@@ -120,22 +120,7 @@ export default function RoomsPage() {
   const { data: bannerConfig } = useDoc(bannerRef);
 
   const displayRooms = useMemo(() => {
-    const helpRoomBase: any = {
-      id: 'ummy-help-center',
-      roomNumber: '0000',
-      title: 'Ummy Official Help',
-      topic: 'Ask any app related question quick and fast.',
-      category: 'Chat',
-      coverUrl: 'https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=1000',
-      ownerId: 'official-support-bot',
-      participantCount: 0,
-      isOfficial: true
-    };
-
-    if (!roomsData) return [helpRoomBase];
-    const syncedHelpRoom = roomsData.find(r => r.id === 'ummy-help-center');
-    const finalHelpRoom = syncedHelpRoom ? { ...helpRoomBase, ...syncedHelpRoom, isOfficial: true } : helpRoomBase;
-    return [finalHelpRoom, ...roomsData.filter(r => r.id !== 'ummy-help-center')];
+    return roomsData || [];
   }, [roomsData]);
 
   const CategoryCard = ({ title, label, gradient, onClick }: { title: string, label: string, gradient: string, onClick?: () => void }) => (

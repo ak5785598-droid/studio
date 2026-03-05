@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -13,7 +12,7 @@ import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebas
 import { collection, query } from 'firebase/firestore';
 
 interface ChatRoomCardProps {
-  room: Room & { isOfficial?: boolean };
+  room: Room;
   variant?: 'default' | 'modern';
 }
 
@@ -25,10 +24,9 @@ interface ChatRoomCardProps {
 export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
   const firestore = useFirestore();
   const { user } = useUser();
-  const { userProfile: owner } = useUserProfile(room.isOfficial ? undefined : room.ownerId);
+  const { userProfile: owner } = useUserProfile(room.ownerId);
 
   // REAL-TIME ACTIVE SYNC: Fetch actual participants to ensure display accuracy
-  // Only query if user is signed in to prevent permission crashes during initial discovery render
   const participantsQuery = useMemoFirebase(() => {
     if (!firestore || !room.id || !user) return null;
     return query(collection(firestore, 'chatRooms', room.id, 'participants'));
@@ -49,11 +47,9 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
     return activeOnes.length;
   }, [participants, room.participantCount]);
 
-  // Elite Official Support Logic
-  const ownerName = room.isOfficial ? 'Ummy Help Desk' : (owner?.username || 'Tribe Member');
-  const regionalFlag = room.isOfficial ? '🌐' : '🇮🇳';
+  const ownerName = owner?.username || 'Tribe Member';
+  const regionalFlag = '🇮🇳';
 
-  const officialShield = PlaceHolderImages.find(img => img.id === 'official-shield');
   const eliteJet = PlaceHolderImages.find(img => img.id === 'elite-jet');
 
   if (variant === 'modern') {
@@ -61,10 +57,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
       <Link href={`/rooms/${room.id}`} className="group block w-full animate-in fade-in duration-500 font-headline">
         <div className="space-y-2">
           {/* Main Image Container */}
-          <div className={cn(
-            "relative aspect-[4/5] w-full rounded-[1.2rem] overflow-hidden shadow-md",
-            room.isOfficial ? "bg-primary/10 border-2 border-primary/20" : "bg-slate-200"
-          )}>
+          <div className="relative aspect-[4/5] w-full rounded-[1.2rem] overflow-hidden shadow-md bg-slate-200">
             {room.coverUrl ? (
               <Image
                 src={room.coverUrl}
@@ -94,11 +87,8 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
 
             {/* Bottom-Left Owner Identity */}
             <div className="absolute bottom-2 left-2 flex items-center gap-1.5 max-w-[70%] z-20">
-               <div className={cn(
-                 "h-4 w-4 rounded-full flex items-center justify-center border border-white/20 shrink-0",
-                 room.isOfficial ? "bg-yellow-500" : "bg-pink-500"
-               )}>
-                  <span className="text-[8px] text-white font-bold">{room.isOfficial ? '★' : '♀'}</span>
+               <div className="h-4 w-4 rounded-full flex items-center justify-center border border-white/20 shrink-0 bg-pink-500">
+                  <span className="text-[8px] text-white font-bold">♀</span>
                </div>
                <span className="text-[10px] text-white font-black truncate drop-shadow-md">
                  {ownerName}
@@ -107,26 +97,14 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
 
             {/* Bottom-Right Status Emblem */}
             <div className="absolute bottom-2 right-2 h-8 w-8 rounded-lg overflow-hidden border border-white/20 shadow-lg z-20">
-               {room.isOfficial ? (
-                 officialShield && (
-                   <Image 
-                     src={officialShield.imageUrl} 
-                     alt="Shield" 
-                     fill 
-                     className="object-contain p-1 bg-black/20 backdrop-blur-sm"
-                     data-ai-hint={officialShield.imageHint}
-                   />
-                 )
-               ) : (
-                 eliteJet && (
-                   <Image 
-                     src={eliteJet.imageUrl} 
-                     alt="Emblem" 
-                     fill 
-                     className="object-contain p-1 bg-black/20 backdrop-blur-sm"
-                     data-ai-hint={eliteJet.imageHint}
-                   />
-                 )
+               {eliteJet && (
+                 <Image 
+                   src={eliteJet.imageUrl} 
+                   alt="Emblem" 
+                   fill 
+                   className="object-contain p-1 bg-black/20 backdrop-blur-sm"
+                   data-ai-hint={eliteJet.imageHint}
+                 />
                )}
             </div>
           </div>
@@ -136,7 +114,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
             <span className="text-sm shrink-0" aria-label="Region flag">{regionalFlag}</span>
             <h3 className={cn(
               "font-black text-xs truncate uppercase tracking-tight",
-              room.isOfficial ? "text-primary" : (Math.random() > 0.5 ? "text-orange-500" : "text-pink-500")
+              Math.random() > 0.5 ? "text-orange-500" : "text-pink-500"
             )}>
               {room.title}
             </h3>
