@@ -83,6 +83,7 @@ export function RoomPresenceManager() {
         name: userProfile?.username || 'Guest',
         avatarUrl: userProfile?.avatarUrl || '',
         activeFrame: userProfile?.inventory?.activeFrame || 'None',
+        activeWave: userProfile?.inventory?.activeWave || 'Default',
         joinedAt: serverTimestamp(),
         lastSeen: serverTimestamp(),
         isMuted: true,
@@ -142,7 +143,7 @@ export function RoomPresenceManager() {
       handleExit();
       window.removeEventListener('beforeunload', handleExit);
     };
-  }, [firestore, activeRoom?.id, user?.uid, userProfile?.username, userProfile?.avatarUrl, userProfile?.inventory?.activeFrame]); 
+  }, [firestore, activeRoom?.id, user?.uid, userProfile?.username, userProfile?.avatarUrl, userProfile?.inventory?.activeFrame, userProfile?.inventory?.activeWave]); 
 
   return null;
 }

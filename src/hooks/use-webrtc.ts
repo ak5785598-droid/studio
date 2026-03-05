@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -160,7 +159,6 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
         });
       };
 
-      // Perfect Negotiation Pattern: handle negotiationneeded
       pc.onnegotiationneeded = async () => {
         try {
           makingOffer.current.set(peerId, true);
@@ -182,7 +180,6 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
       const peerId = signal.from;
       let pc = peerConnections.current.get(peerId);
 
-      // If PC doesn't exist, we only create it if we received an offer
       if (!pc) {
         if (signal.type === 'offer') {
           initiateConnection(peerId);
@@ -194,7 +191,6 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
 
       try {
         if (signal.type === 'offer') {
-          // Glare handling: deterministic conflict resolution (polite vs impolite)
           const polite = user.uid > peerId;
           const offerCollision = signal.type === 'offer' && 
             (makingOffer.current.get(peerId) || pc.signalingState !== 'stable');
@@ -235,7 +231,6 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
     };
   }, [roomId, user?.uid, isInSeat, localStream]); 
 
-  // Late track sync for established connections
   useEffect(() => {
     if (!localStream) return;
     peerConnections.current.forEach((pc, peerId) => {
