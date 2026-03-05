@@ -21,7 +21,7 @@ export function useRoomImageUpload(roomId: string) {
 
   /**
    * High-Fidelity Compression Engine.
-   * Reduces file size by ~90% while maintaining visual crispness.
+   * Reduces file size while maintaining visual crispness.
    */
   const compressImage = (file: File): Promise<Blob> => {
     return new Promise((resolve) => {
@@ -32,8 +32,8 @@ export function useRoomImageUpload(roomId: string) {
         img.src = event.target?.result as string;
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 1000;
+          const MAX_WIDTH = 1080;
+          const MAX_HEIGHT = 1350; // Optimized for 4:5 aspect ratio
           let width = img.width;
           let height = img.height;
 
@@ -54,7 +54,7 @@ export function useRoomImageUpload(roomId: string) {
           ctx?.drawImage(img, 0, 0, width, height);
           canvas.toBlob((blob) => {
             resolve(blob || file);
-          }, 'image/jpeg', 0.7);
+          }, 'image/jpeg', 0.8);
         };
       };
     });
