@@ -78,7 +78,6 @@ import { useRouter } from 'next/navigation';
 import { useRoomContext } from '@/components/room-provider';
 import { GiftAnimationOverlay } from '@/components/gift-animation-overlay';
 import { useWebRTC } from '@/hooks/use-webrtc';
-import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
 import { DailyRewardDialog } from '@/components/daily-reward-dialog';
 import { RoomUserProfileDialog } from '@/components/room-user-profile-dialog';
 

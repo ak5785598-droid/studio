@@ -17,10 +17,6 @@ import {
   Heart,
   ShoppingBag,
   Shirt,
-  ShieldCheck,
-  Globe,
-  Bell,
-  HelpCircle,
   Activity
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
@@ -85,8 +81,9 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   if (isUserLoading || isProfileLoading) {
     return (
       <AppLayout>
-        <div className="flex h-full w-full flex-col items-center justify-center bg-white">
+        <div className="flex h-full w-full flex-col items-center justify-center bg-white space-y-4">
           <Loader className="animate-spin h-8 w-8 text-primary" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Syncing Identity...</p>
         </div>
       </AppLayout>
     );
@@ -98,7 +95,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
     <AppLayout>
       <div className="min-h-full bg-[#f8f9fa] text-gray-900 font-headline relative flex flex-col pb-32 overflow-x-hidden animate-in fade-in duration-700">
         
-        {/* Header Dimension - High Fidelity Roster */}
+        {/* Header Dimension - Modern White Roster */}
         <div className="bg-white px-6 pt-12 pb-8 flex flex-col items-center text-center space-y-4 border-b border-gray-50">
           <div className="relative">
             <AvatarFrame frameId={profile.inventory?.activeFrame || 'f5'} size="xl">
@@ -135,9 +132,8 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
           <StatItem label="Visitors" value={0} hasNotification />
         </div>
 
-        {/* Side-by-Side Visual Banners */}
+        {/* Dual Visual Banners */}
         <div className="px-4 grid grid-cols-2 gap-3 mb-6">
-          {/* SVIP Portal */}
           <div className="h-24 rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 relative overflow-hidden shadow-lg group active:scale-95 transition-all cursor-pointer">
              <div className="relative z-10 flex flex-col h-full justify-between">
                 <span className="text-[13px] font-black text-yellow-500 uppercase tracking-tighter italic">SVIP Club</span>
@@ -148,11 +144,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
              </div>
           </div>
 
-          {/* Wallet Portal */}
-          <div 
-            onClick={() => router.push('/wallet')}
-            className="h-24 rounded-2xl bg-gradient-to-br from-[#0ea5e9] to-[#0369a1] p-4 relative overflow-hidden shadow-lg group active:scale-95 transition-all cursor-pointer"
-          >
+          <div onClick={() => router.push('/wallet')} className="h-24 rounded-2xl bg-gradient-to-br from-[#0ea5e9] to-[#0369a1] p-4 relative overflow-hidden shadow-lg group active:scale-95 transition-all cursor-pointer">
              <div className="relative z-10 flex flex-col h-full justify-between">
                 <span className="text-[13px] font-black text-white uppercase tracking-tighter italic">Wallet</span>
                 <div className="flex items-center gap-1">
@@ -178,7 +170,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
           <MenuItem label="Bag" icon={Briefcase} colorClass="bg-amber-100 text-amber-600" />
         </div>
 
-        {/* Administrative Section */}
         <div className="bg-white rounded-[2rem] mx-4 shadow-sm border border-gray-100 overflow-hidden mb-12">
            <MenuItem label="Setting" icon={SettingsIcon} href="/settings" />
            <MenuItem label="Network Test" icon={Activity} />
