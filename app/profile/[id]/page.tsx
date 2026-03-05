@@ -31,6 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AvatarFrame } from '@/components/avatar-frame';
+import { DirectMessageDialog } from '@/components/direct-message-dialog';
 
 const StatItem = ({ label, value, hasNotification = false }: { label: string, value: number | string, hasNotification?: boolean }) => (
   <div className="flex flex-col items-center justify-center flex-1 py-4 relative">
@@ -204,10 +205,15 @@ const PublicProfileView = ({ profile, onBack }: { profile: any, onBack: () => vo
 
       {/* Bottom Sticky Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 p-6 pt-2 bg-gradient-to-t from-white via-white/95 to-transparent z-[100] flex gap-4">
-         <button className="flex-1 h-14 rounded-full bg-[#42a5f5] text-white flex items-center justify-center gap-2 font-black uppercase text-lg shadow-xl shadow-blue-500/20 active:scale-95 transition-all">
-            <MessageCircle className="h-6 w-6 fill-current" />
-            Chat
-         </button>
+         <DirectMessageDialog 
+           recipient={{ uid: profile.id, username: profile.username, avatarUrl: profile.avatarUrl || '' }} 
+           trigger={
+             <button className="flex-1 h-14 rounded-full bg-[#42a5f5] text-white flex items-center justify-center gap-2 font-black uppercase text-lg shadow-xl shadow-blue-500/20 active:scale-95 transition-all">
+                <MessageCircle className="h-6 w-6 fill-current" />
+                Chat
+             </button>
+           }
+         />
          <button className="flex-1 h-14 rounded-full bg-[#ffb300] text-white flex items-center justify-center gap-2 font-black uppercase text-lg shadow-xl shadow-orange-500/20 active:scale-95 transition-all">
             <Plus className="h-6 w-6" strokeWidth={3} />
             Follow
