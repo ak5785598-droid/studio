@@ -1,18 +1,19 @@
-
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChatRoomCard } from '@/components/chat-room-card';
-import { Loader, Trophy, Heart, ArrowRight, Gamepad2, Sparkles, Zap, Users, Star } from 'lucide-react';
+import { Loader, Trophy, Heart, ArrowRight, Gamepad2, Sparkles, Zap, Users, Star, Plus } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { UserSearchDialog } from '@/components/user-search-dialog';
 import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, limit, orderBy, doc } from 'firebase/firestore';
+import { collection, query, limit, orderBy, doc, where } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 const ICON_MAP: Record<string, any> = {
   Sparkles,
@@ -111,7 +112,7 @@ const RoomSkeleton = () => (
 );
 
 export default function RoomsPage() {
-  const { user } = userUser();
+  const { user } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'Popular' | 'Me'>('Popular');
@@ -125,17 +126,29 @@ export default function RoomsPage() {
     );
   }, [firestore]);
 
+  const myRoomQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, 'chatRooms'),
+      where('ownerId', '==', user.uid),
+      limit(1)
+    );
+  }, [firestore, user]);
+
   const bannerRef = useMemoFirebase(() => {
     if (!firestore) return null;
     return doc(firestore, 'appConfig', 'banners');
   }, [firestore]);
 
   const { data: roomsData, isLoading: isRoomsLoading } = useCollection(roomsQuery);
+  const { data: myRoomData } = useCollection(myRoomQuery);
   const { data: bannerConfig } = useDoc(bannerRef);
 
   const displayRooms = useMemo(() => {
     return roomsData || [];
   }, [roomsData]);
+
+  const myRoom = myRoomData?.[0];
 
   const CategoryCard = ({ title, label, gradient, onClick }: { title: string, label: string, gradient: string, onClick?: () => void }) => (
     <div 
@@ -175,6 +188,21 @@ export default function RoomsPage() {
                 <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-[#00E5FF] rounded-full" />
               )}
             </div>
+
+            <div className="relative">
+              <button 
+                onClick={() => setActiveTab('Me')}
+                className={cn(
+                  "text-2xl font-black uppercase italic tracking-tighter transition-colors",
+                  activeTab === 'Me' ? "text-gray-900" : "text-gray-400"
+                )}
+              >
+                Me
+              </button>
+              {activeTab === 'Me' && (
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-[#00E5FF] rounded-full" />
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-4">
              <UserSearchDialog />
@@ -206,9 +234,31 @@ export default function RoomsPage() {
               )}
             </>
           ) : (
-            <div className="py-20 text-center space-y-4">
-               <Loader className="animate-spin h-8 w-8 text-primary mx-auto" />
-               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Syncing Followed Rooms...</p>
+            <div className="flex flex-col items-center justify-center py-20 space-y-8 animate-in fade-in zoom-in duration-500">
+               {myRoom ? (
+                 <div className="w-full max-w-sm space-y-4">
+                    <p className="text-[10px] font-black uppercase text-gray-400 text-center tracking-widest">Your Live Frequency</p>
+                    <ChatRoomCard room={myRoom} variant="modern" />
+                    <Button asChild className="w-full h-14 rounded-2xl bg-primary text-white font-black uppercase italic shadow-xl">
+                       <Link href={`/rooms/${myRoom.id}`}>Enter Your Room</Link>
+                    </Button>
+                 </div>
+               ) : (
+                 <>
+                    <div className="h-32 w-32 bg-primary/10 rounded-[3rem] flex items-center justify-center text-primary shadow-2xl border-4 border-white animate-pulse">
+                       <Plus className="h-16 w-16" />
+                    </div>
+                    <div className="text-center space-y-2">
+                       <h2 className="text-3xl font-black uppercase italic tracking-tighter">Define Your Frequency</h2>
+                       <p className="text-muted-foreground font-body text-lg italic max-w-[240px] mx-auto">Launch your own tribe and start connecting with the mesh.</p>
+                    </div>
+                    <CreateRoomDialog trigger={
+                      <Button className="h-16 rounded-[1.5rem] px-12 font-black uppercase italic text-lg shadow-2xl bg-primary text-white hover:scale-105 active:scale-95 transition-all">
+                        Create Room Now
+                      </Button>
+                    } />
+                 </>
+               )}
             </div>
           )}
         </div>
