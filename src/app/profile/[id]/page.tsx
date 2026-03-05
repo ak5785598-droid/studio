@@ -16,7 +16,6 @@ import {
   Gamepad2,
   Heart,
   ShoppingBag,
-  Shirt,
   Activity,
   User
 } from 'lucide-react';
@@ -166,7 +165,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
           <MenuItem label="Treasure Vault" icon={Gem} colorClass="bg-purple-100 text-purple-600" />
           <MenuItem label="CP Space" icon={Heart} colorClass="bg-pink-100 text-pink-600" />
           <MenuItem label="Store" icon={ShoppingBag} colorClass="bg-orange-100 text-orange-600" href="/store" />
-          <MenuItem label="Dress" icon={Shirt} colorClass="bg-cyan-100 text-cyan-600" />
           <MenuItem label="Bag" icon={Briefcase} colorClass="bg-amber-100 text-amber-600" />
         </div>
 
