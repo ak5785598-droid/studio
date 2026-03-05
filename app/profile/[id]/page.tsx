@@ -172,7 +172,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
         <div className="bg-white rounded-[2rem] mx-4 shadow-sm border border-gray-100 overflow-hidden mb-12">
            <MenuItem label="Setting" icon={SettingsIcon} href="/settings" />
-           <MenuItem label="Network Test" icon={Activity} />
         </div>
       </div>
     </AppLayout>
