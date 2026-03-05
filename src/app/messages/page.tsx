@@ -8,12 +8,11 @@ import {
   MessageSquareText, 
   ChevronRight, 
   Loader, 
-  ChevronLeft, 
   CheckCircle2,
-  MessageSquare
+  Users
 } from 'lucide-react';
 import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
-import { collection, query, orderBy, where, limitToLast } from 'firebase/firestore';
+import { collection, query, orderBy, where } from 'firebase/firestore';
 import { format, isToday } from 'date-fns';
 import {
   Dialog,
@@ -27,17 +26,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { cn } from '@/lib/utils';
 
-const CategoryItem = ({ icon: Icon, label, subtext, date, colorClass, onClick }: any) => (
+const CategoryItem = ({ icon: Icon, label, subtext, date, colorClass, onClick, customIcon }: any) => (
   <div 
     onClick={onClick}
     className="px-6 py-5 flex items-center gap-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer group border-b border-gray-50 last:border-0"
   >
     <div className={cn("h-14 w-14 rounded-full flex items-center justify-center shadow-md shrink-0", colorClass)}>
-      <Icon className="h-7 w-7 text-white" fill="white" />
+      {customIcon ? customIcon : <Icon className="h-7 w-7 text-white" fill="white" />}
     </div>
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between mb-0.5">
-        <h3 className="font-black text-[17px] text-gray-900 tracking-tight uppercase">{label}</h3>
+        <h3 className="font-black text-[17px] text-gray-900 tracking-tight">{label}</h3>
         {date && <span className="text-[11px] font-bold text-gray-300 uppercase tracking-tighter">{date}</span>}
       </div>
       {subtext && <p className="text-[13px] text-gray-400 truncate font-body italic">{subtext}</p>}
@@ -131,12 +130,12 @@ export default function MessagesPage() {
     <AppLayout>
       <div className="min-h-full bg-white flex flex-col relative font-headline animate-in fade-in duration-700">
         
-        {/* Blueprint Header: Yellow-to-White Gradient */}
+        {/* Header Protocol: Yellow-to-White Gradient */}
         <header className="relative shrink-0 pt-10 pb-6 px-6">
           <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#FFCC00] via-[#FFCC00]/40 to-white pointer-events-none" />
           <div className="relative z-10 flex items-center justify-between">
             <div className="w-10" /> {/* Balancer */}
-            <h1 className="text-3xl font-black text-black tracking-tight uppercase">Message</h1>
+            <h1 className="text-3xl font-black text-black tracking-tight">Message</h1>
             <button className="text-black hover:scale-110 transition-transform p-1">
                <CheckCircle2 className="h-7 w-7" strokeWidth={2.5} />
             </button>
@@ -145,32 +144,33 @@ export default function MessagesPage() {
 
         <div className="flex-1 bg-white relative z-10">
           <div className="flex flex-col">
-            {/* Activity Category: Exact matches the blueprint subtext and date */}
+            {/* Activity Category: Exact blueprint subtext and date */}
             <CategoryItem 
               icon={Flag} 
               label="Activity" 
               subtext={latestOfficial?.content || "🤩Yari's 1st Anniversary Special Of..."}
               date={latestOfficial?.timestamp ? format(latestOfficial.timestamp.toDate(), 'M/d/ yyyy') : "4/3/ 2026"}
-              colorClass="bg-gradient-to-br from-[#FF6600] to-[#FF9900]"
+              colorClass="bg-[#FF6600]"
               onClick={() => setShowOfficial(true)}
             />
             
-            {/* Family Category */}
+            {/* Family Category: Shield with Users icon */}
             <CategoryItem 
               icon={Shield} 
               label="Family" 
-              colorClass="bg-gradient-to-br from-[#FFBB00] to-[#FFCC00]"
+              colorClass="bg-[#FFBB00]"
+              customIcon={<div className="relative flex items-center justify-center">
+                <Shield className="h-8 w-8 text-white fill-white opacity-40" />
+                <Users className="h-4 w-4 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              </div>}
             />
 
-            {/* Feedback Category */}
+            {/* Feedback Category: Message Square with dots */}
             <CategoryItem 
               icon={MessageSquareText} 
               label="Feedback" 
-              colorClass="bg-gradient-to-br from-[#3366FF] to-[#00CCFF]"
+              colorClass="bg-[#3366FF]"
             />
-
-            {/* Chat List Separator */}
-            {chats && chats.length > 0 && <div className="h-2 bg-gray-50/50" />}
 
             {/* Real-time Chats */}
             {isChatsLoading ? (
@@ -195,7 +195,7 @@ export default function MessagesPage() {
         <Dialog open={showOfficial} onOpenChange={setShowOfficial}>
           <DialogContent className="sm:max-w-md bg-white text-black p-0 rounded-t-[3rem] border-none shadow-2xl overflow-hidden font-headline">
             <DialogHeader className="p-8 pb-4 border-b border-gray-50 flex flex-row items-center gap-4">
-              <div className="h-14 w-14 bg-orange-500 rounded-[1.2rem] flex items-center justify-center text-white shrink-0">
+              <div className="h-14 w-14 bg-[#FF6600] rounded-[1.2rem] flex items-center justify-center text-white shrink-0">
                  <Flag className="h-8 w-8" />
               </div>
               <div className="flex-1 text-left">
