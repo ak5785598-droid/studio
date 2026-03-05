@@ -1,8 +1,7 @@
-
 'use client';
 
 import * as React from "react";
-import { Settings, ShoppingBag, Mail, Crown, Gamepad2, Power, ShieldAlert, Castle, Compass, MessageSquare, User } from "lucide-react";
+import { Settings, ShoppingBag, Mail, Crown, Gamepad2, Power, ShieldAlert, Castle, MessageSquare, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -37,7 +36,6 @@ const sidebarItems = [
 
 const mobileNavItems = [
   { href: "/rooms", label: "Rooms", icon: Castle },
-  { href: "/discover", label: "Discover", icon: Compass },
   { href: "/messages", label: "Message", icon: MessageSquare },
   { href: "/profile", label: "Mine", icon: User },
 ];

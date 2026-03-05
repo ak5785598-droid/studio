@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChatRoomCard } from '@/components/chat-room-card';
-import { Loader, Search, Plus, Trophy, Users, Heart, ArrowRight, Gamepad2, Sparkles, Zap, Flame, Star } from 'lucide-react';
+import { Loader, Trophy, Heart, ArrowRight, Gamepad2, Sparkles, Zap, Users, Star } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CreateRoomDialog } from '@/components/create-room-dialog';
 import { UserSearchDialog } from '@/components/user-search-dialog';
@@ -17,7 +17,6 @@ const ICON_MAP: Record<string, any> = {
   Trophy,
   Gamepad2,
   Zap,
-  Flame,
   Star,
   Users,
   Heart
@@ -153,7 +152,6 @@ export default function RoomsPage() {
        </div>
        <div className="absolute -bottom-2 -right-2 opacity-20 rotate-12">
           {title === 'Ranking' && <Trophy className="h-16 w-16 text-white" />}
-          {title === 'Family' && <Users className="h-16 w-16 text-white" />}
           {title === 'CP' && <Heart className="h-16 w-16 text-white" />}
        </div>
     </div>
