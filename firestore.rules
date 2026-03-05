@@ -1,143 +1,44 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
     function isSignedIn() {
       return request.auth != null;
     }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isExistingOwner(ownerId) {
-      return resource != null && isOwner(ownerId);
-    }
     
-    function isCreator() {
-      return isSignedIn() && request.auth.uid == '901piBzTQ0VzCtAvlyyobwvAaTs1';
-    }
-
-    // Supreme Creator Protocol - Universal Frequency Access
-    match /{allPaths=**} {
-      allow read, write: if isCreator();
-    }
-
-    function isAdmin() {
-      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
-      return isSignedIn() && (
-        isCreator() || 
-        (exists(userPath) && get(userPath).data.tags.hasAny(['Admin', 'Official', 'Super Admin', 'Admin Management', 'App Manager']))
-      );
-    }
-
-    function isRoomAdmin(chatRoomId) {
-      let roomPath = /databases/$(database)/documents/chatRooms/$(chatRoomId);
-      return isSignedIn() && (
-        isCreator() || 
-        isAdmin() ||
-        (exists(roomPath) && (
-          request.auth.uid == get(roomPath).data.ownerId || 
-          (get(roomPath).data.moderatorIds != null && request.auth.uid in get(roomPath).data.moderatorIds)
-        ))
-      );
-    }
-
     match /users/{userId} {
-      allow get, list: if isSignedIn();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isCreator() || (
-        isOwner(userId) && 
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['tags', 'specialId'])
-      ) || (
-        isAdmin() && 
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wallet', 'updatedAt'])
-      );
-      allow delete: if isAdmin();
-
+      allow get: if true;
+      allow list: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId;
       match /profile/{profileId} {
-        allow get: if isSignedIn();
-        allow write: if isOwner(userId) || isAdmin() || isCreator();
+        allow get: if true;
+        allow write: if isSignedIn() && request.auth.uid == userId;
       }
-      
-      match /notifications/{notifId} {
-        allow get, list, write: if isOwner(userId) || isAdmin() || isCreator();
-      }
-
-      match /followingRooms/{roomId} {
-        allow get, list, write: if isOwner(userId);
-      }
-      
-      match /diamondExchanges/{exchangeId} {
-        allow get, list, write: if isOwner(userId);
+      match /notifications/{id} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
       }
     }
-
-    match /chatRooms/{chatRoomId} {
-      allow get, list: if isSignedIn();
-      allow create: if isSignedIn() && (request.resource.data.ownerId == request.auth.uid || chatRoomId == 'ummy-help-center');
-      allow update: if isSignedIn() && (
-        isOwner(resource.data.ownerId) || 
-        (resource.data.moderatorIds != null && request.auth.uid in resource.data.moderatorIds) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'updatedAt', 'isChatMuted', 'currentMusicUrl', 'roomThemeId', 'maxActiveMics', 'isLocked', 'announcement', 'welcomeMessage', 'name', 'coverUrl']) ||
-        chatRoomId == 'ummy-help-center' ||
-        isAdmin()
-      );
-      allow delete: if isExistingOwner(resource.data.ownerId) || isAdmin();
-
-      match /participants/{participantId} {
-        allow get, list: if isSignedIn();
-        allow write: if isSignedIn() && (request.auth.uid == participantId || isRoomAdmin(chatRoomId));
-        match /signaling/{signalId} {
-          allow get, list, write: if isSignedIn();
-        }
+    
+    match /chatRooms/{roomId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      match /participants/{id} {
+        allow get, list: if true;
+        allow write: if isSignedIn();
       }
-
-      match /messages/{messageId} {
-        allow get, list: if isSignedIn();
+      match /messages/{id} {
+        allow read: if true;
         allow create: if isSignedIn();
-        allow delete: if isRoomAdmin(chatRoomId);
       }
-
-      match /bans/{userId} {
-        allow get: if isSignedIn();
-        allow list, write: if isRoomAdmin(chatRoomId);
-      }
-    }
-
-    match /privateChats/{chatId} {
-      allow create: if isSignedIn() && request.resource.data.participantIds.hasAny([request.auth.uid]);
-      allow get, list, update: if isSignedIn() && (isCreator() || resource.data.participantIds.hasAny([request.auth.uid]));
-
-      match /messages/{messageId} {
-        allow read, write: if isSignedIn();
-      }
-    }
-
-    match /roomThemes/{themeId} {
-      allow get, list: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
-    match /moments/{momentId} {
-      allow get, list: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-    }
-
-    match /appConfig/{configId} {
-      allow get: if isSignedIn();
-      allow write: if isAdmin();
     }
     
-    match /adminLogs/{logId} {
-      allow get, list, create: if isAdmin();
+    match /appConfig/{id} {
+      allow get: if true;
+      allow write: if isSignedIn();
     }
     
-    match /games/{gameId} {
-      allow get, list: if isSignedIn();
-      allow write: if isAdmin();
+    match /{allPaths=**} {
+      allow read, write: if isSignedIn();
     }
   }
 }
