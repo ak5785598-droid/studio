@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { 
   Flag, 
@@ -10,10 +10,12 @@ import {
   Loader, 
   CheckCircle2,
   Users,
-  CheckCircle
+  CheckCircle,
+  Send,
+  ChevronLeft
 } from 'lucide-react';
-import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
-import { collection, query, orderBy, where } from 'firebase/firestore';
+import { useUser, useCollection, useMemoFirebase, useFirestore, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, where, serverTimestamp, doc, limit } from 'firebase/firestore';
 import { format, isToday, isYesterday, isSameWeek } from 'date-fns';
 import {
   Dialog,
@@ -26,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 const CategoryItem = ({ icon: Icon, label, subtext, date, colorClass, onClick, customIcon, isVerified }: any) => (
   <div 
@@ -113,10 +116,119 @@ const ChatListItem = ({ chat, currentUid, onSelect }: any) => {
   );
 };
 
+/**
+ * High-Fidelity Chat Room Window.
+ */
+function ChatRoomDialog({ open, onOpenChange, chatId, otherUser, currentUser }: any) {
+  const [text, setText] = useState('');
+  const firestore = useFirestore();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const messagesQuery = useMemoFirebase(() => {
+    if (!firestore || !chatId) return null;
+    return query(collection(firestore, 'privateChats', chatId, 'messages'), orderBy('timestamp', 'asc'), limit(100));
+  }, [firestore, chatId]);
+
+  const { data: messages } = useCollection(messagesQuery);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!text.trim() || !firestore || !currentUser || !chatId) return;
+
+    const messageData = {
+      text: text.trim(),
+      senderId: currentUser.uid,
+      timestamp: serverTimestamp()
+    };
+
+    // 1. Dispatch message
+    addDocumentNonBlocking(collection(firestore, 'privateChats', chatId, 'messages'), messageData);
+
+    // 2. Sync metadata
+    setDocumentNonBlocking(doc(firestore, 'privateChats', chatId), {
+      lastMessage: text.trim(),
+      lastSenderId: currentUser.uid,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    setText('');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-screen h-screen max-w-none m-0 rounded-none border-none bg-[#f8f9fa] text-black p-0 flex flex-col font-headline">
+        <DialogHeader className="p-6 pt-10 border-b border-gray-100 bg-white flex flex-row items-center gap-4 shrink-0 shadow-sm relative z-50">
+           <button onClick={() => onOpenChange(false)} className="p-2 -ml-2 hover:bg-gray-50 rounded-full transition-all">
+              <ChevronLeft className="h-6 w-6 text-gray-800" />
+           </button>
+           <Avatar className="h-10 w-10 border shadow-sm">
+              <AvatarImage src={otherUser?.avatarUrl || undefined} />
+              <AvatarFallback>{otherUser?.username?.charAt(0)}</AvatarFallback>
+           </Avatar>
+           <div className="flex-1 min-w-0">
+              <DialogTitle className="text-lg font-black uppercase italic tracking-tighter truncate">{otherUser?.username}</DialogTitle>
+              <p className="text-[9px] font-bold text-green-500 uppercase tracking-widest">Active Frequency</p>
+           </div>
+           <DialogDescription className="sr-only">Conversation with {otherUser?.username}</DialogDescription>
+        </DialogHeader>
+
+        <main className="flex-1 overflow-hidden relative">
+           <ScrollArea className="h-full px-4 pt-6" ref={scrollRef}>
+              <div className="flex flex-col gap-4 pb-10">
+                 {messages?.map((msg: any) => {
+                   const isMe = msg.senderId === currentUser?.uid;
+                   return (
+                     <div key={msg.id} className={cn("flex flex-col max-w-[80%]", isMe ? "self-end items-end" : "self-start items-start")}>
+                        <div className={cn(
+                          "px-4 py-3 rounded-2xl text-sm font-body shadow-sm",
+                          isMe ? "bg-black text-white rounded-br-none" : "bg-white text-gray-800 rounded-bl-none border border-gray-100"
+                        )}>
+                           <p className="leading-relaxed">{msg.text}</p>
+                        </div>
+                        <span className="text-[8px] font-bold text-gray-400 uppercase mt-1 px-1">
+                           {msg.timestamp ? format(msg.timestamp.toDate(), 'HH:mm') : '...'}
+                        </span>
+                     </div>
+                   );
+                 })}
+              </div>
+           </ScrollArea>
+        </main>
+
+        <footer className="p-4 pb-10 bg-white border-t border-gray-100 shrink-0">
+           <form onSubmit={handleSend} className="flex gap-2">
+              <Input 
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Say something..."
+                className="flex-1 h-12 rounded-full border-2 border-gray-50 focus:border-primary px-6 text-sm italic"
+              />
+              <button 
+                type="submit" 
+                disabled={!text.trim()}
+                className="bg-primary text-black h-12 w-12 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform disabled:opacity-50"
+              >
+                 <Send className="h-5 w-5" />
+              </button>
+           </form>
+        </footer>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function MessagesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [showOfficial, setShowOfficial] = useState(false);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [selectedRecipient, setSelectedRecipient] = useState<any>(null);
 
   const chatsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -141,6 +253,11 @@ export default function MessagesPage() {
   const { data: officialMsgs } = useCollection(officialQuery);
   const latestOfficial = officialMsgs?.[0];
 
+  const handleSelectChat = (id: string, other: any) => {
+    setActiveChatId(id);
+    setSelectedRecipient(other);
+  };
+
   return (
     <AppLayout>
       <div className="min-h-full bg-white flex flex-col relative font-headline animate-in fade-in duration-700">
@@ -159,7 +276,6 @@ export default function MessagesPage() {
 
         <div className="flex-1 bg-white relative z-10">
           <div className="flex flex-col">
-            {/* Activity Category: Updated brand from Sama to Ummy */}
             <CategoryItem 
               icon={Flag} 
               label="Ummy Team" 
@@ -193,7 +309,7 @@ export default function MessagesPage() {
                   key={chat.id} 
                   chat={chat} 
                   currentUid={user?.uid} 
-                  onSelect={(id: string, other: any) => {}} 
+                  onSelect={handleSelectChat} 
                 />
               ))
             )}
@@ -234,6 +350,15 @@ export default function MessagesPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Real-time Private Chat Dialog */}
+        <ChatRoomDialog 
+          open={!!activeChatId} 
+          onOpenChange={(open: boolean) => !open && setActiveChatId(null)}
+          chatId={activeChatId}
+          otherUser={selectedRecipient}
+          currentUser={user}
+        />
       </div>
     </AppLayout>
   );
