@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -35,7 +36,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
           <div className="relative aspect-[4/5] w-full rounded-[1.2rem] overflow-hidden shadow-md bg-slate-200">
             {room.coverUrl ? (
               <Image
-                key={room.coverUrl} // Force refresh on DP upload
+                key={room.coverUrl} // Force cache-bust refresh on every upload sync
                 src={room.coverUrl}
                 alt={room.title}
                 fill
@@ -59,7 +60,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
               <span className="text-[10px] text-white font-black">{onlineCount}</span>
             </div>
 
-            {/* Bottom Gradient */}
+            {/* Bottom Gradient for readability */}
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent z-10" />
 
             {/* Bottom-Left Owner Identity */}
@@ -93,7 +94,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
               "font-black text-xs truncate uppercase tracking-tight",
               "text-gray-900"
             )}>
-              {room.title}
+              {room.title || 'Untitled Frequency'}
             </h3>
           </div>
         </div>
@@ -114,7 +115,7 @@ export function ChatRoomCard({ room, variant = 'default' }: ChatRoomCardProps) {
           </div>
         </div>
         <div className="p-3">
-          <h3 className="font-bold text-gray-900 truncate uppercase text-sm">{room.title}</h3>
+          <h3 className="font-bold text-gray-900 truncate uppercase text-sm">{room.title || 'Frequency'}</h3>
         </div>
       </div>
     </Link>

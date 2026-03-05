@@ -21,7 +21,7 @@ export function useRoomImageUpload(roomId: string) {
 
   /**
    * High-Fidelity Compression Engine.
-   * Reduces file size while maintaining visual crispness.
+   * Reduces file size while maintaining visual crispness for the discovery grid.
    */
   const compressImage = (file: File): Promise<Blob> => {
     return new Promise((resolve) => {
@@ -32,8 +32,9 @@ export function useRoomImageUpload(roomId: string) {
         img.src = event.target?.result as string;
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 1080;
-          const MAX_HEIGHT = 1350; // Optimized for 4:5 aspect ratio
+          // Optimized for Room Card 4/5 aspect ratio (e.g., 800x1000)
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 1000; 
           let width = img.width;
           let height = img.height;
 
@@ -54,7 +55,7 @@ export function useRoomImageUpload(roomId: string) {
           ctx?.drawImage(img, 0, 0, width, height);
           canvas.toBlob((blob) => {
             resolve(blob || file);
-          }, 'image/jpeg', 0.8);
+          }, 'image/jpeg', 0.7); // 0.7 quality for elite speed/fidelity balance
         };
       };
     });
@@ -71,13 +72,13 @@ export function useRoomImageUpload(roomId: string) {
     }
 
     setIsUploading(true);
-    console.log(`[Visual Sync] Starting high-speed cover upload for: ${roomId}`);
+    console.log(`[Visual Sync] Starting real-time cover upload for frequency: ${roomId}`);
 
     try {
       // 1. High-Speed Client-Side Compression
       const compressedBlob = await compressImage(file);
       
-      // 2. Storage Upload Handshake
+      // 2. Storage Vault Handshake
       const fileExtension = 'jpg';
       const timestamp = Date.now();
       const storagePath = `chatRooms/${roomId}/cover_${timestamp}.${fileExtension}`;
@@ -86,7 +87,7 @@ export function useRoomImageUpload(roomId: string) {
       const result = await uploadBytes(storageRef, compressedBlob);
       const downloadURL = await getDownloadURL(result.ref);
 
-      // 3. Firestore Sync (Atomic Merge Protocol)
+      // 3. Firestore Global Sync (Atomic Merge Protocol)
       const roomRef = doc(firestore, 'chatRooms', roomId);
       
       const updateData = { 
@@ -94,18 +95,18 @@ export function useRoomImageUpload(roomId: string) {
         updatedAt: serverTimestamp()
       };
 
-      console.log('[Visual Sync] Dispatching room cover metadata to Firestore');
+      console.log('[Visual Sync] Dispatching new cover identifier to tribal graph');
       setDocumentNonBlocking(roomRef, updateData, { merge: true });
 
       toast({
-        title: 'Frequency Cover Updated!',
-        description: 'The new visual vibe has been synchronized.',
+        title: 'Frequency Updated',
+        description: 'Your new visual vibe is now live.',
       });
     } catch (error: any) {
       console.error('[Visual Sync] Room Cover Failed:', error);
       toast({
         variant: 'destructive',
-        title: 'Upload Failed',
+        title: 'Sync Failed',
         description: error.message || 'Could not broadcast the new visual vibe.',
       });
     } finally {
