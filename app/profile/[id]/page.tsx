@@ -19,7 +19,8 @@ import {
   Cake,
   Pencil,
   MessageCircle,
-  Plus
+  Plus,
+  User
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -67,7 +68,7 @@ const MenuItem = ({ label, icon: Icon, extra, colorClass, onClick, href }: any) 
 };
 
 /**
- * Public Profile Layout (Blueprint: Cris Mend0za)
+ * Public Profile View (Blueprint: Cris Mend0za)
  */
 const PublicProfileView = ({ profile, onBack }: { profile: any, onBack: () => void }) => {
   const { toast } = useToast();
@@ -182,7 +183,11 @@ const PublicProfileView = ({ profile, onBack }: { profile: any, onBack: () => vo
                          "absolute -top-3 left-1/2 -translate-x-1/2 z-10 h-5 w-5",
                          i === 1 ? "text-yellow-500" : i === 2 ? "text-slate-300" : "text-amber-600"
                        )}><Crown className="h-full w-full fill-current" /></div>
-                       <Avatar className="h-full w-full border-2 border-white shadow-sm"><AvatarFallback className="bg-gray-50"><User className="h-5 w-5 text-gray-200" /></AvatarFallback></Avatar>
+                       <Avatar className="h-full w-full border-2 border-white shadow-sm">
+                         <AvatarFallback className="bg-gray-50">
+                           <User className="h-5 w-5 text-gray-200" />
+                         </AvatarFallback>
+                       </Avatar>
                     </div>
                   ))}
                </div>
