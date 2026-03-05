@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -9,11 +10,12 @@ import {
   ChevronRight, 
   Loader, 
   CheckCircle2,
-  Users
+  Users,
+  CheckCircle
 } from 'lucide-react';
 import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { collection, query, orderBy, where } from 'firebase/firestore';
-import { format, isToday } from 'date-fns';
+import { format, isToday, isYesterday, isSameWeek } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -26,20 +28,27 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { cn } from '@/lib/utils';
 
-const CategoryItem = ({ icon: Icon, label, subtext, date, colorClass, onClick, customIcon }: any) => (
+const CategoryItem = ({ icon: Icon, label, subtext, date, colorClass, onClick, customIcon, isVerified }: any) => (
   <div 
     onClick={onClick}
-    className="px-6 py-5 flex items-center gap-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer group border-b border-gray-50 last:border-0"
+    className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer group"
   >
-    <div className={cn("h-14 w-14 rounded-full flex items-center justify-center shadow-md shrink-0", colorClass)}>
-      {customIcon ? customIcon : <Icon className="h-7 w-7 text-white" fill="white" />}
+    <div className="relative shrink-0">
+      <div className={cn("h-14 w-14 rounded-full flex items-center justify-center shadow-sm", colorClass)}>
+        {customIcon ? customIcon : <Icon className="h-7 w-7 text-white" fill="white" />}
+      </div>
+      {isVerified && (
+        <div className="absolute bottom-0 right-0 bg-white rounded-full p-0.5 shadow-sm">
+           <CheckCircle className="h-4 w-4 text-green-500 fill-green-500 text-white" strokeWidth={3} />
+        </div>
+      )}
     </div>
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between mb-0.5">
-        <h3 className="font-black text-[17px] text-gray-900 tracking-tight">{label}</h3>
-        {date && <span className="text-[11px] font-bold text-gray-300 uppercase tracking-tighter">{date}</span>}
+        <h3 className="font-bold text-[16px] text-gray-900 tracking-tight">{label}</h3>
+        {date && <span className="text-[12px] font-medium text-gray-400">{date}</span>}
       </div>
-      {subtext && <p className="text-[13px] text-gray-400 truncate font-body italic">{subtext}</p>}
+      {subtext && <p className="text-[14px] text-gray-400 truncate">{subtext}</p>}
     </div>
   </div>
 );
@@ -61,36 +70,43 @@ const ChatListItem = ({ chat, currentUid, onSelect }: any) => {
 
   if (!otherUser) return null;
 
-  const displayTime = chat.updatedAt ? (
-    isToday(chat.updatedAt.toDate()) 
-      ? format(chat.updatedAt.toDate(), 'HH:mm') 
-      : format(chat.updatedAt.toDate(), 'MMM d')
-  ) : 'Syncing';
+  const getDisplayTime = (timestamp: any) => {
+    if (!timestamp) return '...';
+    const date = timestamp.toDate();
+    if (isToday(date)) return format(date, 'h:mm a');
+    if (isYesterday(date)) return 'Yesterday';
+    if (isSameWeek(date, new Date())) return format(date, 'eeee');
+    return format(date, 'M/d/yy');
+  };
+
+  const isOfficial = otherUser.tags?.includes('Official') || otherUser.tags?.includes('Admin');
 
   return (
     <div 
       onClick={() => onSelect(chat.id, otherUser)}
-      className="px-6 py-4 flex gap-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer group border-b border-gray-50 last:border-0"
+      className="px-6 py-4 flex gap-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer group"
     >
       <div className="relative shrink-0">
         <Avatar className="h-14 w-14 border border-gray-100 shadow-sm">
           <AvatarImage src={otherUser.avatarUrl} />
           <AvatarFallback>{otherUser.username?.charAt(0) || 'U'}</AvatarFallback>
         </Avatar>
-        {otherUser.isOnline && (
-          <div className="absolute bottom-0 right-0 h-4 w-4 bg-green-500 rounded-full border-2 border-white shadow-sm" />
+        {isOfficial && (
+          <div className="absolute bottom-0 right-0 bg-white rounded-full p-0.5 shadow-sm">
+             <CheckCircle className="h-4 w-4 text-green-500 fill-green-500 text-white" strokeWidth={3} />
+          </div>
         )}
       </div>
       <div className="flex-1 min-w-0 pt-1">
         <div className="flex items-center justify-between mb-0.5">
-          <h3 className="font-black text-[15px] text-gray-900 truncate tracking-tight">
+          <h3 className="font-bold text-[16px] text-gray-900 truncate tracking-tight">
             {otherUser.username}
           </h3>
-          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter">
-            {displayTime}
+          <span className="text-[12px] font-medium text-gray-400">
+            {getDisplayTime(chat.updatedAt)}
           </span>
         </div>
-        <p className="text-[13px] text-gray-400 truncate italic font-body">
+        <p className="text-[14px] text-gray-400 truncate">
           {chat.lastMessage || 'Sent a vibe'}
         </p>
       </div>
@@ -147,29 +163,23 @@ export default function MessagesPage() {
             {/* Activity Category: Exact blueprint subtext and date */}
             <CategoryItem 
               icon={Flag} 
-              label="Activity" 
-              subtext={latestOfficial?.content || "🤩Yari's 1st Anniversary Special Of..."}
-              date={latestOfficial?.timestamp ? format(latestOfficial.timestamp.toDate(), 'M/d/ yyyy') : "4/3/ 2026"}
-              colorClass="bg-[#FF6600]"
+              label="Sama Team" 
+              subtext={latestOfficial?.content || "[Image]"}
+              date={latestOfficial?.timestamp ? format(latestOfficial.timestamp.toDate(), 'h:mm a') : "6:10 PM"}
+              colorClass="bg-green-100"
+              customIcon={<img src="https://img.icons8.com/color/96/lion.png" className="h-10 w-10" alt="Team" />}
+              isVerified
               onClick={() => setShowOfficial(true)}
             />
             
-            {/* Family Category: Shield with Users icon */}
             <CategoryItem 
               icon={Shield} 
-              label="Family" 
-              colorClass="bg-[#FFBB00]"
-              customIcon={<div className="relative flex items-center justify-center">
-                <Shield className="h-8 w-8 text-white fill-white opacity-40" />
-                <Users className="h-4 w-4 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-              </div>}
-            />
-
-            {/* Feedback Category: Message Square with dots */}
-            <CategoryItem 
-              icon={MessageSquareText} 
-              label="Feedback" 
-              colorClass="bg-[#3366FF]"
+              label="Sama System" 
+              subtext="Welcome to SAMA! Reach out to us ..."
+              date="Sunday"
+              colorClass="bg-green-600"
+              customIcon={<img src="https://img.icons8.com/color/96/appointment-reminders--v1.png" className="h-8 w-8" alt="System" />}
+              isVerified
             />
 
             {/* Real-time Chats */}
