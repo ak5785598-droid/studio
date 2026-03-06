@@ -8,13 +8,14 @@ import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, increment, serverTimestamp } from 'firebase/firestore';
 import { 
   ChevronLeft, 
-  Volume2,
-  VolumeX,
-  History,
-  HelpCircle,
-  Trophy,
-  Users,
-  RefreshCcw
+  Volume2, 
+  VolumeX, 
+  History, 
+  HelpCircle, 
+  Trophy, 
+  Users, 
+  RefreshCcw,
+  X
 } from 'lucide-react';
 import { GoldCoinIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
@@ -238,7 +239,7 @@ export default function WildPartyPage() {
                 {winners.map((winner, idx) => (
                   <div key={idx} className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-20 duration-700">
                      <Avatar className={cn("border-4 shadow-xl h-24 w-24 border-yellow-400")}>
-                        <AvatarImage src={winner.avatar}/><AvatarFallback>W</AvatarFallback>
+                        <AvatarImage src={winner.avatar || undefined}/><AvatarFallback>W</AvatarFallback>
                      </Avatar>
                      <div className="bg-yellow-500/20 border-x-2 border-t-2 border-yellow-400 w-32 h-32 rounded-t-3xl flex flex-col items-center justify-center">
                         <span className="text-3xl">🥇</span>
@@ -274,7 +275,7 @@ export default function WildPartyPage() {
            <div className="flex gap-2">
               <button className="bg-yellow-500 p-2 rounded-full text-black shadow-lg"><HelpCircle className="h-5 w-5" /></button>
               <button className="bg-yellow-500 p-2 rounded-full text-black shadow-lg"><Trophy className="h-5 w-5" /></button>
-              <button className="bg-yellow-500 p-2 rounded-full text-black shadow-lg"><History className="h-5 w-5" /></button>
+              <button onClick={() => router.back()} className="bg-yellow-500 p-2 rounded-full text-black shadow-lg"><X className="h-5 w-5" /></button>
            </div>
         </div>
 
@@ -291,13 +292,13 @@ export default function WildPartyPage() {
            </div>
         </div>
 
-        <main className="flex-1 relative z-10 flex flex-col items-center justify-center py-10 px-4">
-           <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
-              <div className="relative z-20 w-40 h-40 bg-gradient-to-b from-yellow-300 to-yellow-600 rounded-full shadow-2xl flex flex-col items-center justify-center border-4 border-white/20 p-4 text-center">
-                 <p className="text-[10px] font-black uppercase text-black/60 leading-tight">
-                    {gameState === 'betting' ? 'Select Animal now' : 'Spinning...'}
+        <main className="flex-1 relative z-10 flex flex-col items-center justify-center py-6 px-4">
+           <div className="relative w-full max-w-[280px] aspect-square flex items-center justify-center">
+              <div className="relative z-20 w-28 h-28 bg-gradient-to-b from-yellow-300 to-yellow-600 rounded-full shadow-2xl flex flex-col items-center justify-center border-4 border-white/20 p-2 text-center">
+                 <p className="text-[8px] font-black uppercase text-black/60 leading-tight">
+                    {gameState === 'betting' ? 'Bet Now' : 'Spinning...'}
                  </p>
-                 <span className="text-5xl font-black text-black italic tracking-tighter animate-in zoom-in">
+                 <span className="text-4xl font-black text-black italic tracking-tighter animate-in zoom-in">
                     {gameState === 'betting' ? `${timeLeft}s` : '🎲'}
                  </span>
               </div>
@@ -322,19 +323,19 @@ export default function WildPartyPage() {
                 >
                    <div className="relative">
                       <div className={cn(
-                        "h-20 w-20 rounded-3xl flex items-center justify-center text-5xl transition-all border-2",
+                        "h-14 w-14 rounded-2xl flex items-center justify-center text-3xl transition-all border-2",
                         highlightIdx === idx ? "bg-yellow-500 border-white shadow-xl" : "bg-black/40 border-white/10 group-hover:bg-black/60"
                       )}>
                          {animal.emoji}
                       </div>
-                      <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-[10px] font-black px-1.5 py-0.5 rounded-lg shadow-lg border border-white/20">
+                      <div className="absolute -top-1 -right-1 bg-yellow-500 text-black text-[8px] font-black px-1 py-0.5 rounded shadow-lg border border-white/20">
                          {animal.label}
                       </div>
                    </div>
                    {myBets[animal.id] > 0 && (
-                     <div className="mt-1 bg-black/60 backdrop-blur-md px-3 py-0.5 rounded-full border border-white/10 flex items-center gap-1.5 animate-in zoom-in">
-                        <GoldCoinIcon className="h-2.5 w-2.5" />
-                        <p className="text-[8px] font-black uppercase tracking-widest text-white/60">Total <span className="text-yellow-500">{myBets[animal.id] || 0}</span></p>
+                     <div className="mt-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 flex items-center gap-1 animate-in zoom-in">
+                        <GoldCoinIcon className="h-2 w-2" />
+                        <p className="text-[7px] font-black uppercase text-white/60"><span className="text-yellow-500">{myBets[animal.id] || 0}</span></p>
                      </div>
                    )}
                 </button>
@@ -342,7 +343,7 @@ export default function WildPartyPage() {
            </div>
         </main>
 
-        <footer className="relative z-50 p-4 pb-10 bg-gradient-to-t from-black via-black/80 to-transparent">
+        <footer className="relative z-50 p-4 pb-10 bg-gradient-to-t from-black via-black/80 to-transparent -translate-y-8">
            <div className="max-w-md mx-auto space-y-4">
               <div className="flex items-center justify-between">
                  <div className="flex items-center gap-2 bg-black/60 px-4 py-2 rounded-full border border-white/10">
