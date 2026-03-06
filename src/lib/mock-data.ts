@@ -10,6 +10,14 @@ const rooms: Room[] = [];
 
 const games: Game[] = [
   { 
+    id: 'g0', 
+    title: 'Fruit Slots', 
+    slug: 'fruit-slots', 
+    coverUrl: 'https://images.unsplash.com/photo-1611080634139-6c8821f5f6ca?q=80&w=1000', 
+    cost: 0, 
+    imageHint: '3d lemon fruit slots' 
+  },
+  { 
     id: 'g1', 
     title: 'Ludo Masters', 
     slug: 'ludo', 
