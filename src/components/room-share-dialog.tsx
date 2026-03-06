@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, Copy, Send, Check } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface RoomShareDialogProps {
   open: boolean;
