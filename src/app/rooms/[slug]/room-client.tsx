@@ -135,7 +135,6 @@ export function RoomClient({ room }: { room: Room }) {
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
   const [isMutedLocal, setIsMutedLocal] = useState(false);
-  const [hasHeadphones, setHasHeadphones] = useState(false);
 
   const [activeCombo, setActiveCombo] = useState<{ gift: GiftItem, recipient: any, count: number } | null>(null);
 
@@ -156,9 +155,10 @@ export function RoomClient({ room }: { room: Room }) {
     return query(collection(firestore, 'chatRooms', room.id, 'participants'));
   }, [firestore, room.id]);
 
-  const { data: participants = [] } = useCollection<RoomParticipant>(participantsQuery);
-  const onlineCount = participants?.length || 0;
-  const currentUserParticipant = participants?.find(p => p.uid === currentUser?.uid);
+  const { data: participantsData } = useCollection<RoomParticipant>(participantsQuery);
+  const participants = participantsData || [];
+  const onlineCount = participants.length;
+  const currentUserParticipant = participants.find(p => p.uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
   
   const { remoteStreams } = useWebRTC(room.id, isInSeat, currentUserParticipant?.isMuted ?? true);
@@ -202,7 +202,7 @@ export function RoomClient({ room }: { room: Room }) {
   const currentTheme = ROOM_THEMES.find(t => t.id === (room as any).roomThemeId) || ROOM_THEMES[0];
 
   const Seat = ({ index, label }: { index: number, label: string }) => {
-    const occupant = participants?.find(p => p.seatIndex === index);
+    const occupant = participants.find(p => p.seatIndex === index);
     const isLocked = room.lockedSeats?.includes(index);
     return (
       <div className="flex flex-col items-center gap-1 w-[22%]">

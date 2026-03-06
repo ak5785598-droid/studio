@@ -42,9 +42,10 @@ export function RoomUserListDialog({ open, onOpenChange, roomId }: RoomUserListD
     return query(collection(firestore, 'chatRooms', roomId, 'participants'), orderBy('joinedAt', 'desc'));
   }, [firestore, roomId]);
 
-  const { data: rawParticipants = [], isLoading } = useCollection(participantsQuery);
+  const { data: rawParticipants, isLoading } = useCollection(participantsQuery);
 
   const participants = useMemo(() => {
+    if (!rawParticipants) return [];
     return rawParticipants.filter(p => {
       const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
       if (!lastSeen) return true;

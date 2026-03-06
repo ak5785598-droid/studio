@@ -49,10 +49,11 @@ export function CompactRoomView() {
     return query(collection(firestore, 'chatRooms', activeRoom.id, 'participants'));
   }, [firestore, activeRoom?.id, currentUser]);
 
-  const { data: rawParticipants = [] } = useCollection(participantsQuery);
+  const { data: rawParticipants } = useCollection(participantsQuery);
   
   // ANTI-GHOST FILTER: Real-time UI purge for inactive participants
   const participants = useMemo(() => {
+    if (!rawParticipants) return [];
     return rawParticipants.filter(p => {
       const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
       if (!lastSeen) return true;
