@@ -70,12 +70,25 @@ const MenuItem = ({ label, icon: Icon, extra, colorClass, onClick, href }: any) 
   );
 };
 
+const COUNTRIES: Record<string, { flag: string }> = {
+  IN: { flag: '🇮🇳' },
+  PH: { flag: '🇵🇭' },
+  US: { flag: '🇺🇸' },
+  PK: { flag: '🇵🇰' },
+  ID: { flag: '🇮🇩' },
+  BR: { flag: '🇧🇷' },
+  EG: { flag: '🇪🇬' },
+  TR: { flag: '🇹🇷' },
+  VN: { flag: '🇻🇳' },
+};
+
 /**
  * Public Profile View (Blueprint: Cris Mend0za)
  */
 const PublicProfileView = ({ profile, onBack }: { profile: any, onBack: () => void }) => {
   const { toast } = useToast();
   const firstLetter = (profile.username || 'U').charAt(0).toUpperCase();
+  const countryData = profile.country ? COUNTRIES[profile.country] : null;
 
   return (
     <div className="min-h-full bg-white font-headline pb-32 animate-in fade-in duration-700">
@@ -100,8 +113,13 @@ const PublicProfileView = ({ profile, onBack }: { profile: any, onBack: () => vo
               <div className="flex-1 pb-1">
                  <h1 className="text-2xl font-black text-white tracking-tight leading-none mb-2">{profile.username}</h1>
                  <div className="flex items-center gap-2">
-                    <div className="bg-pink-400 rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-black text-white">♀</div>
-                    <span className="text-lg">🇵🇭</span>
+                    <div className={cn(
+                      "rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-black text-white",
+                      profile.gender === 'Female' ? "bg-pink-400" : "bg-blue-500"
+                    )}>
+                      {profile.gender === 'Female' ? '♀' : '♂'}
+                    </div>
+                    {countryData && <span className="text-lg">{countryData.flag}</span>}
                     <div className="flex items-center gap-1 cursor-pointer" onClick={() => { navigator.clipboard.writeText(profile.specialId); toast({ title: 'ID Copied' }); }}>
                        <span className="text-[11px] font-bold text-white/80 uppercase tracking-widest">ID:{profile.specialId}</span>
                        <Copy className="h-3 w-3 text-white/40" />
@@ -252,13 +270,14 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   
   if (!profile) return null;
 
+  const countryData = profile.country ? COUNTRIES[profile.country] : null;
+
   // Render original "Me" tab style if it's the owner's profile
   if (isOwnProfile) {
     return (
       <AppLayout>
         <div className="min-h-full bg-[#f8f9fa] text-gray-900 font-headline relative flex flex-col pb-32 overflow-x-hidden animate-in fade-in duration-700">
           
-          {/* Top Corner Icon Requested: ✏️ */}
           {isOwnProfile && (
             <div className="absolute top-4 right-4 z-50">
               <EditProfileDialog profile={profile} trigger={
@@ -271,7 +290,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
           {/* Header Dimension - Modern White Roster */}
           <div className="bg-white px-6 pt-12 pb-8 flex flex-col items-center text-center space-y-4 border-b border-gray-50 relative">
-            {/* Header Section Pencil Icon Requested: Right side corner */}
             {isOwnProfile && (
               <div className="absolute top-12 right-6">
                 <EditProfileDialog profile={profile} trigger={
@@ -297,8 +315,13 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
             <div className="space-y-1">
               <div className="flex items-center justify-center gap-2">
                 <h1 className="text-2xl font-black tracking-tighter uppercase">{profile.username}</h1>
-                <div className="bg-blue-500 rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-black text-white">♂</div>
-                <span className="text-lg">🇮🇳</span>
+                <div className={cn(
+                  "rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-black text-white",
+                  profile.gender === 'Female' ? "bg-pink-400" : "bg-blue-500"
+                )}>
+                  {profile.gender === 'Female' ? '♀' : '♂'}
+                </div>
+                {countryData && <span className="text-lg">{countryData.flag}</span>}
               </div>
               <div className="flex items-center justify-center gap-1.5 cursor-pointer" onClick={() => { navigator.clipboard.writeText(profile.specialId); toast({ title: 'ID Copied' }); }}>
                 <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">ID: {profile.specialId}</span>

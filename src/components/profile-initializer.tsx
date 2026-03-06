@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -99,6 +98,8 @@ export function ProfileInitializer() {
             avatarUrl: user.photoURL || '', 
             email: user.email || '',
             bio: 'Synchronized with the Ummy frequency.',
+            gender: null, // One-time set in profile edit
+            country: null, // One-time set in profile edit
             currentRoomId: null,
             isOnline: true,
             lastSeen: serverTimestamp(),

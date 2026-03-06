@@ -10,6 +10,8 @@ export interface UserProfile {
     avatarUrl: string;
     bio?: string;
     email: string;
+    gender?: 'Male' | 'Female' | null;
+    country?: string | null;
     interests?: string[];
     wallet?: {
       coins: number;
