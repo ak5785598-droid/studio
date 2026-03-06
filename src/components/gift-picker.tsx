@@ -131,20 +131,38 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
 
       const netCost = totalCost - winAmount;
 
-      const updateData = {
+      // 1. SENDER UPDATE: Deduct coins, update spent stats
+      const senderUpdateData = {
         'wallet.coins': increment(-netCost),
         'wallet.totalSpent': increment(totalCost),
         'wallet.dailySpent': increment(totalCost),
         updatedAt: serverTimestamp()
       };
 
-      updateDocumentNonBlocking(userRef, updateData);
-      updateDocumentNonBlocking(profileRef, updateData);
+      updateDocumentNonBlocking(userRef, senderUpdateData);
+      updateDocumentNonBlocking(profileRef, senderUpdateData);
       updateDocumentNonBlocking(roomRef, { 
         'stats.totalGifts': increment(totalCost),
         'stats.dailyGifts': increment(totalCost)
       });
 
+      // 2. RECIPIENT UPDATE: Diamond Yield Protocol (40% Conversion)
+      // If sent to a specific user, they receive 40% of the coin value as diamonds
+      if (recipient && recipient.uid && recipient.uid !== user.uid) {
+        const diamondYield = Math.floor(totalCost * 0.4);
+        const recipientRef = doc(firestore, 'users', recipient.uid);
+        const recipientProfileRef = doc(firestore, 'users', recipient.uid, 'profile', recipient.uid);
+        
+        const recUpdateData = {
+          'wallet.diamonds': increment(diamondYield),
+          updatedAt: serverTimestamp()
+        };
+
+        updateDocumentNonBlocking(recipientRef, recUpdateData);
+        updateDocumentNonBlocking(recipientProfileRef, recUpdateData);
+      }
+
+      // 3. BROADCAST SYNC: Dispatch message to room
       addDocumentNonBlocking(collection(firestore, 'chatRooms', roomId, 'messages'), {
         type: 'gift',
         senderId: user.uid,
@@ -168,7 +186,7 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
         });
       }
       
-      onOpenChange(false); // Immediate closure for combo sync
+      onOpenChange(false);
       setSelectedGift(null);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Dispatch Failed' });
@@ -281,7 +299,7 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
         </div>
 
         <div className="p-6 bg-black/40 border-t border-white/5 flex items-center justify-between gap-4">
-           <div className="flex items-center gap-2 cursor-pointer">
+           <div className="flex items-center gap-2 cursor-pointer" onClick={() => onOpenChange(false)}>
               <GoldCoinIcon className="h-5 w-5" />
               <span className="text-lg font-black italic text-white">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
               <ChevronRight className="h-4 w-4 text-white/40" />

@@ -92,25 +92,22 @@ function RemoteAudio({ stream }: { stream: MediaStream }) {
   useEffect(() => {
     if (!stream) return;
 
-    // VOICE BOOST PROTOCOL: Inbound (Listening Volume)
-    // Synchronizes the remote frequency with boosted gain for maximum tribal clarity.
     try {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
       contextRef.current = ctx;
       
       const source = ctx.createMediaStreamSource(stream);
       const gainNode = ctx.createGain();
-      gainNode.gain.value = 2.5; // Significant listening boost (250%)
+      gainNode.gain.value = 2.5; 
       
       gainNode.connect(ctx.destination);
       
       if (audioRef.current) {
         audioRef.current.srcObject = stream;
-        audioRef.current.muted = true; // Muted because Web Audio handles the output
+        audioRef.current.muted = true;
         audioRef.current.play().catch(() => {});
       }
     } catch (e) {
-      console.warn("[Voice Sync] Listening boost failed, falling back to standard audio.", e);
       if (audioRef.current) {
         audioRef.current.srcObject = stream;
         audioRef.current.muted = false;
@@ -268,7 +265,6 @@ export function RoomClient({ room }: { room: Room }) {
   const [isMutedLocal, setIsMutedLocal] = useState(false);
   const [hasHeadphones, setHasHeadphones] = useState(false);
 
-  // Combo Protocol State
   const [activeCombo, setActiveCombo] = useState<{ gift: GiftItem, recipient: any, count: number } | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -305,7 +301,6 @@ export function RoomClient({ room }: { room: Room }) {
 
   const occupant = participants?.find(p => p.seatIndex === selectedSeatIdx);
 
-  // HEADPHONE SYNC ENGINE
   useEffect(() => {
     const handleDeviceChange = async () => {
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -313,16 +308,11 @@ export function RoomClient({ room }: { room: Room }) {
       
       setHasHeadphones(connected);
       if (connected) {
-        toast({
-          title: 'Headset Synchronized',
-          description: 'High-fidelity audio mesh is now tuned for your headphones.',
-        });
+        toast({ title: 'Headset Synchronized', description: 'High-fidelity audio mesh is now tuned for your headphones.' });
       }
     };
-
     navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
-    handleDeviceChange(); // Initial check
-
+    handleDeviceChange();
     return () => navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
   }, [toast]);
 
@@ -342,13 +332,7 @@ export function RoomClient({ room }: { room: Room }) {
     e.preventDefault();
     if (!messageText.trim() || !currentUser || !firestore || !userProfile) return;
     addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
-      content: messageText, 
-      senderId: currentUser.uid, 
-      senderName: userProfile.username || 'User', 
-      senderAvatar: userProfile.avatarUrl || null, 
-      chatRoomId: room.id, 
-      timestamp: serverTimestamp(), 
-      type: 'text'
+      content: messageText, senderId: currentUser.uid, senderName: userProfile.username || 'User', senderAvatar: userProfile.avatarUrl || null, chatRoomId: room.id, timestamp: serverTimestamp(), type: 'text'
     });
     setMessageText('');
   };
@@ -391,22 +375,26 @@ export function RoomClient({ room }: { room: Room }) {
 
       const netCost = gift.price - winAmount;
 
-      updateDocumentNonBlocking(userRef, { 
+      // SENDER ATOMIC SYNC
+      const senderUpdateData = { 
         'wallet.coins': increment(-netCost), 
         'wallet.totalSpent': increment(gift.price),
         'wallet.dailySpent': increment(gift.price),
         updatedAt: serverTimestamp() 
-      });
-      updateDocumentNonBlocking(profileRef, { 
-        'wallet.coins': increment(-netCost), 
-        'wallet.totalSpent': increment(gift.price),
-        'wallet.dailySpent': increment(gift.price),
-        updatedAt: serverTimestamp() 
-      });
-      updateDocumentNonBlocking(roomRef, { 
-        'stats.totalGifts': increment(gift.price),
-        'stats.dailyGifts': increment(gift.price)
-      });
+      };
+      updateDocumentNonBlocking(userRef, senderUpdateData);
+      updateDocumentNonBlocking(profileRef, senderUpdateData);
+      updateDocumentNonBlocking(roomRef, { 'stats.totalGifts': increment(gift.price), 'stats.dailyGifts': increment(gift.price) });
+
+      // RECIPIENT DIAMOND YIELD (40% CONVERSION)
+      if (recipient && recipient.uid && recipient.uid !== currentUser.uid) {
+        const diamondYield = Math.floor(gift.price * 0.4);
+        const recipientRef = doc(firestore, 'users', recipient.uid);
+        const recipientProfileRef = doc(firestore, 'users', recipient.uid, 'profile', recipient.uid);
+        const recUpdateData = { 'wallet.diamonds': increment(diamondYield), updatedAt: serverTimestamp() };
+        updateDocumentNonBlocking(recipientRef, recUpdateData);
+        updateDocumentNonBlocking(recipientProfileRef, recUpdateData);
+      }
 
       addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
         type: 'gift',
@@ -430,10 +418,7 @@ export function RoomClient({ room }: { room: Room }) {
   const takeSeat = (index: number) => { 
     if (!firestore || !room.id || !currentUser) return; 
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { 
-      seatIndex: index, 
-      isMuted: true, 
-      activeWave: userProfile?.inventory?.activeWave || 'Default',
-      updatedAt: serverTimestamp() 
+      seatIndex: index, isMuted: true, activeWave: userProfile?.inventory?.activeWave || 'Default', updatedAt: serverTimestamp() 
     }); 
   };
 
@@ -441,14 +426,9 @@ export function RoomClient({ room }: { room: Room }) {
     setSelectedSeatIdx(index);
     if (occupant) {
       setSelectedParticipantUid(occupant.uid);
-      if (canManageRoom || occupant.uid === currentUser?.uid) {
-        setIsSeatMenuOpen(true);
-      } else {
-        setIsUserProfileCardOpen(true);
-      }
-    } else {
-      setIsSeatMenuOpen(true);
-    }
+      if (canManageRoom || occupant.uid === currentUser?.uid) setIsSeatMenuOpen(true);
+      else setIsUserProfileCardOpen(true);
+    } else setIsSeatMenuOpen(true);
   };
 
   const handleSeatAction = (action: string) => {
@@ -458,11 +438,8 @@ export function RoomClient({ room }: { room: Room }) {
 
     switch(action) {
       case 'take-seat':
-        if (room.lockedSeats?.includes(selectedSeatIdx) && !canManageRoom) {
-          toast({ variant: 'destructive', title: 'Restricted', description: 'Locked slot.' });
-        } else {
-          takeSeat(selectedSeatIdx);
-        }
+        if (room.lockedSeats?.includes(selectedSeatIdx) && !canManageRoom) toast({ variant: 'destructive', title: 'Restricted', description: 'Locked slot.' });
+        else takeSeat(selectedSeatIdx);
         break;
       case 'leave-seat':
         updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { seatIndex: 0, isMuted: true });
@@ -481,23 +458,14 @@ export function RoomClient({ room }: { room: Room }) {
         break;
       case 'kick-out':
         if (canManageRoom && occupant) {
-          const expiresAt = new Date();
-          expiresAt.setMinutes(expiresAt.getMinutes() + 60); // 1 hour default
-          setDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'bans', occupant.uid), {
-            uid: occupant.uid,
-            expiresAt: expiresAt,
-            createdAt: serverTimestamp()
-          }, { merge: true });
+          const expiresAt = new Date(); expiresAt.setMinutes(expiresAt.getMinutes() + 60);
+          setDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'bans', occupant.uid), { uid: occupant.uid, expiresAt: expiresAt, createdAt: serverTimestamp() }, { merge: true });
           updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', occupant.uid), { seatIndex: 0, isMuted: true });
           toast({ title: 'Tribe Exclusion Active', description: `${occupant.name} restricted for 1 hour.` });
         }
         break;
-      case 'invite':
-        setIsShareOpen(true);
-        break;
-      case 'view-profile':
-        setIsUserProfileCardOpen(true);
-        break;
+      case 'invite': setIsShareOpen(true); break;
+      case 'view-profile': setIsUserProfileCardOpen(true); break;
     }
     setIsSeatMenuOpen(false);
   };
@@ -515,7 +483,6 @@ export function RoomClient({ room }: { room: Room }) {
   const Seat = ({ index, label }: { index: number, label: string }) => {
     const occupant = participants?.find(p => p.seatIndex === index);
     const isLocked = room.lockedSeats?.includes(index);
-
     return (
       <div className="flex flex-col items-center gap-1 w-[22%]">
         <div className="relative">
@@ -539,13 +506,8 @@ export function RoomClient({ room }: { room: Room }) {
       <EntryCard entrant={latestEntrance} onComplete={() => setLatestEntrance(null)} />
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
       
-      {/* Combo Overlay */}
       {activeCombo && (
-        <GiftComboButton 
-          count={activeCombo.count} 
-          onClick={handleComboDispatch} 
-          onTimeout={() => setActiveCombo(null)} 
-        />
+        <GiftComboButton count={activeCombo.count} onClick={handleComboDispatch} onTimeout={() => setActiveCombo(null)} />
       )}
 
       <div className="absolute inset-0 z-0">
@@ -594,9 +556,7 @@ export function RoomClient({ room }: { room: Room }) {
            <div onClick={() => setShowInput(true)} className="bg-white/10 backdrop-blur-xl rounded-full h-12 flex-1 px-6 flex items-center text-white/60 font-bold text-sm cursor-pointer">Say Hi</div>
            <div className="flex items-center gap-3">
               <button onClick={handleMicToggle} disabled={!isInSeat} className={cn("p-2 rounded-full transition-all active:scale-90", !isInSeat ? "bg-white/5 text-white/20 opacity-50" : (currentUserParticipant?.isMuted ? "bg-white/10 text-white" : "bg-green-500 text-white shadow-lg border border-white/20"))}>{isInSeat && !currentUserParticipant?.isMuted ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}</button>
-              <button className={cn("p-2 rounded-full transition-all active:scale-90 bg-white/10", hasHeadphones ? "text-green-400" : "text-white")}>
-                <Headphones className="h-5 w-5" />
-              </button>
+              <button className={cn("p-2 rounded-full transition-all active:scale-90 bg-white/10", hasHeadphones ? "text-green-400" : "text-white")}><Headphones className="h-5 w-5" /></button>
               <button onClick={() => setIsMutedLocal(!isMutedLocal)} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform">{isMutedLocal ? <VolumeX className="h-5 w-5 text-white/60" /> : <Volume2 className="h-5 w-5 text-white" />}</button>
               <button onClick={() => router.push('/messages')} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform"><Mail className="h-5 w-5 text-white" /></button>
               <button onClick={() => { setGiftRecipient(null); setIsGiftPickerOpen(true); }} className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl active:scale-90 transition-transform"><GiftIcon className="h-6 w-6 text-white fill-white" /></button>
