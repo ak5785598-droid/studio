@@ -21,6 +21,7 @@ interface LuckyRainOverlayProps {
 /**
  * High-Fidelity Lucky Rain Overlay.
  * Generates interactive falling coins that add 10 Gold Coins to the user's vault on tap.
+ * Duration: Strictly 30 seconds.
  */
 export function LuckyRainOverlay({ active, onComplete }: LuckyRainOverlayProps) {
   const [coins, setCoins] = useState<FallingCoin[]>([]);
@@ -29,19 +30,20 @@ export function LuckyRainOverlay({ active, onComplete }: LuckyRainOverlayProps) 
 
   useEffect(() => {
     if (active) {
-      // Generate 40 coins for a rich tribal experience
-      const newCoins = Array.from({ length: 40 }).map((_, i) => ({
+      // Generate high-density coins for a rich 30-second tribal experience
+      const newCoins = Array.from({ length: 120 }).map((_, i) => ({
         id: Date.now() + i,
         left: Math.random() * 90, // Keep away from extreme edges
-        delay: Math.random() * 5, // Staggered entry over 5 seconds
-        duration: 3 + Math.random() * 3, // Random fall speed
+        delay: Math.random() * 28, // Staggered entry over 28 seconds to fit 30s window
+        duration: 2 + Math.random() * 2, // Randomized fall speed for SVGA feel
       }));
       setCoins(newCoins);
 
+      // Strictly 30 second synchronization
       const timer = setTimeout(() => {
         setCoins([]);
         onComplete();
-      }, 10000); // 10s total duration
+      }, 30000);
 
       return () => clearTimeout(timer);
     }

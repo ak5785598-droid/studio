@@ -175,12 +175,13 @@ export function RoomClient({ room }: { room: Room }) {
       const lastMsg = firestoreMessages[firestoreMessages.length - 1];
       if (lastMsg.type === 'gift') {
         setActiveGiftAnimation(lastMsg.giftId);
-      } else if (lastMsg.type === 'lucky-rain') {
+      } else if (lastMsg.type === 'lucky-rain' || lastMsg.type === 'lucky-bag') {
+        // High-Fidelity Sync: Both modes trigger the 30s interactive coin rain
         setIsLuckyRainActive(true);
-      } else if (lastMsg.type === 'lucky-bag') {
-        // Trigger the "Grab" visual logic
-        setGrabBagActive(lastMsg.bagId || 'bag_default');
-        setTimeout(() => setGrabBagActive(null), 10000); // Visual bag disappears after 10s
+        if (lastMsg.type === 'lucky-bag') {
+          setGrabBagActive(lastMsg.bagId || 'bag_default');
+          setTimeout(() => setGrabBagActive(null), 10000);
+        }
       }
     }
   }, [firestoreMessages]);
@@ -196,21 +197,12 @@ export function RoomClient({ room }: { room: Room }) {
 
   const handleGrabBag = async () => {
     if (!currentUser || !firestore || !userProfile || !grabBagActive) return;
-    
-    // Randomized Grab Logic Protocol
-    const winAmount = Math.floor(Math.random() * 450) + 50; // Random grab between 50 and 500 coins
-    
+    const winAmount = Math.floor(Math.random() * 450) + 50; 
     const userRef = doc(firestore, 'users', currentUser.uid);
     const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
-    
-    const updateData = {
-      'wallet.coins': increment(winAmount),
-      updatedAt: serverTimestamp()
-    };
-
+    const updateData = { 'wallet.coins': increment(winAmount), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(userRef, updateData);
     updateDocumentNonBlocking(profileRef, updateData);
-    
     setGrabBagActive(null);
     toast({ title: 'Bag Synchronized!', description: `You grabbed ${winAmount.toLocaleString()} Gold Coins!` });
   };
@@ -265,21 +257,15 @@ export function RoomClient({ room }: { room: Room }) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
       </div>
 
-      {/* Lucky Bag Grab Portal */}
       {grabBagActive && (
         <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[250] animate-in zoom-in duration-500">
-           <button 
-             onClick={handleGrabBag}
-             className="relative h-40 w-40 flex flex-col items-center justify-center group active:scale-90 transition-all"
-           >
+           <button onClick={handleGrabBag} className="relative h-40 w-40 flex flex-col items-center justify-center group active:scale-90 transition-all">
               <div className="absolute inset-0 bg-yellow-400 blur-3xl opacity-20 animate-pulse" />
               <div className="relative bg-gradient-to-b from-yellow-300 to-yellow-600 rounded-[2.5rem] p-6 border-4 border-white shadow-2xl overflow-hidden animate-bounce">
                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-[-45deg] animate-shine" />
                  <GiftIcon className="h-20 w-20 text-white fill-white drop-shadow-lg" />
               </div>
-              <div className="mt-4 bg-yellow-400 text-black px-6 py-1.5 rounded-full font-black uppercase italic text-sm shadow-xl border-2 border-white">
-                 Grab Coins!
-              </div>
+              <div className="mt-4 bg-yellow-400 text-black px-6 py-1.5 rounded-full font-black uppercase italic text-sm shadow-xl border-2 border-white">Grab Coins!</div>
            </button>
         </div>
       )}
