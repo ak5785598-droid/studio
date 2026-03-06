@@ -18,7 +18,7 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
   const [triggerKey, setTriggerKey] = useState(0);
 
   useEffect(() => {
-    if (giftId) {
+    if (giftId && typeof giftId === 'string') {
       setIsVisible(true);
       setTriggerKey(prev => prev + 1);
       
@@ -35,7 +35,7 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
     }
   }, [giftId, onComplete]);
 
-  if (!giftId || !isVisible) return null;
+  if (!giftId || typeof giftId !== 'string' || !isVisible) return null;
 
   const getEmoji = () => {
     switch (giftId) {
