@@ -132,7 +132,6 @@ export function RoomClient({ room }: { room: Room }) {
 
   const { data: participantsData } = useCollection<RoomParticipant>(participantsQuery);
   
-  // ANTI-GHOST FILTER: Prune display of inactive members
   const participants = (participantsData || []).filter(p => {
     const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
     if (!lastSeen) return true;
@@ -159,7 +158,6 @@ export function RoomClient({ room }: { room: Room }) {
       if (lastMsg.type === 'gift') {
         setActiveGiftAnimation(lastMsg.giftId);
       } else if (lastMsg.type === 'lucky-rain' || lastMsg.type === 'lucky-bag') {
-        // High-Fidelity Sync: Both modes trigger the 30s interactive coin rain
         setIsLuckyRainActive(true);
         if (lastMsg.type === 'lucky-bag') {
           setGrabBagActive(lastMsg.bagId || 'bag_default');
@@ -268,7 +266,7 @@ export function RoomClient({ room }: { room: Room }) {
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
       
       <div className="absolute inset-0 z-0">
-        <Image src={currentTheme.url} alt="Background" fill className="object-cover opacity-60" priority />
+        <Image key={currentTheme.id} src={currentTheme.url} alt="Background" fill className="object-cover opacity-60" priority />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
       </div>
 
