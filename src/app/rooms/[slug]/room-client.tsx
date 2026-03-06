@@ -150,6 +150,7 @@ function SeatActionDialog({
             <>
               <button onClick={() => onAction('toggle-mute')} className="w-full py-5 text-center font-black text-lg uppercase tracking-tight hover:bg-gray-50 active:bg-gray-100 transition-all border-b">{isOccupantMuted ? 'Unmute' : 'Mute'} Member</button>
               <button onClick={() => onAction('remove-from-seat')} className="w-full py-5 text-center font-black text-lg uppercase tracking-tight text-red-500 hover:bg-gray-50 active:bg-gray-100 transition-all border-b">Remove from seat</button>
+              <button onClick={() => onAction('kick-out')} className="w-full py-5 text-center font-black text-lg uppercase tracking-tight text-red-600 hover:bg-gray-50 active:bg-gray-100 transition-all border-b">Kick Out</button>
             </>
           )}
 
@@ -157,6 +158,7 @@ function SeatActionDialog({
             <>
               <button onClick={() => onAction('take-seat')} className="w-full py-5 text-center font-black text-lg uppercase tracking-tight hover:bg-gray-50 active:bg-gray-100 transition-all border-b">Take Mic</button>
               <button onClick={() => onAction('toggle-lock')} className="w-full py-5 text-center font-black text-lg uppercase tracking-tight hover:bg-gray-50 active:bg-gray-100 transition-all border-b">{isLocked ? 'Unlock Seat' : 'Lock Seat'}</button>
+              <button onClick={() => onAction('invite')} className="w-full py-5 text-center font-black text-lg uppercase tracking-tight text-primary hover:bg-gray-50 active:bg-gray-100 transition-all border-b">Invite Tribe</button>
             </>
           )}
 
@@ -175,10 +177,6 @@ function SeatActionDialog({
   );
 }
 
-/**
- * Majestic Combo Button Component.
- * Visual and behavioral sync for rapid-fire gift dispatching.
- */
 function GiftComboButton({ count, onClick, onTimeout }: { count: number, onClick: () => void, onTimeout: () => void }) {
   const [timeLeft, setTimeLeft] = useState(5000);
   const duration = 5000;
@@ -324,7 +322,7 @@ export function RoomClient({ room }: { room: Room }) {
 
     try {
       const userRef = doc(firestore, 'users', currentUser.uid);
-      const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
+      const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
       const roomRef = doc(firestore, 'chatRooms', room.id);
 
       let winAmount = 0;
@@ -425,6 +423,22 @@ export function RoomClient({ room }: { room: Room }) {
         break;
       case 'remove-from-seat':
         if (canManageRoom && occupant) updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', occupant.uid), { seatIndex: 0, isMuted: true });
+        break;
+      case 'kick-out':
+        if (canManageRoom && occupant) {
+          const expiresAt = new Date();
+          expiresAt.setMinutes(expiresAt.getMinutes() + 60); // 1 hour default
+          setDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'bans', occupant.uid), {
+            uid: occupant.uid,
+            expiresAt: expiresAt,
+            createdAt: serverTimestamp()
+          }, { merge: true });
+          updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', occupant.uid), { seatIndex: 0, isMuted: true });
+          toast({ title: 'Tribe Exclusion Active', description: `${occupant.name} restricted for 1 hour.` });
+        }
+        break;
+      case 'invite':
+        setIsShareOpen(true);
         break;
       case 'view-profile':
         setIsUserProfileCardOpen(true);
