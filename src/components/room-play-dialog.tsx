@@ -8,12 +8,37 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/dialog';
-import { Swords, Flame, Briefcase, Sparkles, HelpCircle, Plus, ChevronLeft, Armchair, Users, Check, X } from 'lucide-react';
+import { 
+  Swords, 
+  Flame, 
+  Briefcase, 
+  Sparkles, 
+  HelpCircle, 
+  Plus, 
+  ChevronLeft, 
+  Armchair, 
+  Users, 
+  Check, 
+  X, 
+  ClipboardList,
+  ChevronRight,
+  ChevronDown
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RoomParticipant } from '@/lib/types';
+import { GoldCoinIcon } from '@/components/icons';
+import { useUser } from '@/firebase';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface RoomPlayDialogProps {
   open: boolean;
@@ -23,17 +48,23 @@ interface RoomPlayDialogProps {
 
 /**
  * High-Fidelity Room Play Portal.
- * RE-ENGINEERED: Features real-time participant selection from seated room members.
- * Supports dynamic Teal (Blue) and Burgundy (Red) selection themes and Emerald (Green) Rules.
+ * Features real-time participant selection, Battle setup, and the Majestic Lucky Bag.
  */
 export function RoomPlayDialog({ open, onOpenChange, participants = [] }: RoomPlayDialogProps) {
-  const [view, setView] = useState<'grid' | 'battle' | 'selection' | 'rules'>('grid');
+  const [view, setView] = useState<'grid' | 'battle' | 'selection' | 'rules' | 'lucky-bag'>('grid');
   const [battleMode, setBattleMode] = useState<'Votes' | 'Coins'>('Votes');
   const [battleTime, setBattleTime] = useState('30 s');
   const [selectionSide, setSelectionSide] = useState<'BLUE' | 'RED'>('BLUE');
+  
+  // Lucky Bag State
+  const [luckyBagTab, setLuckyBagTab] = useState<'Normal' | 'Rain'>('Normal');
+  const [selectedCoinPkg, setSelectedCoinPkg] = useState('5777');
+
+  const { user } = useUser();
+  const { userProfile } = useUserProfile(user?.uid);
 
   // Team Selection State
-  const [blueTeam, setBlueTeam] = useState<string[]>([]); // Array of UIDs
+  const [blueTeam, setBlueTeam] = useState<string[]>([]);
   const [redTeam, setRedTeam] = useState<string[]>([]);
 
   const options = [
@@ -67,7 +98,7 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [] }: RoomPl
     { 
       id: 'lucky-bag', 
       label: 'Lucky Bag', 
-      onClick: () => {},
+      onClick: () => setView('lucky-bag'),
       icon: (
         <div className="relative w-16 h-16 rounded-full bg-gradient-to-b from-[#b88a44] to-[#5d4037] p-0.5 border-2 border-yellow-200/40 shadow-xl overflow-hidden group">
            <div className="w-full h-full flex items-center justify-center rounded-full bg-black/20">
@@ -96,7 +127,7 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [] }: RoomPl
     const setter = selectionSide === 'BLUE' ? setBlueTeam : setRedTeam;
     const otherTeam = selectionSide === 'BLUE' ? redTeam : blueTeam;
 
-    if (otherTeam.includes(uid)) return; // Cannot be on both sides
+    if (otherTeam.includes(uid)) return;
 
     if (currentTeam.includes(uid)) {
       setter(prev => prev.filter(id => id !== uid));
@@ -105,11 +136,6 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [] }: RoomPl
         setter(prev => [...prev, uid]);
       }
     }
-  };
-
-  const handleOpenSelection = (side: 'BLUE' | 'RED') => {
-    setSelectionSide(side);
-    setView('selection');
   };
 
   const seatedParticipants = participants.filter(p => p.seatIndex > 0);
@@ -145,6 +171,158 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [] }: RoomPl
           </div>
         )}
 
+        {view === 'lucky-bag' && (
+          <div className="animate-in fade-in slide-in-from-right-4 duration-500 min-h-[650px] relative bg-[#2d0a4a]">
+            {/* SVGA Background Atmosphere */}
+            <div className="absolute inset-0 pointer-events-none">
+               <div className="absolute inset-0 bg-gradient-to-br from-[#4a148c] via-[#2d0a4a] to-black opacity-80" />
+               {/* Diagonal Light Beams */}
+               <div className="absolute top-0 left-[-20%] w-[150%] h-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[-45deg] animate-shine" style={{ animationDuration: '8s' }} />
+               <div className="absolute top-0 left-[-10%] w-[150%] h-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[-45deg] animate-shine" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+               
+               {/* Floating Sparkles */}
+               {Array.from({length: 15}).map((_, i) => (
+                 <div key={i} className="absolute w-1 h-1 bg-white rounded-full animate-pulse opacity-20" style={{ top: `${Math.random()*100}%`, left: `${Math.random()*100}%`, animationDelay: `${Math.random()*5}s` }} />
+               ))}
+            </div>
+
+            <header className="p-6 pb-2 flex items-center justify-between relative z-10">
+               <div className="flex items-center gap-2">
+                  <div className="bg-black/20 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/10 shadow-lg cursor-pointer hover:bg-black/40 transition-all">
+                     <GoldCoinIcon className="h-4 w-4" />
+                     <span className="text-xs font-black text-white italic">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
+                     <ChevronRight className="h-3 w-3 text-white/40" />
+                  </div>
+               </div>
+               
+               <h2 className="text-3xl font-black text-yellow-400 italic tracking-tighter drop-shadow-md" style={{ fontFamily: 'serif' }}>Lucky Bag</h2>
+
+               <div className="flex gap-2">
+                  <button className="p-2 bg-purple-900/40 rounded-xl border border-white/10 hover:bg-purple-800 transition-colors">
+                     <ClipboardList className="h-5 w-5 text-yellow-400" />
+                  </button>
+                  <button onClick={() => setView('rules')} className="p-2 bg-purple-900/40 rounded-xl border border-white/10 hover:bg-purple-800 transition-colors">
+                     <HelpCircle className="h-5 w-5 text-yellow-400" />
+                  </button>
+                  <button onClick={() => setView('grid')} className="p-2 bg-purple-900/40 rounded-xl border border-white/10 hover:bg-purple-800 transition-colors ml-1">
+                     <X className="h-5 w-5 text-white/60" />
+                  </button>
+               </div>
+            </header>
+
+            <main className="p-6 pt-2 space-y-8 relative z-10 flex flex-col">
+               {/* Glossy Tab Switcher */}
+               <div className="bg-black/30 backdrop-blur-md p-1 rounded-full border border-white/10 flex items-center shadow-inner">
+                  <button 
+                    onClick={() => setLuckyBagTab('Normal')}
+                    className={cn(
+                      "flex-1 h-12 rounded-full font-black uppercase italic text-sm transition-all duration-500 relative overflow-hidden",
+                      luckyBagTab === 'Normal' ? "text-white bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 shadow-xl" : "text-white/40"
+                    )}
+                  >
+                     {luckyBagTab === 'Normal' && <div className="absolute inset-0 bg-white/20 skew-x-[-30deg] -translate-x-[200%] animate-shine" />}
+                     Normal
+                  </button>
+                  <button 
+                    onClick={() => setLuckyBagTab('Rain')}
+                    className={cn(
+                      "flex-1 h-12 rounded-full font-black uppercase italic text-sm transition-all duration-500 relative overflow-hidden",
+                      luckyBagTab === 'Rain' ? "text-white bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 shadow-xl" : "text-white/40"
+                    )}
+                  >
+                     {luckyBagTab === 'Rain' && <div className="absolute inset-0 bg-white/20 skew-x-[-30deg] -translate-x-[200%] animate-shine" />}
+                     Lucky Rain
+                  </button>
+               </div>
+
+               {/* Total Coins Dimension */}
+               <div className="space-y-4">
+                  <h3 className="text-lg font-black uppercase italic tracking-tight text-white/90 ml-1">Total Coins</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                     {[
+                       { id: '5777', label: '5777' },
+                       { id: '17777', label: '17777' },
+                       { id: '99999', label: '99999' },
+                       { id: '1777777', label: '1777777' }
+                     ].map((pkg) => (
+                       <button 
+                         key={pkg.id}
+                         onClick={() => setSelectedCoinPkg(pkg.id)}
+                         className={cn(
+                           "h-16 rounded-2xl flex items-center justify-center gap-3 transition-all relative overflow-hidden border-2",
+                           selectedCoinPkg === pkg.id 
+                            ? "bg-gradient-to-r from-white via-indigo-100 to-white border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]" 
+                            : "bg-white/5 border-white/5 hover:bg-white/10"
+                         )}
+                       >
+                          <GoldCoinIcon className="h-5 w-5" />
+                          <span className={cn(
+                            "text-xl font-black italic tracking-tighter",
+                            selectedCoinPkg === pkg.id ? "text-black" : "text-white"
+                          )}>{pkg.label}</span>
+                          {selectedCoinPkg === pkg.id && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shine skew-x-[-30deg]" />
+                          )}
+                       </button>
+                     ))}
+                  </div>
+               </div>
+
+               {/* Dropdown Syncs */}
+               <div className="space-y-6 pt-2">
+                  <div className="flex items-center justify-between gap-4">
+                     <span className="text-base font-black uppercase italic text-white/80">Number of recipients</span>
+                     <Select defaultValue="5">
+                        <SelectTrigger className="w-24 h-10 rounded-xl bg-black/40 border-white/10 text-white font-black italic shadow-xl">
+                           <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-900 border-white/10 text-white">
+                           {['5', '10', '20', '50'].map(v => <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>)}
+                        </SelectContent>
+                     </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                     <span className="text-base font-black uppercase italic text-white/80">Countdown</span>
+                     <Select defaultValue="Now">
+                        <SelectTrigger className="w-28 h-10 rounded-xl bg-black/40 border-white/10 text-white font-black italic shadow-xl">
+                           <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-900 border-white/10 text-white">
+                           {['Now', '1 min', '5 min'].map(v => <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>)}
+                        </SelectContent>
+                     </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                     <div className="flex flex-col gap-1">
+                        <span className="text-base font-black uppercase italic text-white/80">How to join</span>
+                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest italic">Everyone can receive it.</p>
+                     </div>
+                     <Select defaultValue="Everyone">
+                        <SelectTrigger className="w-32 h-10 rounded-xl bg-black/40 border-white/10 text-white font-black italic shadow-xl">
+                           <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-900 border-white/10 text-white">
+                           {['Everyone', 'Fans only', 'VIP only'].map(v => <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>)}
+                        </SelectContent>
+                     </Select>
+                  </div>
+               </div>
+
+               {/* Send Sync Dispatch */}
+               <div className="pt-10 pb-16">
+                  <Button 
+                    className="w-full h-16 rounded-[2rem] bg-gradient-to-r from-[#8e24aa] via-[#ab47bc] to-[#8e24aa] text-white border-2 border-purple-400/40 font-black uppercase italic text-2xl tracking-tighter shadow-[0_10px_40px_rgba(142,36,170,0.4)] active:scale-95 transition-all relative overflow-hidden"
+                  >
+                     <div className="absolute inset-0 bg-white/20 skew-x-[-30deg] -translate-x-[200%] animate-shine" style={{ animationDuration: '3s' }} />
+                     SEND
+                  </Button>
+               </div>
+            </main>
+          </div>
+        )}
+
         {view === 'battle' && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500">
             <header className="p-6 pb-2 flex items-center justify-between">
@@ -164,11 +342,10 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [] }: RoomPl
                <div className="space-y-4">
                   <h3 className="text-lg font-black uppercase tracking-tight text-white/90">Select People</h3>
                   <div className="grid grid-cols-2 gap-4">
-                     {/* Blue Side Portal */}
                      <div className="relative aspect-[4/3] rounded-[1.5rem] bg-gradient-to-br from-[#004d40] via-[#006064] to-[#00acc1] border-2 border-cyan-400/20 shadow-2xl overflow-hidden group">
                         <OrnateCorners color="#fbbf24" />
                         <div className="absolute inset-0 bg-white/10 skew-x-[-30deg] -translate-x-[200%] animate-shine pointer-events-none" />
-                        <button onClick={() => handleOpenSelection('BLUE')} className="absolute inset-0 flex items-center justify-center active:scale-95 transition-transform">
+                        <button onClick={() => { setSelectionSide('BLUE'); setView('selection'); }} className="absolute inset-0 flex items-center justify-center active:scale-95 transition-transform">
                            {blueTeam.length > 0 ? (
                              <div className="flex -space-x-3">
                                 {blueTeam.slice(0, 3).map((uid) => {
@@ -192,11 +369,10 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [] }: RoomPl
                         </button>
                      </div>
                      
-                     {/* Red Side Portal */}
                      <div className="relative aspect-[4/3] rounded-[1.5rem] bg-gradient-to-br from-[#4a0e0e] via-[#880e4f] to-[#b71c1c] border-2 border-red-400/20 shadow-2xl overflow-hidden group">
                         <OrnateCorners color="#fbbf24" />
                         <div className="absolute inset-0 bg-white/10 skew-x-[-30deg] -translate-x-[200%] animate-shine pointer-events-none" style={{ animationDelay: '1s' }} />
-                        <button onClick={() => handleOpenSelection('RED')} className="absolute inset-0 flex items-center justify-center active:scale-95 transition-transform">
+                        <button onClick={() => { setSelectionSide('RED'); setView('selection'); }} className="absolute inset-0 flex items-center justify-center active:scale-95 transition-transform">
                            {redTeam.length > 0 ? (
                              <div className="flex -space-x-3">
                                 {redTeam.slice(0, 3).map((uid) => {
@@ -352,7 +528,6 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [] }: RoomPl
 
             <div className="p-8 pt-6 relative z-10 flex flex-col items-center">
                <div className="w-full space-y-8">
-                  {/* Top Center Seat */}
                   <div className="flex justify-center">
                      <SelectionSeat 
                        index={0} 
@@ -366,7 +541,6 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [] }: RoomPl
                      />
                   </div>
 
-                  {/* Row of 4 Seats */}
                   <div className="grid grid-cols-4 gap-4 w-full">
                      {[1, 2, 3, 4].map((i) => (
                        <div key={i} className="flex justify-center">
@@ -386,7 +560,6 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [] }: RoomPl
                </div>
             </div>
 
-            {/* List of Seated Participants to Pick From */}
             <div className="flex-1 px-8 pb-10 relative z-10 flex flex-col min-h-0">
                <div className="flex items-center gap-2 mb-4">
                   <Users className="h-4 w-4 text-white/40" />
