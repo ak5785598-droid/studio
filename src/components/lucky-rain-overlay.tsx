@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -96,7 +97,7 @@ export function LuckyRainOverlay({ active, onComplete }: LuckyRainOverlayProps) 
     updateDocumentNonBlocking(profileRef, updateData);
   }, [user, firestore]);
 
-  if (!active || coins.length === 0) return null;
+  if (!active || (coins.length === 0 && rewards.length === 0)) return null;
 
   return (
     <div className="fixed inset-0 z-[400] pointer-events-none overflow-hidden select-none">
@@ -136,11 +137,13 @@ export function LuckyRainOverlay({ active, onComplete }: LuckyRainOverlayProps) 
       ))}
 
       {/* High-Fidelity "Lucky Rain" Banner */}
-      <div className="absolute top-40 left-1/2 -translate-x-1/2 z-50 animate-in zoom-in duration-700 pointer-events-none">
-         <div className="bg-gradient-to-r from-red-600 via-orange-500 to-red-600 px-12 py-3 rounded-full border-2 border-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.6)]">
-            <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter drop-shadow-md">LUCKY RAIN SYNC</h2>
-         </div>
-      </div>
+      {active && (
+        <div className="absolute top-40 left-1/2 -translate-x-1/2 z-50 animate-in zoom-in duration-700 pointer-events-none">
+           <div className="bg-gradient-to-r from-red-600 via-orange-500 to-red-600 px-12 py-3 rounded-full border-2 border-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.6)]">
+              <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter drop-shadow-md">LUCKY RAIN SYNC</h2>
+           </div>
+        </div>
+      )}
 
       <style jsx global>{`
         @keyframes lucky-fall {

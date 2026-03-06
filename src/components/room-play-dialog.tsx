@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -180,14 +181,14 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
         });
       }
 
-      // Dispatch System Message
+      // Dispatch System Message (Triggers interactive rain & grab logics)
       await addDocumentNonBlocking(collection(firestore, 'chatRooms', roomId, 'messages'), {
         type: luckyBagTab === 'Rain' ? 'lucky-rain' : 'lucky-bag',
         senderId: user.uid,
         senderName: userProfile.username,
         amount: pkg.value,
         timestamp: serverTimestamp(),
-        bagId: `bag_${Date.now()}` // For grab logic synchronization
+        bagId: `bag_${Date.now()}` 
       });
 
       toast({ title: 'Dispatch Successful', description: `${luckyBagTab} frequency synchronized.` });
@@ -208,7 +209,7 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
     else if (currentTeam.length < 5) setter(prev => [...prev, uid]);
   };
 
-  const seatedParticipants = participants.filter(p => p.seatIndex > 0);
+  const seatedParticipants = (participants || []).filter(p => p.seatIndex > 0);
   const luckyBagBanner = PlaceHolderImages.find(img => img.id === 'lucky-bag-banner');
 
   return (
@@ -267,7 +268,11 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
                      ))}
                   </div>
                </div>
-               <div className="pt-10 pb-16"><Button onClick={handleSendLuckyBag} disabled={isSending} className="w-full h-16 rounded-[2rem] bg-gradient-to-r from-[#8e24aa] via-[#ab47bc] to-[#8e24aa] text-white border-2 border-purple-400/40 font-black uppercase italic text-2xl tracking-tighter shadow-xl active:scale-95 transition-all">{isSending ? <Loader className="animate-spin h-6 w-6" /> : 'SEND'}</Button></div>
+               <div className="pt-10 pb-16">
+                  <Button onClick={handleSendLuckyBag} disabled={isSending} className="w-full h-16 rounded-[2rem] bg-gradient-to-r from-[#8e24aa] via-[#ab47bc] to-[#8e24aa] text-white border-2 border-purple-400/40 font-black uppercase italic text-2xl tracking-tighter shadow-xl active:scale-95 transition-all">
+                    {isSending ? <Loader className="animate-spin h-6 w-6" /> : 'SEND'}
+                  </Button>
+               </div>
             </main>
          </div>
         )}
@@ -280,7 +285,14 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
             </header>
             <ScrollArea className="flex-1 p-8 pt-2 relative z-10">
                <div className="space-y-10 pb-20">
-                  <section className="space-y-4"><h3 className="text-2xl font-black text-white italic tracking-tight">Lucky Bag</h3><ul className="space-y-4 pl-4">{["When a Lucky Bag pack is more than 7000 Coins, a chatroom broadcast will be sent;","A maximum of 10 Lucky Bags can exist in each room at the same time;","The maximum number of Coins sent per day is 200,000 Coins;"].map((rule, idx) => (<li key={idx} className="flex gap-3 text-sm font-medium text-white/90 leading-relaxed"><div className="h-1.5 w-1.5 rounded-full bg-white shrink-0 mt-2 shadow-[0_0_5px_white]" /><p>{rule}</p></li>)) }</ul></section>
+                  <section className="space-y-4">
+                    <h3 className="text-2xl font-black text-white italic tracking-tight">Lucky Bag</h3>
+                    <ul className="space-y-4 pl-4">
+                      {["When a Lucky Bag pack is more than 7000 Coins, a chatroom broadcast will be sent;", "A maximum of 10 Lucky Bags can exist in each room at the same time;", "The maximum number of Coins sent per day is 200,000 Coins;"].map((rule, idx) => (
+                        <li key={idx} className="flex gap-3 text-sm font-medium text-white/90 leading-relaxed"><div className="h-1.5 w-1.5 rounded-full bg-white shrink-0 mt-2 shadow-[0_0_5px_white]" /><p>{rule}</p></li>
+                      ))}
+                    </ul>
+                  </section>
                </div>
             </ScrollArea>
           </div>
@@ -313,10 +325,99 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
           </div>
         )}
 
+        {view === 'rules' && (
+          <div className="animate-in fade-in slide-in-from-right-4 duration-500 min-h-[600px] bg-gradient-to-b from-[#064e3b] via-[#065f46] to-black relative overflow-hidden flex flex-col">
+            <header className="p-6 flex items-center relative z-10">
+               <button onClick={() => setView('battle')} className="h-10 w-10 rounded-full bg-[#064e3b]/40 border border-white/20 flex items-center justify-center"><ChevronLeft className="h-6 w-6 text-yellow-400" /></button>
+               <h2 className="text-3xl font-black text-yellow-400 italic tracking-tighter text-center flex-1 pr-10">PK Rules</h2>
+            </header>
+            <ScrollArea className="flex-1 p-8 pt-2 relative z-10">
+               <div className="space-y-10 pb-20">
+                  <section className="space-y-4">
+                    <h3 className="text-2xl font-black text-white italic tracking-tight flex items-center gap-2">🎫 1 person 1 vote</h3>
+                    <p className="text-sm font-medium text-white/80 leading-relaxed pl-8">Honor rankings are based on the total votes received from room participants during the PK window.</p>
+                  </section>
+                  <section className="space-y-4">
+                    <h3 className="text-2xl font-black text-white italic tracking-tight flex items-center gap-2">🔥 Coins received</h3>
+                    <p className="text-sm font-medium text-white/80 leading-relaxed pl-8">Charm rankings reflect the total value of Gold Coin gifts received during the live battle frequency.</p>
+                  </section>
+               </div>
+            </ScrollArea>
+          </div>
+        )}
+
         {view === 'selection' && (
-          <div className={cn("animate-in fade-in slide-in-from-right-4 duration-500 min-h-[600px] relative flex flex-col", selectionSide === 'BLUE' ? "bg-[#004d4d]" : "bg-[#4a0e0e]")}>
-            <header className="p-8 pb-4 flex items-center justify-between relative z-10"><div className="flex items-center gap-4"><button onClick={() => setView('battle')} className="p-1"><ChevronLeft className="h-8 w-8 text-white" /></button><h2 className="text-4xl font-black text-white uppercase italic tracking-tighter">Select People</h2></div><button onClick={() => setView('battle')} className="bg-white/10 px-6 py-2 rounded-full font-black uppercase text-[10px] italic border border-white/20">Done</button></header>
-            <div className="flex-1 px-8 pb-10 relative z-10 flex flex-col min-h-0"><ScrollArea className="flex-1 bg-black/20 rounded-3xl border border-white/5 p-4">{seatedParticipants.length > 0 ? <div className="grid grid-cols-1 gap-2">{seatedParticipants.map((p) => { const isSelected = (selectionSide === 'BLUE' ? blueTeam : redTeam).includes(p.uid); return <button key={p.uid} onClick={() => toggleSelection(p.uid)} className={cn("flex items-center justify-between p-3 rounded-2xl transition-all border-2", isSelected ? (selectionSide === 'BLUE' ? "bg-cyan-500/20 border-cyan-400" : "bg-red-500/20 border-red-400") : "bg-white/5 border-white/5 hover:bg-white/10")}><div className="flex items-center gap-3"><Avatar className="h-10 w-10 border border-white/10"><AvatarImage src={p.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar><div className="text-left"><p className="font-black text-xs uppercase tracking-tight text-white">{p.name}</p></div></div>{isSelected ? <Check className="h-4 w-4 text-white" /> : <Plus className="h-4 w-4 text-white/40" />}</button>; })}</div> : <p className="text-center py-10 opacity-20 italic">Nobody on mic</p>}</ScrollArea></div>
+          <div className={cn("animate-in fade-in slide-in-from-right-4 duration-500 min-h-[650px] relative flex flex-col", selectionSide === 'BLUE' ? "bg-gradient-to-b from-[#002b2b] via-[#004d4d] to-black" : "bg-gradient-to-b from-[#2d0a0a] via-[#4a0e0e] to-black")}>
+            {/* Background SVG Watermark */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+               <Swords className="w-96 h-96 text-white" />
+            </div>
+
+            <header className="p-8 pb-4 flex items-center justify-between relative z-10">
+               <div className="flex items-center gap-4">
+                  <button onClick={() => setView('battle')} className="p-1"><ChevronLeft className="h-8 w-8 text-white" /></button>
+                  <div className="flex items-center gap-2">
+                     <div className="bg-yellow-400 p-1.5 rounded-lg shadow-lg"><Star className="h-4 w-4 text-black fill-current" /></div>
+                     <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter">Select People</h2>
+                  </div>
+               </div>
+               <button onClick={() => setView('battle')} className="bg-white/10 px-6 py-2 rounded-full font-black uppercase text-[10px] italic border border-white/20">Done</button>
+            </header>
+
+            <main className="flex-1 px-8 pb-10 relative z-10 flex flex-col gap-8">
+               {/* Pyramid Team Layout */}
+               <div className="flex flex-col items-center justify-center gap-6 py-4">
+                  {/* Top Center Slot */}
+                  <TeamSlot index={0} team={selectionSide === 'BLUE' ? blueTeam : redTeam} side={selectionSide} participants={participants} onRemove={(uid) => toggleSelection(uid)} />
+                  {/* Bottom Row Slots */}
+                  <div className="flex justify-center gap-4">
+                     {[1, 2, 3, 4].map(idx => (
+                       <TeamSlot key={idx} index={idx} team={selectionSide === 'BLUE' ? blueTeam : redTeam} side={selectionSide} participants={participants} onRemove={(uid) => toggleSelection(uid)} />
+                     ))}
+                  </div>
+               </div>
+
+               {/* Live Roster Selection */}
+               <div className="flex-1 flex flex-col min-h-0">
+                  <div className="flex items-center justify-between mb-4 px-2">
+                     <h3 className="text-sm font-black uppercase tracking-widest text-white/60">Tribe on Mic</h3>
+                     <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{seatedParticipants.length} Synchronized</span>
+                  </div>
+                  <ScrollArea className="flex-1 bg-black/20 rounded-[2rem] border border-white/5 p-4 shadow-inner">
+                    {seatedParticipants.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-2">
+                        {seatedParticipants.map((p) => {
+                          const isSelected = (selectionSide === 'BLUE' ? blueTeam : redTeam).includes(p.uid);
+                          const isOtherTeam = (selectionSide === 'BLUE' ? redTeam : blueTeam).includes(p.uid);
+                          return (
+                            <button 
+                              key={p.uid} 
+                              onClick={() => !isOtherTeam && toggleSelection(p.uid)} 
+                              disabled={isOtherTeam}
+                              className={cn(
+                                "flex items-center justify-between p-3 rounded-2xl transition-all border-2",
+                                isSelected ? (selectionSide === 'BLUE' ? "bg-cyan-500/20 border-cyan-400" : "bg-red-500/20 border-red-400") : "bg-white/5 border-white/5 hover:bg-white/10",
+                                isOtherTeam && "opacity-20 grayscale cursor-not-allowed"
+                              )}
+                            >
+                               <div className="flex items-center gap-3">
+                                  <Avatar className="h-10 w-10 border border-white/10 shadow-md"><AvatarImage src={p.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar>
+                                  <div className="text-left"><p className="font-black text-xs uppercase tracking-tight text-white">{p.name}</p></div>
+                               </div>
+                               {isSelected ? <Check className="h-4 w-4 text-white" /> : <Plus className="h-4 w-4 text-white/40" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="py-20 text-center space-y-4">
+                         <Armchair className="h-12 w-12 text-white/10 mx-auto" />
+                         <p className="opacity-20 italic font-medium">Nobody currently seated in frequency.</p>
+                      </div>
+                    )}
+                  </ScrollArea>
+               </div>
+            </main>
           </div>
         )}
 
@@ -326,15 +427,42 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
   );
 }
 
+function TeamSlot({ index, team, side, participants, onRemove }: any) {
+  const uid = team[index];
+  const participant = participants.find((p: any) => p.uid === uid);
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+       <button 
+         onClick={() => uid && onRemove(uid)}
+         className={cn(
+           "h-16 w-16 rounded-full flex items-center justify-center border-2 backdrop-blur-md transition-all shadow-xl",
+           uid ? (side === 'BLUE' ? "border-cyan-400 bg-cyan-500/20" : "border-red-400 bg-red-500/20") : "border-white/10 bg-white/5"
+         )}
+       >
+          {participant ? (
+            <Avatar className="h-full w-full p-0.5"><AvatarImage src={participant.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar>
+          ) : (
+            <Armchair className="h-6 w-6 text-white/20" />
+          )}
+       </button>
+       <span className="text-[8px] font-black uppercase text-white/40 truncate w-16 text-center">{participant?.name || `Slot ${index + 1}`}</span>
+    </div>
+  );
+}
+
 function SelectionPortal({ side, team, onClick, participants }: any) {
   return (
-    <button onClick={onClick} className="absolute inset-0 flex items-center justify-center active:scale-95 transition-transform">
+    <button onClick={onClick} className="absolute inset-0 flex items-center justify-center active:scale-95 transition-transform group">
+      <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
       {team.length > 0 ? (
         <div className="flex -space-x-3">
           {team.slice(0, 3).map((uid: string) => {
             const p = participants.find((part: any) => part.uid === uid);
             return <Avatar key={uid} className="h-12 w-12 border-2 border-white/40 shadow-xl"><AvatarImage src={p?.avatarUrl} /><AvatarFallback>U</AvatarFallback></Avatar>;
           })}
+          {team.length > 3 && (
+            <div className="h-12 w-12 rounded-full bg-black/60 border-2 border-white/40 flex items-center justify-center text-[10px] font-black text-white">+{team.length - 3}</div>
+          )}
         </div>
       ) : (
         <div className="h-12 w-12 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center border-2 border-white/20"><Plus className="h-6 w-6 text-white" /></div>

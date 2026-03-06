@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -28,8 +29,7 @@ import {
   UserX,
   UserCheck,
   Ban,
-  UserPlus,
-  Headphones
+  UserPlus
 } from 'lucide-react';
 import { GoldCoinIcon, GameControllerIcon } from '@/components/icons';
 import type { Room, RoomParticipant, Gift } from '@/lib/types';
@@ -89,32 +89,12 @@ const ROOM_THEMES = [
 
 function RemoteAudio({ stream }: { stream: MediaStream }) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const contextRef = useRef<AudioContext | null>(null);
-
   useEffect(() => {
-    if (!stream) return;
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      contextRef.current = ctx;
-      const source = ctx.createMediaStreamSource(stream);
-      const gainNode = ctx.createGain();
-      gainNode.gain.value = 2.5; 
-      gainNode.connect(ctx.destination);
-      if (audioRef.current) {
-        audioRef.current.srcObject = stream;
-        audioRef.current.muted = true;
-        audioRef.current.play().catch(() => {});
-      }
-    } catch (e) {
-      if (audioRef.current) {
-        audioRef.current.srcObject = stream;
-        audioRef.current.muted = false;
-        audioRef.current.play().catch(() => {});
-      }
+    if (audioRef.current) {
+      audioRef.current.srcObject = stream;
+      audioRef.current.play().catch(() => {});
     }
-    return () => { if (contextRef.current) contextRef.current.close().catch(() => {}); };
   }, [stream]);
-
   return <audio ref={audioRef} autoPlay playsInline className="hidden" />;
 }
 
@@ -155,7 +135,14 @@ export function RoomClient({ room }: { room: Room }) {
   }, [firestore, room.id]);
 
   const { data: participantsData } = useCollection<RoomParticipant>(participantsQuery);
-  const participants = participantsData || [];
+  
+  // ANTI-GHOST FILTER: Prune display of inactive members
+  const participants = (participantsData || []).filter(p => {
+    const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
+    if (!lastSeen) return true;
+    return (Date.now() - lastSeen) < 65000;
+  });
+
   const onlineCount = participants.length;
   const currentUserParticipant = participants.find(p => p.uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
