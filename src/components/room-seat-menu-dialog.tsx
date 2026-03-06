@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -28,6 +27,7 @@ interface RoomSeatMenuDialogProps {
 /**
  * High-Fidelity Room Seat Menu.
  * Re-engineered to match the provided tribal blueprint exactly.
+ * ATOMIC TAKE: Ensures seat taking is reliable using setDocumentNonBlocking with merge.
  */
 export function RoomSeatMenuDialog({
   open,
@@ -48,6 +48,7 @@ export function RoomSeatMenuDialog({
     if (!firestore || !currentUserId || !roomId) return;
     
     // ATOMIC SYNC: Explicitly setting document to ensure the user takes the frequency slot
+    // Using setDocumentNonBlocking with merge: true to avoid race conditions with presence initialization
     const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', currentUserId);
     setDocumentNonBlocking(participantRef, {
       seatIndex: seatIndex,

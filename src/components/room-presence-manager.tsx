@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -13,7 +12,7 @@ import { doc, serverTimestamp, collection, increment, writeBatch, getDocs, query
  * 1. 20s Heartbeat for live tracking.
  * 2. Distributed Cleanup: ANY participant now sweeps stale (60s+) participants periodically.
  * 3. Exact Count Sync: Periodically forces room count to match actual active roster size.
- * RE-ENGINEERED: Prevents seatIndex reset when identity metadata refreshes.
+ * RE-ENGINEERED: Prevents seatIndex reset when identity metadata refreshes using getDoc check.
  */
 export function RoomPresenceManager() {
   const { activeRoom, setActiveRoom } = useRoomContext();
@@ -95,7 +94,6 @@ export function RoomPresenceManager() {
           if (!snap.empty) {
             const purgeBatch = writeBatch(firestore);
             let activeCount = 0;
-            let purgedCount = 0;
             
             snap.docs.forEach(d => {
               const data = d.data();
@@ -103,7 +101,6 @@ export function RoomPresenceManager() {
               
               if (lastSeen < staleThreshold && d.id !== uid) {
                 purgeBatch.delete(d.ref);
-                purgedCount++;
               } else {
                 activeCount++;
               }
