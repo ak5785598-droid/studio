@@ -76,7 +76,7 @@ import { RoomUserProfileDialog } from '@/components/room-user-profile-dialog';
 import { RoomSettingsDialog } from '@/components/room-settings-dialog';
 import { RoomUserListDialog } from '@/components/room-user-list-dialog';
 import { RoomShareDialog } from '@/components/room-share-dialog';
-import { GiftPicker } from '@/components/gift-picker';
+import { GiftPicker, type GiftItem } from '@/components/gift-picker';
 
 const ROOM_THEMES = [
   { id: 'misty', name: 'Misty Forest', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000' },
@@ -175,6 +175,51 @@ function SeatActionDialog({
   );
 }
 
+/**
+ * Majestic Combo Button Component.
+ * Visual and behavioral sync for rapid-fire gift dispatching.
+ */
+function GiftComboButton({ count, onClick, onTimeout }: { count: number, onClick: () => void, onTimeout: () => void }) {
+  const [timeLeft, setTimeLeft] = useState(5000);
+  const duration = 5000;
+
+  useEffect(() => {
+    setTimeLeft(duration);
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 0) {
+          clearInterval(interval);
+          onTimeout();
+          return 0;
+        }
+        return prev - 100;
+      });
+    }, 100);
+    return () => clearInterval(interval);
+  }, [count, onTimeout]);
+
+  const progress = (timeLeft / duration) * 100;
+
+  return (
+    <div className="fixed bottom-32 right-6 z-[250] flex flex-col items-center gap-2 animate-in zoom-in duration-300">
+       <button 
+         onClick={onClick}
+         className="relative h-24 w-24 rounded-full flex flex-col items-center justify-center bg-gradient-to-br from-[#ff7043] to-[#f4511e] shadow-[0_0_30px_rgba(244,81,30,0.6)] active:scale-90 transition-all overflow-hidden border-2 border-white/20 group"
+       >
+          <svg className="absolute inset-0 h-full w-full -rotate-90">
+            <circle cx="48" cy="48" r="44" stroke="white" strokeWidth="4" fill="transparent" strokeDasharray="276.46" strokeDashoffset={276.46 - (276.46 * progress) / 100} className="transition-all duration-100" />
+          </svg>
+          <div className="relative z-10 flex flex-col items-center">
+             <span className="text-3xl font-black text-white italic drop-shadow-lg">x{count}</span>
+             <span className="text-xs font-black text-white uppercase italic tracking-tighter drop-shadow-lg -mt-1">Combo</span>
+          </div>
+          <div className="absolute inset-0 bg-white/20 opacity-0 group-active:opacity-100 transition-opacity" />
+       </button>
+       <p className="text-[10px] font-black text-white/60 uppercase tracking-widest bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">Rapid Dispatch</p>
+    </div>
+  );
+}
+
 export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
   const [showInput, setShowInput] = useState(false);
@@ -190,6 +235,9 @@ export function RoomClient({ room }: { room: Room }) {
   const [giftRecipient, setGiftRecipient] = useState<{ uid: string; name: string; avatarUrl?: string } | null>(null);
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
   const [isMutedLocal, setIsMutedLocal] = useState(false);
+
+  // Combo Protocol State
+  const [activeCombo, setActiveCombo] = useState<{ gift: GiftItem, recipient: any, count: number } | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -250,6 +298,80 @@ export function RoomClient({ room }: { room: Room }) {
       type: 'text'
     });
     setMessageText('');
+  };
+
+  const calculateLuckyWin = (price: number, qty: number) => {
+    const roll = Math.random() * 100;
+    let multiplier = 0;
+    if (roll < 0.05) multiplier = 1000;
+    else if (roll < 0.2) multiplier = 100;
+    else if (roll < 1.0) multiplier = 50;
+    else if (roll < 5.0) multiplier = 5;
+    else if (roll < 15.0) multiplier = 2;
+    else if (roll < 60.0) multiplier = 1;
+    return { multiplier, winAmount: price * qty * multiplier };
+  };
+
+  const handleComboDispatch = async () => {
+    if (!activeCombo || !userProfile || !currentUser || !firestore) return;
+    const { gift, recipient, count } = activeCombo;
+    
+    if ((userProfile.wallet?.coins || 0) < gift.price) {
+      toast({ variant: 'destructive', title: 'Vault Empty', description: 'Recharge coins to continue the combo.' });
+      setActiveCombo(null);
+      return;
+    }
+
+    try {
+      const userRef = doc(firestore, 'users', currentUser.uid);
+      const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
+      const roomRef = doc(firestore, 'chatRooms', room.id);
+
+      let winAmount = 0;
+      let luckyResult = null;
+
+      if (gift.type === 'lucky') {
+        const { multiplier, winAmount: won } = calculateLuckyWin(gift.price, 1);
+        winAmount = won;
+        if (multiplier > 0) luckyResult = { multiplier, winAmount };
+      }
+
+      const netCost = gift.price - winAmount;
+
+      updateDocumentNonBlocking(userRef, { 
+        'wallet.coins': increment(-netCost), 
+        'wallet.totalSpent': increment(gift.price),
+        'wallet.dailySpent': increment(gift.price),
+        updatedAt: serverTimestamp() 
+      });
+      updateDocumentNonBlocking(profileRef, { 
+        'wallet.coins': increment(-netCost), 
+        'wallet.totalSpent': increment(gift.price),
+        'wallet.dailySpent': increment(gift.price),
+        updatedAt: serverTimestamp() 
+      });
+      updateDocumentNonBlocking(roomRef, { 
+        'stats.totalGifts': increment(gift.price),
+        'stats.dailyGifts': increment(gift.price)
+      });
+
+      addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
+        type: 'gift',
+        senderId: currentUser.uid,
+        senderName: userProfile.username,
+        senderAvatar: userProfile.avatarUrl || null,
+        recipientName: recipient?.name || 'the Room',
+        giftId: (luckyResult && luckyResult.multiplier >= 50) ? 'lucky-jackpot' : gift.animationId,
+        text: `sent ${gift.name} x1 (Combo x${count + 1})`,
+        luckyWin: luckyResult,
+        timestamp: serverTimestamp()
+      });
+
+      setActiveCombo({ ...activeCombo, count: count + 1 });
+      if (winAmount > 0) {
+        toast({ title: 'Luck Sync!', description: `Won ${winAmount.toLocaleString()} back!` });
+      }
+    } catch (e) {}
   };
 
   const takeSeat = (index: number) => { 
@@ -348,6 +470,15 @@ export function RoomClient({ room }: { room: Room }) {
       <EntryCard entrant={latestEntrance} onComplete={() => setLatestEntrance(null)} />
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
       
+      {/* Combo Overlay */}
+      {activeCombo && (
+        <GiftComboButton 
+          count={activeCombo.count} 
+          onClick={handleComboDispatch} 
+          onTimeout={() => setActiveCombo(null)} 
+        />
+      )}
+
       <div className="absolute inset-0 z-0">
         <Image src={currentTheme.url} alt="Background" fill className="object-cover opacity-60" priority />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
@@ -420,7 +551,7 @@ export function RoomClient({ room }: { room: Room }) {
       <RoomShareDialog open={isShareOpen} onOpenChange={setIsShareOpen} room={room} />
       <SeatActionDialog open={isSeatMenuOpen} onOpenChange={setIsSeatMenuOpen} onAction={handleSeatAction} canManage={canManageRoom} isOccupied={!!occupant} isMe={occupant?.uid === currentUser?.uid} isLocked={!!selectedSeatIdx && (room.lockedSeats?.includes(selectedSeatIdx) || false)} occupantName={occupant?.name} isOccupantMuted={occupant?.isMuted} />
       <RoomUserProfileDialog userId={selectedParticipantUid} open={isUserProfileCardOpen} onOpenChange={setIsUserProfileCardOpen} canManage={canManageRoom} isOwner={isOwner} roomOwnerId={room.ownerId} roomModeratorIds={room.moderatorIds || []} onSilence={() => handleSeatAction('toggle-mute')} onKick={() => {}} onLeaveSeat={() => handleSeatAction('remove-from-seat')} onToggleMod={() => {}} onOpenGiftPicker={(rec) => { setGiftRecipient(rec); setIsGiftPickerOpen(true); }} isSilenced={occupant?.isMuted || false} isMe={selectedParticipantUid === currentUser?.uid} />
-      <GiftPicker open={isGiftPickerOpen} onOpenChange={setIsGiftPickerOpen} roomId={room.id} recipient={giftRecipient} onGiftSent={(id) => setActiveGiftAnimation(id)} />
+      <GiftPicker open={isGiftPickerOpen} onOpenChange={setIsGiftPickerOpen} roomId={room.id} recipient={giftRecipient} onGiftSent={(gift, qty, rec) => setActiveCombo({ gift, recipient: rec, count: qty })} />
     </div>
   );
 }

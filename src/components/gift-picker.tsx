@@ -33,7 +33,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-interface GiftItem {
+export interface GiftItem {
   id: string;
   name: string;
   price: number;
@@ -73,7 +73,7 @@ interface GiftPickerProps {
   onOpenChange: (open: boolean) => void;
   roomId: string;
   recipient?: { uid: string; name: string; avatarUrl?: string } | null;
-  onGiftSent?: (giftId: string) => void;
+  onGiftSent?: (gift: GiftItem, qty: number, recipient: any) => void;
 }
 
 export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }: GiftPickerProps) {
@@ -90,7 +90,6 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
     const roll = Math.random() * 100;
     let multiplier = 0;
 
-    // Tribal Luck Probability Protocol
     if (roll < 0.05) multiplier = 1000;
     else if (roll < 0.2) multiplier = 100;
     else if (roll < 1.0) multiplier = 50;
@@ -146,22 +145,20 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
         'stats.dailyGifts': increment(totalCost)
       });
 
-      // Broadcast Gift Event
       addDocumentNonBlocking(collection(firestore, 'chatRooms', roomId, 'messages'), {
         type: 'gift',
         senderId: user.uid,
         senderName: userProfile.username,
         senderAvatar: userProfile.avatarUrl || null,
         recipientName: recipient?.name || 'the Room',
-        giftId: selectedGift.animationId,
+        giftId: (luckyResult && luckyResult.multiplier >= 50) ? 'lucky-jackpot' : selectedGift.animationId,
         text: `sent ${selectedGift.name} x${quantity}`,
         luckyWin: luckyResult,
         timestamp: serverTimestamp()
       });
 
       if (onGiftSent) {
-        // If it's a big lucky win, pass a special flag to the overlay
-        onGiftSent(luckyResult && luckyResult.multiplier >= 50 ? 'lucky-jackpot' : selectedGift.animationId);
+        onGiftSent(selectedGift, qtyNum, recipient);
       }
       
       if (winAmount > 0) {
@@ -169,10 +166,9 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
           title: 'Luck Synchronized!', 
           description: `You won ${winAmount.toLocaleString()} coins back! (${luckyResult?.multiplier}x)` 
         });
-      } else {
-        toast({ title: 'Vibe Sent!', description: `Dispatched ${selectedGift.name} x${quantity}` });
       }
       
+      onOpenChange(false); // Immediate closure for combo sync
       setSelectedGift(null);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Dispatch Failed' });
@@ -189,7 +185,6 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
           <DialogDescription>Dispatch visual frequencies to the room.</DialogDescription>
         </DialogHeader>
 
-        {/* User Stats Header Protocol */}
         <div className="p-6 pb-2 space-y-4">
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -219,9 +214,6 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
                     </PopoverTrigger>
                     <PopoverContent className="bg-slate-900 border-white/10 text-white p-4 rounded-2xl w-64 shadow-2xl">
                        <h4 className="font-black uppercase italic text-sm mb-2 text-yellow-500">Lucky Gift Rules</h4>
-                       <p className="text-[10px] font-body leading-relaxed text-gray-300">
-                          When you send a Lucky Gift, you have a chance to receive a massive coin return instantly!
-                       </p>
                        <div className="mt-3 grid grid-cols-2 gap-2 text-[9px] font-black uppercase italic">
                           <div className="flex justify-between border-b border-white/5 pb-1"><span>1x Return</span><span className="text-green-400">High</span></div>
                           <div className="flex justify-between border-b border-white/5 pb-1"><span>2x Return</span><span className="text-green-400">Med</span></div>
@@ -288,9 +280,8 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
            </div>
         </div>
 
-        {/* Footer Interaction Bar */}
         <div className="p-6 bg-black/40 border-t border-white/5 flex items-center justify-between gap-4">
-           <div className="flex items-center gap-2 cursor-pointer" onClick={() => {}}>
+           <div className="flex items-center gap-2 cursor-pointer">
               <GoldCoinIcon className="h-5 w-5" />
               <span className="text-lg font-black italic text-white">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
               <ChevronRight className="h-4 w-4 text-white/40" />
