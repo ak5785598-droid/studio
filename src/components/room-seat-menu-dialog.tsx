@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -26,7 +27,7 @@ interface RoomSeatMenuDialogProps {
 
 /**
  * High-Fidelity Room Seat Menu.
- * Re-engineered for absolute reliability when taking seats.
+ * Re-engineered to match the provided tribal blueprint exactly.
  */
 export function RoomSeatMenuDialog({
   open,
@@ -46,11 +47,11 @@ export function RoomSeatMenuDialog({
   const handleTakeSeat = () => {
     if (!firestore || !currentUserId || !roomId) return;
     
-    // ATOMIC SYNC: Using setDoc with merge to ensure document exists
+    // ATOMIC SYNC: Explicitly setting document to ensure the user takes the frequency slot
     const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', currentUserId);
     setDocumentNonBlocking(participantRef, {
       seatIndex: seatIndex,
-      isMuted: true, // Default to muted when taking a new frequency slot
+      isMuted: true,
       updatedAt: serverTimestamp()
     }, { merge: true });
     
@@ -75,7 +76,7 @@ export function RoomSeatMenuDialog({
     <button
       onClick={onClick}
       className={cn(
-        "w-full py-5 text-center text-lg font-bold text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50 last:border-0",
+        "w-full py-5 text-center text-[17px] font-black tracking-tight text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-100 last:border-0",
         className
       )}
     >
@@ -92,14 +93,18 @@ export function RoomSeatMenuDialog({
         </DialogHeader>
 
         <div className="flex flex-col items-center">
+          {/* Blueprint: Take Action */}
           {(!occupantUid && (!isLocked || canManage)) && (
             <MenuItem label="Take" onClick={handleTakeSeat} />
           )}
 
+          {/* Blueprint: Invite Action */}
           <MenuItem label="Invite" onClick={() => { toast({ title: 'Invite Frequency' }); onOpenChange(false); }} />
 
+          {/* Blueprint: Mute Action */}
           <MenuItem label="Mute" onClick={() => { toast({ title: 'Mute Frequency' }); onOpenChange(false); }} />
 
+          {/* Blueprint: Lock/Unlock Toggle */}
           {canManage && (
             <MenuItem 
               label={isLocked ? "Unlock the mic" : "Lock the mic"} 
@@ -107,10 +112,11 @@ export function RoomSeatMenuDialog({
             />
           )}
 
+          {/* Blueprint: Cancel Action with clear separation */}
           <MenuItem 
             label="Cancel" 
             onClick={() => onOpenChange(false)} 
-            className="text-gray-400 font-medium border-t-4 border-gray-50 mt-2" 
+            className="text-gray-400 font-bold border-t-[6px] border-gray-50 mt-1" 
           />
         </div>
       </DialogContent>

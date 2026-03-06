@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useRoomContext } from './room-provider';
 import { useUser, useFirestore, addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import { doc, serverTimestamp, collection, increment, writeBatch, getDocs, query, where } from 'firebase/firestore';
+import { doc, serverTimestamp, collection, increment, writeBatch, getDocs, query, where, getDoc } from 'firebase/firestore';
 
 /**
  * Maintains Firestore presence while a room is active.
@@ -13,6 +13,7 @@ import { doc, serverTimestamp, collection, increment, writeBatch, getDocs, query
  * 1. 20s Heartbeat for live tracking.
  * 2. Distributed Cleanup: ANY participant now sweeps stale (60s+) participants periodically.
  * 3. Exact Count Sync: Periodically forces room count to match actual active roster size.
+ * RE-ENGINEERED: Prevents seatIndex reset when identity metadata refreshes.
  */
 export function RoomPresenceManager() {
   const { activeRoom, setActiveRoom } = useRoomContext();
@@ -32,6 +33,7 @@ export function RoomPresenceManager() {
     const uid = user.uid;
 
     const performJoin = async () => {
+      // Identity Sync Guard: Only perform the full join logic once per frequency transition
       if (lastRoomId.current === roomId) return;
       lastRoomId.current = roomId;
 
@@ -40,7 +42,11 @@ export function RoomPresenceManager() {
       const profileRef = doc(firestore, 'users', uid, 'profile', uid);
       const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', uid);
 
-      // 1. Broadcast Entrance
+      // 1. Check for existing frequency metadata to prevent seat resets
+      const existingSnap = await getDoc(participantRef);
+      const existingData = existingSnap.exists() ? existingSnap.data() : null;
+
+      // 2. Broadcast Entrance
       addDocumentNonBlocking(collection(firestore, 'chatRooms', roomId, 'messages'), {
         content: 'entered the room',
         senderId: uid,
@@ -51,7 +57,7 @@ export function RoomPresenceManager() {
         type: 'entrance'
       });
 
-      // 2. Atomic Join Handshake
+      // 3. Atomic Join Handshake
       const batch = writeBatch(firestore);
       batch.update(roomDocRef, { participantCount: increment(1), updatedAt: serverTimestamp() });
       batch.update(userRef, { currentRoomId: roomId, isOnline: true, updatedAt: serverTimestamp() });
@@ -66,19 +72,20 @@ export function RoomPresenceManager() {
         joinedAt: serverTimestamp(),
         lastSeen: serverTimestamp(),
         isMuted: true,
-        seatIndex: 0,
+        // CRITICAL SYNC: Preserve seat index if already synchronized, otherwise set to 0 (observer)
+        seatIndex: existingData?.seatIndex ?? 0,
       }, { merge: true });
 
       try {
         await batch.commit();
         
-        // 3. Start Heartbeat Sync (20s)
+        // 4. Start Heartbeat Sync (20s)
         if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
         heartbeatInterval.current = setInterval(() => {
           setDocumentNonBlocking(participantRef, { lastSeen: serverTimestamp() }, { merge: true });
         }, 20000);
 
-        // 4. DISTRIBUTED ROSTER SANITY CHECK (Aggressive 30s Sweep)
+        // 5. DISTRIBUTED ROSTER SANITY CHECK (Aggressive 30s Sweep)
         if (cleanupInterval.current) clearInterval(cleanupInterval.current);
         cleanupInterval.current = setInterval(async () => {
           const staleThreshold = new Date(Date.now() - 60000); 
@@ -103,18 +110,13 @@ export function RoomPresenceManager() {
             });
 
             // Always synchronize the room count to the actual active roster size
-            // This fixes "Ghost Rooms" instantly if discrepancies occur
             purgeBatch.update(roomDocRef, { 
               participantCount: activeCount,
               updatedAt: serverTimestamp() 
             });
 
             await purgeBatch.commit();
-            if (purgedCount > 0) {
-              console.log(`[Presence Sync] Purged ${purgedCount} ghosts. Room count corrected to: ${activeCount}`);
-            }
           } else {
-            // Roster is physically empty, ensure count is 0
             updateDocumentNonBlocking(roomDocRef, { participantCount: 0 });
           }
         }, 30000); 
@@ -140,7 +142,6 @@ export function RoomPresenceManager() {
         const profileRef = doc(firestore, 'users', uid, 'profile', uid);
         const participantRef = doc(firestore, 'chatRooms', exitRoomId, 'participants', uid);
 
-        // Standard exit cleanup
         batch.delete(participantRef);
         batch.update(roomDocRef, { participantCount: increment(-1), updatedAt: serverTimestamp() });
         batch.update(userRef, { currentRoomId: null, isOnline: false, updatedAt: serverTimestamp() });
