@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { 
@@ -23,17 +24,33 @@ interface RoomUserListDialogProps {
 
 /**
  * High-Fidelity Room Roster Dimension.
- * Displays all active tribe members within the current frequency.
+ * ANTI-GHOST FILTER: Prunes display list of any participant not pulsing in the last 60s.
  */
 export function RoomUserListDialog({ open, onOpenChange, roomId }: RoomUserListDialogProps) {
   const firestore = useFirestore();
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (open) {
+      const timer = setInterval(() => setNow(Date.now()), 15000);
+      return () => clearInterval(timer);
+    }
+  }, [open]);
 
   const participantsQuery = useMemoFirebase(() => {
     if (!firestore || !roomId) return null;
     return query(collection(firestore, 'chatRooms', roomId, 'participants'), orderBy('joinedAt', 'desc'));
   }, [firestore, roomId]);
 
-  const { data: participants, isLoading } = useCollection(participantsQuery);
+  const { data: rawParticipants = [], isLoading } = useCollection(participantsQuery);
+
+  const participants = useMemo(() => {
+    return rawParticipants.filter(p => {
+      const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
+      if (!lastSeen) return true;
+      return (now - lastSeen) < 65000;
+    });
+  }, [rawParticipants, now]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -45,7 +62,7 @@ export function RoomUserListDialog({ open, onOpenChange, roomId }: RoomUserListD
           <div className="flex-1 text-left">
             <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Room Roster</DialogTitle>
             <DialogDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mt-1">
-              Currently Synchronized: {participants?.length || 0} Members
+              Currently Synchronized: {participants.length} Members
             </DialogDescription>
           </div>
         </DialogHeader>
@@ -56,7 +73,7 @@ export function RoomUserListDialog({ open, onOpenChange, roomId }: RoomUserListD
                 <Loader className="animate-spin text-primary h-8 w-8" />
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">Syncing Roster...</p>
              </div>
-           ) : participants && participants.length > 0 ? (
+           ) : participants.length > 0 ? (
              <div className="space-y-2">
                 {participants.map((p: any) => (
                   <div key={p.uid} className="p-4 bg-gray-50 rounded-2xl flex items-center justify-between group active:scale-[0.98] transition-all cursor-pointer border border-gray-100/50 hover:bg-gray-100">

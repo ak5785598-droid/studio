@@ -6,8 +6,9 @@ import { doc, getDoc, setDoc, serverTimestamp, runTransaction, collection, incre
 
 /**
  * Production Profile Initializer.
- * Assigns a unique sequential 3-digit numeric ID (e.g. 001, 002...) starting from 1.
- * STALE IDENTITY PURGE: Detects if the user was in a room during a crash and cleans up.
+ * GHOST IDENTITY RECOVERY: 
+ * If a user returns and has a stale currentRoomId, we perform an immediate physical cleanup 
+ * of the previous frequency participant record before allowing a new entry.
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -24,31 +25,49 @@ export function ProfileInitializer() {
       try {
         const userSnap = await getDoc(userRef);
         
-        // 1. STALE IDENTITY PURGE PROTOCOL (Anti-Ghost Startup)
-        // If app was cut without logout, this cleans up the previous frequency.
+        // 1. GHOST IDENTITY RECOVERY PROTOCOL
         if (userSnap.exists()) {
           const userData = userSnap.data();
           const staleRoomId = userData.currentRoomId;
           
           if (staleRoomId) {
-            console.log(`[Identity Sync] Detected stale presence in room: ${staleRoomId}. Activating purge...`);
+            console.log(`[Identity Sync] Commencing absolute purge of stale presence in room: ${staleRoomId}`);
             try {
               const batch = writeBatch(firestore);
               const roomRef = doc(firestore, 'chatRooms', staleRoomId);
               const participantRef = doc(firestore, 'chatRooms', staleRoomId, 'participants', profileId);
               const profileRef = doc(firestore, 'users', profileId, 'profile', profileId);
               
-              // Atomic Cleanup: Decrement count and delete stale participant
-              batch.update(roomRef, { participantCount: increment(-1), updatedAt: serverTimestamp() });
+              batch.update(roomRef, { 
+                participantCount: increment(-1), 
+                updatedAt: serverTimestamp() 
+              });
               batch.delete(participantRef);
-              batch.update(userRef, { currentRoomId: null, isOnline: true, updatedAt: serverTimestamp() });
-              batch.update(profileRef, { currentRoomId: null, isOnline: true, updatedAt: serverTimestamp() });
+              batch.update(userRef, { 
+                currentRoomId: null, 
+                isOnline: true, 
+                lastSeen: serverTimestamp(),
+                updatedAt: serverTimestamp() 
+              });
+              batch.update(profileRef, { 
+                currentRoomId: null, 
+                isOnline: true, 
+                lastSeen: serverTimestamp(),
+                updatedAt: serverTimestamp() 
+              });
               
               await batch.commit();
-              console.log(`[Identity Sync] Ghost identity successfully purged.`);
+              console.log(`[Identity Sync] Stale presence successfully terminated.`);
             } catch (e) {
-              console.warn(`[Identity Sync] Cleanup failed or room no longer exists:`, e);
+              console.warn(`[Identity Sync] Cleanup handshake aborted:`, e);
             }
+          } else {
+            // Standard re-entry pulse
+            const pulseBatch = writeBatch(firestore);
+            const profileRef = doc(firestore, 'users', profileId, 'profile', profileId);
+            pulseBatch.update(userRef, { isOnline: true, lastSeen: serverTimestamp(), updatedAt: serverTimestamp() });
+            pulseBatch.update(profileRef, { isOnline: true, lastSeen: serverTimestamp(), updatedAt: serverTimestamp() });
+            await pulseBatch.commit();
           }
           
           hasInitialized.current = profileId;
@@ -80,6 +99,7 @@ export function ProfileInitializer() {
             bio: 'Synchronized with the Ummy frequency.',
             currentRoomId: null,
             isOnline: true,
+            lastSeen: serverTimestamp(),
             wallet: { 
               coins: 1000000, 
               diamonds: 0,
@@ -111,6 +131,7 @@ export function ProfileInitializer() {
           level: finalData.level,
           tags: finalData.tags, 
           isOnline: true,
+          lastSeen: serverTimestamp(),
           updatedAt: serverTimestamp(),
           joinedAt: serverTimestamp(),
         }, { merge: true });

@@ -4,14 +4,15 @@ import { useEffect, useRef } from 'react';
 import { useRoomContext } from './room-provider';
 import { useUser, useFirestore, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import { doc, serverTimestamp, collection, increment, writeBatch, getDocs } from 'firebase/firestore';
+import { doc, serverTimestamp, collection, increment, writeBatch, getDocs, query, where, deleteDoc } from 'firebase/firestore';
 
 const CREATOR_ID = '901piBzTQ0VzCtAvlyyobwvAaTs1';
 
 /**
  * Maintains Firestore presence while a room is active.
- * OPTIMIZED: Synchronizes participantCount document field for grid-wide efficiency.
- * HEARTBEAT: Updates lastSeen every 30s to allow detection of app-kills/screen-cuts.
+ * ANTI-GHOST PROTOCOL: 
+ * 1. 20s Heartbeat for live tracking.
+ * 2. Decentralized Cleanup: Owners/Admins sweep stale (60s+) participants periodically.
  */
 export function RoomPresenceManager() {
   const { activeRoom } = useRoomContext();
@@ -20,6 +21,9 @@ export function RoomPresenceManager() {
   const firestore = useFirestore();
   const lastRoomId = useRef<string | null>(null);
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
+  const cleanupInterval = useRef<NodeJS.Timeout | null>(null);
+
+  const isOwnerOrAdmin = user?.uid === activeRoom?.ownerId || userProfile?.tags?.some(t => ['Admin', 'Official', 'Super Admin'].includes(t));
 
   useEffect(() => {
     if (!firestore || !activeRoom?.id || !user) {
@@ -38,7 +42,7 @@ export function RoomPresenceManager() {
       const profileRef = doc(firestore, 'users', uid, 'profile', uid);
       const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', uid);
 
-      // Broadcast entrance
+      // 1. Broadcast Entrance
       addDocumentNonBlocking(collection(firestore, 'chatRooms', roomId, 'messages'), {
         content: 'entered the room',
         senderId: uid,
@@ -49,33 +53,14 @@ export function RoomPresenceManager() {
         type: 'entrance'
       });
 
-      // SELF-HEALING: Fetch actual participant size to maintain count accuracy
-      let actualCount = 1;
-      try {
-        const participantsSnap = await getDocs(collection(firestore, 'chatRooms', roomId, 'participants'));
-        actualCount = participantsSnap.docs.filter(d => d.id !== uid).length + 1;
-      } catch (e) {
-        console.warn("[Presence Sync] Fallback to optimistic count");
-      }
-
+      // 2. Atomic Join Handshake
       const batch = writeBatch(firestore);
-
-      if (roomId === 'ummy-help-center') {
-        batch.set(roomDocRef, { 
-          id: 'ummy-help-center',
-          title: 'Ummy Official Help',
-          ownerId: CREATOR_ID,
-          category: 'Chat',
-          participantCount: actualCount,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-      } else {
-        batch.update(roomDocRef, { 
-          participantCount: actualCount,
-          updatedAt: serverTimestamp() 
-        });
-      }
-
+      
+      // Update counts and status
+      batch.update(roomDocRef, { 
+        participantCount: increment(1),
+        updatedAt: serverTimestamp() 
+      });
       batch.update(userRef, { currentRoomId: roomId, isOnline: true, updatedAt: serverTimestamp() });
       batch.update(profileRef, { currentRoomId: roomId, isOnline: true, updatedAt: serverTimestamp() });
 
@@ -94,11 +79,41 @@ export function RoomPresenceManager() {
       try {
         await batch.commit();
         
-        // Start 30s Heartbeat Sync
+        // 3. Start Heartbeat Sync (20s)
         if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
         heartbeatInterval.current = setInterval(() => {
           setDocumentNonBlocking(participantRef, { lastSeen: serverTimestamp() }, { merge: true });
-        }, 30000);
+        }, 20000);
+
+        // 4. DECENTRALIZED GHOST PURGE (Owners/Admins only)
+        // Scans the room for any inactive participants and purges them to fix counts.
+        if (isOwnerOrAdmin) {
+          if (cleanupInterval.current) clearInterval(cleanupInterval.current);
+          cleanupInterval.current = setInterval(async () => {
+            console.log(`[Anti-Ghost] Admin sweep commencing for room: ${roomId}`);
+            const staleThreshold = new Date(Date.now() - 60000); // 60 seconds stale
+            const q = query(collection(firestore, 'chatRooms', roomId, 'participants'), where('lastSeen', '<', staleThreshold));
+            const snap = await getDocs(q);
+            
+            if (!snap.empty) {
+              const purgeBatch = writeBatch(firestore);
+              let purgedCount = 0;
+              
+              snap.docs.forEach(d => {
+                if (d.id !== uid) { // Don't purge self
+                  purgeBatch.delete(d.ref);
+                  purgedCount++;
+                }
+              });
+
+              if (purgedCount > 0) {
+                purgeBatch.update(roomDocRef, { participantCount: increment(-purgedCount) });
+                await purgeBatch.commit();
+                console.log(`[Anti-Ghost] Purged ${purgedCount} ghost identities from frequency.`);
+              }
+            }
+          }, 30000); // Sweep every 30s
+        }
 
       } catch (e) {
         console.error("[Presence Sync] Join failed:", e);
@@ -109,10 +124,8 @@ export function RoomPresenceManager() {
     performJoin();
 
     const handleExit = async () => {
-      if (heartbeatInterval.current) {
-        clearInterval(heartbeatInterval.current);
-        heartbeatInterval.current = null;
-      }
+      if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
+      if (cleanupInterval.current) clearInterval(cleanupInterval.current);
 
       if (lastRoomId.current === roomId) {
         lastRoomId.current = null;
@@ -123,20 +136,14 @@ export function RoomPresenceManager() {
         const profileRef = doc(firestore, 'users', uid, 'profile', uid);
         const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', uid);
 
-        batch.update(roomDocRef, { 
-          participantCount: increment(-1),
-          updatedAt: serverTimestamp()
-        });
-
+        batch.update(roomDocRef, { participantCount: increment(-1) });
         batch.delete(participantRef);
         batch.update(userRef, { currentRoomId: null, isOnline: false, updatedAt: serverTimestamp() });
         batch.update(profileRef, { currentRoomId: null, isOnline: false, updatedAt: serverTimestamp() });
         
         try {
           await batch.commit();
-        } catch (e) {
-          console.warn("[Presence Sync] Exit failed:", e);
-        }
+        } catch (e) {}
       }
     };
 
@@ -145,7 +152,7 @@ export function RoomPresenceManager() {
       handleExit();
       window.removeEventListener('beforeunload', handleExit);
     };
-  }, [firestore, activeRoom?.id, user?.uid, userProfile?.username, userProfile?.avatarUrl, userProfile?.inventory?.activeFrame, userProfile?.inventory?.activeWave]); 
+  }, [firestore, activeRoom?.id, user?.uid, userProfile?.username, isOwnerOrAdmin]); 
 
   return null;
 }

@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useUser, useFirestore, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { doc, serverTimestamp } from 'firebase/firestore';
 
 /**
  * Elite Global Presence Manager.
  * Synchronizes the user's online status with the tribal graph in real-time.
- * HEARTBEAT: Updates online pulse every 30s to detect app-cuts.
+ * PULSE PROTOCOL: Updates online heartbeat every 20s for high-fidelity detection.
  */
 export function GlobalPresenceManager() {
   const { user } = useUser();
@@ -21,18 +21,22 @@ export function GlobalPresenceManager() {
     const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
 
     const setPresence = (online: boolean) => {
-      const data = { isOnline: online, updatedAt: serverTimestamp() };
+      const data = { 
+        isOnline: online, 
+        lastSeen: serverTimestamp(),
+        updatedAt: serverTimestamp() 
+      };
       setDocumentNonBlocking(userRef, data, { merge: true });
       setDocumentNonBlocking(profileRef, data, { merge: true });
     };
 
-    // Initial Handshake: Online
+    // Initial Sync
     setPresence(true);
 
-    // Global Pulse Engine
+    // High-Frequency Pulse Engine (20s)
     heartbeatTimer.current = setInterval(() => {
       setPresence(true);
-    }, 30000);
+    }, 20000);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {

@@ -12,9 +12,6 @@ import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
 
-/**
- * High-Fidelity Golden Mic Icon for shining empty seats.
- */
 const GoldenMicIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -33,7 +30,7 @@ const GoldenMicIcon = ({ className }: { className?: string }) => (
 
 /**
  * High-Fidelity Compact Room Overlay.
- * RE-ENGINEERED: Includes Anti-Ghost Filtering to remove inactive participants automatically.
+ * ANTI-GHOST FILTER: Participants who haven't pulsed in 60s are hidden from UI.
  */
 export function CompactRoomView() {
   const { activeRoom, setIsMinimized } = useRoomContext();
@@ -42,9 +39,8 @@ export function CompactRoomView() {
   const router = useRouter();
   const [now, setNow] = useState(Date.now());
 
-  // Local clock sync for ghost detection
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 30000);
+    const timer = setInterval(() => setNow(Date.now()), 15000);
     return () => clearInterval(timer);
   }, []);
 
@@ -53,19 +49,18 @@ export function CompactRoomView() {
     return query(collection(firestore, 'chatRooms', activeRoom.id, 'participants'));
   }, [firestore, activeRoom?.id, currentUser]);
 
-  const { data: rawParticipants } = useCollection(participantsQuery);
+  const { data: rawParticipants = [] } = useCollection(participantsQuery);
   
-  // ANTI-GHOST FILTER: Participants who haven't pulsed in 90s are removed from UI.
+  // ANTI-GHOST FILTER: Real-time UI purge for inactive participants
   const participants = useMemo(() => {
-    if (!rawParticipants) return [];
     return rawParticipants.filter(p => {
       const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
-      if (!lastSeen) return true; // Keep newly joined users
-      return (now - lastSeen) < 90000; // 1.5 minute threshold for "Offline" detection
+      if (!lastSeen) return true;
+      return (now - lastSeen) < 65000; // 65s stale threshold
     });
   }, [rawParticipants, now]);
 
-  const onlineCount = participants?.length || 0;
+  const onlineCount = participants.length;
 
   if (!activeRoom) return null;
 
@@ -102,7 +97,7 @@ export function CompactRoomView() {
         <div className="flex gap-4 px-2 min-w-max pb-4">
           {Array.from({ length: 13 }).map((_, i) => {
             const idx = i + 1; 
-            const occupant = participants?.find(p => p.seatIndex === idx);
+            const occupant = participants.find(p => p.seatIndex === idx);
             const isLocked = activeRoom.lockedSeats?.includes(idx);
             const isMod = activeRoom.moderatorIds?.includes(occupant?.uid || '');
             const isOwner = occupant?.uid === activeRoom.ownerId;
@@ -116,12 +111,10 @@ export function CompactRoomView() {
                   )}
                   <AvatarFrame frameId={occupant?.activeFrame} size="sm">
                     <div className={cn(
-                      "h-12 w-12 rounded-full flex items-center justify-center transition-all bg-gradient-to-br from-[#0a1a0a] to-[#020502] border-[3px] border-[#fbbf24] shadow-[0_0_8px_rgba(251,191,36,0.3),inset_0_0_4px_rgba(0,0,0,0.6),0_0_0_1px_#fbbf24]",
+                      "h-12 w-12 rounded-full flex items-center justify-center transition-all bg-gradient-to-br from-[#0a1a0a] to-[#020502] border-[3px] border-[#fbbf24] shadow-[0_0_8px_rgba(251,191,36,0.3)]",
                       "relative overflow-hidden"
                     )}>
-                      {/* Glossy High-Fidelity Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/5 to-transparent rounded-full h-1/2 pointer-events-none z-10" />
-                      
                       {occupant ? (
                         <Avatar className="h-full w-full p-0.5">
                           <AvatarImage src={occupant.avatarUrl || undefined} />
