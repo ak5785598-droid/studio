@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef } from 'react';
@@ -10,7 +9,8 @@ import {
   Check,
   UserCheck,
   UserX,
-  Trash2
+  Trash2,
+  Lock
 } from 'lucide-react';
 import {
   Dialog,
@@ -22,7 +22,8 @@ import {
 } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useFirestore, updateDocumentNonBlocking, useCollection, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useFirestore, updateDocumentNonBlocking, useCollection, useMemoFirebase, errorEmitter, FirestorePermissionError, useUser } from '@/firebase';
+import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, serverTimestamp, query, collection, arrayUnion, arrayRemove, getDocs, writeBatch } from 'firebase/firestore';
 import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +33,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageCropDialog } from '@/components/image-crop-dialog';
 import { Badge } from '@/components/ui/badge';
+import { ROOM_THEMES, RoomTheme } from '@/lib/themes';
+import Image from 'next/image';
 
 interface RoomSettingsDialogProps {
   room: any;
@@ -65,6 +68,7 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
   const [open, setOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
+  const [isEditingTheme, setIsEditingTheme] = useState(false);
   const [isManagingAdmins, setIsManagingAdmins] = useState(false);
   const [isClearingChat, setIsClearingChat] = useState(false);
   const [newName, setNewName] = useState(room.title || room.name);
@@ -73,10 +77,16 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [isCropOpen, setIsCropOpen] = useState(false);
 
+  const { user } = useUser();
+  const { userProfile } = useUserProfile(user?.uid);
   const firestore = useFirestore();
   const { toast } = useToast();
   const { isUploading, uploadRoomImage } = useRoomImageUpload(room.id);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isOfficialRoom = room.id === 'ummy-help-center';
+  const userIsOfficial = userProfile?.tags?.some(t => ['Admin', 'Official', 'Super Admin'].includes(t));
+  const canUseOfficialThemes = isOfficialRoom || userIsOfficial;
 
   const participantsQuery = useMemoFirebase(() => {
     if (!firestore || !room.id) return null;
@@ -145,6 +155,16 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
     setIsEditingAnnouncement(false);
   };
 
+  const handleSelectTheme = (theme: RoomTheme) => {
+    if (theme.isOfficial && !canUseOfficialThemes) {
+      toast({ variant: 'destructive', title: 'Access Denied', description: 'Official themes are restricted to system authorities.' });
+      return;
+    }
+    handleUpdate('roomThemeId', theme.id);
+    setIsEditingTheme(false);
+    toast({ title: 'Theme Synchronized', description: `${theme.name} is now live.` });
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -161,6 +181,8 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
     await uploadRoomImage(croppedFile);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  const currentTheme = ROOM_THEMES.find(t => t.id === room.roomThemeId) || ROOM_THEMES[0];
 
   return (
     <>
@@ -237,7 +259,7 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
                    />
                 </SettingItem>
 
-                <SettingItem label="Room Theme" />
+                <SettingItem label="Room Theme" value={currentTheme.name} onClick={() => setIsEditingTheme(true)} />
 
                 <SettingItem label="Administrators" onClick={() => setIsManagingAdmins(true)} />
 
@@ -254,6 +276,56 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
                 <SettingItem label="Kick History" />
              </div>
           </ScrollArea>
+
+          {isEditingTheme && (
+            <div className="absolute inset-0 z-[100] bg-white animate-in slide-in-from-right duration-300 flex flex-col font-headline">
+               <header className="p-6 border-b border-gray-50 flex items-center justify-between">
+                  <button onClick={() => setIsEditingTheme(false)} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
+                     <ChevronLeft className="h-6 w-6 text-gray-600" />
+                  </button>
+                  <h3 className="font-black uppercase italic text-lg tracking-tighter">Room Themes</h3>
+                  <div className="w-10" />
+               </header>
+               <ScrollArea className="flex-1">
+                  <div className="grid grid-cols-2 gap-4 p-6">
+                     {ROOM_THEMES.map((theme) => {
+                       const isLocked = theme.isOfficial && !canUseOfficialThemes;
+                       return (
+                         <button 
+                           key={theme.id}
+                           onClick={() => handleSelectTheme(theme)}
+                           className={cn(
+                             "relative flex flex-col items-center gap-2 group transition-all",
+                             isLocked && "opacity-60 grayscale"
+                           )}
+                         >
+                            <div className={cn(
+                              "relative aspect-square w-full rounded-2xl overflow-hidden border-4 transition-all",
+                              room.roomThemeId === theme.id ? "border-primary scale-105 shadow-lg" : "border-transparent group-hover:border-gray-100"
+                            )}>
+                               <Image src={theme.url} alt={theme.name} fill className="object-cover" sizes="200px" />
+                               {isLocked && (
+                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    <Lock className="h-8 w-8 text-white/80" />
+                                 </div>
+                               )}
+                               {room.roomThemeId === theme.id && (
+                                 <div className="absolute top-2 right-2 bg-primary rounded-full p-1 shadow-md">
+                                    <Check className="h-3 w-3 text-white" />
+                                 </div>
+                               )}
+                            </div>
+                            <span className={cn(
+                              "text-[10px] font-black uppercase tracking-tight",
+                              room.roomThemeId === theme.id ? "text-primary" : "text-gray-500"
+                            )}>{theme.name}</span>
+                         </button>
+                       );
+                     })}
+                  </div>
+               </ScrollArea>
+            </div>
+          )}
 
           {isEditingName && (
             <div className="absolute inset-0 z-[100] bg-white animate-in slide-in-from-right duration-300 flex flex-col font-headline">

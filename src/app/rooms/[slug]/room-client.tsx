@@ -81,12 +81,7 @@ import { GiftPicker, type GiftItem } from '@/components/gift-picker';
 import { RoomPlayDialog } from '@/components/room-play-dialog';
 import { LuckyRainOverlay } from '@/components/lucky-rain-overlay';
 import { RoomSeatMenuDialog } from '@/components/room-seat-menu-dialog';
-
-const ROOM_THEMES = [
-  { id: 'misty', name: 'Misty Forest', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000' },
-  { id: 'neon', name: 'Neon Party', url: 'https://images.unsplash.com/photo-1514525253361-bee8718a300a?q=80&w=2000' },
-  { id: 'royal', name: 'Royal Palace', url: 'https://images.unsplash.com/photo-1562664377-709f2c337eb2?q=80&w=2000' },
-];
+import { ROOM_THEMES } from '@/lib/themes';
 
 function RemoteAudio({ stream }: { stream: MediaStream }) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -187,7 +182,7 @@ export function RoomClient({ room }: { room: Room }) {
     if (!currentUser || !firestore || !userProfile || !grabBagActive) return;
     const winAmount = Math.floor(Math.random() * 450) + 50; 
     const userRef = doc(firestore, 'users', currentUser.uid);
-    const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
+    const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
     const updateData = { 'wallet.coins': increment(winAmount), updatedAt: serverTimestamp() };
     updateDocumentNonBlocking(userRef, updateData);
     updateDocumentNonBlocking(profileRef, updateData);
