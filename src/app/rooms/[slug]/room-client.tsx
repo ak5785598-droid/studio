@@ -223,14 +223,10 @@ export function RoomClient({ room }: { room: Room }) {
     setSelectedSeatIdx(index);
     if (occupant) {
       setSelectedParticipantUid(occupant.uid);
-      // If it's me or I'm an admin, I can manage the seat
-      if (canManageRoom || occupant.uid === currentUser?.uid) {
-        setIsSeatMenuOpen(true);
-      } else {
-        setIsUserProfileCardOpen(true);
-      }
+      if (canManageRoom || occupant.uid === currentUser?.uid) setIsSeatMenuOpen(true);
+      else setIsUserProfileCardOpen(true);
     } else {
-      setSelectedParticipantUid(null); // CRITICAL FIX: Ensure previous occupant ID is cleared for empty seat tap
+      setSelectedParticipantUid(null);
       setIsSeatMenuOpen(true);
     }
   };
@@ -303,7 +299,7 @@ export function RoomClient({ room }: { room: Room }) {
       </header>
 
       <main className="relative z-10 flex-1 flex flex-col pt-4 overflow-hidden">
-        <div className="flex-1 flex flex-col items-center justify-center gap-6">
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-20">
            <div className="w-full flex justify-center"><Seat index={1} label="No.1" /></div>
            <div className="w-full flex justify-center gap-4 px-4"><Seat index={2} label="No.2" /><Seat index={3} label="No.3" /><Seat index={4} label="No.4" /><Seat index={5} label="No.5" /></div>
            <div className="w-full flex justify-center gap-4 px-4"><Seat index={6} label="No.6" /><Seat index={7} label="No.7" /><Seat index={8} label="No.8" /><Seat index={9} label="No.9" /></div>
