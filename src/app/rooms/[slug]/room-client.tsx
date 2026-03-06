@@ -324,7 +324,7 @@ export function RoomClient({ room }: { room: Room }) {
 
     try {
       const userRef = doc(firestore, 'users', currentUser.uid);
-      const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
+      const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
       const roomRef = doc(firestore, 'chatRooms', room.id);
 
       let winAmount = 0;
@@ -551,7 +551,17 @@ export function RoomClient({ room }: { room: Room }) {
       <RoomShareDialog open={isShareOpen} onOpenChange={setIsShareOpen} room={room} />
       <SeatActionDialog open={isSeatMenuOpen} onOpenChange={setIsSeatMenuOpen} onAction={handleSeatAction} canManage={canManageRoom} isOccupied={!!occupant} isMe={occupant?.uid === currentUser?.uid} isLocked={!!selectedSeatIdx && (room.lockedSeats?.includes(selectedSeatIdx) || false)} occupantName={occupant?.name} isOccupantMuted={occupant?.isMuted} />
       <RoomUserProfileDialog userId={selectedParticipantUid} open={isUserProfileCardOpen} onOpenChange={setIsUserProfileCardOpen} canManage={canManageRoom} isOwner={isOwner} roomOwnerId={room.ownerId} roomModeratorIds={room.moderatorIds || []} onSilence={() => handleSeatAction('toggle-mute')} onKick={() => {}} onLeaveSeat={() => handleSeatAction('remove-from-seat')} onToggleMod={() => {}} onOpenGiftPicker={(rec) => { setGiftRecipient(rec); setIsGiftPickerOpen(true); }} isSilenced={occupant?.isMuted || false} isMe={selectedParticipantUid === currentUser?.uid} />
-      <GiftPicker open={isGiftPickerOpen} onOpenChange={setIsGiftPickerOpen} roomId={room.id} recipient={giftRecipient} onGiftSent={(gift, qty, rec) => setActiveCombo({ gift, recipient: rec, count: qty })} />
+      <GiftPicker 
+        open={isGiftPickerOpen} 
+        onOpenChange={setIsGiftPickerOpen} 
+        roomId={room.id} 
+        recipient={giftRecipient} 
+        onGiftSent={(gift, qty, rec) => {
+          if (gift.type === 'lucky') {
+            setActiveCombo({ gift, recipient: rec, count: qty });
+          }
+        }} 
+      />
     </div>
   );
 }
