@@ -13,6 +13,12 @@ interface FallingCoin {
   duration: number;
 }
 
+interface RewardPop {
+  id: number;
+  x: number;
+  y: number;
+}
+
 interface LuckyRainOverlayProps {
   active: boolean;
   onComplete: () => void;
@@ -21,10 +27,12 @@ interface LuckyRainOverlayProps {
 /**
  * High-Fidelity Lucky Rain Overlay.
  * Generates interactive falling coins that add 10 Gold Coins to the user's vault on tap.
+ * Features real-time +10 pop animations at the contact point.
  * Duration: Strictly 30 seconds.
  */
 export function LuckyRainOverlay({ active, onComplete }: LuckyRainOverlayProps) {
   const [coins, setCoins] = useState<FallingCoin[]>([]);
+  const [rewards, setRewards] = useState<RewardPop[]>([]);
   const { user } = useUser();
   const firestore = useFirestore();
 
@@ -42,6 +50,7 @@ export function LuckyRainOverlay({ active, onComplete }: LuckyRainOverlayProps) 
       // Strictly 30 second synchronization
       const timer = setTimeout(() => {
         setCoins([]);
+        setRewards([]);
         onComplete();
       }, 30000);
 
@@ -49,13 +58,32 @@ export function LuckyRainOverlay({ active, onComplete }: LuckyRainOverlayProps) 
     }
   }, [active, onComplete]);
 
-  const handleCoinTap = useCallback((coinId: number) => {
+  const handleCoinTap = useCallback((e: React.MouseEvent | React.TouchEvent, coinId: number) => {
     if (!user || !firestore) return;
 
-    // 1. Remove coin from visual frequency instantly
+    // 1. Capture Interaction Coordinates
+    let clientX, clientY;
+    if ('clientX' in e) {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    } else {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    }
+
+    // 2. Remove coin from visual frequency instantly
     setCoins(prev => prev.filter(c => c.id !== coinId));
 
-    // 2. High-speed atomic sync: Dispatch 10 coins to vault
+    // 3. Trigger High-Fidelity Reward Pop
+    const rewardId = Date.now() + Math.random();
+    setRewards(prev => [...prev, { id: rewardId, x: clientX, y: clientY }]);
+    
+    // Cleanup pop after animation
+    setTimeout(() => {
+      setRewards(prev => prev.filter(r => r.id !== rewardId));
+    }, 800);
+
+    // 4. High-speed atomic sync: Dispatch 10 coins to vault
     const userRef = doc(firestore, 'users', user.uid);
     const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
     
@@ -72,10 +100,12 @@ export function LuckyRainOverlay({ active, onComplete }: LuckyRainOverlayProps) 
 
   return (
     <div className="fixed inset-0 z-[400] pointer-events-none overflow-hidden select-none">
+      {/* Interactive Falling Coins */}
       {coins.map((coin) => (
         <div
           key={coin.id}
-          onClick={() => handleCoinTap(coin.id)}
+          onMouseDown={(e) => handleCoinTap(e, coin.id)}
+          onTouchStart={(e) => handleCoinTap(e, coin.id)}
           className="absolute pointer-events-auto cursor-pointer animate-lucky-fall group"
           style={{
             left: `${coin.left}%`,
@@ -87,10 +117,21 @@ export function LuckyRainOverlay({ active, onComplete }: LuckyRainOverlayProps) 
           <div className="relative hover:scale-125 transition-transform active:scale-90">
              <div className="absolute inset-0 bg-yellow-400 blur-md opacity-0 group-hover:opacity-40 animate-pulse" />
              <GoldCoinIcon className="h-10 w-10 drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] animate-shimmer-gold" />
-             <div className="absolute -top-4 -right-4 bg-yellow-400 text-black text-[8px] font-black px-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                TAP +10
-             </div>
           </div>
+        </div>
+      ))}
+
+      {/* High-Fidelity Reward Labels (+10) */}
+      {rewards.map((reward) => (
+        <div 
+          key={reward.id}
+          className="absolute z-[401] flex items-center gap-1 animate-reward-pop pointer-events-none"
+          style={{ left: reward.x, top: reward.y }}
+        >
+           <GoldCoinIcon className="h-5 w-5 drop-shadow-md" />
+           <span className="text-2xl font-black text-yellow-400 italic drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-tighter">
+             +10
+           </span>
         </div>
       ))}
 
@@ -112,6 +153,14 @@ export function LuckyRainOverlay({ active, onComplete }: LuckyRainOverlayProps) 
           animation-name: lucky-fall;
           animation-timing-function: linear;
           animation-fill-mode: forwards;
+        }
+        @keyframes reward-pop {
+          0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+          20% { transform: translate(-50%, -20px) scale(1.2); opacity: 1; }
+          100% { transform: translate(-50%, -80px) scale(1.5); opacity: 0; }
+        }
+        .animate-reward-pop {
+          animation: reward-pop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
       `}</style>
     </div>
