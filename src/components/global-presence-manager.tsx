@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -8,6 +9,7 @@ import { doc, serverTimestamp } from 'firebase/firestore';
  * Elite Global Presence Manager.
  * Synchronizes the user's online status with the tribal graph in real-time.
  * PULSE PROTOCOL: Updates online heartbeat every 20s for high-fidelity detection.
+ * CUT DETECTION: Mark offline immediately when screen is hidden or app is backgrounded.
  */
 export function GlobalPresenceManager() {
   const { user } = useUser();
@@ -39,8 +41,17 @@ export function GlobalPresenceManager() {
     }, 20000);
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'hidden') {
+        // Mark offline immediately if app is "cut" or minimized
+        if (heartbeatTimer.current) clearInterval(heartbeatTimer.current);
+        setPresence(false);
+      } else {
+        // Resume presence on return
         setPresence(true);
+        if (heartbeatTimer.current) clearInterval(heartbeatTimer.current);
+        heartbeatTimer.current = setInterval(() => {
+          setPresence(true);
+        }, 20000);
       }
     };
 

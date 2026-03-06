@@ -1,29 +1,27 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
 import { useRoomContext } from './room-provider';
 import { useUser, useFirestore, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import { doc, serverTimestamp, collection, increment, writeBatch, getDocs, query, where, deleteDoc } from 'firebase/firestore';
-
-const CREATOR_ID = '901piBzTQ0VzCtAvlyyobwvAaTs1';
+import { doc, serverTimestamp, collection, increment, writeBatch, getDocs, query, where } from 'firebase/firestore';
 
 /**
  * Maintains Firestore presence while a room is active.
  * ANTI-GHOST PROTOCOL: 
  * 1. 20s Heartbeat for live tracking.
- * 2. Decentralized Cleanup: Owners/Admins sweep stale (60s+) participants periodically.
+ * 2. Distributed Cleanup: ANY participant now sweeps stale (60s+) participants periodically.
+ * This ensures room counts are corrected even if users "cut" the app screen.
  */
 export function RoomPresenceManager() {
-  const { activeRoom } = useRoomContext();
+  const { activeRoom, setActiveRoom } = useRoomContext();
   const { user } = useUser();
   const { userProfile } = useUserProfile(user?.uid);
   const firestore = useFirestore();
   const lastRoomId = useRef<string | null>(null);
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
   const cleanupInterval = useRef<NodeJS.Timeout | null>(null);
-
-  const isOwnerOrAdmin = user?.uid === activeRoom?.ownerId || userProfile?.tags?.some(t => ['Admin', 'Official', 'Super Admin'].includes(t));
 
   useEffect(() => {
     if (!firestore || !activeRoom?.id || !user) {
@@ -55,12 +53,7 @@ export function RoomPresenceManager() {
 
       // 2. Atomic Join Handshake
       const batch = writeBatch(firestore);
-      
-      // Update counts and status
-      batch.update(roomDocRef, { 
-        participantCount: increment(1),
-        updatedAt: serverTimestamp() 
-      });
+      batch.update(roomDocRef, { participantCount: increment(1), updatedAt: serverTimestamp() });
       batch.update(userRef, { currentRoomId: roomId, isOnline: true, updatedAt: serverTimestamp() });
       batch.update(profileRef, { currentRoomId: roomId, isOnline: true, updatedAt: serverTimestamp() });
 
@@ -85,38 +78,34 @@ export function RoomPresenceManager() {
           setDocumentNonBlocking(participantRef, { lastSeen: serverTimestamp() }, { merge: true });
         }, 20000);
 
-        // 4. DECENTRALIZED GHOST PURGE (Owners/Admins only)
-        // Scans the room for any inactive participants and purges them to fix counts.
-        if (isOwnerOrAdmin) {
-          if (cleanupInterval.current) clearInterval(cleanupInterval.current);
-          cleanupInterval.current = setInterval(async () => {
-            console.log(`[Anti-Ghost] Admin sweep commencing for room: ${roomId}`);
-            const staleThreshold = new Date(Date.now() - 60000); // 60 seconds stale
-            const q = query(collection(firestore, 'chatRooms', roomId, 'participants'), where('lastSeen', '<', staleThreshold));
-            const snap = await getDocs(q);
+        // 4. DISTRIBUTED GHOST PURGE (Every Participant acts as a cleaner)
+        // If anyone is in the room, they will clear out people who haven't pulsed in 60s.
+        if (cleanupInterval.current) clearInterval(cleanupInterval.current);
+        cleanupInterval.current = setInterval(async () => {
+          const staleThreshold = new Date(Date.now() - 60000); 
+          const q = query(collection(firestore, 'chatRooms', roomId, 'participants'), where('lastSeen', '<', staleThreshold));
+          const snap = await getDocs(q);
+          
+          if (!snap.empty) {
+            const purgeBatch = writeBatch(firestore);
+            let purgedCount = 0;
             
-            if (!snap.empty) {
-              const purgeBatch = writeBatch(firestore);
-              let purgedCount = 0;
-              
-              snap.docs.forEach(d => {
-                if (d.id !== uid) { // Don't purge self
-                  purgeBatch.delete(d.ref);
-                  purgedCount++;
-                }
-              });
-
-              if (purgedCount > 0) {
-                purgeBatch.update(roomDocRef, { participantCount: increment(-purgedCount) });
-                await purgeBatch.commit();
-                console.log(`[Anti-Ghost] Purged ${purgedCount} ghost identities from frequency.`);
+            snap.docs.forEach(d => {
+              if (d.id !== uid) { 
+                purgeBatch.delete(d.ref);
+                purgedCount++;
               }
+            });
+
+            if (purgedCount > 0) {
+              purgeBatch.update(roomDocRef, { participantCount: increment(-purgedCount) });
+              await purgeBatch.commit();
+              console.log(`[Presence Sync] Terminated ${purgedCount} ghost identities from Room #${roomId}.`);
             }
-          }, 30000); // Sweep every 30s
-        }
+          }
+        }, 30000); 
 
       } catch (e) {
-        console.error("[Presence Sync] Join failed:", e);
         lastRoomId.current = null;
       }
     };
@@ -128,13 +117,14 @@ export function RoomPresenceManager() {
       if (cleanupInterval.current) clearInterval(cleanupInterval.current);
 
       if (lastRoomId.current === roomId) {
+        const exitRoomId = lastRoomId.current;
         lastRoomId.current = null;
         
         const batch = writeBatch(firestore);
-        const roomDocRef = doc(firestore, 'chatRooms', roomId);
+        const roomDocRef = doc(firestore, 'chatRooms', exitRoomId);
         const userRef = doc(firestore, 'users', uid);
         const profileRef = doc(firestore, 'users', uid, 'profile', uid);
-        const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', uid);
+        const participantRef = doc(firestore, 'chatRooms', exitRoomId, 'participants', uid);
 
         batch.update(roomDocRef, { participantCount: increment(-1) });
         batch.delete(participantRef);
@@ -152,7 +142,7 @@ export function RoomPresenceManager() {
       handleExit();
       window.removeEventListener('beforeunload', handleExit);
     };
-  }, [firestore, activeRoom?.id, user?.uid, userProfile?.username, isOwnerOrAdmin]); 
+  }, [firestore, activeRoom?.id, user?.uid, userProfile?.username]); 
 
   return null;
 }

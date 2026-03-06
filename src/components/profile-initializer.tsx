@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -38,6 +39,7 @@ export function ProfileInitializer() {
               const participantRef = doc(firestore, 'chatRooms', staleRoomId, 'participants', profileId);
               const profileRef = doc(firestore, 'users', profileId, 'profile', profileId);
               
+              // Incrementally correct the global room count and delete the stale participant record
               batch.update(roomRef, { 
                 participantCount: increment(-1), 
                 updatedAt: serverTimestamp() 
