@@ -266,7 +266,14 @@ export function RoomClient({ room }: { room: Room }) {
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
       
       <div className="absolute inset-0 z-0">
-        <Image key={currentTheme.id} src={currentTheme.url} alt="Background" fill className="object-cover opacity-60" priority />
+        <Image 
+          key={currentTheme.id} 
+          src={currentTheme.url} 
+          alt="Background" 
+          fill 
+          className="object-cover opacity-60 animate-in fade-in duration-1000" 
+          priority 
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
       </div>
 
@@ -297,19 +304,24 @@ export function RoomClient({ room }: { room: Room }) {
       </header>
 
       <main className="relative z-10 flex-1 flex flex-col pt-4 overflow-hidden">
-        <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-20">
+        {/* Adjusted flex container to move seats upward and prevent overlap */}
+        <div className="flex-1 flex flex-col items-center justify-start gap-4 pt-8 pb-48 overflow-y-auto no-scrollbar">
            <div className="w-full flex justify-center"><Seat index={1} label="No.1" /></div>
            <div className="w-full flex justify-center gap-4 px-4"><Seat index={2} label="No.2" /><Seat index={3} label="No.3" /><Seat index={4} label="No.4" /><Seat index={5} label="No.5" /></div>
            <div className="w-full flex justify-center gap-4 px-4"><Seat index={6} label="No.6" /><Seat index={7} label="No.7" /><Seat index={8} label="No.8" /><Seat index={9} label="No.9" /></div>
+           <div className="w-full flex justify-center gap-4 px-4"><Seat index={10} label="No.10" /><Seat index={11} label="No.11" /><Seat index={12} label="No.12" /><Seat index={13} label="No.13" /></div>
         </div>
 
-        <div className="absolute bottom-0 left-0 w-full h-48 z-20 pointer-events-none p-4 pb-0">
+        <div className="absolute bottom-0 left-0 w-full h-40 z-20 pointer-events-none p-4 pb-0">
            <ScrollArea className="h-full pr-4 pointer-events-auto" ref={scrollRef}>
-              <div className="flex flex-col gap-2 justify-end min-h-full">
+              <div className="flex flex-col gap-1 justify-end min-h-full">
                  {firestoreMessages?.map((msg: any) => (
-                   <div key={msg.id} className="flex items-start gap-2 bg-black/40 backdrop-blur-md rounded-2xl p-2 border border-white/5 w-fit max-w-[80%] animate-in fade-in slide-in-from-left-2 shadow-xl">
-                      <Avatar className="h-7 w-7 shrink-0 border border-white/10"><AvatarImage src={msg.senderAvatar || undefined} /><AvatarFallback>{(msg.senderName || 'U').charAt(0)}</AvatarFallback></Avatar>
-                      <div className="flex flex-col"><span className={cn("text-[9px] font-black uppercase tracking-tighter leading-none mb-1", msg.senderId === currentUser?.uid ? "text-primary" : "text-white/40")}>{msg.senderName}</span><p className="text-[12px] font-bold text-white leading-tight break-all">{msg.content || msg.text}</p></div>
+                   <div key={msg.id} className="flex items-start gap-2 bg-black/40 backdrop-blur-md rounded-xl p-1.5 border border-white/5 w-fit max-w-[85%] animate-in fade-in slide-in-from-left-2 shadow-xl mb-1">
+                      <Avatar className="h-6 w-6 shrink-0 border border-white/10"><AvatarImage src={msg.senderAvatar || undefined} /><AvatarFallback>{(msg.senderName || 'U').charAt(0)}</AvatarFallback></Avatar>
+                      <div className="flex flex-col">
+                        <span className={cn("text-[8px] font-black uppercase tracking-tighter leading-none mb-0.5", msg.senderId === currentUser?.uid ? "text-primary" : "text-white/40")}>{msg.senderName}</span>
+                        <p className="text-[11px] font-bold text-white leading-tight break-all">{msg.content || msg.text}</p>
+                      </div>
                    </div>
                  ))}
               </div>
