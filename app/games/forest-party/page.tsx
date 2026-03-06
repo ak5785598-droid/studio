@@ -343,7 +343,7 @@ export default function WildPartyPage() {
            </div>
         </main>
 
-        <footer className="relative z-50 p-4 pb-10 bg-gradient-to-t from-black via-black/80 to-transparent">
+        <footer className="relative z-50 p-4 pb-10 bg-gradient-to-t from-black via-black/80 to-transparent -translate-y-8">
            <div className="max-w-md mx-auto space-y-4">
               <div className="flex items-center justify-between">
                  <div className="flex items-center gap-2 bg-black/60 px-4 py-2 rounded-full border border-white/10">
