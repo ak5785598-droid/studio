@@ -204,6 +204,18 @@
       "description": "Anime style romantic couple in soft light with flowers",
       "imageUrl": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1200",
       "imageHint": "anime couple romantic"
+    },
+    {
+      "id": "gift-color-powder",
+      "description": "Vibrant color powder for tribal festival",
+      "imageUrl": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=400",
+      "imageHint": "colored powder"
+    },
+    {
+      "id": "gift-color-palette",
+      "description": "Majestic artistic color palette",
+      "imageUrl": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=400",
+      "imageHint": "color palette"
     }
   ]
 }
