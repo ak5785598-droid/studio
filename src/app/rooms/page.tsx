@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
@@ -196,9 +195,10 @@ export default function RoomsPage() {
     );
   }, [firestore]);
 
-  const myRoomQuery = useMemoFirebase(() => {
+  // OPTIMIZED IDENTITY SYNC: Check direct document by UID for "My Frequency"
+  const myRoomRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return query(collection(firestore, 'chatRooms'), where('ownerId', '==', user.uid), limit(1));
+    return doc(firestore, 'chatRooms', user.uid);
   }, [firestore, user]);
 
   // FOLLOWED ROOMS SYNC
@@ -213,7 +213,7 @@ export default function RoomsPage() {
   }, [firestore]);
 
   const { data: roomsData, isLoading: isRoomsLoading } = useCollection(roomsQuery);
-  const { data: myRooms, isLoading: isMyRoomLoading } = useCollection(myRoomQuery);
+  const { data: myRoom, isLoading: isMyRoomLoading } = useDoc(myRoomRef);
   const { data: followedRooms, isLoading: isFollowedLoading } = useCollection(followedRoomsQuery);
   const { data: bannerConfig } = useDoc(bannerRef);
 
@@ -313,9 +313,9 @@ export default function RoomsPage() {
                   </h3>
                   {isMyRoomLoading ? (
                     <div className="flex justify-center p-10"><Loader className="animate-spin text-primary h-8 w-8" /></div>
-                  ) : myRooms && myRooms.length > 0 ? (
+                  ) : myRoom ? (
                     <div className="grid grid-cols-2 gap-4">
-                       <ChatRoomCard room={myRooms[0]} variant="modern" />
+                       <ChatRoomCard room={myRoom} variant="modern" />
                     </div>
                   ) : (
                     <div className="text-center space-y-6 px-8 py-12 bg-white rounded-[2.5rem] shadow-sm border border-gray-100 w-full">

@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, serverTimestamp, doc, query, where, getDocs, setDoc } from 'firebase/firestore';
-import { Plus, Loader } from 'lucide-react';
+import { collection, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
+import { Plus, Loader, Zap } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -54,12 +54,12 @@ export function CreateRoomDialog({ iconOnly = false, trigger }: CreateRoomDialog
       setIsSubmitting(true);
       
       try {
-        const q = query(collection(firestore, 'chatRooms'), where('ownerId', '==', user.uid));
-        const snap = await getDocs(q);
+        // ATOMIC ID SYNC: Room document ID is the user's UID
+        const roomRef = doc(firestore, 'chatRooms', user.uid);
+        const roomSnap = await getDoc(roomRef);
         
-        if (!snap.empty) {
-          const existingId = snap.docs[0].id;
-          router.push(`/rooms/${existingId}`);
+        if (roomSnap.exists()) {
+          router.push(`/rooms/${user.uid}`);
           return;
         }
         
@@ -80,30 +80,25 @@ export function CreateRoomDialog({ iconOnly = false, trigger }: CreateRoomDialog
     setIsSubmitting(true);
 
     try {
-      // 1. Identity Verification (One Room Protocol)
-      const q = query(collection(firestore, 'chatRooms'), where('ownerId', '==', user.uid));
-      const snap = await getDocs(q);
+      // 1. Identity Verification (One Room Protocol via Document ID)
+      const roomRef = doc(firestore, 'chatRooms', user.uid);
+      const roomSnap = await getDoc(roomRef);
       
-      if (!snap.empty) {
+      if (roomSnap.exists()) {
         toast({ 
           variant: 'destructive', 
           title: 'Limit Reached', 
           description: 'One user can create only one room.' 
         });
-        const existingId = snap.docs[0].id;
-        router.push(`/rooms/${existingId}`);
+        router.push(`/rooms/${user.uid}`);
         setOpen(false);
         return;
       }
 
       // 2. Identity Sync Protocol (Room ID No = User Profile ID)
-      // Use the user's specialId (e.g. 071) as the roomNumber
       const roomNumber = userProfile.specialId;
 
       // 3. Frequency Initialization
-      // We use the user's UID as the document ID to strictly enforce "One User, One Room"
-      const roomRef = doc(firestore, 'chatRooms', user.uid);
-      
       await setDoc(roomRef, {
         id: user.uid,
         name, 
@@ -150,7 +145,7 @@ export function CreateRoomDialog({ iconOnly = false, trigger }: CreateRoomDialog
           )
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] rounded-t-[2.5rem] bg-white text-black p-0 overflow-hidden border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[425px] rounded-t-[2.5rem] bg-white text-black p-0 overflow-hidden border-none shadow-2xl font-headline">
         <form onSubmit={handleSubmit}>
           <DialogHeader className="p-8 pb-0 text-center">
             <DialogTitle className="font-headline text-3xl uppercase italic tracking-tighter">Launch Tribe</DialogTitle>
