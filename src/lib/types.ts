@@ -7,6 +7,8 @@ export type User = {
   bio?: string;
   isOnline?: boolean;
   coverUrl?: string;
+  gender?: 'Male' | 'Female' | null;
+  country?: string | null;
   level?: {
     rich: number;
     charm: number;
@@ -41,9 +43,12 @@ export type Message = {
   senderName: string;
   senderAvatar: string;
   timestamp: any;
-  type?: 'text' | 'gift' | 'entrance' | 'leave' | 'emoji';
+  type?: 'text' | 'gift' | 'entrance' | 'leave' | 'emoji' | 'lucky-rain' | 'lucky-bag';
   giftId?: string;
   recipientName?: string;
+  luckyWin?: { multiplier: number; winAmount: number } | null;
+  bagId?: string;
+  amount?: number;
 };
 
 export type PrivateChat = {
@@ -82,6 +87,8 @@ export type Room = {
   topic: string;
   category: 'Popular' | 'Game' | 'Chat' | 'Singing';
   coverUrl: string;
+  backgroundUrl?: string;
+  roomThemeId?: string;
   announcement?: string;
   ownerId: string;
   moderatorIds?: string[];
@@ -90,6 +97,8 @@ export type Room = {
   participantCount?: number;
   isChatMuted?: boolean;
   currentMusicUrl?: string | null;
+  maxActiveMics?: number;
+  isSuperMic?: boolean;
   stats?: {
     totalGifts: number;
     dailyGifts: number;

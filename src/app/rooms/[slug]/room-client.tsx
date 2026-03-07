@@ -196,7 +196,9 @@ export function RoomClient({ room }: { room: Room }) {
   const handleMinimize = () => { setIsMinimized(true); router.push('/rooms'); };
   const handleExit = () => { setActiveRoom(null); router.push('/rooms'); };
 
-  const currentTheme = ROOM_THEMES.find(t => t.id === (room as any).roomThemeId) || ROOM_THEMES[0];
+  // High-Fidelity Background Protocol: Prioritize custom URL, then theme, then default.
+  const currentTheme = ROOM_THEMES.find(t => t.id === room.roomThemeId) || ROOM_THEMES[0];
+  const bgUrl = room.backgroundUrl || currentTheme.url;
 
   const Seat = ({ index, label }: { index: number, label: string }) => {
     const occupant = participants.find(p => p.seatIndex === index);
@@ -204,10 +206,30 @@ export function RoomClient({ room }: { room: Room }) {
     return (
       <div className="flex flex-col items-center gap-1 w-[22%]">
         <div className="relative">
-          {occupant && !occupant.isMuted && <div className="absolute -inset-1 rounded-full border-2 border-green-500 animate-voice-wave" />}
+          {occupant && !occupant.isMuted && (
+            <div className="absolute -inset-1 rounded-full border-2 animate-voice-wave" style={{ color: currentTheme.accentColor }} />
+          )}
           <AvatarFrame frameId={occupant?.activeFrame} size="md">
-            <button onClick={() => handleSeatClick(index, occupant)} className={cn("h-14 w-14 rounded-full flex items-center justify-center bg-black/40 border-2 backdrop-blur-sm active:scale-90 transition-transform relative z-10", isLocked ? "border-red-500/40" : "border-white/10")}>
-              {occupant ? <Avatar className="h-full w-full p-0.5"><AvatarImage src={occupant.avatarUrl || undefined} /><AvatarFallback>{(occupant.name || 'U').charAt(0)}</AvatarFallback></Avatar> : isLocked ? <Lock className="h-4 w-4 text-red-500/40" /> : <div className="bg-white/10 rounded-full h-8 w-8 flex items-center justify-center"><Armchair className="text-white/40 h-4 w-4" /></div>}
+            <button 
+              onClick={() => handleSeatClick(index, occupant)} 
+              className={cn(
+                "h-14 w-14 rounded-full flex items-center justify-center border-2 backdrop-blur-sm active:scale-90 transition-transform relative z-10",
+                isLocked ? "border-red-500/40" : "border-white/10"
+              )}
+              style={{ backgroundColor: currentTheme.seatColor }}
+            >
+              {occupant ? (
+                <Avatar className="h-full w-full p-0.5">
+                  <AvatarImage src={occupant.avatarUrl || undefined} />
+                  <AvatarFallback>{(occupant.name || 'U').charAt(0)}</AvatarFallback>
+                </Avatar>
+              ) : isLocked ? (
+                <Lock className="h-4 w-4 text-red-500/40" />
+              ) : (
+                <div className="bg-white/10 rounded-full h-8 w-8 flex items-center justify-center">
+                  <Armchair className="text-white/40 h-4 w-4" />
+                </div>
+              )}
             </button>
           </AvatarFrame>
           {occupant?.isMuted && <div className="absolute -bottom-0.5 -right-0.5 bg-red-500 rounded-full p-0.5 border border-black z-20"><MicOff className="h-2 w-2 text-white" /></div>}
@@ -267,8 +289,8 @@ export function RoomClient({ room }: { room: Room }) {
       
       <div className="absolute inset-0 z-0">
         <Image 
-          key={currentTheme.id} 
-          src={currentTheme.url} 
+          key={`${room.roomThemeId}_${room.backgroundUrl}`} 
+          src={bgUrl} 
           alt="Background" 
           fill 
           className="object-cover opacity-60 animate-in fade-in duration-1000" 
@@ -304,7 +326,6 @@ export function RoomClient({ room }: { room: Room }) {
       </header>
 
       <main className="relative z-10 flex-1 flex flex-col pt-4 overflow-hidden">
-        {/* Adjusted flex container to move seats upward and prevent overlap */}
         <div className="flex-1 flex flex-col items-center justify-start gap-4 pt-8 pb-48 overflow-y-auto no-scrollbar">
            <div className="w-full flex justify-center"><Seat index={1} label="No.1" /></div>
            <div className="w-full flex justify-center gap-4 px-4"><Seat index={2} label="No.2" /><Seat index={3} label="No.3" /><Seat index={4} label="No.4" /><Seat index={5} label="No.5" /></div>

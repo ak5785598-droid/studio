@@ -10,7 +10,9 @@ import {
   UserCheck,
   UserX,
   Trash2,
-  Lock
+  Lock,
+  Image as ImageIcon,
+  Palette
 } from 'lucide-react';
 import {
   Dialog,
@@ -26,6 +28,7 @@ import { useFirestore, updateDocumentNonBlocking, useCollection, useMemoFirebase
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { doc, serverTimestamp, query, collection, arrayUnion, arrayRemove, getDocs, writeBatch } from 'firebase/firestore';
 import { useRoomImageUpload } from '@/hooks/use-room-image-upload';
+import { useRoomBackgroundUpload } from '@/hooks/use-room-background-upload';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -76,13 +79,17 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
   
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [isCropOpen, setIsCropOpen] = useState(false);
+  const [cropMode, setCropMode] = useState<'profile' | 'background'>('profile');
 
   const { user } = useUser();
   const { userProfile } = useUserProfile(user?.uid);
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { isUploading, uploadRoomImage } = useRoomImageUpload(room.id);
+  const { isUploading: isUploadingProfile, uploadRoomImage } = useRoomImageUpload(room.id);
+  const { isUploading: isUploadingBg, uploadBackground } = useRoomBackgroundUpload(room.id);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
 
   const isOfficialRoom = room.id === 'ummy-help-center';
   const userIsOfficial = userProfile?.tags?.some(t => ['Admin', 'Official', 'Super Admin'].includes(t));
@@ -160,14 +167,17 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
       toast({ variant: 'destructive', title: 'Access Denied', description: 'Official themes are restricted to system authorities.' });
       return;
     }
+    // High-Fidelity Sync: When selecting a preset, clear the custom background URL
     handleUpdate('roomThemeId', theme.id);
+    handleUpdate('backgroundUrl', null);
     setIsEditingTheme(false);
     toast({ title: 'Theme Synchronized', description: `${theme.name} is now live.` });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, mode: 'profile' | 'background') => {
     const file = e.target.files?.[0];
     if (file) {
+      setCropMode(mode);
       const reader = new FileReader();
       reader.onload = () => {
         setCropImage(reader.result as string);
@@ -178,8 +188,13 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
   };
 
   const handleCropComplete = async (croppedFile: File) => {
-    await uploadRoomImage(croppedFile);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cropMode === 'profile') {
+      await uploadRoomImage(croppedFile);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } else {
+      await uploadBackground(croppedFile);
+      if (bgInputRef.current) bgInputRef.current.value = '';
+    }
   };
 
   const currentTheme = ROOM_THEMES.find(t => t.id === room.roomThemeId) || ROOM_THEMES[0];
@@ -202,18 +217,18 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
 
           <ScrollArea className="flex-1 overflow-y-auto max-h-[calc(90vh-80px)] md:max-h-[600px]">
              <div className="pb-10">
-                <SettingItem label="Profile" onClick={() => !isUploading && fileInputRef.current?.click()} className="py-8">
+                <SettingItem label="Profile" onClick={() => !isUploadingProfile && fileInputRef.current?.click()} className="py-8">
                    <div className="relative">
                       <Avatar className="h-16 w-16 rounded-xl border-2 border-slate-100 shadow-sm overflow-hidden bg-slate-50">
                          <AvatarImage key={room.coverUrl} src={room.coverUrl || undefined} className="object-cover" />
                          <AvatarFallback className="bg-slate-200">{(room.title || 'R').charAt(0)}</AvatarFallback>
                       </Avatar>
-                      {isUploading && (
+                      {isUploadingProfile && (
                         <div className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center backdrop-blur-sm z-50">
                            <Loader className="h-5 w-5 animate-spin text-white" />
                         </div>
                       )}
-                      {!isUploading && (
+                      {!isUploadingProfile && (
                         <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-lg border border-gray-100">
                            <Camera className="h-3 w-3 text-gray-400" />
                         </div>
@@ -257,6 +272,24 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
                      checked={room.isSuperMic || false} 
                      onCheckedChange={(val) => handleUpdate('isSuperMic', val)} 
                    />
+                </SettingItem>
+
+                <SettingItem 
+                  label="Room Background" 
+                  onClick={() => !isUploadingBg && bgInputRef.current?.click()}
+                >
+                   <div className="relative">
+                      {room.backgroundUrl ? (
+                        <div className="h-10 w-16 rounded-lg overflow-hidden border border-gray-200">
+                           <img src={room.backgroundUrl} className="h-full w-full object-cover" alt="Background" />
+                        </div>
+                      ) : <ImageIcon className="h-5 w-5 text-gray-300" />}
+                      {isUploadingBg && (
+                        <div className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center">
+                           <Loader className="h-3 w-3 animate-spin text-white" />
+                        </div>
+                      )}
+                   </div>
                 </SettingItem>
 
                 <SettingItem label="Room Theme" value={currentTheme.name} onClick={() => setIsEditingTheme(true)} />
@@ -405,7 +438,20 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
             </div>
           )}
 
-          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={(e) => handleFileChange(e, 'profile')} 
+            className="hidden" 
+            accept="image/*" 
+          />
+          <input 
+            type="file" 
+            ref={bgInputRef} 
+            onChange={(e) => handleFileChange(e, 'background')} 
+            className="hidden" 
+            accept="image/*" 
+          />
         </DialogContent>
       </Dialog>
 
@@ -414,7 +460,7 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
         open={isCropOpen} 
         onOpenChange={setIsCropOpen} 
         onCropComplete={handleCropComplete} 
-        aspect={4/5} 
+        aspect={cropMode === 'profile' ? 4/5 : 9/16} 
       />
     </>
   );
