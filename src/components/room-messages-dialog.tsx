@@ -216,9 +216,13 @@ export function RoomMessagesDialog({ open, onOpenChange }: { open: boolean; onOp
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md h-[60vh] bg-[#121212]/95 backdrop-blur-2xl border-none p-0 rounded-t-[3rem] overflow-hidden text-white font-headline shadow-2xl animate-in slide-in-from-bottom-full duration-500">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Private Messages</DialogTitle>
-          <DialogDescription>Your social graph frequencies.</DialogDescription>
+        <DialogHeader className="p-6 pb-2 border-b border-white/5">
+           <DialogTitle className="text-xl font-black uppercase italic tracking-tighter text-white/90 flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary" /> Messages
+           </DialogTitle>
+           <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-white/20 mt-1">
+              Your social graph frequencies.
+           </DialogDescription>
         </DialogHeader>
 
         {activeChatId ? (
@@ -230,13 +234,6 @@ export function RoomMessagesDialog({ open, onOpenChange }: { open: boolean; onOp
           />
         ) : (
           <div className="flex flex-col h-full">
-            <header className="p-6 pb-2 flex items-center justify-between border-b border-white/5">
-               <h3 className="text-xl font-black uppercase italic tracking-tighter text-white/90 flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-primary" /> Messages
-               </h3>
-               <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">{chats?.length || 0} Frequency Active</span>
-            </header>
-
             <ScrollArea className="flex-1">
                <div className="pb-10">
                   {isLoading ? (

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -23,10 +23,8 @@ import {
   MessageSquareOff,
   Volume2,
   VolumeX,
-  Music,
-  Square,
-  SmilePlus,
-  Plus
+  Plus,
+  SmilePlus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -53,7 +51,6 @@ const REACTIONS = ['😀', '😂', '😘', '🥰', '😎', '🤗', '😡', '😭
 
 /**
  * High-Fidelity Room Play Portal.
- * Re-engineered for high-fidelity tool selection and battle synchronization.
  */
 export function RoomPlayDialog({ 
   open, 
