@@ -27,8 +27,8 @@ interface RoomGamesDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// SCHEMA SYNC: Using 'title' instead of 'name' to match the Game type and prevent Firebase 'undefined' errors
 const FALLBACK_GAMES = [
+  { id: 'roulette', title: 'Roulette', iconId: 'game-roulette', isNew: true, slug: 'roulette' },
   { id: 'fruit-party', title: 'Fruit Party', iconId: 'game-fruit-party', isNew: false, slug: 'fruit-party' },
   { id: 'wild-party', title: 'Wild Party', iconId: 'game-wild-party', isNew: false, slug: 'forest-party' },
   { id: 'ludo', title: 'Ludo', iconId: 'game-ludo', isNew: false, slug: 'ludo' },
