@@ -44,7 +44,6 @@ const DEFAULT_SLIDES = [
 
 const ACTIVE_GAME_FREQUENCIES = [
   { id: 'roulette', title: 'Roulette', slug: 'roulette', imageHint: 'roulette wheel' },
-  { id: 'win-go-spin', title: 'WIN GO SPIN', slug: 'win-go-spin', imageHint: 'betting grid' },
   { id: 'ludo', title: 'Ludo Masters', slug: 'ludo', imageHint: '3d ludo board' },
   { id: 'fruit-party', title: 'Fruit Party', slug: 'fruit-party', imageHint: '3d fruit icons' },
   { id: 'forest-party', title: 'Wild Party', slug: 'forest-party', imageHint: '3d lion head' },

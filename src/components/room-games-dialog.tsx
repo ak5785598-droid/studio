@@ -28,7 +28,6 @@ interface RoomGamesDialogProps {
 
 const FALLBACK_GAMES = [
   { id: 'roulette', title: 'Roulette', iconId: 'game-roulette', isNew: true, slug: 'roulette' },
-  { id: 'win-go-spin', title: 'WIN GO SPIN', iconId: 'game-win-go', isNew: true, slug: 'win-go-spin' },
   { id: 'fruit-party', title: 'Fruit Party', iconId: 'game-fruit-party', isNew: false, slug: 'fruit-party' },
   { id: 'wild-party', title: 'Wild Party', iconId: 'game-wild-party', isNew: false, slug: 'forest-party' },
   { id: 'ludo', title: 'Ludo', iconId: 'game-ludo', isNew: false, slug: 'ludo' },
@@ -36,7 +35,6 @@ const FALLBACK_GAMES = [
 
 /**
  * High-Fidelity Room Games Portal.
- * Re-engineered for FULL SCREEN 3D dimension selection with Sovereign DP Sync.
  */
 export function RoomGamesDialog({ open, onOpenChange }: RoomGamesDialogProps) {
   const router = useRouter();
@@ -92,7 +90,6 @@ export function RoomGamesDialog({ open, onOpenChange }: RoomGamesDialogProps) {
         
         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
 
-        {/* Sovereign Full Screen Header */}
         <DialogHeader className="p-6 pt-12 border-b border-white/5 flex flex-row items-center justify-between shrink-0 bg-black/40">
           <div className="flex items-center gap-4">
              <div className="bg-primary p-2.5 rounded-2xl shadow-xl shadow-primary/20 animate-pulse">
@@ -130,7 +127,6 @@ export function RoomGamesDialog({ open, onOpenChange }: RoomGamesDialogProps) {
                        className="flex flex-col items-center gap-6 group relative"
                      >
                         <div className="relative w-full aspect-square">
-                           {/* 3D Depth Layer */}
                            <div className="absolute inset-0 bg-primary/10 rounded-[2.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                            
                            <button 
@@ -155,7 +151,6 @@ export function RoomGamesDialog({ open, onOpenChange }: RoomGamesDialogProps) {
                               <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                            </button>
 
-                           {/* Admin Only DP Sync Button */}
                            {isSovereign && (
                              <button 
                                onClick={(e) => handleLogoChangeClick(e, game.slug)}
