@@ -176,7 +176,6 @@ export function RoomClient({ room }: { room: Room }) {
   const isModerator = room.moderatorIds?.includes(currentUser?.uid || '') || false;
   const canManageRoom = isOwner || isModerator;
 
-  // Real-time ticker for stale participant filtering
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 15000);
     return () => clearInterval(timer);
@@ -189,11 +188,10 @@ export function RoomClient({ room }: { room: Room }) {
 
   const { data: participantsData } = useCollection<RoomParticipant>(participantsQuery);
   
-  // ANTI-GHOST FILTER: Prune stale users, but ALWAYS keep yourself synchronized
   const participants = useMemo(() => {
     if (!participantsData) return [];
     return participantsData.filter(p => {
-      if (p.uid === currentUser?.uid) return true; // Self sovereignty
+      if (p.uid === currentUser?.uid) return true;
       const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
       if (!lastSeen) return true;
       return (now - lastSeen) < 65000;
@@ -242,7 +240,6 @@ export function RoomClient({ room }: { room: Room }) {
   const handleMinimize = () => { setIsMinimized(true); router.push('/rooms'); };
   const handleExit = () => { setActiveRoom(null); router.push('/rooms'); };
 
-  // High-Fidelity Reactive Background Logic
   const currentTheme = useMemo(() => {
     return ROOM_THEMES.find(t => t.id === room.roomThemeId) || ROOM_THEMES[0];
   }, [room.roomThemeId]);
@@ -297,20 +294,21 @@ export function RoomClient({ room }: { room: Room }) {
       <LuckyRainOverlay active={isLuckyRainActive} onComplete={() => setIsLuckyRainActive(false)} />
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
       
-      {/* High-Fidelity Reactive Environment Engine */}
+      {/* hard-refresh background visual engine */}
       <div className="absolute inset-0 z-0">
         <Image 
-          key={`${room.roomThemeId}_${room.backgroundUrl}`} // Composite key forces absolute visual sync
+          key={`${room.roomThemeId}_${room.backgroundUrl || 'default'}`} 
           src={bgUrl} 
           alt="Background" 
           fill 
+          unoptimized
           className="object-cover opacity-60 animate-in fade-in duration-1000" 
           priority 
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
       </div>
 
-      <header className="relative z-50 flex items-center justify-between p-4 pt-8">
+      <header className="relative z-50 flex items-center justify-between p-4 pt-4">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12 rounded-xl border-2 border-white/20"><AvatarImage src={room.coverUrl || undefined} /><AvatarFallback>UM</AvatarFallback></Avatar>
           <div className="flex flex-col"><h1 className="font-black text-[15px] uppercase tracking-tighter text-white">{room.title}</h1><p className="text-[10px] font-bold text-white/60 uppercase">ID:{room.roomNumber}</p></div>
@@ -323,9 +321,9 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 flex flex-col pt-2 overflow-hidden">
-        {/* Elevated Arena Grid */}
-        <div className="flex-1 flex flex-col items-center justify-start gap-4 pt-2 pb-40 overflow-y-auto no-scrollbar">
+      <main className="relative z-10 flex-1 flex flex-col pt-0 overflow-hidden">
+        {/* Seats moved upward using top alignment and reduced spacing */}
+        <div className="flex-1 flex flex-col items-center justify-start gap-2 pt-0 pb-40 overflow-y-auto no-scrollbar">
            <div className="w-full flex justify-center">
               <Seat index={1} label="No.1" theme={currentTheme} occupant={participants.find(p => p.seatIndex === 1)} isLocked={room.lockedSeats?.includes(1)} onClick={handleSeatClick} />
            </div>
@@ -346,7 +344,6 @@ export function RoomClient({ room }: { room: Room }) {
            </div>
         </div>
 
-        {/* Chat Stream Dimension - Overlap De-collision via pointer-events-none */}
         <div className="absolute bottom-0 left-0 w-full h-40 z-20 pointer-events-none p-4 pb-0">
            <ScrollArea className="h-full pr-4 pointer-events-auto" ref={scrollRef}>
               <div className="flex flex-col gap-1 justify-end min-h-full">
