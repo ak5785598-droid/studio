@@ -167,6 +167,11 @@ export function RoomClient({ room }: { room: Room }) {
   const [activeGiftAnimation, setActiveGiftAnimation] = useState<string | null>(null);
   const [isMutedLocal, setIsMutedLocal] = useState(false);
 
+  // Music Frequencies
+  const [musicUrl, setMusicUrl] = useState<string | null>(null);
+  const [musicStream, setMusicStream] = useState<MediaStream | null>(null);
+  const musicAudioRef = useRef<HTMLAudioElement>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const router = useRouter();
@@ -206,7 +211,7 @@ export function RoomClient({ room }: { room: Room }) {
   const currentUserParticipant = participants.find(p => p.uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
   
-  const { remoteStreams } = useWebRTC(room.id, isInSeat, currentUserParticipant?.isMuted ?? true);
+  const { remoteStreams } = useWebRTC(room.id, isInSeat, currentUserParticipant?.isMuted ?? true, musicStream);
 
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore || !room.id) return null;
@@ -246,6 +251,35 @@ export function RoomClient({ room }: { room: Room }) {
     if (!isInSeat || !firestore || !currentUser || !room.id) return;
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { isMuted: !currentUserParticipant?.isMuted }); 
   };
+
+  // Music Sync Implementation
+  const handlePlayMusic = (url: string) => {
+    if (!isInSeat) {
+      toast({ variant: 'destructive', title: 'Action Restricted', description: 'You must take a seat to share music frequencies.' });
+      return;
+    }
+    setMusicUrl(url);
+    toast({ title: 'Music Synchronized', description: 'Playing audio to the room.' });
+  };
+
+  const handleStopMusic = () => {
+    if (musicUrl) URL.revokeObjectURL(musicUrl);
+    setMusicUrl(null);
+    setMusicStream(null);
+    toast({ title: 'Music Terminated' });
+  };
+
+  useEffect(() => {
+    if (musicUrl && musicAudioRef.current) {
+      const audio = musicAudioRef.current;
+      audio.src = musicUrl;
+      audio.play().catch(console.error);
+      
+      // Capture stream logic for WebRTC broadcast
+      const stream = (audio as any).captureStream ? (audio as any).captureStream() : ((audio as any).mozCaptureStream ? (audio as any).mozCaptureStream() : null);
+      if (stream) setMusicStream(stream);
+    }
+  }, [musicUrl]);
 
   const handleMinimize = () => { setIsMinimized(true); router.push('/rooms'); };
   const handleExit = () => { setActiveRoom(null); router.push('/rooms'); };
@@ -315,6 +349,10 @@ export function RoomClient({ room }: { room: Room }) {
       <DailyRewardDialog />
       <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
       <LuckyRainOverlay active={isLuckyRainActive} onComplete={() => setIsLuckyRainActive(false)} />
+      
+      {/* Internal Music Engine */}
+      <audio ref={musicAudioRef} className="hidden" crossOrigin="anonymous" />
+      
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (
         <RemoteAudio key={peerId} stream={stream} muted={isMutedLocal} />
       ))}
@@ -430,6 +468,9 @@ export function RoomClient({ room }: { room: Room }) {
         isMutedLocal={isMutedLocal}
         setIsMutedLocal={setIsMutedLocal}
         onOpenGames={() => setIsRoomGamesOpen(true)}
+        isMusicPlaying={!!musicUrl}
+        onPlayMusic={handlePlayMusic}
+        onStopMusic={handleStopMusic}
       />
       <RoomGamesDialog open={isRoomGamesOpen} onOpenChange={setIsRoomGamesOpen} />
       <RoomMessagesDialog open={isMessagesOpen} onOpenChange={setIsMessagesOpen} />

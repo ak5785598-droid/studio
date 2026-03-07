@@ -14,17 +14,18 @@ import { useToast } from '@/hooks/use-toast';
 /**
  * PRODUCTION WEBRTC HOOK
  * Handles P2P Audio Mesh via Firestore Signaling.
- * Re-engineered for high-fidelity synchronization using the Perfect Negotiation pattern.
- * OPTIMIZED: Added Real-time Voice Boost Protocol for Outbound Speaking Volume (2.5x Gain).
- * ENHANCED: Headset & Hardware specific constraints for "Real" conversation quality.
+ * Re-engineered for multi-track synchronization: supports simultaneous Mic and Music frequencies.
  */
-export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted: boolean) {
+export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted: boolean, musicStream: MediaStream | null = null) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
+  
+  // Track specific senders for music tracks to allow dynamic adding/removal
+  const musicSenders = useRef<Map<string, RTCRtpSender[]>>(new Map());
   
   // Guard refs for Perfect Negotiation state management
   const makingOffer = useRef<Map<string, boolean>>(new Map());
@@ -41,7 +42,7 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
     ],
   };
 
-  // 1. Local Stream Management with Voice Boost & Headphone Tuning
+  // 1. Local Stream Management with Voice Boost
   useEffect(() => {
     if (!isInSeat || !user || !roomId || !firestore) {
       if (localStream) {
@@ -57,20 +58,11 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
 
     const startLocalStream = async () => {
       try {
-        // ENHANCED CONSTRAINTS: Optimized for headset hardware and real-time clarity
         const rawStream = await navigator.mediaDevices.getUserMedia({ 
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: true,
-            // @ts-ignore - Chrome specific high-fidelity constraints
-            googEchoCancellation: true,
-            // @ts-ignore
-            googAutoGainControl: true,
-            // @ts-ignore
-            googNoiseSuppression: true,
-            // @ts-ignore
-            googHighpassFilter: true,
             channelCount: 1,
             sampleRate: 48000,
           }, 
@@ -128,7 +120,31 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
     }
   }, [isMuted, localStream]);
 
-  // 2. Global Mesh & Signaling Handshake
+  // 2. Music Stream Sync: Dynamically add/remove music tracks from all peers
+  useEffect(() => {
+    peerConnections.current.forEach((pc, peerId) => {
+      // 1. Purge old music senders
+      const existingSenders = musicSenders.current.get(peerId);
+      if (existingSenders) {
+        existingSenders.forEach(s => {
+          try { pc.removeTrack(s); } catch(e) {}
+        });
+        musicSenders.current.delete(peerId);
+      }
+
+      // 2. Synchronize new music tracks if active
+      if (musicStream && musicStream.getAudioTracks().length > 0) {
+        const newSenders: RTCRtpSender[] = [];
+        musicStream.getAudioTracks().forEach(track => {
+          // We associate music with the existing localStream if it exists to keep peers stable
+          newSenders.push(pc.addTrack(track, localStream || musicStream));
+        });
+        musicSenders.current.set(peerId, newSenders);
+      }
+    });
+  }, [musicStream, localStream]);
+
+  // 3. Global Mesh & Signaling Handshake
   useEffect(() => {
     if (!user || !roomId || !firestore) return;
 
@@ -142,7 +158,6 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
         const peerData = change.doc.data();
         const isPeerSpeaker = peerData.seatIndex > 0;
         
-        // Connection Logic: Speaker to Everyone
         if (isPeerSpeaker || isInSeat) {
           if (change.type === 'added' || (change.type === 'modified' && isPeerSpeaker)) {
             if (!peerConnections.current.has(peerId)) {
@@ -170,8 +185,18 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
       const pc = new RTCPeerConnection(iceConfig);
       peerConnections.current.set(peerId, pc);
 
+      // Add Microphone Frequencies
       if (localStream) {
         localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+      }
+
+      // Add Music Frequencies
+      if (musicStream) {
+        const senders: RTCRtpSender[] = [];
+        musicStream.getTracks().forEach(track => {
+          senders.push(pc.addTrack(track, localStream || musicStream));
+        });
+        musicSenders.current.set(peerId, senders);
       }
 
       pc.onicecandidate = (event) => {
@@ -230,8 +255,6 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
           await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: signal.sdp }));
         } else if (signal.type === 'candidate') {
           try {
-            // GUARD: Only add ICE candidate if remote description is already synchronized
-            // This prevents the RTCPeerConnection InvalidStateError crash
             if (pc.remoteDescription) {
               await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
             }
@@ -251,7 +274,7 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
       peerConnections.current.clear();
       setRemoteStreams(new Map());
     };
-  }, [roomId, user?.uid, isInSeat, localStream]); 
+  }, [roomId, user?.uid, isInSeat, localStream, musicStream]); 
 
   const sendSignal = (toPeerId: string, payload: any) => {
     if (!firestore || !roomId) return;
