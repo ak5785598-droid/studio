@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useMemo, useEffect } from 'react';
@@ -26,6 +27,7 @@ const FALLBACK_GAMES: Game[] = [
 /**
  * 3D Tribe Arena - Global Game Frequencies.
  * Re-engineered for absolute visual synchronization via slug-based identity.
+ * Features Sovereign-only DP Sync tools.
  */
 export default function GamesPage() {
   const { user } = useUser();
@@ -127,11 +129,11 @@ export default function GamesPage() {
                         <Link href={`/games/${game.slug}`} className="relative aspect-square w-full rounded-[2.5rem] overflow-hidden border-2 border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 group-hover:border-purple-500/50 group-hover:shadow-[0_40px_80px_rgba(168,85,247,0.3)] group-hover:-translate-y-4 bg-gradient-to-br from-white/5 to-white/10 flex items-center justify-center">
                            {game.coverUrl ? (
                              <Image 
-                               key={game.coverUrl} // Forces hard refresh on visual sync
+                               key={game.coverUrl} 
                                src={game.coverUrl} 
                                alt={game.title} 
                                fill 
-                               unoptimized // Ensures immediate render from cloud vault
+                               unoptimized 
                                className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
                                data-ai-hint={game.imageHint}
                              />
@@ -146,10 +148,11 @@ export default function GamesPage() {
                            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0514] via-transparent to-transparent opacity-60" />
                            
+                           {/* Sovereign-Only DP Change Protocol */}
                            {isSovereign && (
                              <button 
                                onClick={(e) => handleLogoChangeClick(e, game.slug)}
-                               className="absolute top-4 right-4 bg-black/60 p-2 rounded-full border border-white/20 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-primary hover:text-black shadow-xl backdrop-blur-md"
+                               className="absolute top-4 right-4 bg-black/60 p-2 rounded-full border border-white/20 text-white z-20 hover:bg-primary hover:text-black shadow-xl backdrop-blur-md transition-all active:scale-90"
                              >
                                {isUploading && selectedGameSlug === game.slug ? <Loader className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
                              </button>
@@ -164,7 +167,7 @@ export default function GamesPage() {
                         <div className="mt-6 px-2 space-y-1 text-center translate-z-[30px]">
                            <h4 className="font-black text-sm uppercase italic truncate group-hover:text-purple-400 transition-colors tracking-tighter drop-shadow-lg">{game.title}</h4>
                            <div className="flex items-center justify-center gap-2">
-                              <div className="h-1 w-4 rounded-full bg-purple-500 group-hover:w-8 transition-all duration-500" />
+                              <div className="h-0.5 w-4 rounded-full bg-purple-500 group-hover:w-8 transition-all duration-500" />
                               <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">3D Reality</span>
                            </div>
                         </div>
