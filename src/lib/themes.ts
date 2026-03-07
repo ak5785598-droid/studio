@@ -34,7 +34,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     seatColor: 'rgba(184, 138, 68, 0.2)',
     accentColor: '#fbbf24'
   },
-  { id: 'sakura', name: 'Sakura Bloom', url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=2000', seatColor: 'rgba(244, 114, 182, 0.2)', accentColor: '#f472b6' },
+  { id: 'sakura', name: 'Sakura Blossom', url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=2000', seatColor: 'rgba(244, 114, 182, 0.2)', accentColor: '#f472b6' },
   { id: 'crystal', name: 'Crystal Cave', url: 'https://images.unsplash.com/photo-1502759683299-cdcd6974244f?q=80&w=2000', seatColor: 'rgba(103, 232, 249, 0.2)', accentColor: '#22d3ee' },
   { id: 'cyber', name: 'Cyber Punk', url: 'https://images.unsplash.com/photo-1605142859862-978be7eba909?q=80&w=2000', seatColor: 'rgba(239, 68, 68, 0.2)', accentColor: '#f87171' },
   { id: 'ocean', name: 'Ocean Deep', url: 'https://images.unsplash.com/photo-1551244072-5d12893278ab?q=80&w=2000', seatColor: 'rgba(37, 99, 235, 0.2)', accentColor: '#60a5fa' },

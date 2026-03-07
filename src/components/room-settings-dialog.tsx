@@ -167,7 +167,7 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
       toast({ variant: 'destructive', title: 'Access Denied', description: 'Official themes are restricted to system authorities.' });
       return;
     }
-    // High-Fidelity Sync: Use a single updateDoc call for atomic synchronization
+    // Force Atomic Sync: Selecting a preset theme resets any custom background URL
     if (firestore) {
       updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), {
         roomThemeId: theme.id,

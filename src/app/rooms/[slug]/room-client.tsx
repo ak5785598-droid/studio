@@ -77,6 +77,7 @@ import { RoomPlayDialog } from '@/components/room-play-dialog';
 import { LuckyRainOverlay } from '@/components/lucky-rain-overlay';
 import { RoomSeatMenuDialog } from '@/components/room-seat-menu-dialog';
 import { ROOM_THEMES } from '@/lib/themes';
+import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
 
 function RemoteAudio({ stream }: { stream: MediaStream }) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -110,6 +111,7 @@ const Seat = ({
   return (
     <div className="flex flex-col items-center gap-1 w-[22%]">
       <div className="relative">
+        <EmojiReactionOverlay emoji={occupant?.activeEmoji} size="sm" />
         {occupant && !occupant.isMuted && (
           <div className="absolute -inset-1 rounded-full border-2 animate-voice-wave" style={{ color: theme.accentColor }} />
         )}
@@ -191,6 +193,7 @@ export function RoomClient({ room }: { room: Room }) {
   const participants = useMemo(() => {
     if (!participantsData) return [];
     return participantsData.filter(p => {
+      // Self-Sovereignty Bypass: Always show self in grid
       if (p.uid === currentUser?.uid) return true;
       const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
       if (!lastSeen) return true;
@@ -294,7 +297,7 @@ export function RoomClient({ room }: { room: Room }) {
       <LuckyRainOverlay active={isLuckyRainActive} onComplete={() => setIsLuckyRainActive(false)} />
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
       
-      {/* hard-refresh background visual engine */}
+      {/* Background Engine with Hard-Refresh Logic */}
       <div className="absolute inset-0 z-0">
         <Image 
           key={`${room.roomThemeId}_${room.backgroundUrl || 'default'}`} 
@@ -315,15 +318,17 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setIsUserListOpen(true)} className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2"><Users className="h-4 w-4 text-white/60" /><span className="text-[12px] font-black">{onlineCount}</span></button>
-          <RoomSettingsDialog room={room} trigger={<button className="p-2 bg-white/10 rounded-full active:scale-95 transition-transform"><Hexagon className="h-5 w-5" /></button>} />
+          {canManageRoom && (
+            <RoomSettingsDialog room={room} trigger={<button className="p-2 bg-white/10 rounded-full active:scale-95 transition-transform"><Hexagon className="h-5 w-5" /></button>} />
+          )}
           <button onClick={() => setIsShareOpen(true)} className="p-2 bg-white/10 rounded-full active:scale-95 transition-transform"><Share2 className="h-5 w-5" /></button>
           <button onClick={() => setIsExitPortalOpen(true)} className="p-2 bg-white/10 rounded-full active:scale-95 transition-transform"><Power className="h-5 w-5" /></button>
         </div>
       </header>
 
       <main className="relative z-10 flex-1 flex flex-col pt-0 overflow-hidden">
-        {/* Seats moved upward using top alignment and reduced spacing */}
-        <div className="flex-1 flex flex-col items-center justify-start gap-2 pt-0 pb-40 overflow-y-auto no-scrollbar">
+        {/* Elevated Seat Grid Container */}
+        <div className="flex-1 flex flex-col items-center justify-start gap-2 pt-4 pb-40 overflow-y-auto no-scrollbar">
            <div className="w-full flex justify-center">
               <Seat index={1} label="No.1" theme={currentTheme} occupant={participants.find(p => p.seatIndex === 1)} isLocked={room.lockedSeats?.includes(1)} onClick={handleSeatClick} />
            </div>
@@ -344,6 +349,7 @@ export function RoomClient({ room }: { room: Room }) {
            </div>
         </div>
 
+        {/* Compact Chat Stream */}
         <div className="absolute bottom-0 left-0 w-full h-40 z-20 pointer-events-none p-4 pb-0">
            <ScrollArea className="h-full pr-4 pointer-events-auto" ref={scrollRef}>
               <div className="flex flex-col gap-1 justify-end min-h-full">
