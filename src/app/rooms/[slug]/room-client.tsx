@@ -279,6 +279,7 @@ export function RoomClient({ room }: { room: Room }) {
     deleteDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid));
     toast({ title: 'Member Excluded', description: `Restricted for ${duration} minutes.` });
     setIsUserProfileCardOpen(false);
+    setIsSeatMenuOpen(false);
   };
 
   const handleLeaveSeat = (uid: string) => {
@@ -442,6 +443,7 @@ export function RoomClient({ room }: { room: Room }) {
         canManage={canManageRoom}
         currentUserId={currentUser?.uid}
         onLeaveSeat={handleLeaveSeat}
+        onKick={handleKick}
       />
 
       <RoomUserProfileDialog 

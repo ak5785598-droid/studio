@@ -23,12 +23,12 @@ interface RoomSeatMenuDialogProps {
   canManage: boolean;
   currentUserId?: string;
   onLeaveSeat: (uid: string) => void;
+  onKick: (uid: string, duration: number) => void;
 }
 
 /**
  * High-Fidelity Room Seat Menu.
- * Re-engineered to match the provided tribal blueprint exactly.
- * Features absolute seat synchronization and Leave/Take logic.
+ * Re-engineered to match the tribal blueprint with integrated Kick and Leave protocols.
  */
 export function RoomSeatMenuDialog({
   open,
@@ -39,7 +39,8 @@ export function RoomSeatMenuDialog({
   occupantUid,
   canManage,
   currentUserId,
-  onLeaveSeat
+  onLeaveSeat,
+  onKick
 }: RoomSeatMenuDialogProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -49,7 +50,7 @@ export function RoomSeatMenuDialog({
   const handleTakeSeat = () => {
     if (!firestore || !currentUserId || !roomId) return;
     
-    // ATOMIC SYNC: Explicitly setting document to ensure the user takes the frequency slot
+    // ATOMIC SYNC: Synchronize identity to the specific microphone slot
     const participantRef = doc(firestore, 'chatRooms', roomId, 'participants', currentUserId);
     setDocumentNonBlocking(participantRef, {
       seatIndex: seatIndex,
@@ -95,21 +96,13 @@ export function RoomSeatMenuDialog({
         </DialogHeader>
 
         <div className="flex flex-col items-center">
-          {/* Blueprint: Take Action - Show if empty and not locked (or admin) */}
+          {/* Blueprint: Take Action (if empty) */}
           {(!occupantUid && (!isLocked || canManage)) && (
             <MenuItem label="Take" onClick={handleTakeSeat} />
           )}
 
-          {/* Blueprint: Leave Action - Show if current user is the occupant */}
-          {(occupantUid === currentUserId) && (
-            <MenuItem label="Leave seat" onClick={() => onLeaveSeat(currentUserId)} className="text-red-500" />
-          )}
-
           {/* Blueprint: Invite Action */}
-          <MenuItem label="Invite" onClick={() => { toast({ title: 'Invite Frequency' }); onOpenChange(false); }} />
-
-          {/* Blueprint: Mute Action */}
-          <MenuItem label="Mute" onClick={() => { toast({ title: 'Mute Frequency' }); onOpenChange(false); }} />
+          <MenuItem label="Invite" onClick={() => { toast({ title: 'Invite Sent' }); onOpenChange(false); }} />
 
           {/* Blueprint: Lock/Unlock Toggle */}
           {canManage && (
@@ -118,6 +111,27 @@ export function RoomSeatMenuDialog({
               onClick={handleToggleLock}
             />
           )}
+
+          {/* Blueprint: Kick out (Admin only, if occupied and not me) */}
+          {(canManage && occupantUid && occupantUid !== currentUserId) && (
+            <MenuItem 
+              label="Kick out" 
+              onClick={() => onKick(occupantUid, 5)} 
+              className="text-red-500" 
+            />
+          )}
+
+          {/* Blueprint: Seat leave (Me or Admin on someone else) */}
+          {(occupantUid && (occupantUid === currentUserId || canManage)) && (
+            <MenuItem 
+              label={occupantUid === currentUserId ? "Leave seat" : "Seat leave"} 
+              onClick={() => onLeaveSeat(occupantUid)} 
+              className="text-orange-600" 
+            />
+          )}
+
+          {/* Blueprint: Mute Action */}
+          <MenuItem label="Mute" onClick={() => { toast({ title: 'Mute Frequency' }); onOpenChange(false); }} />
 
           {/* Blueprint: Cancel Action with clear separation */}
           <MenuItem 
