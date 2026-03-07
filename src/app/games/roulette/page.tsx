@@ -54,7 +54,7 @@ const BET_OPTIONS = [
 
 /**
  * High-Fidelity Roulette Dimension.
- * Re-engineered for 5-second high-fidelity visual roll sync.
+ * Re-engineered for 5-second high-fidelity visual roll sync and upward-shifted UI.
  */
 export default function RoulettePage() {
   const router = useRouter();
@@ -130,7 +130,7 @@ export default function RoulettePage() {
     
     setRotation(targetRotation);
 
-    // Roll for exactly 5 seconds as requested
+    // Roll for exactly 5 seconds
     setTimeout(() => {
       showResult(targetNum);
     }, 5000);
@@ -346,7 +346,7 @@ export default function RoulettePage() {
            </div>
         </div>
 
-        <div className="bg-emerald-600/20 backdrop-blur-3xl rounded-t-[3rem] p-4 pb-10 border-t-2 border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
+        <div className="bg-emerald-600/20 backdrop-blur-3xl rounded-t-[3rem] p-4 pb-10 border-t-2 border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)] -translate-y-12">
            <div className="grid grid-cols-4 gap-2 mb-6">
               {BET_OPTIONS.map((opt) => (
                 <button
