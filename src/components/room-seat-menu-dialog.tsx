@@ -33,7 +33,7 @@ interface RoomSeatMenuDialogProps {
  * High-Fidelity Room Seat Menu.
  * AUTHORITY PROTOCOL: All administrative actions (Invite, Lock, Kick, Mute) 
  * are strictly restricted to room owners and administrators.
- * Now includes a high-speed "Send gift" portal.
+ * Now includes a high-speed "Send gift" portal positioned DOWN from Mute.
  */
 export function RoomSeatMenuDialog({
   open,
@@ -153,7 +153,7 @@ export function RoomSeatMenuDialog({
             <MenuItem label="Mute" onClick={() => { toast({ title: 'Mute Frequency' }); onOpenChange(false); }} />
           )}
 
-          {/* NEW: Send Gift - High-Fidelity Dispatch Option */}
+          {/* HIGH-FIDELITY GIFT DISPATCH: Positioned DOWN from Mute as requested */}
           {(occupantUid && onSendGift) && (
             <MenuItem 
               label="Send gift" 
@@ -164,6 +164,7 @@ export function RoomSeatMenuDialog({
                   name: occupantName || 'Tribe Member',
                   avatarUrl: occupantAvatarUrl || ''
                 });
+                onOpenChange(false); // Immediate sync closure
               }} 
             />
           )}

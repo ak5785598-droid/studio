@@ -69,7 +69,7 @@ interface RoomUserProfileDialogProps {
 
 /**
  * High-Fidelity Tribe Member Identity Card.
- * Re-engineered for prominent Gift Dispatch and Sovereign Control.
+ * Re-engineered: "Send Gift" is now positioned PROMINENTLY BELOW the Mute option.
  */
 export function RoomUserProfileDialog({ 
   userId, 
@@ -228,17 +228,7 @@ export function RoomUserProfileDialog({
                   {/* Administrative & Secondary Actions Section */}
                   {!isMe && (
                     <div className="space-y-4 pt-6 border-t border-white/10 w-full">
-                       {/* HIGH-FIDELITY GIFT DISPATCH: Full Width Prominent Option */}
-                       <div className="px-2">
-                          <Button 
-                            onClick={() => { onOpenChange(false); onOpenGiftPicker({ uid: profile.id, name: profile.username, avatarUrl: profile.avatarUrl || '' }); }}
-                            className="w-full h-16 rounded-[1.5rem] bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white font-black uppercase italic text-lg shadow-xl shadow-rose-500/30 active:scale-95 transition-all group"
-                          >
-                             <GiftIcon className="mr-3 h-7 w-7 fill-current animate-reaction-heartbeat" />
-                             Send Gift
-                          </Button>
-                       </div>
-                       
+                       {/* ADMIN SYNC: Mute and Leave Seat options displayed at top of actions if admin */}
                        {canManage && (
                          <div className="grid grid-cols-2 gap-4 px-2">
                             <Button 
@@ -258,6 +248,17 @@ export function RoomUserProfileDialog({
                          </div>
                        )}
 
+                       {/* HIGH-FIDELITY GIFT DISPATCH: Positioned DOWN from Mute option as requested */}
+                       <div className="px-2">
+                          <Button 
+                            onClick={() => { onOpenChange(false); onOpenGiftPicker({ uid: profile.id, name: profile.username, avatarUrl: profile.avatarUrl || '' }); }}
+                            className="w-full h-16 rounded-[1.5rem] bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white font-black uppercase italic text-lg shadow-xl shadow-rose-500/30 active:scale-95 transition-all group"
+                          >
+                             <GiftIcon className="mr-3 h-7 w-7 fill-current animate-reaction-heartbeat" />
+                             Send Gift
+                          </Button>
+                       </div>
+                       
                        {canManage && (
                          <div className="px-2">
                             <Button onClick={() => onKick(userId, 5)} variant="outline" className="w-full h-12 rounded-2xl bg-red-500/10 border-red-500/20 text-red-500 font-black uppercase text-[10px] italic active:scale-95 transition-all">
