@@ -20,7 +20,9 @@ import {
   Trash2,
   Loader,
   MessageSquare,
-  MessageSquareOff
+  MessageSquareOff,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -37,13 +39,24 @@ interface RoomPlayDialogProps {
   participants?: RoomParticipant[];
   roomId?: string;
   room?: any;
+  isMutedLocal: boolean;
+  setIsMutedLocal: (val: boolean) => void;
 }
 
 /**
  * High-Fidelity Room Play Portal.
  * Features real-time participant selection, Battle setup, and Frequency Management.
+ * Includes local room audio control.
  */
-export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, room }: RoomPlayDialogProps) {
+export function RoomPlayDialog({ 
+  open, 
+  onOpenChange, 
+  participants = [], 
+  roomId, 
+  room,
+  isMutedLocal,
+  setIsMutedLocal
+}: RoomPlayDialogProps) {
   const [view, setView] = useState<'grid' | 'battle' | 'selection' | 'rules'>('grid');
   const [battleMode, setBattleMode] = useState<'Votes' | 'Coins'>('Votes');
   const [selectionSide, setSelectionSide] = useState<'BLUE' | 'RED'>('BLUE');
@@ -107,6 +120,26 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
 
   const options = [
     { 
+      id: 'volume', 
+      label: isMutedLocal ? 'Unmute Room' : 'Mute Room', 
+      onClick: () => {
+        setIsMutedLocal(!isMutedLocal);
+        toast({ title: isMutedLocal ? 'Room Audio Restored' : 'Room Audio Muted' });
+      },
+      icon: (
+        <div className={cn(
+          "relative w-16 h-16 rounded-full p-0.5 border-2 border-white/20 shadow-xl overflow-hidden group",
+          isMutedLocal ? "bg-gradient-to-br from-red-500 to-red-700" : "bg-gradient-to-br from-blue-500 to-blue-700"
+        )}>
+           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+           <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
+              {isMutedLocal ? <VolumeX className="h-8 w-8 text-white drop-shadow-md" /> : <Volume2 className="h-8 w-8 text-white drop-shadow-md" />}
+           </div>
+           <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
+        </div>
+      )
+    },
+    { 
       id: 'battle', 
       label: 'Battle', 
       onClick: () => setView('battle'),
@@ -135,9 +168,7 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
     }
   ];
 
-  // Add Authority options only for owners/admins
   if (canManage) {
-    // 1. Clear Chat
     options.push({
       id: 'clear-chat',
       label: 'Clear Chat',
@@ -153,7 +184,6 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
       )
     });
 
-    // 2. Toggle Public Messages (Close/Open)
     options.push({
       id: 'mute-chat',
       label: isChatMuted ? 'Open Public Msg' : 'Close Public Msg',

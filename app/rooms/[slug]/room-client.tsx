@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import {
   Mic,
   MicOff,
-  Loader,
   Gift as GiftIcon,
   Users,
   Volume2,
@@ -16,22 +15,18 @@ import {
   ChevronDown,
   Minimize2,
   Lock,
-  Unlock,
   Hexagon,
   Share2,
-  Trophy,
   Mail,
   LayoutGrid,
   ChevronRight,
-  User as UserIcon,
   X,
   UserX,
   UserCheck,
-  Ban,
-  UserPlus
+  Ban
 } from 'lucide-react';
 import { GoldCoinIcon, GameControllerIcon } from '@/components/icons';
-import type { Room, RoomParticipant, Gift } from '@/lib/types';
+import type { Room, RoomParticipant } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -64,7 +59,8 @@ import {
   doc, 
   increment,
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  Timestamp
 } from 'firebase/firestore';
 import { AvatarFrame } from '@/components/avatar-frame';
 import { useRouter } from 'next/navigation';
@@ -76,26 +72,78 @@ import { RoomUserProfileDialog } from '@/components/room-user-profile-dialog';
 import { RoomSettingsDialog } from '@/components/room-settings-dialog';
 import { RoomUserListDialog } from '@/components/room-user-list-dialog';
 import { RoomShareDialog } from '@/components/room-share-dialog';
-import { GiftPicker, type GiftItem } from '@/components/gift-picker';
+import { GiftPicker } from '@/components/gift-picker';
 import { RoomPlayDialog } from '@/components/room-play-dialog';
 import { LuckyRainOverlay } from '@/components/lucky-rain-overlay';
+import { RoomSeatMenuDialog } from '@/components/room-seat-menu-dialog';
+import { ROOM_THEMES } from '@/lib/themes';
+import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
 
-const ROOM_THEMES = [
-  { id: 'misty', name: 'Misty Forest', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000' },
-  { id: 'neon', name: 'Neon Party', url: 'https://images.unsplash.com/photo-1514525253361-bee8718a300a?q=80&w=2000' },
-  { id: 'royal', name: 'Royal Palace', url: 'https://images.unsplash.com/photo-1562664377-709f2c337eb2?q=80&w=2000' },
-];
-
-function RemoteAudio({ stream }: { stream: MediaStream }) {
+function RemoteAudio({ stream, muted }: { stream: MediaStream, muted: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.srcObject = stream;
+      audioRef.current.muted = muted; // Locally mute the room audio output
       audioRef.current.play().catch(() => {});
     }
-  }, [stream]);
+  }, [stream, muted]);
   return <audio ref={audioRef} autoPlay playsInline className="hidden" />;
 }
+
+const Seat = ({ 
+  index, 
+  label, 
+  occupant, 
+  isLocked, 
+  theme, 
+  onClick 
+}: { 
+  index: number, 
+  label: string, 
+  occupant?: RoomParticipant, 
+  isLocked?: boolean, 
+  theme: any,
+  onClick: (index: number, occupant?: RoomParticipant) => void 
+}) => {
+  return (
+    <div className="flex flex-col items-center gap-1 w-[22%]">
+      <div className="relative">
+        <EmojiReactionOverlay emoji={occupant?.activeEmoji} size="sm" />
+        {occupant && !occupant.isMuted && (
+          <div className="absolute -inset-1 rounded-full border-2 animate-voice-wave" style={{ color: theme.accentColor }} />
+        )}
+        <AvatarFrame frameId={occupant?.activeFrame} size="md">
+          <button 
+            onClick={() => onClick(index, occupant)} 
+            className={cn(
+              "h-14 w-14 rounded-full flex items-center justify-center border-2 backdrop-blur-sm active:scale-90 transition-transform relative z-10",
+              isLocked ? "border-red-500/40" : "border-white/10"
+            )}
+            style={{ backgroundColor: theme.seatColor || 'rgba(255,255,255,0.1)' }}
+          >
+            {occupant ? (
+              <Avatar className="h-full w-full p-0.5">
+                <AvatarImage src={occupant.avatarUrl || undefined} />
+                <AvatarFallback>{(occupant.name || 'U').charAt(0)}</AvatarFallback>
+              </Avatar>
+            ) : isLocked ? (
+              <Lock className="h-4 w-4 text-red-500/40" />
+            ) : (
+              <div className="bg-white/10 rounded-full h-8 w-8 flex items-center justify-center">
+                <Armchair className="text-white/40 h-4 w-4" />
+              </div>
+            )}
+          </button>
+        </AvatarFrame>
+        {occupant?.isMuted && <div className="absolute -bottom-0.5 -right-0.5 bg-red-500 rounded-full p-0.5 border border-black z-20"><MicOff className="h-2 w-2 text-white" /></div>}
+      </div>
+      <span className="text-[10px] font-bold text-white/60 uppercase truncate w-14 text-center">
+        {occupant ? occupant.name : label}
+      </span>
+    </div>
+  );
+};
 
 export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
@@ -108,7 +156,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isSeatMenuOpen, setIsSeatMenuOpen] = useState(false);
   const [isRoomPlayOpen, setIsRoomPlayOpen] = useState(false);
   const [isLuckyRainActive, setIsLuckyRainActive] = useState(false);
-  const [grabBagActive, setGrabBagActive] = useState<string | null>(null);
+  const [now, setNow] = useState(Date.now());
   
   const [selectedSeatIdx, setSelectedSeatIdx] = useState<number | null>(null);
   const [selectedParticipantUid, setSelectedParticipantUid] = useState<string | null>(null);
@@ -127,6 +175,12 @@ export function RoomClient({ room }: { room: Room }) {
   const isOwner = currentUser?.uid === room.ownerId;
   const isModerator = room.moderatorIds?.includes(currentUser?.uid || '') || false;
   const canManageRoom = isOwner || isModerator;
+  const isChatMuted = room.isChatMuted || false;
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(timer);
+  }, []);
 
   const participantsQuery = useMemoFirebase(() => {
     if (!firestore || !room.id) return null;
@@ -134,7 +188,17 @@ export function RoomClient({ room }: { room: Room }) {
   }, [firestore, room.id]);
 
   const { data: participantsData } = useCollection<RoomParticipant>(participantsQuery);
-  const participants = participantsData || [];
+  
+  const participants = useMemo(() => {
+    if (!participantsData) return [];
+    return participantsData.filter(p => {
+      if (p.uid === currentUser?.uid) return true;
+      const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
+      if (!lastSeen) return true;
+      return (now - lastSeen) < 65000;
+    });
+  }, [participantsData, now, currentUser?.uid]);
+
   const onlineCount = participants.length;
   const currentUserParticipant = participants.find(p => p.uid === currentUser?.uid);
   const isInSeat = !!currentUserParticipant && currentUserParticipant.seatIndex > 0;
@@ -154,13 +218,8 @@ export function RoomClient({ room }: { room: Room }) {
       const lastMsg = firestoreMessages[firestoreMessages.length - 1];
       if (lastMsg.type === 'gift') {
         setActiveGiftAnimation(lastMsg.giftId);
-      } else if (lastMsg.type === 'lucky-rain' || lastMsg.type === 'lucky-bag') {
-        // High-Fidelity Sync: Both modes trigger the 30s interactive coin rain
+      } else if (lastMsg.type === 'lucky-rain') {
         setIsLuckyRainActive(true);
-        if (lastMsg.type === 'lucky-bag') {
-          setGrabBagActive(lastMsg.bagId || 'bag_default');
-          setTimeout(() => setGrabBagActive(null), 10000);
-        }
       }
     }
   }, [firestoreMessages]);
@@ -168,22 +227,16 @@ export function RoomClient({ room }: { room: Room }) {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageText.trim() || !currentUser || !firestore || !userProfile) return;
+    
+    if (isChatMuted && !canManageRoom) {
+      toast({ variant: 'destructive', title: 'Chat Restricted', description: 'The room authority has disabled public messages.' });
+      return;
+    }
+
     addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
       content: messageText, senderId: currentUser.uid, senderName: userProfile.username || 'User', senderAvatar: userProfile.avatarUrl || null, chatRoomId: room.id, timestamp: serverTimestamp(), type: 'text'
     });
     setMessageText('');
-  };
-
-  const handleGrabBag = async () => {
-    if (!currentUser || !firestore || !userProfile || !grabBagActive) return;
-    const winAmount = Math.floor(Math.random() * 450) + 50; 
-    const userRef = doc(firestore, 'users', currentUser.uid);
-    const profileRef = doc(firestore, 'users', currentUser.uid, 'profile', currentUser.uid);
-    const updateData = { 'wallet.coins': increment(winAmount), updatedAt: serverTimestamp() };
-    updateDocumentNonBlocking(userRef, updateData);
-    updateDocumentNonBlocking(profileRef, updateData);
-    setGrabBagActive(null);
-    toast({ title: 'Bag Synchronized!', description: `You grabbed ${winAmount.toLocaleString()} Gold Coins!` });
   };
 
   const handleMicToggle = () => { 
@@ -194,26 +247,11 @@ export function RoomClient({ room }: { room: Room }) {
   const handleMinimize = () => { setIsMinimized(true); router.push('/rooms'); };
   const handleExit = () => { setActiveRoom(null); router.push('/rooms'); };
 
-  const currentTheme = ROOM_THEMES.find(t => t.id === (room as any).roomThemeId) || ROOM_THEMES[0];
+  const currentTheme = useMemo(() => {
+    return ROOM_THEMES.find(t => t.id === room.roomThemeId) || ROOM_THEMES[0];
+  }, [room.roomThemeId]);
 
-  const Seat = ({ index, label }: { index: number, label: string }) => {
-    const occupant = participants.find(p => p.seatIndex === index);
-    const isLocked = room.lockedSeats?.includes(index);
-    return (
-      <div className="flex flex-col items-center gap-1 w-[22%]">
-        <div className="relative">
-          {occupant && !occupant.isMuted && <div className="absolute -inset-1 rounded-full border-2 border-green-500 animate-voice-wave" />}
-          <AvatarFrame frameId={occupant?.activeFrame} size="md">
-            <button onClick={() => handleSeatClick(index, occupant)} className={cn("h-14 w-14 rounded-full flex items-center justify-center bg-black/40 border-2 backdrop-blur-sm active:scale-90 transition-transform relative z-10", isLocked ? "border-red-500/40" : "border-white/10")}>
-              {occupant ? <Avatar className="h-full w-full p-0.5"><AvatarImage src={occupant.avatarUrl || undefined} /><AvatarFallback>{(occupant.name || 'U').charAt(0)}</AvatarFallback></Avatar> : isLocked ? <Lock className="h-4 w-4 text-red-500/40" /> : <div className="bg-white/10 rounded-full h-8 w-8 flex items-center justify-center"><Armchair className="text-white/40 h-4 w-4" /></div>}
-            </button>
-          </AvatarFrame>
-          {occupant?.isMuted && <div className="absolute -bottom-0.5 -right-0.5 bg-red-500 rounded-full p-0.5 border border-black z-20"><MicOff className="h-2 w-2 text-white" /></div>}
-        </div>
-        <span className="text-[10px] font-bold text-white/60 uppercase truncate w-14 text-center">{occupant ? occupant.name : label}</span>
-      </div>
-    );
-  };
+  const bgUrl = currentTheme.url;
 
   const handleSeatClick = (index: number, occupant?: RoomParticipant) => {
     setSelectedSeatIdx(index);
@@ -221,7 +259,51 @@ export function RoomClient({ room }: { room: Room }) {
       setSelectedParticipantUid(occupant.uid);
       if (canManageRoom || occupant.uid === currentUser?.uid) setIsSeatMenuOpen(true);
       else setIsUserProfileCardOpen(true);
-    } else setIsSeatMenuOpen(true);
+    } else {
+      setSelectedParticipantUid(null);
+      setIsSeatMenuOpen(true);
+    }
+  };
+
+  const handleSilence = (uid: string, current: boolean) => {
+    if (!firestore || !room.id) return;
+    updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid), { isSilenced: !current, isMuted: !current });
+  };
+
+  const handleKick = (uid: string, duration: number) => {
+    if (!firestore || !room.id) return;
+    const expires = new Date(Date.now() + duration * 60000);
+    setDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'bans', uid), { expiresAt: Timestamp.fromDate(expires) }, { merge: true });
+    deleteDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid));
+    toast({ title: 'Member Excluded', description: `Restricted for ${duration} minutes.` });
+    setIsUserProfileCardOpen(false);
+  };
+
+  const handleLeaveSeat = (uid: string) => {
+    if (!firestore || !room.id) return;
+    updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', uid), { seatIndex: 0, isMuted: true });
+    setIsSeatMenuOpen(false);
+    setIsUserProfileCardOpen(false);
+  };
+
+  const handleToggleMod = (uid: string) => {
+    if (!firestore || !room.id) return;
+    const isCurrentlyMod = room.moderatorIds?.includes(uid);
+    updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), {
+      moderatorIds: isCurrentlyMod ? arrayRemove(uid) : arrayUnion(uid)
+    });
+  };
+
+  const handleInputClick = () => {
+    if (isChatMuted && !canManageRoom) {
+      toast({ 
+        variant: 'destructive', 
+        title: 'Chat Restricted', 
+        description: 'Room authority has closed public messaging.' 
+      });
+      return;
+    }
+    setShowInput(true);
   };
 
   return (
@@ -229,53 +311,70 @@ export function RoomClient({ room }: { room: Room }) {
       <DailyRewardDialog />
       <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
       <LuckyRainOverlay active={isLuckyRainActive} onComplete={() => setIsLuckyRainActive(false)} />
-      {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
+      {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (
+        <RemoteAudio key={peerId} stream={stream} muted={isMutedLocal} />
+      ))}
       
       <div className="absolute inset-0 z-0">
-        <Image src={currentTheme.url} alt="Background" fill className="object-cover opacity-60" priority />
+        <Image 
+          key={`${room.roomThemeId}`} 
+          src={bgUrl} 
+          alt="Background" 
+          fill 
+          unoptimized
+          className="object-cover opacity-60 animate-in fade-in duration-1000" 
+          priority 
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
       </div>
 
-      {grabBagActive && (
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[250] animate-in zoom-in duration-500">
-           <button onClick={handleGrabBag} className="relative h-40 w-40 flex flex-col items-center justify-center group active:scale-90 transition-all">
-              <div className="absolute inset-0 bg-yellow-400 blur-3xl opacity-20 animate-pulse" />
-              <div className="relative bg-gradient-to-b from-yellow-300 to-yellow-600 rounded-[2.5rem] p-6 border-4 border-white shadow-2xl overflow-hidden animate-bounce">
-                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-[-45deg] animate-shine" />
-                 <GiftIcon className="h-20 w-20 text-white fill-white drop-shadow-lg" />
-              </div>
-              <div className="mt-4 bg-yellow-400 text-black px-6 py-1.5 rounded-full font-black uppercase italic text-sm shadow-xl border-2 border-white">Grab Coins!</div>
-           </button>
-        </div>
-      )}
-
-      <header className="relative z-50 flex items-center justify-between p-4 pt-8">
+      <header className="relative z-50 flex items-center justify-between p-4 pt-4">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12 rounded-xl border-2 border-white/20"><AvatarImage src={room.coverUrl || undefined} /><AvatarFallback>UM</AvatarFallback></Avatar>
           <div className="flex flex-col"><h1 className="font-black text-[15px] uppercase tracking-tighter text-white">{room.title}</h1><p className="text-[10px] font-bold text-white/60 uppercase">ID:{room.roomNumber}</p></div>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setIsUserListOpen(true)} className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2"><Users className="h-4 w-4 text-white/60" /><span className="text-[12px] font-black">{onlineCount}</span></button>
-          <RoomSettingsDialog room={room} trigger={<button className="p-2 bg-white/10 rounded-full active:scale-95 transition-transform"><Hexagon className="h-5 w-5" /></button>} />
+          {canManageRoom && (
+            <RoomSettingsDialog room={room} trigger={<button className="p-2 bg-white/10 rounded-full active:scale-95 transition-transform"><Hexagon className="h-5 w-5" /></button>} />
+          )}
           <button onClick={() => setIsShareOpen(true)} className="p-2 bg-white/10 rounded-full active:scale-95 transition-transform"><Share2 className="h-5 w-5" /></button>
           <button onClick={() => setIsExitPortalOpen(true)} className="p-2 bg-white/10 rounded-full active:scale-95 transition-transform"><Power className="h-5 w-5" /></button>
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 flex flex-col pt-4 overflow-hidden">
-        <div className="flex-1 flex flex-col items-center justify-center gap-6">
-           <div className="w-full flex justify-center"><Seat index={1} label="No.1" /></div>
-           <div className="w-full flex justify-center gap-4 px-4"><Seat index={2} label="No.2" /><Seat index={3} label="No.3" /><Seat index={4} label="No.4" /><Seat index={5} label="No.5" /></div>
-           <div className="w-full flex justify-center gap-4 px-4"><Seat index={6} label="No.6" /><Seat index={7} label="No.7" /><Seat index={8} label="No.8" /><Seat index={9} label="No.9" /></div>
+      <main className="relative z-10 flex-1 flex flex-col pt-0 overflow-hidden">
+        <div className="flex-1 flex flex-col items-center justify-start gap-2 pt-4 pb-40 overflow-y-auto no-scrollbar">
+           <div className="w-full flex justify-center">
+              <Seat index={1} label="No.1" theme={currentTheme} occupant={participants.find(p => p.seatIndex === 1)} isLocked={room.lockedSeats?.includes(1)} onClick={handleSeatClick} />
+           </div>
+           <div className="w-full flex justify-center gap-4 px-4">
+              {[2, 3, 4, 5].map(idx => (
+                <Seat key={idx} index={idx} label={`No.${idx}`} theme={currentTheme} occupant={participants.find(p => p.seatIndex === idx)} isLocked={room.lockedSeats?.includes(idx)} onClick={handleSeatClick} />
+              ))}
+           </div>
+           <div className="w-full flex justify-center gap-4 px-4">
+              {[6, 7, 8, 9].map(idx => (
+                <Seat key={idx} index={idx} label={`No.${idx}`} theme={currentTheme} occupant={participants.find(p => p.seatIndex === idx)} isLocked={room.lockedSeats?.includes(idx)} onClick={handleSeatClick} />
+              ))}
+           </div>
+           <div className="w-full flex justify-center gap-4 px-4">
+              {[10, 11, 12, 13].map(idx => (
+                <Seat key={idx} index={idx} label={`No.${idx}`} theme={currentTheme} occupant={participants.find(p => p.seatIndex === idx)} isLocked={room.lockedSeats?.includes(idx)} onClick={handleSeatClick} />
+              ))}
+           </div>
         </div>
 
-        <div className="absolute bottom-0 left-0 w-full h-48 z-20 pointer-events-none p-4 pb-0">
+        <div className="absolute bottom-0 left-0 w-full h-40 z-20 pointer-events-none p-4 pb-0">
            <ScrollArea className="h-full pr-4 pointer-events-auto" ref={scrollRef}>
-              <div className="flex flex-col gap-2 justify-end min-h-full">
+              <div className="flex flex-col gap-1 justify-end min-h-full">
                  {firestoreMessages?.map((msg: any) => (
-                   <div key={msg.id} className="flex items-start gap-2 bg-black/40 backdrop-blur-md rounded-2xl p-2 border border-white/5 w-fit max-w-[80%] animate-in fade-in slide-in-from-left-2 shadow-xl">
-                      <Avatar className="h-7 w-7 shrink-0 border border-white/10"><AvatarImage src={msg.senderAvatar || undefined} /><AvatarFallback>{(msg.senderName || 'U').charAt(0)}</AvatarFallback></Avatar>
-                      <div className="flex flex-col"><span className={cn("text-[9px] font-black uppercase tracking-tighter leading-none mb-1", msg.senderId === currentUser?.uid ? "text-primary" : "text-white/40")}>{msg.senderName}</span><p className="text-[12px] font-bold text-white leading-tight break-all">{msg.content || msg.text}</p></div>
+                   <div key={msg.id} className="flex items-start gap-2 bg-black/40 backdrop-blur-md rounded-xl p-1.5 border border-white/5 w-fit max-w-[85%] animate-in fade-in slide-in-from-left-2 shadow-xl mb-1">
+                      <Avatar className="h-6 w-6 shrink-0 border border-white/10"><AvatarImage src={msg.senderAvatar || undefined} /><AvatarFallback>{(msg.senderName || 'U').charAt(0)}</AvatarFallback></Avatar>
+                      <div className="flex flex-col">
+                        <span className={cn("text-[8px] font-black uppercase tracking-tighter leading-none mb-0.5", msg.senderId === currentUser?.uid ? "text-primary" : "text-white/40")}>{msg.senderName}</span>
+                        <p className="text-11px] font-bold text-white leading-tight break-all">{msg.content || msg.text}</p>
+                      </div>
                    </div>
                  ))}
               </div>
@@ -285,10 +384,17 @@ export function RoomClient({ room }: { room: Room }) {
 
       <footer className="relative z-50 px-4 pb-10 flex items-center justify-between gap-3 pt-4">
         <div className="flex-1 flex items-center gap-3">
-           <div onClick={() => setShowInput(true)} className="bg-white/10 backdrop-blur-xl rounded-full h-12 flex-1 px-6 flex items-center text-white/60 font-bold text-sm cursor-pointer">Say Hi</div>
+           <div 
+             onClick={handleInputClick} 
+             className={cn(
+               "backdrop-blur-xl rounded-full h-12 flex-1 px-6 flex items-center font-bold text-sm cursor-pointer transition-all",
+               isChatMuted && !canManageRoom ? "bg-red-500/20 text-red-400 border border-red-500/20" : "bg-white/10 text-white/60"
+             )}
+           >
+              {isChatMuted && !canManageRoom ? 'Chat Restricted' : 'Say Hi'}
+           </div>
            <div className="flex items-center gap-3">
               <button onClick={handleMicToggle} disabled={!isInSeat} className={cn("p-2 rounded-full transition-all active:scale-90", !isInSeat ? "bg-white/5 text-white/20 opacity-50" : (currentUserParticipant?.isMuted ? "bg-white/10 text-white" : "bg-green-500 text-white shadow-lg border border-white/20"))}>{isInSeat && !currentUserParticipant?.isMuted ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}</button>
-              <button onClick={() => setIsMutedLocal(!isMutedLocal)} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform">{isMutedLocal ? <VolumeX className="h-5 w-5 text-white/60" /> : <Volume2 className="h-5 w-5 text-white" />}</button>
               <button onClick={() => router.push('/messages')} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform"><Mail className="h-5 w-5 text-white" /></button>
               <button onClick={() => { setGiftRecipient(null); setIsGiftPickerOpen(true); }} className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl active:scale-90 transition-transform"><GiftIcon className="h-6 w-6 text-white fill-white" /></button>
               <button onClick={() => router.push('/games')} className="bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-700 p-2 rounded-full shadow-lg active:scale-95 transition-transform border border-yellow-200/50"><GameControllerIcon className="h-5 w-5 text-white drop-shadow-md" /></button>
@@ -312,8 +418,45 @@ export function RoomClient({ room }: { room: Room }) {
 
       <RoomUserListDialog open={isUserListOpen} onOpenChange={setIsUserListOpen} roomId={room.id} />
       <RoomShareDialog open={isShareOpen} onOpenChange={setIsShareOpen} room={room} />
-      <RoomPlayDialog open={isRoomPlayOpen} onOpenChange={setIsRoomPlayOpen} participants={participants} roomId={room.id} room={room} />
+      <RoomPlayDialog 
+        open={isRoomPlayOpen} 
+        onOpenChange={setIsRoomPlayOpen} 
+        participants={participants} 
+        roomId={room.id} 
+        room={room} 
+        isMutedLocal={isMutedLocal}
+        setIsMutedLocal={setIsMutedLocal}
+      />
       <GiftPicker open={isGiftPickerOpen} onOpenChange={setIsGiftPickerOpen} roomId={room.id} recipient={giftRecipient} />
+      
+      <RoomSeatMenuDialog 
+        open={isSeatMenuOpen} 
+        onOpenChange={setIsSeatMenuOpen}
+        seatIndex={selectedSeatIdx}
+        roomId={room.id}
+        isLocked={room.lockedSeats?.includes(selectedSeatIdx || 0) || false}
+        occupantUid={selectedParticipantUid}
+        canManage={canManageRoom}
+        currentUserId={currentUser?.uid}
+        onLeaveSeat={handleLeaveSeat}
+      />
+
+      <RoomUserProfileDialog 
+        userId={selectedParticipantUid}
+        open={isUserProfileCardOpen}
+        onOpenChange={setIsUserProfileCardOpen}
+        canManage={canManageRoom}
+        isOwner={isOwner}
+        roomOwnerId={room.ownerId}
+        roomModeratorIds={room.moderatorIds || []}
+        onSilence={handleSilence}
+        onKick={handleKick}
+        onLeaveSeat={handleLeaveSeat}
+        onToggleMod={handleToggleMod}
+        onOpenGiftPicker={(recipient) => { setGiftRecipient(recipient); setIsGiftPickerOpen(true); }}
+        isSilenced={participants.find(p => p.uid === selectedParticipantUid)?.isSilenced || false}
+        isMe={selectedParticipantUid === currentUser?.uid}
+      />
     </div>
   );
 }
