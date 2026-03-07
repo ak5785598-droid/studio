@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, use } from 'react';
@@ -300,9 +299,11 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                   <AvatarFallback className="text-3xl font-black bg-slate-100">{(profile.username || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
               </AvatarFrame>
-              <button className="absolute bottom-1 right-1 bg-white p-1.5 rounded-full shadow-lg border border-gray-100 active:scale-90 transition-transform">
-                <SettingsIcon className="h-4 w-4 text-gray-400" />
-              </button>
+              <EditProfileDialog profile={profile} trigger={
+                <button className="absolute bottom-1 right-1 bg-white p-1.5 rounded-full shadow-lg border border-gray-100 active:scale-90 transition-transform">
+                  <SettingsIcon className="h-4 w-4 text-gray-400" />
+                </button>
+              } />
             </div>
 
             <div className="space-y-1">
