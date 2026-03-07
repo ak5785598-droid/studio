@@ -10,6 +10,7 @@ import type { Game } from '@/lib/types';
 /**
  * Hook to handle game logo/cover uploads to Firebase Storage and update Firestore.
  * Re-engineered with high-speed direct upload protocol and Atomic Merge reliability.
+ * Ensures title and slug are synchronized to prevent query filtering.
  */
 export function useGameLogoUpload() {
   const storage = useStorage();
@@ -29,7 +30,7 @@ export function useGameLogoUpload() {
     }
 
     setIsUploading(true);
-    console.log(`[Visual Sync] Starting game logo upload for: ${game.id}`, file.name);
+    console.log(`[Visual Sync] Starting high-fidelity game logo upload for: ${game.id}`, file.name);
 
     try {
       // 1. Storage Upload Handshake with Metadata
@@ -46,9 +47,13 @@ export function useGameLogoUpload() {
       const downloadURL = await getDownloadURL(result.ref);
 
       // 2. Firestore Sync (Atomic Merge Protocol)
+      // We include title and slug to ensure the doc is visible to indexed queries
       const gameRef = doc(firestore, 'games', game.id);
       
       const updateData = { 
+        id: game.id,
+        title: game.title,
+        slug: game.slug,
         coverUrl: downloadURL,
         updatedAt: serverTimestamp()
       };

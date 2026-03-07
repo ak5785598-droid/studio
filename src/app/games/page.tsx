@@ -27,6 +27,11 @@ const FALLBACK_GAMES: Game[] = [
   { id: 'fallback-teen', title: 'Dragon Battle', slug: 'teen-patti', coverUrl: '', cost: 0, imageHint: '3d dragon character' },
 ];
 
+/**
+ * 3D Tribe Arena - Global Game Frequencies.
+ * Re-engineered for absolute visual synchronization.
+ * Uses unoptimized loading and reactive keys to ensure immediate DP updates.
+ */
 export default function GamesPage() {
   const { user } = useUser();
   const { userProfile } = useUserProfile(user?.uid);
@@ -49,12 +54,14 @@ export default function GamesPage() {
 
   const gamesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return query(collection(firestore, 'games'), orderBy('title', 'asc'));
+    // We remove the strict orderBy('title') to ensure documents without titles (initial sync) are still retrieved.
+    return query(collection(firestore, 'games'));
   }, [firestore, user]);
 
   const { data: firestoreGames, isLoading: isGamesLoading } = useCollection(gamesQuery);
 
   const activeGames = useMemo(() => {
+    // Robust merge logic: Firestore data always overrides hardcoded fallbacks
     return FALLBACK_GAMES.map(fb => {
       const match = firestoreGames?.find(g => g.slug === fb.slug || g.id === fb.id);
       return match ? { ...fb, ...match } : fb;
@@ -126,10 +133,11 @@ export default function GamesPage() {
                         <Link href={`/games/${game.slug}`} className="relative aspect-square w-full rounded-[2.5rem] overflow-hidden border-2 border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 group-hover:border-purple-500/50 group-hover:shadow-[0_40px_80px_rgba(168,85,247,0.3)] group-hover:-translate-y-4 bg-gradient-to-br from-white/5 to-white/10 flex items-center justify-center">
                            {game.coverUrl ? (
                              <Image 
-                               key={game.coverUrl}
+                               key={game.coverUrl} // Forces hard refresh on visual sync
                                src={game.coverUrl} 
                                alt={game.title} 
                                fill 
+                               unoptimized // Ensures immediate render from cloud vault
                                className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
                                data-ai-hint={game.imageHint}
                              />
