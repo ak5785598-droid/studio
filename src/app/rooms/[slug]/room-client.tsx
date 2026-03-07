@@ -5,7 +5,6 @@ import Image from 'next/image';
 import {
   Mic,
   MicOff,
-  Loader,
   Gift as GiftIcon,
   Users,
   Volume2,
@@ -16,22 +15,18 @@ import {
   ChevronDown,
   Minimize2,
   Lock,
-  Unlock,
   Hexagon,
   Share2,
-  Trophy,
   Mail,
   LayoutGrid,
   ChevronRight,
-  User as UserIcon,
   X,
   UserX,
   UserCheck,
-  Ban,
-  UserPlus
+  Ban
 } from 'lucide-react';
 import { GoldCoinIcon, GameControllerIcon } from '@/components/icons';
-import type { Room, RoomParticipant, Gift } from '@/lib/types';
+import type { Room, RoomParticipant } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -77,7 +72,7 @@ import { RoomUserProfileDialog } from '@/components/room-user-profile-dialog';
 import { RoomSettingsDialog } from '@/components/room-settings-dialog';
 import { RoomUserListDialog } from '@/components/room-user-list-dialog';
 import { RoomShareDialog } from '@/components/room-share-dialog';
-import { GiftPicker, type GiftItem } from '@/components/gift-picker';
+import { GiftPicker } from '@/components/gift-picker';
 import { RoomPlayDialog } from '@/components/room-play-dialog';
 import { LuckyRainOverlay } from '@/components/lucky-rain-overlay';
 import { RoomSeatMenuDialog } from '@/components/room-seat-menu-dialog';
@@ -105,7 +100,6 @@ export function RoomClient({ room }: { room: Room }) {
   const [isSeatMenuOpen, setIsSeatMenuOpen] = useState(false);
   const [isRoomPlayOpen, setIsRoomPlayOpen] = useState(false);
   const [isLuckyRainActive, setIsLuckyRainActive] = useState(false);
-  const [grabBagActive, setGrabBagActive] = useState<string | null>(null);
   
   const [selectedSeatIdx, setSelectedSeatIdx] = useState<number | null>(null);
   const [selectedParticipantUid, setSelectedParticipantUid] = useState<string | null>(null);
@@ -132,7 +126,6 @@ export function RoomClient({ room }: { room: Room }) {
 
   const { data: participantsData } = useCollection<RoomParticipant>(participantsQuery);
   
-  // ANTI-GHOST FILTER: Prune UI list of any participant not pulsing
   const participants = (participantsData || []).filter(p => {
     const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
     if (!lastSeen) return true;
@@ -158,12 +151,8 @@ export function RoomClient({ room }: { room: Room }) {
       const lastMsg = firestoreMessages[firestoreMessages.length - 1];
       if (lastMsg.type === 'gift') {
         setActiveGiftAnimation(lastMsg.giftId);
-      } else if (lastMsg.type === 'lucky-rain' || lastMsg.type === 'lucky-bag') {
+      } else if (lastMsg.type === 'lucky-rain') {
         setIsLuckyRainActive(true);
-        if (lastMsg.type === 'lucky-bag') {
-          setGrabBagActive(lastMsg.bagId || 'bag_default');
-          setTimeout(() => setGrabBagActive(null), 10000);
-        }
       }
     }
   }, [firestoreMessages]);
@@ -177,18 +166,6 @@ export function RoomClient({ room }: { room: Room }) {
     setMessageText('');
   };
 
-  const handleGrabBag = async () => {
-    if (!currentUser || !firestore || !userProfile || !grabBagActive) return;
-    const winAmount = Math.floor(Math.random() * 450) + 50; 
-    const userRef = doc(firestore, 'users', currentUser.uid);
-    const profileRef = doc(firestore, 'users', user.uid, 'profile', user.uid);
-    const updateData = { 'wallet.coins': increment(winAmount), updatedAt: serverTimestamp() };
-    updateDocumentNonBlocking(userRef, updateData);
-    updateDocumentNonBlocking(profileRef, updateData);
-    setGrabBagActive(null);
-    toast({ title: 'Bag Synchronized!', description: `You grabbed ${winAmount.toLocaleString()} Gold Coins!` });
-  };
-
   const handleMicToggle = () => { 
     if (!isInSeat || !firestore || !currentUser || !room.id) return;
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id, 'participants', currentUser.uid), { isMuted: !currentUserParticipant?.isMuted }); 
@@ -197,7 +174,6 @@ export function RoomClient({ room }: { room: Room }) {
   const handleMinimize = () => { setIsMinimized(true); router.push('/rooms'); };
   const handleExit = () => { setActiveRoom(null); router.push('/rooms'); };
 
-  // Background priority: Custom URL > Theme ID > Default
   const currentTheme = ROOM_THEMES.find(t => t.id === room.roomThemeId) || ROOM_THEMES[0];
   const bgUrl = room.backgroundUrl || currentTheme.url;
 
@@ -244,7 +220,6 @@ export function RoomClient({ room }: { room: Room }) {
     setSelectedSeatIdx(index);
     if (occupant) {
       setSelectedParticipantUid(occupant.uid);
-      // TRIBAL BLUEPRINT: Clicking yourself or managed seats opens Seat Options
       if (canManageRoom || occupant.uid === currentUser?.uid) setIsSeatMenuOpen(true);
       else setIsUserProfileCardOpen(true);
     } else {
@@ -301,19 +276,6 @@ export function RoomClient({ room }: { room: Room }) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
       </div>
 
-      {grabBagActive && (
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[250] animate-in zoom-in duration-500">
-           <button onClick={handleGrabBag} className="relative h-40 w-40 flex flex-col items-center justify-center group active:scale-90 transition-all">
-              <div className="absolute inset-0 bg-yellow-400 blur-3xl opacity-20 animate-pulse" />
-              <div className="relative bg-gradient-to-b from-yellow-300 to-yellow-600 rounded-[2.5rem] p-6 border-4 border-white shadow-2xl overflow-hidden animate-bounce">
-                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-[-45deg] animate-shine" />
-                 <GiftIcon className="h-20 w-20 text-white fill-white drop-shadow-lg" />
-              </div>
-              <div className="mt-4 bg-yellow-400 text-black px-6 py-1.5 rounded-full font-black uppercase italic text-sm shadow-xl border-2 border-white">Grab Coins!</div>
-           </button>
-        </div>
-      )}
-
       <header className="relative z-50 flex items-center justify-between p-4 pt-8">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12 rounded-xl border-2 border-white/20"><AvatarImage src={room.coverUrl || undefined} /><AvatarFallback>UM</AvatarFallback></Avatar>
@@ -328,7 +290,6 @@ export function RoomClient({ room }: { room: Room }) {
       </header>
 
       <main className="relative z-10 flex-1 flex flex-col pt-2 overflow-hidden">
-        {/* ARENA ELEVATION: justify-start and pt-2 shifts grid upward. pb-80 ensures bottom clearance. */}
         <div className="flex-1 flex flex-col items-center justify-start gap-4 pt-2 pb-80 overflow-y-auto no-scrollbar">
            <div className="w-full flex justify-center"><Seat index={1} label="No.1" /></div>
            <div className="w-full flex justify-center gap-4 px-4"><Seat index={2} label="No.2" /><Seat index={3} label="No.3" /><Seat index={4} label="No.4" /><Seat index={5} label="No.5" /></div>
