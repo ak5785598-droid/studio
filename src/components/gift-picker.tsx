@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -43,22 +44,17 @@ export interface GiftItem {
 }
 
 const GIFTS: Record<string, GiftItem[]> = {
+  'Hot': [
+    { id: 'rose', name: 'Rose', price: 10, icon: '🌹', animationId: 'rose' },
+    { id: 'heart', name: 'Heart', price: 50, icon: '💖', animationId: 'heart' },
+    { id: 'ring', name: 'Propose Ring', price: 100000, icon: '💍', animationId: 'propose-ring' },
+    { id: 'car', name: 'Elite Car', price: 50000, icon: '🏎️', animationId: 'car' },
+  ],
   'Lucky': [
     { id: 'lucky_clover', name: 'Lucky Clover', price: 100, icon: '🍀', animationId: 'lucky-clover', type: 'lucky' },
     { id: 'lucky_crown', name: 'Lucky Crown', price: 500, icon: '👑', animationId: 'lucky-crown', type: 'lucky' },
     { id: 'lucky_maple', name: 'Lucky Maple', price: 1000, icon: '🍁', animationId: 'lucky-maple', type: 'lucky' },
     { id: 'lucky_star', name: 'Lucky Star', price: 5000, icon: '⭐', animationId: 'lucky-star', type: 'lucky' },
-  ],
-  'Hot': [
-    { id: 'rose', name: 'Rose', price: 10, icon: '🌹', animationId: 'rose' },
-    { id: 'g1', name: 'Color Powder', price: 5000, icon: '🌈', animationId: 'color-carnival' },
-    { id: 'g2', name: 'Color Palette', price: 15000, icon: '🎨', animationId: 'color-carnival' },
-    { id: 'g3', name: 'Color Temple', price: 50000, icon: '🕌', animationId: 'galaxy' },
-    { id: 'g4', name: 'Color Carnival', price: 150000, icon: '🎭', animationId: 'celebration' },
-    { id: 'g5', name: 'Pisces', price: 50, icon: '♓', animationId: 'heart' },
-    { id: 'g6', name: 'Psc Patronus', price: 10000, icon: '🐟', animationId: 'galaxy' },
-    { id: 'g7', name: 'Psc Palace', price: 100000, icon: '🏛️', animationId: 'castle' },
-    { id: 'g8', name: 'Psc Fantasy', price: 500000, icon: '✨', animationId: 'supernova' },
   ],
   'Luxury': [
     { id: 'l1', name: 'Rolex Sync', price: 200000, icon: '⌚', animationId: 'rolex' },
@@ -77,6 +73,10 @@ interface GiftPickerProps {
   onGiftSent?: (gift: GiftItem, qty: number, recipient: any) => void;
 }
 
+/**
+ * High-Fidelity Gift Vault.
+ * Re-engineered for "narrow breath" visual optimization and elite Diamond Yield (40%).
+ */
 export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }: GiftPickerProps) {
   const { user } = useUser();
   const { userProfile } = useUserProfile(user?.uid);
@@ -146,6 +146,7 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
         'stats.dailyGifts': increment(totalCost)
       });
 
+      // ECONOMIC YIELD PROTOCOL: Recipient receives 40% of the coin value in Diamonds
       if (recipient && recipient.uid && recipient.uid !== user.uid) {
         const diamondYield = Math.floor(totalCost * 0.4);
         const recipientRef = doc(firestore, 'users', recipient.uid);
@@ -194,10 +195,10 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[380px] bg-[#1a1a1a]/95 backdrop-blur-2xl border-none p-0 rounded-t-[3rem] overflow-hidden text-white font-headline shadow-2xl animate-in slide-in-from-bottom-full duration-500">
+      <DialogContent className="sm:max-w-[350px] bg-[#1a1a1a]/95 backdrop-blur-2xl border-none p-0 rounded-t-[3rem] overflow-hidden text-white font-headline shadow-2xl animate-in slide-in-from-bottom-full duration-500">
         <DialogHeader className="sr-only">
-          <DialogTitle>Tribe Gift Vault</DialogTitle>
-          <DialogDescription>Dispatch visual frequencies to the room.</DialogDescription>
+          <DialogTitle>Gift Picker</DialogTitle>
+          <DialogDescription>Select a gift to dispatch to the frequency.</DialogDescription>
         </DialogHeader>
 
         <div className="p-4 pb-2 space-y-3">
@@ -217,26 +218,19 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
                        <Badge variant="outline" className="h-3 border-amber-600 text-amber-500 text-[7px] font-black uppercase bg-amber-950/20 px-1">4</Badge>
                        <span className="text-[8px] font-black text-yellow-500 italic">+5000Exp</span>
                     </div>
-                    <Progress value={45} className="h-0.5 w-24 bg-white/5 [&>div]:bg-yellow-500" />
+                    <Progress value={45} className="h-0.5 w-20 bg-white/5 [&>div]:bg-yellow-500" />
                  </div>
               </div>
               <div className="flex gap-1.5">
                  <Popover>
                     <PopoverTrigger asChild>
-                       <button className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors">
+                       <button className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
                           <Info className="h-3 w-3 text-yellow-500" />
                        </button>
                     </PopoverTrigger>
-                    <PopoverContent className="bg-slate-900 border-white/10 text-white p-4 rounded-2xl w-64 shadow-2xl">
-                       <h4 className="font-black uppercase italic text-sm mb-2 text-yellow-500">Lucky Gift Rules</h4>
-                       <div className="mt-3 grid grid-cols-2 gap-2 text-[9px] font-black uppercase italic">
-                          <div className="flex justify-between border-b border-white/5 pb-1"><span>1x Return</span><span className="text-green-400">High</span></div>
-                          <div className="flex justify-between border-b border-white/5 pb-1"><span>2x Return</span><span className="text-green-400">Med</span></div>
-                          <div className="flex justify-between border-b border-white/5 pb-1"><span>5x Return</span><span className="text-yellow-400">Low</span></div>
-                          <div className="flex justify-between border-b border-white/5 pb-1"><span>50x Return</span><span className="text-orange-400">Rare</span></div>
-                          <div className="flex justify-between border-b border-white/5 pb-1"><span>100x Return</span><span className="text-red-400">Epic</span></div>
-                          <div className="flex justify-between border-b border-white/5 pb-1"><span>1000x Return</span><span className="text-purple-400">LEGEND</span></div>
-                       </div>
+                    <PopoverContent className="bg-slate-900 border-white/10 text-white p-4 rounded-2xl w-60 shadow-2xl">
+                       <h4 className="font-black uppercase italic text-xs mb-2 text-yellow-500">Yield Protocol</h4>
+                       <p className="text-[10px] text-white/60 leading-relaxed font-body italic">Recipient yields 40% Diamond frequency from all coins received. Lucky gifts can trigger a jackpot win for the sender.</p>
                     </PopoverContent>
                  </Popover>
                  <button className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><Home className="h-3 w-3 text-white/60" /></button>
@@ -244,21 +238,18 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
            </div>
 
            <div className="flex items-center justify-between">
-              <Tabs defaultValue="Lucky" className="w-full">
+              <Tabs defaultValue="Hot" className="w-full">
                  <TabsList className="bg-transparent p-0 gap-4 h-8 border-none justify-start overflow-x-auto no-scrollbar">
-                    {Object.keys(GIFTS).map(tab => (
+                    {['Hot', 'Lucky', 'Luxury', 'SVIP'].map(tab => (
                       <TabsTrigger key={tab} value={tab} className="p-0 text-xs font-black uppercase italic tracking-tighter text-white/40 data-[state=active]:text-white data-[state=active]:bg-transparent relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-white after:opacity-0 data-[state=active]:after:opacity-100">
                         {tab}
                       </TabsTrigger>
                     ))}
-                    {['Country', 'Bag'].map(tab => (
-                      <span key={tab} className="text-xs font-black uppercase italic tracking-tighter text-white/20 cursor-default">{tab}</span>
-                    ))}
                  </TabsList>
 
                  {Object.entries(GIFTS).map(([category, items]) => (
-                   <TabsContent key={category} value={category} className="mt-3 animate-in fade-in duration-500">
-                      <div className="grid grid-cols-4 gap-y-4 gap-x-1.5">
+                   <TabsContent key={category} value={category} className="mt-2 animate-in fade-in duration-500">
+                      <div className="grid grid-cols-4 gap-y-3 gap-x-1">
                          {items.map(gift => (
                            <button 
                              key={gift.id} 
@@ -281,10 +272,10 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
                                    </div>
                                  )}
                               </div>
-                              <span className="text-[8px] font-black text-white uppercase tracking-tighter text-center px-1 leading-tight truncate w-full">{gift.name}</span>
+                              <span className="text-[7px] font-black text-white uppercase tracking-tighter text-center px-1 leading-tight truncate w-full">{gift.name}</span>
                               <div className="flex items-center gap-0.5 text-yellow-500">
                                  <GoldCoinIcon className="h-2 w-2" />
-                                 <span className="text-[9px] font-black italic">{gift.price}</span>
+                                 <span className="text-[8px] font-black italic">{gift.price}</span>
                               </div>
                            </button>
                          ))}
@@ -298,13 +289,13 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
         <div className="p-4 bg-black/40 border-t border-white/5 flex items-center justify-between gap-3">
            <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => onOpenChange(false)}>
               <GoldCoinIcon className="h-4 w-4" />
-              <span className="text-sm font-black italic text-white">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
+              <span className="text-xs font-black italic text-white">{(userProfile?.wallet?.coins || 0).toLocaleString()}</span>
               <ChevronRight className="h-3 w-3 text-white/40" />
            </div>
 
            <div className="flex items-center gap-2">
               <Select value={quantity} onValueChange={setQuantity}>
-                 <SelectTrigger className="w-16 h-8 rounded-full bg-white/5 border-white/10 text-white font-black italic text-[10px] px-2">
+                 <SelectTrigger className="w-14 h-7 rounded-full bg-white/5 border-white/10 text-white font-black italic text-[9px] px-2">
                     <SelectValue />
                  </SelectTrigger>
                  <SelectContent className="bg-slate-900 border-white/10 text-white">
@@ -317,7 +308,7 @@ export function GiftPicker({ open, onOpenChange, roomId, recipient, onGiftSent }
               <Button 
                 onClick={handleSend}
                 disabled={!selectedGift || isSending}
-                className="bg-gradient-to-r from-[#fcd34d] via-[#f59e0b] to-[#b45309] text-white h-8 px-6 rounded-full font-black uppercase italic text-[10px] shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+                className="bg-gradient-to-r from-[#fcd34d] via-[#f59e0b] to-[#b45309] text-white h-7 px-5 rounded-full font-black uppercase italic text-[9px] shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
               >
                  {isSending ? <Loader className="h-3 w-3 animate-spin" /> : 'Send'}
               </Button>

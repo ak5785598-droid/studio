@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -23,7 +24,8 @@ const COIN_PACKAGES = [
 ];
 
 /**
- * Tribal Vault - Re-engineered for compact high-fidelity display.
+ * Tribal Vault - High-Fidelity Economic Dimension.
+ * Re-engineered for compact mobile visual frequency.
  */
 export default function WalletPage() {
   const router = useRouter();
@@ -92,7 +94,6 @@ export default function WalletPage() {
     <AppLayout hideSidebarOnMobile hideBottomNav>
       <div className="min-h-full bg-white font-headline flex flex-col animate-in fade-in duration-700">
         
-        {/* Header Protocol - Compact */}
         <header className="px-6 pt-8 pb-3 flex items-center justify-between bg-white sticky top-0 z-50 border-b border-gray-50">
            <button onClick={() => router.back()} className="p-1.5 -ml-1.5 hover:bg-gray-50 rounded-full transition-all">
               <ChevronLeft className="h-5 w-5 text-gray-800" />
@@ -120,7 +121,7 @@ export default function WalletPage() {
                       <p className="font-black text-xs uppercase italic text-gray-800">{record.type === 'exchange' ? 'Diamond Exchange' : 'Package Purchase'}</p>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center gap-1 justify-end">
+                      <div className="flex items-center gap-1.5 justify-end">
                         <span className="font-black text-green-600 text-xs">+{record.coinAmount?.toLocaleString()}</span>
                         <GoldCoinIcon className="h-3 w-3" />
                       </div>
@@ -131,7 +132,6 @@ export default function WalletPage() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Category Frequencies - Compact */}
             <div className="flex justify-around border-b border-gray-50 bg-white shrink-0">
                <button 
                  onClick={() => setActiveTab('Coins')}
@@ -159,7 +159,7 @@ export default function WalletPage() {
                
                {activeTab === 'Coins' ? (
                  <>
-                   {/* Main Balance Card - Compact (h-36 instead of h-48) */}
+                   {/* Compact Balance Vibe Card */}
                    <div className="relative h-36 w-full rounded-[1.5rem] bg-gradient-to-br from-[#ff9d2f] via-[#ffa726] to-[#ffc107] p-6 text-white shadow-xl overflow-hidden mb-4 group active:scale-[0.98] transition-all">
                       <div className="relative z-10 flex flex-col h-full justify-between">
                          <div className="flex justify-between items-start">
@@ -177,7 +177,7 @@ export default function WalletPage() {
                       </div>
                    </div>
 
-                   {/* Promotional Broadcast - Compact (h-16 instead of h-20) */}
+                   {/* Compact Promo */}
                    <div className="relative h-16 w-full rounded-xl overflow-hidden mb-4 shadow-sm border border-red-100">
                       <img 
                         src="https://images.unsplash.com/photo-1514525253361-bee8718a300a?q=80&w=1000" 
@@ -187,12 +187,12 @@ export default function WalletPage() {
                       <div className="absolute inset-0 bg-gradient-to-r from-red-600/80 to-transparent flex items-center px-4">
                          <div className="flex flex-col">
                             <span className="text-white font-black uppercase italic text-sm tracking-tighter">$1 = 800,000 coins</span>
-                            <span className="text-[7px] text-white/80 font-bold uppercase tracking-widest">Promotion Frequency Live</span>
+                            <span className="text-[7px] text-white/80 font-bold uppercase tracking-widest">Limited Frequency Boost</span>
                          </div>
                       </div>
                    </div>
 
-                   {/* Recharge Package Grid - Compact (h-32 instead of h-44) */}
+                   {/* Compact Recharge Package Grid */}
                    <div className="grid grid-cols-3 gap-2 mb-6">
                       {COIN_PACKAGES.map((pkg) => (
                         <button 
@@ -228,7 +228,7 @@ export default function WalletPage() {
                  </>
                ) : (
                  <div className="space-y-4 animate-in fade-in duration-500">
-                   {/* Diamonds Balance Card - Compact */}
+                   {/* Compact Diamonds Balance Card */}
                    <div className="relative h-36 w-full rounded-[1.5rem] bg-gradient-to-br from-[#0ea5e9] via-[#38bdf8] to-[#0284c7] p-6 text-white shadow-xl overflow-hidden group active:scale-[0.98] transition-all">
                       <div className="relative z-10 flex flex-col h-full justify-between">
                          <div className="flex justify-between items-start">
@@ -246,7 +246,7 @@ export default function WalletPage() {
                       </div>
                    </div>
 
-                   {/* Exchange Interaction Portal - Compact */}
+                   {/* Compact Exchange Portal */}
                    <div className="p-0.5">
                       <button 
                         className="w-full bg-[#fffef0] border border-orange-100 rounded-2xl p-4 flex items-center justify-between shadow-sm group active:scale-[0.98] transition-all"
@@ -265,13 +265,13 @@ export default function WalletPage() {
 
                    <div className="px-1 space-y-2 opacity-40">
                       <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400 text-center">
-                        Rate: 1 Diamond = 100 Gold Coins
+                        Conversion: 1 Diamond = 100 Gold Coins
                       </p>
                    </div>
                  </div>
                )}
 
-               {/* Help Link Dimension - Compact */}
+               {/* Compact Help Dimension */}
                <div className="space-y-2 px-1 mt-4">
                   <p className="text-[9px] text-gray-400 font-bold leading-relaxed">
                     If your recharge can not be completed, please click here for help
@@ -282,9 +282,7 @@ export default function WalletPage() {
                </div>
             </div>
 
-            {/* Bottom Sovereign Portal - Compact */}
-            {!showRecords && (
-              <footer className="p-4 bg-white border-t border-gray-50 fixed bottom-0 left-0 right-0 z-50 md:relative">
+            <footer className="p-4 bg-white border-t border-gray-50 fixed bottom-0 left-0 right-0 z-50 md:relative">
                  <Button 
                    onClick={handleRechargeNow}
                    disabled={isProcessing !== false}
@@ -293,7 +291,6 @@ export default function WalletPage() {
                     {isProcessing !== false ? <Loader className="animate-spin mr-2 h-4 w-4" /> : activeTab === 'Coins' ? 'Recharge Now' : 'Withdrawal'}
                  </Button>
               </footer>
-            )}
           </div>
         )}
       </div>

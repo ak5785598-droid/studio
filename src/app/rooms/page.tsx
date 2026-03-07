@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
@@ -200,7 +201,7 @@ export default function RoomsPage() {
     return query(collection(firestore, 'chatRooms'), where('ownerId', '==', user.uid), limit(1));
   }, [firestore, user]);
 
-  // Followed Rooms Sync
+  // FOLLOWED ROOMS SYNC
   const followedRoomsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(collection(firestore, 'users', user.uid, 'followedRooms'), orderBy('followedAt', 'desc'), limit(20));
@@ -303,8 +304,9 @@ export default function RoomsPage() {
               )}
             </>
           ) : (
-            <div className="flex flex-col space-y-8 animate-in fade-in duration-500 pb-10">
-               {/* My Room Section */}
+            /* ME TAB DIMENSION */
+            <div className="flex flex-col space-y-10 animate-in fade-in duration-500 pb-10">
+               {/* My Personal Frequency */}
                <section className="space-y-4">
                   <h3 className="text-xl font-black uppercase italic tracking-tighter px-2 flex items-center gap-2">
                      <Pin className="h-5 w-5 text-primary" /> My Frequency
@@ -321,15 +323,15 @@ export default function RoomsPage() {
                           <Zap className="h-10 w-10" />
                        </div>
                        <div className="space-y-1">
-                          <h3 className="text-xl font-black uppercase italic">Launch Your Room</h3>
-                          <p className="text-muted-foreground font-body italic text-sm">One user, one frequency. Your Room ID will match your Profile ID.</p>
+                          <h3 className="text-xl font-black uppercase italic">Launch Frequency</h3>
+                          <p className="text-muted-foreground font-body italic text-sm">One tribe, one room. Your ID will synchronize with your profile.</p>
                        </div>
                        <CreateRoomDialog trigger={<Button className="w-full h-14 rounded-2xl font-black uppercase italic shadow-xl shadow-primary/20">Launch Room</Button>} />
                     </div>
                   )}
                </section>
 
-               {/* Followed Rooms Section */}
+               {/* Followed Frequencies */}
                <section className="space-y-4">
                   <h3 className="text-xl font-black uppercase italic tracking-tighter px-2 flex items-center gap-2">
                      <Heart className="h-5 w-5 text-red-500 fill-current" /> Followed Tribes

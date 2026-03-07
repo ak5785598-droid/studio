@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Trophy, Sparkles, Star, Crown, Rocket, Plane, Ship, Ghost } from 'lucide-react';
+import { Trophy, Gift, Heart } from 'lucide-react';
 
 interface GiftAnimationOverlayProps {
   giftId: string | null;
@@ -12,6 +13,7 @@ interface GiftAnimationOverlayProps {
 /**
  * High-Fidelity Universal Gift Animation Engine.
  * Features SVGA-style cinematic sequences for ALL gifts.
+ * Re-engineered with high-fidelity box opening for Proposals.
  */
 export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverlayProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -84,11 +86,11 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
         </div>
       )}
 
-      {/* Propose Ring Dimension */}
+      {/* Propose Ring Cinematic SVGA Sequence */}
       {giftId === 'propose-ring' && <ProposeRingAnimation />}
 
       {/* Particle Engine for Lucky & High Tier */}
-      {(giftId.startsWith('lucky-') || isHighTier) && (
+      {(giftId.startsWith('lucky-') || isHighTier) && giftId !== 'propose-ring' && (
         <div className="absolute inset-0 z-[302] flex items-center justify-center">
            {Array.from({ length: 30 }).map((_, i) => (
              <div 
@@ -115,13 +117,15 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
         </div>
       )}
 
-      {/* Main Visual Asset */}
-      <div className={cn(
-        "filter drop-shadow-[0_0_50px_rgba(255,255,255,0.8)] transition-all",
-        isHighTier ? "text-[12rem] animate-lucky-center-pop" : "text-9xl animate-standard-gift-pop"
-      )}>
-        {getEmoji()}
-      </div>
+      {/* Main Visual Asset (if not propose-ring which has its own component) */}
+      {giftId !== 'propose-ring' && (
+        <div className={cn(
+          "filter drop-shadow-[0_0_50px_rgba(255,255,255,0.8)] transition-all",
+          isHighTier ? "text-[12rem] animate-lucky-center-pop" : "text-9xl animate-standard-gift-pop"
+        )}>
+          {getEmoji()}
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes screen-flash { 0% { opacity: 0; } 10% { opacity: 0.8; } 100% { opacity: 0; } }
@@ -161,34 +165,76 @@ export function GiftAnimationOverlay({ giftId, onComplete }: GiftAnimationOverla
 }
 
 const ProposeRingAnimation = () => (
-  <div className="relative w-full h-full flex items-center justify-center bg-black/40 backdrop-blur-[4px] animate-in fade-in duration-700">
+  <div className="relative w-full h-full flex items-center justify-center bg-black/60 backdrop-blur-[8px] animate-in fade-in duration-700 z-[310]">
     <div className="relative z-10 w-[400px] h-[400px] flex items-center justify-center perspective-1000">
+      
+      {/* Background Radiance */}
+      <div className="absolute inset-0 bg-pink-500/20 blur-[100px] animate-pulse rounded-full" />
+      
       <div className="relative transform-gpu animate-box-entrance">
+         {/* Shadow Sync */}
          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-48 h-10 bg-black/40 blur-xl rounded-full scale-x-150" />
+         
          <div className="relative w-80 h-80">
+            {/* Box Body (High-Fidelity Red Gradient) */}
             <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full drop-shadow-2xl">
                <defs>
                   <linearGradient id="boxRedGiftLarge" x1="0%" y1="0%" x2="0%" y2="100%">
                      <stop offset="0%" stopColor="#ff1a1a" />
                      <stop offset="100%" stopColor="#990000" />
                   </linearGradient>
+                  <filter id="boxGlow">
+                     <feGaussianBlur stdDeviation="3" result="blur" />
+                     <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
                </defs>
-               <path d="M100 180 C40 160 10 110 10 80 C10 50 40 35 100 70 C160 35 190 50 190 80 C190 110 160 160 100 180" fill="url(#boxRedGiftLarge)" stroke="#4d0000" strokeWidth="1" />
+               <path d="M100 180 C40 160 10 110 10 80 C10 50 40 35 100 70 C160 35 190 50 190 80 C190 110 160 160 100 180" fill="url(#boxRedGiftLarge)" stroke="#4d0000" strokeWidth="1" filter="url(#boxGlow)" />
+               
+               {/* Ornate Gold Trim */}
+               <path d="M100 180 C45 165 15 115 15 80" fill="none" stroke="#fbbf24" strokeWidth="0.5" opacity="0.4" />
+               <path d="M100 180 C155 165 185 115 185 80" fill="none" stroke="#fbbf24" strokeWidth="0.5" opacity="0.4" />
             </svg>
-            <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 opacity-0 animate-ring-rise text-8xl">💍</div>
-            <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full z-30 origin-[50%_40%] animate-lid-open">
-               <path d="M100 180 C40 160 10 110 10 80 C10 50 40 35 100 70 C160 35 190 50 190 80 C190 110 160 160 100 180" fill="#800000" opacity="0.9" />
-            </svg>
+
+            {/* Cinematic Ring Rise */}
+            <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 opacity-0 animate-ring-rise text-9xl drop-shadow-[0_0_30px_rgba(255,255,255,0.8)]">
+               💍
+            </div>
+
+            {/* Floating Hearts from Box */}
+            <div className="absolute inset-0 z-25 pointer-events-none">
+               {[1,2,3,4,5].map(i => (
+                 <div key={i} className="absolute left-1/2 top-1/2 text-4xl animate-box-heart-pop" style={{ animationDelay: `${0.5 + i * 0.2}s` }}>❤️</div>
+               ))}
+            </div>
+
+            {/* High-Fidelity Lid Sync */}
+            <div className="absolute inset-0 z-30 origin-[50%_40%] animate-lid-open">
+               <svg viewBox="0 0 200 200" className="w-full h-full">
+                  <path d="M100 180 C40 160 10 110 10 80 C10 50 40 35 100 70 C160 35 190 50 190 80 C190 110 160 160 100 180" fill="#800000" stroke="#4d0000" strokeWidth="1" />
+                  {/* Lid Ribbon */}
+                  <path d="M100 70 L100 180" stroke="#fbbf24" strokeWidth="4" opacity="0.8" />
+                  <circle cx="100" cy="70" r="10" fill="#fbbf24" />
+               </svg>
+            </div>
          </div>
       </div>
     </div>
+    
+    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-center animate-in slide-in-from-bottom-10 duration-1000 delay-500">
+       <h2 className="text-4xl font-black text-pink-400 uppercase italic tracking-tighter drop-shadow-lg">PROPOSE SYNC</h2>
+       <p className="text-white/60 font-bold uppercase tracking-[0.3em] text-[10px] mt-2">Established High-Fidelity Frequency</p>
+    </div>
+
     <style jsx>{`
-      @keyframes box-entrance { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-      @keyframes lid-open { 0%, 20% { transform: rotateX(0); } 60%, 100% { transform: rotateX(-110deg) translateY(-100px); opacity: 0; } }
-      @keyframes ring-rise { 0%, 40% { opacity: 0; transform: translate(-50%, 20px); } 70% { opacity: 1; transform: translate(-50%, -40px) scale(1.5); } 100% { opacity: 0; transform: translate(-50%, -80px) scale(2); } }
-      .animate-box-entrance { animation: box-entrance 1.5s forwards; }
-      .animate-lid-open { animation: lid-open 5s forwards; }
-      .animate-ring-rise { animation: ring-rise 5s forwards; }
+      @keyframes box-entrance { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 60% { transform: scale(1.1) rotate(5deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+      @keyframes lid-open { 0%, 20% { transform: rotateX(0); opacity: 1; } 60%, 100% { transform: rotateX(-120deg) translateY(-150px) translateZ(50px); opacity: 0; } }
+      @keyframes ring-rise { 0%, 40% { opacity: 0; transform: translate(-50%, 40px) scale(0.5); } 75% { opacity: 1; transform: translate(-50%, -60px) scale(1.8); } 100% { opacity: 0; transform: translate(-50%, -120px) scale(2.5); } }
+      @keyframes box-heart-pop { 0%, 45% { opacity: 0; transform: translate(-50%, -50%) scale(0); } 70% { opacity: 1; transform: translate(-50%, -150%) scale(1.2) translateX(${Math.random() > 0.5 ? '50px' : '-50px'}); } 100% { opacity: 0; transform: translate(-50%, -250%) scale(1.5) translateX(${Math.random() > 0.5 ? '100px' : '-100px'}); } }
+      
+      .animate-box-entrance { animation: box-entrance 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+      .animate-lid-open { animation: lid-open 5s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
+      .animate-ring-rise { animation: ring-rise 5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+      .animate-box-heart-pop { animation: box-heart-pop 4s ease-out forwards; }
     `}</style>
   </div>
 );

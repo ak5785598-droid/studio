@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from "react";
@@ -111,7 +112,9 @@ export function AppLayout({
   if (fullScreen || pathname?.startsWith('/login') || pathname === '/') return <main className="h-full w-full relative">{children}</main>;
 
   const isInsideRoom = pathname?.startsWith('/rooms/') && pathname !== '/rooms';
-  const shouldShowBottomNav = !isInsideRoom && !hideBottomNav;
+  // SOVEREIGN SYNC: Hide navigation on Wallet and Exchange pages as requested.
+  const isWallet = pathname?.startsWith('/wallet');
+  const shouldShowBottomNav = !isInsideRoom && !isWallet && !hideBottomNav;
 
   return (
     <SidebarProvider defaultOpen={false}>

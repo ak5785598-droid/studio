@@ -20,18 +20,6 @@
       "imageHint": "man glasses"
     },
     {
-      "id": "user-avatar-4",
-      "description": "User avatar 4",
-      "imageUrl": "https://images.unsplash.com/photo-1737642872807-9669a744de5a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwb3V0ZG9vcnN8ZW58MHx8fHwxNzcyMzY3NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person outdoors"
-    },
-    {
-      "id": "user-avatar-5",
-      "description": "User avatar 5",
-      "imageUrl": "https://images.unsplash.com/photo-1493657699097-e2b96d30df56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3b21hbiUyMG5hdHVyZXxlbnwwfHx8fDE3NzI0NjY4NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "woman nature"
-    },
-    {
       "id": "room-cover-1",
       "description": "Chat room cover 1",
       "imageUrl": "https://images.unsplash.com/photo-1705254613735-1abb457f8a60?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHZpYnJhbnR8ZW58MHx8fHwxNzcyNDY2ODUyfDA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -44,244 +32,28 @@
       "imageHint": "cozy cafe"
     },
     {
-      "id": "room-cover-3",
-      "description": "Chat room cover 3",
-      "imageUrl": "https://images.unsplash.com/photo-1632064824547-e77c36851495?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2FtaW5nJTIwc2V0dXB8ZW58MHx8fHwxNzcyMzk1NjIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "gaming setup"
+      "id": "propose-ring",
+      "description": "Luxury diamond proposal ring",
+      "imageUrl": "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=1000",
+      "imageHint": "diamond ring"
     },
     {
-      "id": "room-cover-4",
-      "description": "Chat room cover 4",
-      "imageUrl": "https://images.unsplash.com/photo-1728734704163-3d13e0c86f5a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Ym9va3MlMjBsaWJyYXJ5fGVufDB8fHx8MTc3MjQwNDY2MXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "books library"
+      "id": "cp-house-bg",
+      "description": "Romantic pink background for CP house",
+      "imageUrl": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=2000",
+      "imageHint": "romantic background"
     },
     {
-      "id": "room-cover-5",
-      "description": "Chat room cover 5",
-      "imageUrl": "https://images.unsplash.com/photo-1612539473441-dfc1cefd5e1e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bW91bnRhaW4lMjBsYW5kc2NhcGV8ZW58MHx8fHwxNzcyNDA5MTM1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "mountain landscape"
-    },
-    {
-      "id": "profile-header",
-      "description": "Profile header background",
-      "imageUrl": "https://images.unsplash.com/photo-1604076913837-52ab5629fba9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhYnN0cmFjdCUyMGdyYWRpZW50fGVufDB8fHx8MTc3MjQxOTQ2NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "abstract gradient"
-    },
-    {
-      "id": "login-bg",
-      "description": "Vibrant neon purple and blue light streaks for mobile login",
-      "imageUrl": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1080&h=1920&auto=format&fit=crop",
-      "imageHint": "neon streaks"
-    },
-    {
-      "id": "fruit-party-special-chicken",
-      "description": "Roast chicken special item for Fruit Party",
-      "imageUrl": "https://images.unsplash.com/photo-1615557960916-5f4791effe9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyb2FzdCUyMGNoaWNrZW58ZW58MHx8fHwxNzcyNDY2ODUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "roast chicken"
-    },
-    {
-      "id": "wild-party-bg",
-      "description": "Deep forest ruins background for Wild Party",
-      "imageUrl": "https://images.unsplash.com/photo-1526025202335-cf944dc3f799?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkZWVwJTIwZm9yZXN0fGVufDB8fHx8MTc3MjQ2Njg1MXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "deep forest"
-    },
-    {
-      "id": "dragon-jade",
-      "description": "Jade Dragon character",
-      "imageUrl": "https://images.unsplash.com/photo-1691315026384-ba52125c2f05?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxqYWRlJTIwZHJhZ29ufGVufDB8fHx8MTc3MjQ2Njg1MXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "jade dragon"
-    },
-    {
-      "id": "dragon-ruby",
-      "description": "Ruby Dragon character",
-      "imageUrl": "https://picsum.photos/seed/drag-ruby/400/400",
-      "imageHint": "ruby dragon"
-    },
-    {
-      "id": "dragon-azure",
-      "description": "Azure Dragon character",
-      "imageUrl": "https://images.unsplash.com/photo-1594968549077-43f0a90bd7aa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhenVyZSUyMGRyYWdvbnxlbnwwfHx8fDE3NzI0NjY4NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "azure dragon"
-    },
-    {
-      "id": "teen-patti-bg",
-      "description": "Ornate palace ballroom background with grand staircase",
-      "imageUrl": "https://images.unsplash.com/photo-1562664377-709f2c337eb2?q=80&w=2000",
-      "imageHint": "ornate palace"
-    },
-    {
-      "id": "tp-char-a",
-      "description": "3D Anime princess in elegant white/blue dress",
-      "imageUrl": "https://images.unsplash.com/photo-1681714552617-fe3f4cf4be47?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHwzZCUyMHByaW5jZXNzJTIwd2hpdGV8ZW58MHx8fHwxNzcyNDY2ODUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "3d princess white"
-    },
-    {
-      "id": "tp-char-b",
-      "description": "3D Anime princess in regal gold dress",
-      "imageUrl": "https://images.unsplash.com/photo-1532328076801-a862c9d5a74a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3ZCUyMHByaW5jZXNzJTIwZ29sZHxlbnwwfHx8fDE3NzI0NjY4NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "3d princess gold"
-    },
-    {
-      "id": "tp-char-c",
-      "description": "3D Anime princess in yellow royal dress",
-      "imageUrl": "https://picsum.photos/seed/tp-char-c/400/600",
-      "imageHint": "3d princess yellow"
-    },
-    {
-      "id": "slot-host",
-      "description": "Glamorous host for Lucky Slot",
-      "imageUrl": "https://images.unsplash.com/photo-1539109132314-34a959df99b3?q=80&w=1000",
-      "imageHint": "glamorous woman"
-    },
-    {
-      "id": "pyramid-bg",
-      "description": "Ancient Egyptian pyramids at sunset with warm orange sky",
-      "imageUrl": "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?q=80&w=2000",
-      "imageHint": "egyptian pyramid"
-    },
-    {
-      "id": "anubis-char",
-      "description": "3D Anubis character guardian",
-      "imageUrl": "https://images.unsplash.com/photo-1583502070509-cd721e268b0a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8YW51YmlzJTIwY2hhcmFjdGVyfGVufDB8fHx8MTc3MjQ2Njg1MXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "anubis character"
-    },
-    {
-      "id": "horus-char",
-      "description": "3D Horus falcon god character guardian",
-      "imageUrl": "https://images.unsplash.com/photo-1738601077026-0adb32ee2291?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxob3J1cyUyMGNoYXJhY3RlcnxlbnwwfHx8fDE3NzI0NjY4NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "horus character"
-    },
-    {
-      "id": "egypt-card",
-      "description": "Golden Egyptian pharaoh card back",
-      "imageUrl": "https://images.unsplash.com/photo-1768914308444-7555a191b78b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxnb2xkZW4lMjBwaGFyYW9ofGVufDB8fHx8MTc3MjQ2Njg1MXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "golden pharaoh"
-    },
-    {
-      "id": "money-tree",
-      "description": "Golden money tree giving rewards",
-      "imageUrl": "https://images.unsplash.com/photo-1616220797937-f64f159935b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxtb25leSUyMHRyZWV8ZW58MHx8fHwxNzcyNDY2ODUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "money tree"
-    },
-    {
-      "id": "task-list",
-      "description": "Icon for daily tribe tasks",
-      "imageUrl": "https://images.unsplash.com/photo-1644329771977-0a8c6e3928ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0b2RvJTIwbGlzdHxlbnwwfHx8fDE3NzI0NTgwODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "todo list"
-    },
-    {
-      "id": "official-shield",
-      "description": "Shield for official tribe frequencies",
-      "imageUrl": "https://images.unsplash.com/photo-1561156772-a44477f220a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzaGllbGR8ZW58MHx8fHwxNzcyNDY2ODUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "shield"
+      "id": "cp-challenge-hero",
+      "description": "Romantic couple illustration for challenge",
+      "imageUrl": "https://images.unsplash.com/photo-1516589174184-c685266e430c?q=80&w=2000",
+      "imageHint": "romantic couple"
     },
     {
       "id": "elite-jet",
-      "description": "Private jet emblem for elite rooms",
-      "imageUrl": "https://images.unsplash.com/photo-1583133269464-b721db5345f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmaWdodGVyJTIwamV0fGVufDB8fHx8MTc3MjQ1ODA4N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "fighter jet"
-    },
-    {
-      "id": "winner-crown",
-      "description": "Golden crown for winners",
-      "imageUrl": "https://images.unsplash.com/photo-1646769762753-565020b3bb2c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxnb2xkZW4lMjBjcm93bnxlbnwwfHx8fDE3NzI0NjY4NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "golden crown"
-    },
-    {
-      "id": "game-magic-slot",
-      "description": "Magic Slot game icon",
-      "imageUrl": "https://picsum.photos/seed/magic-slot/200/200",
-      "imageHint": "magic slot"
-    },
-    {
-      "id": "game-candy-slot",
-      "description": "Candy Slot game icon",
-      "imageUrl": "https://picsum.photos/seed/candy-slot/200/200",
-      "imageHint": "candy slot"
-    },
-    {
-      "id": "game-xmas-slot",
-      "description": "Christmas Slot game icon",
-      "imageUrl": "https://picsum.photos/seed/christmas-slot/200/200",
-      "imageHint": "christmas slot"
-    },
-    {
-      "id": "game-ganesha-gold",
-      "description": "Ganesha Gold game icon",
-      "imageUrl": "https://picsum.photos/seed/ganesha-gold/200/200",
-      "imageHint": "ganesha gold"
-    },
-    {
-      "id": "game-halloween-slot",
-      "description": "Halloween Slot game icon",
-      "imageUrl": "https://picsum.photos/seed/halloween-slot/200/200",
-      "imageHint": "halloween slot"
-    },
-    {
-      "id": "game-lucky-777",
-      "description": "Lucky 777 game icon",
-      "imageUrl": "https://picsum.photos/seed/lucky-777/200/200",
-      "imageHint": "lucky 777"
-    },
-    {
-      "id": "game-ocean-slot",
-      "description": "Ocean Slot game icon",
-      "imageUrl": "https://picsum.photos/seed/ocean-slot/200/200",
-      "imageHint": "ocean slot"
-    },
-    {
-      "id": "game-fruit-party",
-      "description": "Fruit Party game icon",
-      "imageUrl": "https://picsum.photos/seed/fruit-party/200/200",
-      "imageHint": "fruit party"
-    },
-    {
-      "id": "game-dragon-battle",
-      "description": "Dragon Battle game icon",
-      "imageUrl": "https://picsum.photos/seed/dragon-battle/200/200",
-      "imageHint": "dragon battle"
-    },
-    {
-      "id": "game-pyramid-battle",
-      "description": "Pyramid Battle game icon",
-      "imageUrl": "https://picsum.photos/seed/pyramid-battle/200/200",
-      "imageHint": "pyramid battle"
-    },
-    {
-      "id": "game-wild-party",
-      "description": "Wild Party game icon",
-      "imageUrl": "https://picsum.photos/seed/wild-party/200/200",
-      "imageHint": "wild party"
-    },
-    {
-      "id": "game-aladdin-slot",
-      "description": "Aladdin Slot game icon",
-      "imageUrl": "https://picsum.photos/seed/aladdin-slot/200/200",
-      "imageHint": "aladdin slot"
-    },
-    {
-      "id": "game-jungle-slot",
-      "description": "Jungle Slot game icon",
-      "imageUrl": "https://picsum.photos/seed/jungle-slot/200/200",
-      "imageHint": "jungle slot"
-    },
-    {
-      "id": "game-lucky-roulette",
-      "description": "Lucky Roulette game icon",
-      "imageUrl": "https://picsum.photos/seed/lucky-roulette/200/200",
-      "imageHint": "lucky roulette"
-    },
-    {
-      "id": "game-win-go",
-      "description": "Win Go game icon",
-      "imageUrl": "https://picsum.photos/seed/win-go/200/200",
-      "imageHint": "win go"
-    },
-    {
-      "id": "game-ludo",
-      "description": "Ludo game icon",
-      "imageUrl": "https://picsum.photos/seed/ludo-game/200/200",
-      "imageHint": "ludo"
+      "description": "Gold private jet icon",
+      "imageUrl": "https://images.unsplash.com/photo-1540962351504-03099e0a754b?q=80&w=500",
+      "imageHint": "private jet"
     }
   ]
 }
