@@ -24,17 +24,22 @@ import {
   Volume2,
   VolumeX,
   Plus,
-  SmilePlus
+  SmilePlus,
+  Music,
+  Search,
+  Play
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 import { RoomParticipant } from '@/lib/types';
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError, updateDocumentNonBlocking } from '@/firebase';
 import { collection, getDocs, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { GameControllerIcon } from '@/components/icons';
+import { searchVideosAction } from '@/actions/get-videos';
 
 interface RoomPlayDialogProps {
   open: boolean;
@@ -51,6 +56,7 @@ const REACTIONS = ['😀', '😂', '😘', '🥰', '😎', '🤗', '😡', '😭
 
 /**
  * High-Fidelity Room Play Portal.
+ * RE-ENGINEERED: Includes search-capable Music selection view.
  */
 export function RoomPlayDialog({ 
   open, 
@@ -62,11 +68,16 @@ export function RoomPlayDialog({
   setIsMutedLocal,
   onOpenGames
 }: RoomPlayDialogProps) {
-  const [view, setView] = useState<'grid' | 'battle' | 'selection' | 'rules' | 'emojis'>('grid');
+  const [view, setView] = useState<'grid' | 'battle' | 'selection' | 'rules' | 'emojis' | 'music'>('grid');
   const [battleMode, setBattleMode] = useState<'Votes' | 'Coins'>('Votes');
   const [selectionSide, setSelectionSide] = useState<'BLUE' | 'RED'>('BLUE');
   const [isClearingChat, setIsClearingChat] = useState(false);
   
+  // Music State
+  const [musicSearch, setMusicSearch] = useState('');
+  const [isSearchingMusic, setIsSearchingMusic] = useState(false);
+  const [musicResults, setMusicResults] = useState<any[]>([]);
+
   const [blueTeam, setBlueTeam] = useState<string[]>([]);
   const [redTeam, setRedTeam] = useState<string[]>([]);
 
@@ -96,15 +107,9 @@ export function RoomPlayDialog({
       const batch = writeBatch(firestore);
       snap.docs.forEach(d => batch.delete(d.ref));
       
-      batch.commit().then(() => {
-        toast({ title: 'Frequency Purified', description: 'Chat history has been cleared.' });
-        onOpenChange(false);
-      }).catch(err => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: `chatRooms/${roomId}/messages`,
-          operation: 'delete',
-        }));
-      });
+      await batch.commit();
+      toast({ title: 'Frequency Purified', description: 'Chat history has been cleared.' });
+      onOpenChange(false);
     } catch (e: any) {
       console.error(e);
     } finally {
@@ -138,6 +143,29 @@ export function RoomPlayDialog({
     onOpenChange(false);
   };
 
+  const handleSearchMusic = async () => {
+    if (!musicSearch.trim()) return;
+    setIsSearchingMusic(true);
+    try {
+      const result = await searchVideosAction(musicSearch);
+      if (result.success) setMusicResults(result.data || []);
+      else toast({ variant: 'destructive', title: 'Search Failed' });
+    } finally {
+      setIsSearchingMusic(false);
+    }
+  };
+
+  const handleSyncMusic = (video: any) => {
+    if (!firestore || !roomId) return;
+    const roomRef = doc(firestore, 'chatRooms', roomId);
+    updateDocumentNonBlocking(roomRef, {
+      currentMusicUrl: `https://www.youtube.com/watch?v=${video.videoId}`,
+      updatedAt: serverTimestamp()
+    });
+    toast({ title: 'Music Synchronized', description: `${video.title} is now playing.` });
+    onOpenChange(false);
+  };
+
   const toggleSelection = (uid: string) => {
     if (selectionSide === 'BLUE') {
       setBlueTeam(prev => prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid].slice(0, 5));
@@ -156,14 +184,24 @@ export function RoomPlayDialog({
       },
       icon: (
         <div className={cn(
-          "relative w-16 h-16 rounded-full p-0.5 border-2 border-white/20 shadow-xl overflow-hidden group",
+          "relative w-16 h-16 rounded-full p-0.5 border-2 border-white/20 shadow-xl overflow-hidden",
           isMutedLocal ? "bg-gradient-to-br from-red-500 to-red-700" : "bg-gradient-to-br from-blue-500 to-blue-700"
         )}>
-           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
            <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
               {isMutedLocal ? <VolumeX className="h-8 w-8 text-white drop-shadow-md" /> : <Volume2 className="h-8 w-8 text-white drop-shadow-md" />}
            </div>
-           <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
+        </div>
+      )
+    },
+    { 
+      id: 'music', 
+      label: 'Music', 
+      onClick: () => setView('music'),
+      icon: (
+        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-indigo-700 p-0.5 border-2 border-white/20 shadow-xl overflow-hidden">
+           <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
+              <Music className="h-8 w-8 text-white drop-shadow-md" />
+           </div>
         </div>
       )
     },
@@ -172,12 +210,10 @@ export function RoomPlayDialog({
       label: 'Reactions', 
       onClick: () => setView('emojis'),
       icon: (
-        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 p-0.5 border-2 border-white/20 shadow-xl overflow-hidden group">
-           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 p-0.5 border-2 border-white/20 shadow-xl overflow-hidden">
            <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
               <SmilePlus className="h-8 w-8 text-white drop-shadow-md" />
            </div>
-           <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
         </div>
       )
     },
@@ -186,12 +222,10 @@ export function RoomPlayDialog({
       label: 'Battle', 
       onClick: () => setView('battle'),
       icon: (
-        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 via-blue-600 to-red-500 p-0.5 border-2 border-white/20 shadow-xl overflow-hidden group">
-           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 via-blue-600 to-red-500 p-0.5 border-2 border-white/20 shadow-xl overflow-hidden">
            <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
               <Swords className="h-8 w-8 text-white drop-shadow-md animate-pulse" />
            </div>
-           <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
         </div>
       )
     },
@@ -203,12 +237,10 @@ export function RoomPlayDialog({
         onOpenChange(false);
       },
       icon: (
-        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-700 p-0.5 border-2 border-yellow-200/50 shadow-xl overflow-hidden group">
-           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-700 p-0.5 border-2 border-yellow-200/50 shadow-xl overflow-hidden">
            <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
               <GameControllerIcon className="h-8 w-8 text-white drop-shadow-md" />
            </div>
-           <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
         </div>
       )
     }
@@ -221,18 +253,12 @@ export function RoomPlayDialog({
       onClick: handleToggleChatMute,
       icon: (
         <div className={cn(
-          "relative w-16 h-16 rounded-full p-0.5 border-2 border-white/20 shadow-xl overflow-hidden group",
+          "relative w-16 h-16 rounded-full p-0.5 border-2 border-white/20 shadow-xl overflow-hidden",
           isChatMuted ? "bg-gradient-to-br from-green-500 to-green-700" : "bg-gradient-to-br from-orange-500 to-orange-700"
         )}>
-           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
            <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
-              {isChatMuted ? (
-                <MessageSquare className="h-8 w-8 text-white drop-shadow-md" />
-              ) : (
-                <MessageSquareOff className="h-8 w-8 text-white drop-shadow-md" />
-              )}
+              {isChatMuted ? <MessageSquare className="h-8 w-8 text-white" /> : <MessageSquareOff className="h-8 w-8 text-white" />}
            </div>
-           <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
         </div>
       )
     });
@@ -242,12 +268,10 @@ export function RoomPlayDialog({
       label: 'Clear Chat',
       onClick: handleClearChat,
       icon: (
-        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 p-0.5 border-2 border-white/20 shadow-xl overflow-hidden group">
-           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 p-0.5 border-2 border-white/20 shadow-xl overflow-hidden">
            <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
-              {isClearingChat ? <Loader className="h-8 w-8 text-white animate-spin" /> : <Trash2 className="h-8 w-8 text-white drop-shadow-md" />}
+              {isClearingChat ? <Loader className="h-8 w-8 text-white animate-spin" /> : <Trash2 className="h-8 w-8 text-white" />}
            </div>
-           <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
         </div>
       )
     });
@@ -290,9 +314,59 @@ export function RoomPlayDialog({
           </div>
         )}
 
+        {view === 'music' && (
+          <div className="animate-in fade-in slide-in-from-right-4 duration-500 flex flex-col h-[60vh]">
+            <header className="p-6 pb-2 flex items-center justify-between shrink-0 border-b border-white/5">
+               <div className="flex items-center gap-3">
+                  <button onClick={() => setView('grid')} className="p-1 hover:scale-110 transition-transform"><ChevronLeft className="h-6 w-6 text-white/60" /></button>
+                  <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Music Frequency</h2>
+               </div>
+            </header>
+            <div className="p-6 space-y-4 shrink-0">
+               <div className="flex gap-2">
+                  <Input 
+                    placeholder="Search tribe vibes..." 
+                    className="flex-1 bg-white/5 border-white/10 h-12 rounded-2xl" 
+                    value={musicSearch}
+                    onChange={(e) => setMusicSearch(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearchMusic()}
+                  />
+                  <Button onClick={handleSearchMusic} className="h-12 w-12 rounded-2xl bg-primary text-black">
+                     {isSearchingMusic ? <Loader className="animate-spin h-5 w-5" /> : <Search className="h-5 w-5" />}
+                  </Button>
+               </div>
+            </div>
+            <ScrollArea className="flex-1 px-6">
+               <div className="space-y-3 pb-10">
+                  {musicResults.length > 0 ? musicResults.map((video) => (
+                    <button 
+                      key={video.videoId} 
+                      onClick={() => handleSyncMusic(video)}
+                      className="w-full flex items-center gap-4 p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-left border border-white/5"
+                    >
+                       <div className="relative h-14 w-20 rounded-lg overflow-hidden shrink-0">
+                          <img src={video.thumbnailUrl} className="h-full w-full object-cover" alt="" />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><Play className="h-4 w-4 text-white" /></div>
+                       </div>
+                       <div className="flex-1 min-w-0">
+                          <p className="text-xs font-black uppercase italic text-white truncate">{video.title}</p>
+                          <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest mt-1">Global Frequency</p>
+                       </div>
+                    </button>
+                  )) : (
+                    <div className="py-20 text-center opacity-20 italic">
+                       <Music className="h-12 w-12 mx-auto mb-4" />
+                       <p className="text-sm font-bold">Search for your favorite tribal tracks.</p>
+                    </div>
+                  )}
+               </div>
+            </ScrollArea>
+          </div>
+        )}
+
         {view === 'emojis' && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <header className="p-6 pb-2 flex items-center justify-between">
+            <header className="p-6 pb-2 flex items-center justify-between border-b border-white/5">
                <div className="flex items-center gap-3">
                   <button onClick={() => setView('grid')} className="p-1 hover:scale-110 transition-transform"><ChevronLeft className="h-6 w-6 text-white/60" /></button>
                   <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Reaction Sync</h2>
@@ -314,7 +388,7 @@ export function RoomPlayDialog({
 
         {view === 'battle' && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <header className="p-6 pb-2 flex items-center justify-between">
+            <header className="p-6 pb-2 flex items-center justify-between border-b border-white/5">
                <div className="flex items-center gap-3">
                   <button onClick={() => setView('grid')} className="p-1 hover:scale-110 transition-transform"><ChevronLeft className="h-6 w-6 text-white/60" /></button>
                   <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Battle</h2>
@@ -341,7 +415,7 @@ export function RoomPlayDialog({
 
         {view === 'rules' && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 min-h-[600px] bg-gradient-to-b from-[#064e3b] via-[#065f46] to-black relative overflow-hidden flex flex-col">
-            <header className="p-6 flex items-center relative z-10">
+            <header className="p-6 flex items-center relative z-10 border-b border-white/5">
                <button onClick={() => setView('battle')} className="h-10 w-10 rounded-full bg-[#064e3b]/40 border border-white/20 flex items-center justify-center"><ChevronLeft className="h-6 w-6 text-yellow-400" /></button>
                <h2 className="text-3xl font-black text-yellow-400 italic tracking-tighter text-center flex-1 pr-10">PK Rules</h2>
             </header>
@@ -362,7 +436,7 @@ export function RoomPlayDialog({
 
         {view === 'selection' && (
           <div className={cn("animate-in fade-in slide-in-from-right-4 duration-500 min-h-[650px] relative flex flex-col", selectionSide === 'BLUE' ? "bg-gradient-to-b from-[#002b2b] via-[#004d4d] to-black" : "bg-gradient-to-b from-[#2d0a0a] via-[#4a0e0e] to-black")}>
-            <header className="p-8 pb-4 flex items-center justify-between relative z-10">
+            <header className="p-8 pb-4 flex items-center justify-between relative z-10 border-b border-white/5">
                <div className="flex items-center gap-4">
                   <button onClick={() => setView('battle')} className="p-1"><ChevronLeft className="h-8 w-8 text-white" /></button>
                   <div className="flex items-center gap-2">

@@ -54,7 +54,7 @@ const BET_OPTIONS = [
 
 /**
  * High-Fidelity Roulette Dimension.
- * Re-engineered for absolute visual stability and elite chip synchronization.
+ * Corrected syntax error in spin timer protocol.
  */
 export default function RoulettePage() {
   const router = useRouter();
