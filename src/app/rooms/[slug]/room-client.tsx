@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -78,15 +79,17 @@ import { LuckyRainOverlay } from '@/components/lucky-rain-overlay';
 import { RoomSeatMenuDialog } from '@/components/room-seat-menu-dialog';
 import { ROOM_THEMES } from '@/lib/themes';
 import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
+import { RoomGamesDialog } from '@/components/room-games-dialog';
 
-function RemoteAudio({ stream }: { stream: MediaStream }) {
+function RemoteAudio({ stream, muted }: { stream: MediaStream, muted: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.srcObject = stream;
+      audioRef.current.muted = muted;
       audioRef.current.play().catch(() => {});
     }
-  }, [stream]);
+  }, [stream, muted]);
   return <audio ref={audioRef} autoPlay playsInline className="hidden" />;
 }
 
@@ -154,6 +157,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isSeatMenuOpen, setIsSeatMenuOpen] = useState(false);
   const [isRoomPlayOpen, setIsRoomPlayOpen] = useState(false);
+  const [isRoomGamesOpen, setIsRoomGamesOpen] = useState(false);
   const [isLuckyRainActive, setIsLuckyRainActive] = useState(false);
   const [now, setNow] = useState(Date.now());
   
@@ -227,7 +231,6 @@ export function RoomClient({ room }: { room: Room }) {
     e.preventDefault();
     if (!messageText.trim() || !currentUser || !firestore || !userProfile) return;
     
-    // Safety check for muted chat
     if (isChatMuted && !canManageRoom) {
       toast({ variant: 'destructive', title: 'Chat Restricted', description: 'The room authority has disabled public messages.' });
       return;
@@ -311,7 +314,9 @@ export function RoomClient({ room }: { room: Room }) {
       <DailyRewardDialog />
       <GiftAnimationOverlay giftId={activeGiftAnimation} onComplete={() => setActiveGiftAnimation(null)} />
       <LuckyRainOverlay active={isLuckyRainActive} onComplete={() => setIsLuckyRainActive(false)} />
-      {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
+      {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (
+        <RemoteAudio key={peerId} stream={stream} muted={isMutedLocal} />
+      ))}
       
       <div className="absolute inset-0 z-0">
         <Image 
@@ -393,10 +398,9 @@ export function RoomClient({ room }: { room: Room }) {
            </div>
            <div className="flex items-center gap-3">
               <button onClick={handleMicToggle} disabled={!isInSeat} className={cn("p-2 rounded-full transition-all active:scale-90", !isInSeat ? "bg-white/5 text-white/20 opacity-50" : (currentUserParticipant?.isMuted ? "bg-white/10 text-white" : "bg-green-500 text-white shadow-lg border border-white/20"))}>{isInSeat && !currentUserParticipant?.isMuted ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}</button>
-              <button onClick={() => setIsMutedLocal(!isMutedLocal)} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform">{isMutedLocal ? <VolumeX className="h-5 w-5 text-white/60" /> : <Volume2 className="h-5 w-5 text-white" />}</button>
               <button onClick={() => router.push('/messages')} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform"><Mail className="h-5 w-5 text-white" /></button>
               <button onClick={() => { setGiftRecipient(null); setIsGiftPickerOpen(true); }} className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl active:scale-90 transition-transform"><GiftIcon className="h-6 w-6 text-white fill-white" /></button>
-              <button onClick={() => router.push('/games')} className="bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-700 p-2 rounded-full shadow-lg active:scale-95 transition-transform border border-yellow-200/50"><GameControllerIcon className="h-5 w-5 text-white drop-shadow-md" /></button>
+              <button onClick={() => setIsRoomGamesOpen(true)} className="bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-700 p-2 rounded-full shadow-lg active:scale-95 transition-transform border border-yellow-200/50"><GameControllerIcon className="h-5 w-5 text-white drop-shadow-md" /></button>
               <button onClick={() => setIsRoomPlayOpen(true)} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform"><LayoutGrid className="h-5 w-5 text-white" /></button>
            </div>
         </div>
@@ -417,7 +421,16 @@ export function RoomClient({ room }: { room: Room }) {
 
       <RoomUserListDialog open={isUserListOpen} onOpenChange={setIsUserListOpen} roomId={room.id} />
       <RoomShareDialog open={isShareOpen} onOpenChange={setIsShareOpen} room={room} />
-      <RoomPlayDialog open={isRoomPlayOpen} onOpenChange={setIsRoomPlayOpen} participants={participants} roomId={room.id} room={room} />
+      <RoomPlayDialog 
+        open={isRoomPlayOpen} 
+        onOpenChange={setIsRoomPlayOpen} 
+        participants={participants} 
+        roomId={room.id} 
+        room={room} 
+        isMutedLocal={isMutedLocal}
+        setIsMutedLocal={setIsMutedLocal}
+      />
+      <RoomGamesDialog open={isRoomGamesOpen} onOpenChange={setIsRoomGamesOpen} />
       <GiftPicker open={isGiftPickerOpen} onOpenChange={setIsGiftPickerOpen} roomId={room.id} recipient={giftRecipient} />
       
       <RoomSeatMenuDialog 

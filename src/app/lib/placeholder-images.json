@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     {
@@ -187,10 +188,100 @@
       "imageHint": "golden crown"
     },
     {
-      "id": "lucky-bag-banner",
-      "description": "Sack of gold coins with crown and jewels background",
-      "imageUrl": "https://images.unsplash.com/photo-1616220797937-f64f159935b7?q=80&w=1000",
-      "imageHint": "sack of gold coins"
+      "id": "game-magic-slot",
+      "description": "Magic Slot game icon",
+      "imageUrl": "https://picsum.photos/seed/magic-slot/200/200",
+      "imageHint": "magic slot"
+    },
+    {
+      "id": "game-candy-slot",
+      "description": "Candy Slot game icon",
+      "imageUrl": "https://picsum.photos/seed/candy-slot/200/200",
+      "imageHint": "candy slot"
+    },
+    {
+      "id": "game-xmas-slot",
+      "description": "Christmas Slot game icon",
+      "imageUrl": "https://picsum.photos/seed/christmas-slot/200/200",
+      "imageHint": "christmas slot"
+    },
+    {
+      "id": "game-ganesha-gold",
+      "description": "Ganesha Gold game icon",
+      "imageUrl": "https://picsum.photos/seed/ganesha-gold/200/200",
+      "imageHint": "ganesha gold"
+    },
+    {
+      "id": "game-halloween-slot",
+      "description": "Halloween Slot game icon",
+      "imageUrl": "https://picsum.photos/seed/halloween-slot/200/200",
+      "imageHint": "halloween slot"
+    },
+    {
+      "id": "game-lucky-777",
+      "description": "Lucky 777 game icon",
+      "imageUrl": "https://picsum.photos/seed/lucky-777/200/200",
+      "imageHint": "lucky 777"
+    },
+    {
+      "id": "game-ocean-slot",
+      "description": "Ocean Slot game icon",
+      "imageUrl": "https://picsum.photos/seed/ocean-slot/200/200",
+      "imageHint": "ocean slot"
+    },
+    {
+      "id": "game-fruit-party",
+      "description": "Fruit Party game icon",
+      "imageUrl": "https://picsum.photos/seed/fruit-party/200/200",
+      "imageHint": "fruit party"
+    },
+    {
+      "id": "game-dragon-battle",
+      "description": "Dragon Battle game icon",
+      "imageUrl": "https://picsum.photos/seed/dragon-battle/200/200",
+      "imageHint": "dragon battle"
+    },
+    {
+      "id": "game-pyramid-battle",
+      "description": "Pyramid Battle game icon",
+      "imageUrl": "https://picsum.photos/seed/pyramid-battle/200/200",
+      "imageHint": "pyramid battle"
+    },
+    {
+      "id": "game-wild-party",
+      "description": "Wild Party game icon",
+      "imageUrl": "https://picsum.photos/seed/wild-party/200/200",
+      "imageHint": "wild party"
+    },
+    {
+      "id": "game-aladdin-slot",
+      "description": "Aladdin Slot game icon",
+      "imageUrl": "https://picsum.photos/seed/aladdin-slot/200/200",
+      "imageHint": "aladdin slot"
+    },
+    {
+      "id": "game-jungle-slot",
+      "description": "Jungle Slot game icon",
+      "imageUrl": "https://picsum.photos/seed/jungle-slot/200/200",
+      "imageHint": "jungle slot"
+    },
+    {
+      "id": "game-lucky-roulette",
+      "description": "Lucky Roulette game icon",
+      "imageUrl": "https://picsum.photos/seed/lucky-roulette/200/200",
+      "imageHint": "lucky roulette"
+    },
+    {
+      "id": "game-win-go",
+      "description": "Win Go game icon",
+      "imageUrl": "https://picsum.photos/seed/win-go/200/200",
+      "imageHint": "win go"
+    },
+    {
+      "id": "game-ludo",
+      "description": "Ludo game icon",
+      "imageUrl": "https://picsum.photos/seed/ludo-game/200/200",
+      "imageHint": "ludo"
     }
   ]
 }
