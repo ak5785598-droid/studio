@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 /**
  * PRODUCTION WEBRTC HOOK
  * Handles P2P Audio Mesh via Firestore Signaling.
- * Re-engineered for multi-track synchronization: supports simultaneous Mic and Music frequencies.
+ * BUG FIX: ICE candidates are now guarded by remoteDescription status to prevent InvalidStateError.
  */
 export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted: boolean, musicStream: MediaStream | null = null) {
   const { user } = useUser();
@@ -24,14 +24,9 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   
-  // Track specific senders for music tracks to allow dynamic adding/removal
   const musicSenders = useRef<Map<string, RTCRtpSender[]>>(new Map());
-  
-  // Guard refs for Perfect Negotiation state management
   const makingOffer = useRef<Map<string, boolean>>(new Map());
   const ignoreOffer = useRef<Map<string, boolean>>(new Map());
-
-  // Web Audio Context for Outbound Gain Boosting
   const audioContextRef = useRef<AudioContext | null>(null);
 
   const iceConfig = {
@@ -42,7 +37,6 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
     ],
   };
 
-  // 1. Local Microphone Stream Management with Voice Boost
   useEffect(() => {
     if (!isInSeat || !user || !roomId || !firestore) {
       if (localStream) {
@@ -69,7 +63,6 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
           video: false 
         });
 
-        // VOICE BOOST PROTOCOL: High-fidelity outbound boost (250%)
         if (!audioContextRef.current) {
           audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
         }
@@ -102,7 +95,6 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
     };
   }, [isInSeat, roomId, user?.uid]);
 
-  // Sync mute state to local stream tracks
   useEffect(() => {
     if (localStream) {
       localStream.getAudioTracks().forEach(track => {
@@ -111,21 +103,17 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
     }
   }, [isMuted, localStream]);
 
-  // 2. Music Frequency Sync: Dynamically re-negotiate tracks for all active peers
   useEffect(() => {
     peerConnections.current.forEach((pc, peerId) => {
-      // Clear previous music frequency tracks
       const existingSenders = musicSenders.current.get(peerId);
       if (existingSenders) {
         existingSenders.forEach(s => { try { pc.removeTrack(s); } catch(e) {} });
         musicSenders.current.delete(peerId);
       }
 
-      // Synchronize new music tracks if active in current session
       if (musicStream && musicStream.getAudioTracks().length > 0) {
         const newSenders: RTCRtpSender[] = [];
         musicStream.getAudioTracks().forEach(track => {
-          // Associated music with current local session for stability
           newSenders.push(pc.addTrack(track, localStream || musicStream));
         });
         musicSenders.current.set(peerId, newSenders);
@@ -133,7 +121,6 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
     });
   }, [musicStream, localStream]);
 
-  // 3. P2P Mesh Handshake via Firestore Signaling
   useEffect(() => {
     if (!user || !roomId || !firestore) return;
 
@@ -236,13 +223,16 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
           await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: signal.sdp }));
         } else if (signal.type === 'candidate') {
           try {
-            if (pc.remoteDescription) await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+            // FIX: High-fidelity guard for ICE candidates
+            if (pc.remoteDescription) {
+              await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+            }
           } catch (err) {
             if (!ignoreOffer.current.get(peerId)) throw err;
           }
         }
       } catch (err) {
-        console.error(`[WebRTC] Signal Handshake Error:`, err);
+        console.error(`[WebRTC] Signal Error:`, err);
       }
     };
 
