@@ -20,16 +20,20 @@ interface RoomSeatMenuDialogProps {
   roomId: string;
   isLocked: boolean;
   occupantUid?: string | null;
+  occupantName?: string | null;
+  occupantAvatarUrl?: string | null;
   canManage: boolean;
   currentUserId?: string;
   onLeaveSeat: (uid: string) => void;
   onKick: (uid: string, duration: number) => void;
+  onSendGift?: (recipient: { uid: string; name: string; avatarUrl?: string }) => void;
 }
 
 /**
  * High-Fidelity Room Seat Menu.
  * AUTHORITY PROTOCOL: All administrative actions (Invite, Lock, Kick, Mute) 
  * are strictly restricted to room owners and administrators.
+ * Now includes a high-speed "Send gift" portal.
  */
 export function RoomSeatMenuDialog({
   open,
@@ -38,10 +42,13 @@ export function RoomSeatMenuDialog({
   roomId,
   isLocked,
   occupantUid,
+  occupantName,
+  occupantAvatarUrl,
   canManage,
   currentUserId,
   onLeaveSeat,
-  onKick
+  onKick,
+  onSendGift
 }: RoomSeatMenuDialogProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -144,6 +151,21 @@ export function RoomSeatMenuDialog({
           {/* Blueprint: Mute Action - RESTRICTED TO ADMINS */}
           {canManage && (
             <MenuItem label="Mute" onClick={() => { toast({ title: 'Mute Frequency' }); onOpenChange(false); }} />
+          )}
+
+          {/* NEW: Send Gift - High-Fidelity Dispatch Option */}
+          {(occupantUid && onSendGift) && (
+            <MenuItem 
+              label="Send gift" 
+              className="text-pink-600"
+              onClick={() => {
+                onSendGift({
+                  uid: occupantUid,
+                  name: occupantName || 'Tribe Member',
+                  avatarUrl: occupantAvatarUrl || ''
+                });
+              }} 
+            />
           )}
 
           {/* Blueprint: Cancel Action - FOR EVERYONE */}
