@@ -120,7 +120,7 @@ const Seat = ({
               "h-14 w-14 rounded-full flex items-center justify-center border-2 backdrop-blur-sm active:scale-90 transition-transform relative z-10",
               isLocked ? "border-red-500/40" : "border-white/10"
             )}
-            style={{ backgroundColor: theme.seatColor }}
+            style={{ backgroundColor: theme.seatColor || 'rgba(255,255,255,0.1)' }}
           >
             {occupant ? (
               <Avatar className="h-full w-full p-0.5">
@@ -242,7 +242,11 @@ export function RoomClient({ room }: { room: Room }) {
   const handleMinimize = () => { setIsMinimized(true); router.push('/rooms'); };
   const handleExit = () => { setActiveRoom(null); router.push('/rooms'); };
 
-  const currentTheme = ROOM_THEMES.find(t => t.id === room.roomThemeId) || ROOM_THEMES[0];
+  // High-Fidelity Reactive Background Logic
+  const currentTheme = useMemo(() => {
+    return ROOM_THEMES.find(t => t.id === room.roomThemeId) || ROOM_THEMES[0];
+  }, [room.roomThemeId]);
+
   const bgUrl = room.backgroundUrl || currentTheme.url;
 
   const handleSeatClick = (index: number, occupant?: RoomParticipant) => {
@@ -293,9 +297,10 @@ export function RoomClient({ room }: { room: Room }) {
       <LuckyRainOverlay active={isLuckyRainActive} onComplete={() => setIsLuckyRainActive(false)} />
       {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (<RemoteAudio key={peerId} stream={stream} />))}
       
+      {/* High-Fidelity Reactive Environment Engine */}
       <div className="absolute inset-0 z-0">
         <Image 
-          key={`${room.roomThemeId}_${room.backgroundUrl}`}
+          key={`${room.roomThemeId}_${room.backgroundUrl}`} // Composite key forces absolute visual sync
           src={bgUrl} 
           alt="Background" 
           fill 
@@ -319,8 +324,11 @@ export function RoomClient({ room }: { room: Room }) {
       </header>
 
       <main className="relative z-10 flex-1 flex flex-col pt-2 overflow-hidden">
+        {/* Elevated Arena Grid */}
         <div className="flex-1 flex flex-col items-center justify-start gap-4 pt-2 pb-40 overflow-y-auto no-scrollbar">
-           <div className="w-full flex justify-center"><Seat index={1} label="No.1" theme={currentTheme} occupant={participants.find(p => p.seatIndex === 1)} isLocked={room.lockedSeats?.includes(1)} onClick={handleSeatClick} /></div>
+           <div className="w-full flex justify-center">
+              <Seat index={1} label="No.1" theme={currentTheme} occupant={participants.find(p => p.seatIndex === 1)} isLocked={room.lockedSeats?.includes(1)} onClick={handleSeatClick} />
+           </div>
            <div className="w-full flex justify-center gap-4 px-4">
               {[2, 3, 4, 5].map(idx => (
                 <Seat key={idx} index={idx} label={`No.${idx}`} theme={currentTheme} occupant={participants.find(p => p.seatIndex === idx)} isLocked={room.lockedSeats?.includes(idx)} onClick={handleSeatClick} />
@@ -338,6 +346,7 @@ export function RoomClient({ room }: { room: Room }) {
            </div>
         </div>
 
+        {/* Chat Stream Dimension - Overlap De-collision via pointer-events-none */}
         <div className="absolute bottom-0 left-0 w-full h-40 z-20 pointer-events-none p-4 pb-0">
            <ScrollArea className="h-full pr-4 pointer-events-auto" ref={scrollRef}>
               <div className="flex flex-col gap-1 justify-end min-h-full">

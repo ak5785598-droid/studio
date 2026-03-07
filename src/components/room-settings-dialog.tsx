@@ -167,9 +167,14 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
       toast({ variant: 'destructive', title: 'Access Denied', description: 'Official themes are restricted to system authorities.' });
       return;
     }
-    // High-Fidelity Sync: When selecting a preset, clear the custom background URL
-    handleUpdate('roomThemeId', theme.id);
-    handleUpdate('backgroundUrl', null);
+    // High-Fidelity Sync: Use a single updateDoc call for atomic synchronization
+    if (firestore) {
+      updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), {
+        roomThemeId: theme.id,
+        backgroundUrl: null,
+        updatedAt: serverTimestamp()
+      });
+    }
     setIsEditingTheme(false);
     toast({ title: 'Theme Synchronized', description: `${theme.name} is now live.` });
   };
