@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -25,7 +24,7 @@ const COIN_PACKAGES = [
 
 /**
  * Tribal Vault - High-Fidelity Economic Dimension.
- * Re-engineered for compact mobile visual frequency.
+ * Re-engineered for compact mobile visual frequency and fixed withdrawal logic.
  */
 export default function WalletPage() {
   const router = useRouter();
@@ -56,12 +55,21 @@ export default function WalletPage() {
 
   const { data: exchangeHistory, isLoading: isHistoryLoading } = useCollection(historyQuery);
 
+  const handleAction = () => {
+    if (activeTab === 'Coins') {
+      handleRechargeNow();
+    } else {
+      handleWithdrawal();
+    }
+  };
+
   const handleRechargeNow = () => {
     if (!user || !firestore) return;
     const pkg = COIN_PACKAGES.find(p => p.id === selectedPackageId);
     if (!pkg) return;
 
     setIsProcessing(true);
+    // Simulation of secure payment handshake
     setTimeout(() => {
       const amountValue = parseInt(pkg.amount.replace(/,/g, ''));
       const bonusValue = pkg.bonus ? parseInt(pkg.bonus.replace('+', '')) : 0;
@@ -74,6 +82,14 @@ export default function WalletPage() {
       updateDocumentNonBlocking(profileRef, { 'wallet.coins': increment(totalGain), updatedAt: serverTimestamp() });
       
       toast({ title: 'Recharge Successful', description: `Synchronized ${totalGain.toLocaleString()} Coins.` });
+      setIsProcessing(false);
+    }, 1500);
+  };
+
+  const handleWithdrawal = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      toast({ title: 'Withdrawal Pending', description: 'Your request is being reviewed by tribal authority.' });
       setIsProcessing(false);
     }, 1500);
   };
@@ -94,6 +110,7 @@ export default function WalletPage() {
     <AppLayout hideSidebarOnMobile hideBottomNav>
       <div className="min-h-full bg-white font-headline flex flex-col animate-in fade-in duration-700">
         
+        {/* Header Protocol */}
         <header className="px-6 pt-8 pb-3 flex items-center justify-between bg-white sticky top-0 z-50 border-b border-gray-50">
            <button onClick={() => router.back()} className="p-1.5 -ml-1.5 hover:bg-gray-50 rounded-full transition-all">
               <ChevronLeft className="h-5 w-5 text-gray-800" />
@@ -132,6 +149,7 @@ export default function WalletPage() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Category Frequencies */}
             <div className="flex justify-around border-b border-gray-50 bg-white shrink-0">
                <button 
                  onClick={() => setActiveTab('Coins')}
@@ -172,12 +190,13 @@ export default function WalletPage() {
                             {(userProfile?.wallet?.coins || 0).toLocaleString()}
                          </h2>
                       </div>
+                      {/* Sovereign Large Coin Visual */}
                       <div className="absolute -top-4 -right-10 w-44 h-44 opacity-30 rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-1000">
                          <GoldCoinIcon className="w-full h-full" />
                       </div>
                    </div>
 
-                   {/* Compact Promo */}
+                   {/* Compact Promo Broadcast */}
                    <div className="relative h-16 w-full rounded-xl overflow-hidden mb-4 shadow-sm border border-red-100">
                       <img 
                         src="https://images.unsplash.com/photo-1514525253361-bee8718a300a?q=80&w=1000" 
@@ -241,12 +260,13 @@ export default function WalletPage() {
                             {(userProfile?.wallet?.diamonds || 0).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                          </h2>
                       </div>
+                      {/* Sovereign Large Diamond Visual */}
                       <div className="absolute -top-4 -right-10 w-44 h-44 opacity-30 rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-1000">
                          <Gem className="w-full h-full text-white fill-current" />
                       </div>
                    </div>
 
-                   {/* Compact Exchange Portal */}
+                   {/* Compact Exchange Interaction Portal */}
                    <div className="p-0.5">
                       <button 
                         className="w-full bg-[#fffef0] border border-orange-100 rounded-2xl p-4 flex items-center justify-between shadow-sm group active:scale-[0.98] transition-all"
@@ -282,15 +302,18 @@ export default function WalletPage() {
                </div>
             </div>
 
-            <footer className="p-4 bg-white border-t border-gray-50 fixed bottom-0 left-0 right-0 z-50 md:relative">
+            {/* Bottom Sovereign Portal */}
+            {!showRecords && (
+              <footer className="p-4 bg-white border-t border-gray-50 fixed bottom-0 left-0 right-0 z-50 md:relative">
                  <Button 
-                   onClick={handleRechargeNow}
-                   disabled={isProcessing !== false}
+                   onClick={handleAction}
+                   disabled={isProcessing}
                    className="w-full h-12 rounded-full bg-[#ffcc00] hover:bg-[#ffb300] text-black font-black uppercase italic text-lg shadow-lg active:scale-[0.98] transition-all"
                  >
-                    {isProcessing !== false ? <Loader className="animate-spin mr-2 h-4 w-4" /> : activeTab === 'Coins' ? 'Recharge Now' : 'Withdrawal'}
+                    {isProcessing ? <Loader className="animate-spin mr-2 h-4 w-4" /> : activeTab === 'Coins' ? 'Recharge Now' : 'Withdrawal'}
                  </Button>
               </footer>
+            )}
           </div>
         )}
       </div>
