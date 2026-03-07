@@ -78,6 +78,7 @@ import { RoomSeatMenuDialog } from '@/components/room-seat-menu-dialog';
 import { ROOM_THEMES } from '@/lib/themes';
 import { EmojiReactionOverlay } from '@/components/emoji-reaction-overlay';
 import { RoomGamesDialog } from '@/components/room-games-dialog';
+import { RoomMessagesDialog } from '@/components/room-messages-dialog';
 
 function RemoteAudio({ stream, muted }: { stream: MediaStream, muted: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -156,6 +157,7 @@ export function RoomClient({ room }: { room: Room }) {
   const [isSeatMenuOpen, setIsSeatMenuOpen] = useState(false);
   const [isRoomPlayOpen, setIsRoomPlayOpen] = useState(false);
   const [isRoomGamesOpen, setIsRoomGamesOpen] = useState(false);
+  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
   const [isLuckyRainActive, setIsLuckyRainActive] = useState(false);
   const [now, setNow] = useState(Date.now());
   
@@ -337,7 +339,6 @@ export function RoomClient({ room }: { room: Room }) {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setIsUserListOpen(true)} className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2"><Users className="h-4 w-4 text-white/60" /><span className="text-[12px] font-black">{onlineCount}</span></button>
-          {/* SOVEREIGN RULE: Only the room owner can change settings. */}
           {isOwner && (
             <RoomSettingsDialog room={room} trigger={<button className="p-2 bg-white/10 rounded-full active:scale-95 transition-transform"><Hexagon className="h-5 w-5" /></button>} />
           )}
@@ -398,7 +399,7 @@ export function RoomClient({ room }: { room: Room }) {
            </div>
            <div className="flex items-center gap-3">
               <button onClick={handleMicToggle} disabled={!isInSeat} className={cn("p-2 rounded-full transition-all active:scale-90", !isInSeat ? "bg-white/5 text-white/20 opacity-50" : (currentUserParticipant?.isMuted ? "bg-white/10 text-white" : "bg-green-500 text-white shadow-lg border border-white/20"))}>{isInSeat && !currentUserParticipant?.isMuted ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}</button>
-              <button onClick={() => router.push('/messages')} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform"><Mail className="h-5 w-5 text-white" /></button>
+              <button onClick={() => setIsMessagesOpen(true)} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform"><Mail className="h-5 w-5 text-white" /></button>
               <button onClick={() => { setGiftRecipient(null); setIsGiftPickerOpen(true); }} className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl active:scale-90 transition-transform"><GiftIcon className="h-6 w-6 text-white fill-white" /></button>
               <button onClick={() => setIsRoomPlayOpen(true)} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform"><LayoutGrid className="h-5 w-5 text-white" /></button>
            </div>
@@ -431,6 +432,7 @@ export function RoomClient({ room }: { room: Room }) {
         onOpenGames={() => setIsRoomGamesOpen(true)}
       />
       <RoomGamesDialog open={isRoomGamesOpen} onOpenChange={setIsRoomGamesOpen} />
+      <RoomMessagesDialog open={isMessagesOpen} onOpenChange={setIsMessagesOpen} />
       <GiftPicker open={isGiftPickerOpen} onOpenChange={setIsGiftPickerOpen} roomId={room.id} recipient={giftRecipient} />
       
       <RoomSeatMenuDialog 
