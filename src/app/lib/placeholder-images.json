@@ -63,9 +63,9 @@
     },
     {
       "id": "ummy-mascot",
-      "description": "Ummy mascot logo characters with yellow and pink bubbles",
+      "description": "Ummy official logo watermark with yellow and pink mascot characters",
       "imageUrl": "https://picsum.photos/seed/ummy-mascot/400/400",
-      "imageHint": "mascot characters"
+      "imageHint": "cute characters"
     },
     {
       "id": "propose-ring",
@@ -86,10 +86,10 @@
       "imageHint": "romantic couple"
     },
     {
-      "id": "elite-jet",
-      "description": "Gold private jet icon",
-      "imageUrl": "https://images.unsplash.com/photo-1540962351504-03099e0a754b?q=80&w=500",
-      "imageHint": "private jet"
+      "id": "winner-crown",
+      "description": "Golden crown for winners",
+      "imageUrl": "https://images.unsplash.com/photo-1646769762753-565020b3bb2c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxnb2xkZW4lMjBjcm93bnxlbnwwfHx8fDE3NzI0NjY4MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "golden crown"
     }
   ]
 }

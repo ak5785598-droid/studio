@@ -381,7 +381,7 @@ export function RoomClient({ room }: { room: Room }) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
       </div>
 
-      {/* Sovereign Logo Watermark Overlay */}
+      {/* Sovereign Logo Watermark Overlay - Transparent Mascot Synchronization */}
       <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none opacity-10">
          <div className="relative w-64 h-64">
             {mascotAsset && (
