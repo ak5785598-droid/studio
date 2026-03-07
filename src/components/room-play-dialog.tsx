@@ -24,7 +24,8 @@ import {
   Volume2,
   VolumeX,
   Music,
-  Square
+  Square,
+  SmilePlus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -50,9 +51,11 @@ interface RoomPlayDialogProps {
   onStopMusic: () => void;
 }
 
+const REACTIONS = ['😀', '😂', '😘', '🥰', '😎', '🤗', '😡', '😭', '💋'];
+
 /**
  * High-Fidelity Room Play Portal.
- * Features real-time participant selection, Battle setup, and Frequency Management.
+ * RE-ENGINEERED: Now includes the high-fidelity Emoji Reaction Protocol.
  */
 export function RoomPlayDialog({ 
   open, 
@@ -67,7 +70,7 @@ export function RoomPlayDialog({
   onPlayMusic,
   onStopMusic
 }: RoomPlayDialogProps) {
-  const [view, setView] = useState<'grid' | 'battle' | 'selection' | 'rules'>('grid');
+  const [view, setView] = useState<'grid' | 'battle' | 'selection' | 'rules' | 'emojis'>('grid');
   const [battleMode, setBattleMode] = useState<'Votes' | 'Coins'>('Votes');
   const [selectionSide, setSelectionSide] = useState<'BLUE' | 'RED'>('BLUE');
   const [isClearingChat, setIsClearingChat] = useState(false);
@@ -141,6 +144,19 @@ export function RoomPlayDialog({
     }
   };
 
+  const handleSendEmoji = (emoji: string) => {
+    if (!firestore || !roomId || !user) return;
+    const pRef = doc(firestore, 'chatRooms', roomId, 'participants', user.uid);
+    updateDocumentNonBlocking(pRef, { activeEmoji: emoji, updatedAt: serverTimestamp() });
+    
+    // Clear emoji pulse after a few seconds
+    setTimeout(() => {
+      updateDocumentNonBlocking(pRef, { activeEmoji: null });
+    }, 4000);
+    
+    onOpenChange(false);
+  };
+
   const options = [
     { 
       id: 'volume', 
@@ -157,6 +173,20 @@ export function RoomPlayDialog({
            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
            <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
               {isMutedLocal ? <VolumeX className="h-8 w-8 text-white drop-shadow-md" /> : <Volume2 className="h-8 w-8 text-white drop-shadow-md" />}
+           </div>
+           <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
+        </div>
+      )
+    },
+    { 
+      id: 'emoji', 
+      label: 'Reactions', 
+      onClick: () => setView('emojis'),
+      icon: (
+        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 p-0.5 border-2 border-white/20 shadow-xl overflow-hidden group">
+           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+           <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
+              <SmilePlus className="h-8 w-8 text-white drop-shadow-md" />
            </div>
            <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
         </div>
@@ -258,20 +288,6 @@ export function RoomPlayDialog({
     )
   });
 
-  options.push({ 
-    id: 'calculator', 
-    label: 'Calculator', 
-    onClick: () => {},
-    icon: (
-      <div className="relative w-16 h-16 rounded-full bg-gradient-to-b from-[#3d2b1f] to-black p-0.5 border-2 border-[#fbbf24] shadow-[0_0_15px_rgba(251,191,36,0.4)] overflow-hidden group">
-         <div className="w-full h-full flex items-center justify-center rounded-full bg-black/40">
-            <Flame className="h-8 w-8 text-orange-500 fill-current animate-reaction-pulse drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
-         </div>
-         <div className="absolute inset-0 w-1/2 h-full bg-white/10 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
-      </div>
-    )
-  });
-
   const handleClose = (open: boolean) => {
     if (!open) {
       setTimeout(() => setView('grid'), 300);
@@ -319,6 +335,28 @@ export function RoomPlayDialog({
                     </button>
                   ))}
                </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'emojis' && (
+          <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+            <header className="p-6 pb-2 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                  <button onClick={() => setView('grid')} className="p-1 hover:scale-110 transition-transform"><ChevronLeft className="h-6 w-6 text-white/60" /></button>
+                  <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Reaction Sync</h2>
+               </div>
+            </header>
+            <div className="p-8 grid grid-cols-3 gap-6 pb-20">
+               {REACTIONS.map((emoji) => (
+                 <button 
+                   key={emoji} 
+                   onClick={() => handleSendEmoji(emoji)}
+                   className="h-20 w-20 rounded-3xl bg-white/5 border-2 border-white/10 flex items-center justify-center text-5xl hover:bg-white/10 active:scale-90 transition-all shadow-xl"
+                 >
+                    {emoji}
+                 </button>
+               ))}
             </div>
           </div>
         )}

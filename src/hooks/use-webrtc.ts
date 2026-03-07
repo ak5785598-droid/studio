@@ -14,8 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 /**
  * PRODUCTION WEBRTC HOOK
  * Handles P2P Audio Mesh via Firestore Signaling.
- * BUG FIX: Signaling state guards implemented to prevent InvalidStateError during 
- * remote description synchronization (Perfect Negotiation protocol).
+ * BUG FIX: Enhanced Signaling state guards implemented to prevent InvalidStateError 
+ * during remote description and candidate synchronization (Perfect Negotiation).
  */
 export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted: boolean, musicStream: MediaStream | null = null) {
   const { user } = useUser();
@@ -222,13 +222,13 @@ export function useWebRTC(roomId: string | undefined, isInSeat: boolean, isMuted
           await pc.setLocalDescription();
           sendSignal(peerId, { type: 'answer', sdp: pc.localDescription?.sdp, from: user.uid });
         } else if (signal.type === 'answer') {
-          // FIX: High-fidelity signaling state guard to prevent InvalidStateError
+          // FIX: Perfect Negotiation signaling state guard
           if (pc.signalingState === 'have-local-offer') {
             await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: signal.sdp }));
           }
         } else if (signal.type === 'candidate') {
           try {
-            // FIX: High-fidelity guard for ICE candidates
+            // FIX: Guard for ICE candidates reaching stale or empty descriptions
             if (pc.remoteDescription) {
               await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
             }

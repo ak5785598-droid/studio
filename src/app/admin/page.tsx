@@ -43,14 +43,14 @@ const DEFAULT_SLIDES = [
 ];
 
 const ACTIVE_GAME_FREQUENCIES = [
-  { id: 'fallback-ludo', title: 'Ludo Masters', slug: 'ludo', imageHint: '3d ludo board' },
-  { id: 'fallback-fruit', title: 'Fruit Party', slug: 'fruit-party', imageHint: '3d fruit icons' },
-  { id: 'fallback-wild', title: 'Wild Party', slug: 'forest-party', imageHint: '3d lion head' },
+  { id: 'ludo', title: 'Ludo Masters', slug: 'ludo', imageHint: '3d ludo board' },
+  { id: 'fruit-party', title: 'Fruit Party', slug: 'fruit-party', imageHint: '3d fruit icons' },
+  { id: 'forest-party', title: 'Wild Party', slug: 'forest-party', imageHint: '3d lion head' },
 ];
 
 /**
  * Ummy Command Center - Supreme Authority Oversight.
- * Re-engineered for high-fidelity Game Identity synchronization.
+ * RE-ENGINEERED: Now maps all game synchronization to slugs for absolute cross-portal visual fidelity.
  */
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -84,7 +84,7 @@ export default function AdminPage() {
 
   const gamesList = useMemo(() => {
     return ACTIVE_GAME_FREQUENCIES.map(base => {
-      // Synchronize by slug for absolute matching reliability
+      // ATOMIC SYNC: Standardize on slug mapping for visual integrity
       const match = firestoreGames?.find(g => g.slug === base.slug);
       return match ? { ...base, ...match } : base;
     });
@@ -101,12 +101,6 @@ export default function AdminPage() {
     return doc(firestore, 'appConfig', 'banners');
   }, [firestore, isCreator]);
   const { data: bannerConfig } = useDoc(bannerConfigRef);
-
-  const logsQuery = useMemoFirebase(() => {
-    if (!firestore || !isCreator) return null;
-    return query(collection(firestore, 'adminLogs'), orderBy('createdAt', 'desc'), limit(20));
-  }, [firestore, isCreator]);
-  const { data: logs } = useCollection(logsQuery);
 
   const handleDistributeDailyRewards = async () => {
     if (!firestore || !isCreator) return;
