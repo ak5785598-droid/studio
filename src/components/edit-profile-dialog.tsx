@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useProfilePictureUpload } from '@/hooks/use-profile-picture-upload';
 import { CameraCaptureDialog } from '@/components/camera-capture-dialog';
 import { ImageCropDialog } from '@/components/image-crop-dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface EditProfileDialogProps {
   profile: any;
