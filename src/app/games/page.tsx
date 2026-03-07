@@ -25,7 +25,7 @@ const FALLBACK_GAMES: Game[] = [
 
 /**
  * 3D Tribe Arena - Global Game Frequencies.
- * Re-engineered for absolute visual synchronization.
+ * Re-engineered for absolute visual synchronization via slug-based identity.
  */
 export default function GamesPage() {
   const { user } = useUser();
@@ -33,7 +33,7 @@ export default function GamesPage() {
   const firestore = useFirestore();
   const { isUploading, uploadGameLogo } = useGameLogoUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
+  const [selectedGameSlug, setSelectedGameSlug] = useState<string | null>(null);
   const [liveCounts, setLiveCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -56,22 +56,23 @@ export default function GamesPage() {
 
   const activeGames = useMemo(() => {
     return FALLBACK_GAMES.map(fb => {
-      const match = firestoreGames?.find(g => g.slug === fb.slug || g.id === fb.id);
+      // SOURCE OF TRUTH: Match by slug to ensure synced visuals override fallbacks
+      const match = firestoreGames?.find(g => g.slug === fb.slug);
       return match ? { ...fb, ...match } : fb;
     });
   }, [firestoreGames]);
 
-  const handleLogoChangeClick = (e: React.MouseEvent, gameId: string) => {
+  const handleLogoChangeClick = (e: React.MouseEvent, slug: string) => {
     e.preventDefault();
     e.stopPropagation();
-    setSelectedGameId(gameId);
+    setSelectedGameSlug(slug);
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && selectedGameId) {
-      const game = activeGames.find(g => g.id === selectedGameId);
+    if (file && selectedGameSlug) {
+      const game = activeGames.find(g => g.slug === selectedGameSlug);
       if (game) {
         uploadGameLogo(game, file);
       }
@@ -113,12 +114,12 @@ export default function GamesPage() {
                 <h3 className="font-headline text-2xl font-black uppercase italic tracking-widest text-white/80">Select Dimension</h3>
              </div>
 
-             {isGamesLoading ? (
+             {isGamesLoading && !firestoreGames ? (
                <div className="flex justify-center py-20"><Loader className="animate-spin text-primary h-10 w-10" /></div>
              ) : (
                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-10 pt-4">
                   {activeGames.map((game) => (
-                    <div key={game.id} className="group relative transition-all duration-500 transform-gpu preserve-3d hover:rotate-x-12 hover:rotate-y-6">
+                    <div key={game.slug} className="group relative transition-all duration-500 transform-gpu preserve-3d hover:rotate-x-12 hover:rotate-y-6">
                       <div className="block relative">
                         {/* 3D Depth Layer */}
                         <div className="absolute inset-0 bg-purple-600/20 rounded-[2.5rem] translate-z-[-20px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -141,15 +142,16 @@ export default function GamesPage() {
                              </div>
                            )}
                            
+                           {/* High-fidelity glass overlay */}
                            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0514] via-transparent to-transparent opacity-60" />
                            
                            {isSovereign && (
                              <button 
-                               onClick={(e) => handleLogoChangeClick(e, game.id)}
+                               onClick={(e) => handleLogoChangeClick(e, game.slug)}
                                className="absolute top-4 right-4 bg-black/60 p-2 rounded-full border border-white/20 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-primary hover:text-black shadow-xl backdrop-blur-md"
                              >
-                               {isUploading && selectedGameId === game.id ? <Loader className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                               {isUploading && selectedGameSlug === game.slug ? <Loader className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
                              </button>
                            )}
 

@@ -9,8 +9,8 @@ import type { Game } from '@/lib/types';
 
 /**
  * Hook to handle game logo/cover uploads to Firebase Storage and update Firestore.
- * Re-engineered with high-speed direct upload protocol and Atomic Merge reliability.
- * Ensures title and slug are synchronized to prevent query filtering.
+ * Re-engineered with Slug-Based Identity Sync.
+ * Uses the game's slug as the Firestore document ID to ensure absolute cross-portal synchronization.
  */
 export function useGameLogoUpload() {
   const storage = useStorage();
@@ -30,13 +30,13 @@ export function useGameLogoUpload() {
     }
 
     setIsUploading(true);
-    console.log(`[Visual Sync] Starting high-fidelity game logo upload for: ${game.id}`, file.name);
+    console.log(`[Visual Sync] Starting high-fidelity game logo upload for: ${game.slug}`, file.name);
 
     try {
-      // 1. Storage Upload Handshake with Metadata
+      // 1. Storage Upload Handshake
       const timestamp = Date.now();
       const fileExtension = file.name.split('.').pop() || 'jpg';
-      const storagePath = `games/${game.id}/logo_${timestamp}.${fileExtension}`;
+      const storagePath = `games/${game.slug}/cover_${timestamp}.${fileExtension}`;
       const storageRef = ref(storage, storagePath);
       
       const metadata = {
@@ -46,19 +46,19 @@ export function useGameLogoUpload() {
       const result = await uploadBytes(storageRef, file, metadata);
       const downloadURL = await getDownloadURL(result.ref);
 
-      // 2. Firestore Sync (Atomic Merge Protocol)
-      // We include title and slug to ensure the doc is visible to indexed queries
-      const gameRef = doc(firestore, 'games', game.id);
+      // 2. Firestore Atomic Sync (Slug-Based Document ID)
+      // Standardizing on game.slug as the document ID for absolute routing stability.
+      const gameRef = doc(firestore, 'games', game.slug);
       
       const updateData = { 
-        id: game.id,
+        id: game.slug, // Synchronize ID field with the slug
         title: game.title,
         slug: game.slug,
         coverUrl: downloadURL,
         updatedAt: serverTimestamp()
       };
 
-      console.log('[Visual Sync] Dispatching game logo metadata to Firestore via Atomic Merge');
+      console.log(`[Visual Sync] Dispatching game logo metadata to Firestore path: games/${game.slug}`);
       setDocumentNonBlocking(gameRef, updateData, { merge: true });
 
       toast({

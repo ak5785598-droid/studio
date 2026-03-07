@@ -50,7 +50,7 @@ const ACTIVE_GAME_FREQUENCIES = [
 
 /**
  * Ummy Command Center - Supreme Authority Oversight.
- * Re-engineered to include high-fidelity Game DP Sync.
+ * Re-engineered for high-fidelity Game Identity synchronization.
  */
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -84,7 +84,8 @@ export default function AdminPage() {
 
   const gamesList = useMemo(() => {
     return ACTIVE_GAME_FREQUENCIES.map(base => {
-      const match = firestoreGames?.find(g => g.id === base.id || g.slug === base.slug);
+      // Synchronize by slug for absolute matching reliability
+      const match = firestoreGames?.find(g => g.slug === base.slug);
       return match ? { ...base, ...match } : base;
     });
   }, [firestoreGames]);
@@ -289,7 +290,7 @@ export default function AdminPage() {
              {(bannerConfig?.slides || DEFAULT_SLIDES).map((slide: any, idx: number) => (
                <Card key={idx} className="rounded-2xl overflow-hidden">
                   <div className="relative aspect-[8/2] bg-muted">
-                     {slide.imageUrl && <Image src={slide.imageUrl} alt="Banner" fill className="object-cover" />}
+                     {slide.imageUrl && <Image src={slide.imageUrl} alt="Banner" fill className="object-cover" unoptimized />}
                      {isUploadingBanner === idx && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><Loader className="animate-spin text-white" /></div>}
                   </div>
                   <CardContent className="p-4 flex justify-between items-center">
@@ -311,14 +312,21 @@ export default function AdminPage() {
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                    {gamesList.map((game) => (
-                     <Card key={game.id} className="rounded-3xl overflow-hidden border-2 border-slate-100 shadow-sm group">
+                     <Card key={game.slug} className="rounded-3xl overflow-hidden border-2 border-slate-100 shadow-sm group">
                         <div className="relative aspect-square bg-slate-50 flex items-center justify-center">
                            {game.coverUrl ? (
-                             <Image key={game.coverUrl} src={game.coverUrl} alt={game.title} fill className="object-cover transition-transform group-hover:scale-105" />
+                             <Image 
+                               key={game.coverUrl} 
+                               src={game.coverUrl} 
+                               alt={game.title} 
+                               fill 
+                               unoptimized 
+                               className="object-cover transition-transform group-hover:scale-105" 
+                             />
                            ) : (
                              <Gamepad2 className="h-12 w-12 text-slate-200" />
                            )}
-                           {isUploadingGameDP && selectedGameForDP?.id === game.id && (
+                           {isUploadingGameDP && selectedGameForDP?.slug === game.slug && (
                              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10">
                                 <Loader className="h-8 w-8 animate-spin text-white" />
                              </div>
