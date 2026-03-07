@@ -174,6 +174,7 @@ export function RoomClient({ room }: { room: Room }) {
   const isOwner = currentUser?.uid === room.ownerId;
   const isModerator = room.moderatorIds?.includes(currentUser?.uid || '') || false;
   const canManageRoom = isOwner || isModerator;
+  const isChatMuted = room.isChatMuted || false;
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 15000);
@@ -225,6 +226,13 @@ export function RoomClient({ room }: { room: Room }) {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageText.trim() || !currentUser || !firestore || !userProfile) return;
+    
+    // Safety check for muted chat
+    if (isChatMuted && !canManageRoom) {
+      toast({ variant: 'destructive', title: 'Chat Restricted', description: 'The room authority has disabled public messages.' });
+      return;
+    }
+
     addDocumentNonBlocking(collection(firestore, 'chatRooms', room.id, 'messages'), {
       content: messageText, senderId: currentUser.uid, senderName: userProfile.username || 'User', senderAvatar: userProfile.avatarUrl || null, chatRoomId: room.id, timestamp: serverTimestamp(), type: 'text'
     });
@@ -284,6 +292,18 @@ export function RoomClient({ room }: { room: Room }) {
     updateDocumentNonBlocking(doc(firestore, 'chatRooms', room.id), {
       moderatorIds: isCurrentlyMod ? arrayRemove(uid) : arrayUnion(uid)
     });
+  };
+
+  const handleInputClick = () => {
+    if (isChatMuted && !canManageRoom) {
+      toast({ 
+        variant: 'destructive', 
+        title: 'Chat Restricted', 
+        description: 'Room authority has closed public messaging.' 
+      });
+      return;
+    }
+    setShowInput(true);
   };
 
   return (
@@ -362,7 +382,15 @@ export function RoomClient({ room }: { room: Room }) {
 
       <footer className="relative z-50 px-4 pb-10 flex items-center justify-between gap-3 pt-4">
         <div className="flex-1 flex items-center gap-3">
-           <div onClick={() => setShowInput(true)} className="bg-white/10 backdrop-blur-xl rounded-full h-12 flex-1 px-6 flex items-center text-white/60 font-bold text-sm cursor-pointer">Say Hi</div>
+           <div 
+             onClick={handleInputClick} 
+             className={cn(
+               "backdrop-blur-xl rounded-full h-12 flex-1 px-6 flex items-center font-bold text-sm cursor-pointer transition-all",
+               isChatMuted && !canManageRoom ? "bg-red-500/20 text-red-400 border border-red-500/20" : "bg-white/10 text-white/60"
+             )}
+           >
+              {isChatMuted && !canManageRoom ? 'Chat Restricted' : 'Say Hi'}
+           </div>
            <div className="flex items-center gap-3">
               <button onClick={handleMicToggle} disabled={!isInSeat} className={cn("p-2 rounded-full transition-all active:scale-90", !isInSeat ? "bg-white/5 text-white/20 opacity-50" : (currentUserParticipant?.isMuted ? "bg-white/10 text-white" : "bg-green-500 text-white shadow-lg border border-white/20"))}>{isInSeat && !currentUserParticipant?.isMuted ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}</button>
               <button onClick={() => setIsMutedLocal(!isMutedLocal)} className="p-2 bg-white/10 rounded-full active:scale-90 transition-transform">{isMutedLocal ? <VolumeX className="h-5 w-5 text-white/60" /> : <Volume2 className="h-5 w-5 text-white" />}</button>

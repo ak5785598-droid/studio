@@ -18,15 +18,17 @@ import {
   X, 
   Star,
   Trash2,
-  Loader
+  Loader,
+  MessageSquare,
+  MessageSquareOff
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RoomParticipant } from '@/lib/types';
-import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, getDocs, writeBatch } from 'firebase/firestore';
+import { useUser, useFirestore, errorEmitter, FirestorePermissionError, updateDocumentNonBlocking } from '@/firebase';
+import { collection, getDocs, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 interface RoomPlayDialogProps {
@@ -57,6 +59,7 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
   const isOwner = user?.uid === room?.ownerId;
   const isMod = room?.moderatorIds?.includes(user?.uid || '');
   const canManage = isOwner || isMod;
+  const isChatMuted = room?.isChatMuted || false;
 
   const handleClearChat = async () => {
     if (!firestore || !roomId) return;
@@ -86,6 +89,20 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
     } finally {
       setIsClearingChat(false);
     }
+  };
+
+  const handleToggleChatMute = () => {
+    if (!firestore || !roomId) return;
+    const roomRef = doc(firestore, 'chatRooms', roomId);
+    updateDocumentNonBlocking(roomRef, {
+      isChatMuted: !isChatMuted,
+      updatedAt: serverTimestamp()
+    });
+    toast({ 
+      title: isChatMuted ? 'Messaging Restored' : 'Messaging Restricted', 
+      description: isChatMuted ? 'Tribe members can now send messages.' : 'Only authorities can broadcast messages.' 
+    });
+    onOpenChange(false);
   };
 
   const options = [
@@ -118,8 +135,9 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
     }
   ];
 
-  // Add Clear Chat option only for authorities
+  // Add Authority options only for owners/admins
   if (canManage) {
+    // 1. Clear Chat
     options.push({
       id: 'clear-chat',
       label: 'Clear Chat',
@@ -129,6 +147,29 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
            <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
               {isClearingChat ? <Loader className="h-8 w-8 text-white animate-spin" /> : <Trash2 className="h-8 w-8 text-white drop-shadow-md" />}
+           </div>
+           <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
+        </div>
+      )
+    });
+
+    // 2. Toggle Public Messages (Close/Open)
+    options.push({
+      id: 'mute-chat',
+      label: isChatMuted ? 'Open Public Msg' : 'Close Public Msg',
+      onClick: handleToggleChatMute,
+      icon: (
+        <div className={cn(
+          "relative w-16 h-16 rounded-full p-0.5 border-2 border-white/20 shadow-xl overflow-hidden group",
+          isChatMuted ? "bg-gradient-to-br from-green-500 to-green-700" : "bg-gradient-to-br from-orange-500 to-orange-700"
+        )}>
+           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+           <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
+              {isChatMuted ? (
+                <MessageSquare className="h-8 w-8 text-white drop-shadow-md" />
+              ) : (
+                <MessageSquareOff className="h-8 w-8 text-white drop-shadow-md" />
+              )}
            </div>
            <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
         </div>
@@ -169,7 +210,7 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, 
                   {options.map((opt) => (
                     <button key={opt.id} onClick={opt.onClick} className="flex flex-col items-center gap-3 shrink-0 active:scale-90 transition-transform">
                        <div className="relative p-4 bg-white/5 rounded-3xl border border-white/5 shadow-inner hover:bg-white/10 transition-colors">{opt.icon}</div>
-                       <span className="text-sm font-black uppercase italic text-white/80 tracking-tight">{opt.label}</span>
+                       <span className="text-[10px] font-black uppercase italic text-white/80 tracking-tight text-center w-20 leading-tight">{opt.label}</span>
                     </button>
                   ))}
                </div>
