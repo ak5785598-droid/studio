@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useMemo, useEffect } from 'react';
@@ -15,6 +16,8 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { useGameLogoUpload } from '@/hooks/use-game-logo-upload';
 import type { Game } from '@/lib/types';
 
+const CREATOR_ID = '901piBzTQ0VzCtAvlyyobwvAaTs1';
+
 const FALLBACK_GAMES: Game[] = [
   { id: 'fallback-fruit-slots', title: 'Fruit Slots', slug: 'fruit-slots', coverUrl: 'https://images.unsplash.com/photo-1611080634139-6c8821f5f6ca?q=80&w=1000', cost: 0, imageHint: '3d lemon fruit slots' },
   { id: 'fallback-ludo', title: 'Ludo Masters', slug: 'ludo', coverUrl: '', cost: 0, imageHint: '3d ludo board' },
@@ -25,6 +28,10 @@ const FALLBACK_GAMES: Game[] = [
   { id: 'fallback-teen', title: 'Dragon Battle', slug: 'teen-patti', coverUrl: '', cost: 0, imageHint: '3d dragon character' },
 ];
 
+/**
+ * 3D Tribe Arena - High-Fidelity Game Dashboard.
+ * Re-engineered to support Sovereign Visual Synchronization (Logo Uploads).
+ */
 export default function GamesPage() {
   const { user } = useUser();
   const { userProfile } = useUserProfile(user?.uid);
@@ -42,7 +49,9 @@ export default function GamesPage() {
     setLiveCounts(counts);
   }, []);
 
-  const isAdmin = userProfile?.tags?.includes('Admin') || userProfile?.tags?.includes('Official');
+  // Sovereign Authority Check: Only the Creator or designated High-Tier Admins can synchronize game visuals.
+  const isSovereign = user?.uid === CREATOR_ID || 
+                      userProfile?.tags?.some(t => ['Admin', 'Official', 'Super Admin', 'App Manager'].includes(t));
 
   const gamesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -140,10 +149,11 @@ export default function GamesPage() {
                            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0514] via-transparent to-transparent opacity-60" />
                            
-                           {isAdmin && (
+                           {/* Sovereign Sync Trigger: Only visible to Creators/Admins */}
+                           {isSovereign && (
                              <button 
                                onClick={(e) => handleLogoChangeClick(e, game.id)}
-                               className="absolute top-4 right-4 bg-black/60 p-2 rounded-full border border-white/20 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-primary hover:text-black"
+                               className="absolute top-4 right-4 bg-black/60 p-2 rounded-full border border-white/20 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-primary hover:text-black shadow-xl backdrop-blur-md"
                              >
                                {isUploading && selectedGameId === game.id ? <Loader className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
                              </button>
