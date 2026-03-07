@@ -16,13 +16,18 @@ import {
   Armchair, 
   Check, 
   X, 
-  Star
+  Star,
+  Trash2,
+  Loader
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RoomParticipant } from '@/lib/types';
+import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, getDocs, writeBatch } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 interface RoomPlayDialogProps {
   open: boolean;
@@ -34,16 +39,54 @@ interface RoomPlayDialogProps {
 
 /**
  * High-Fidelity Room Play Portal.
- * Features real-time participant selection and Battle setup.
- * Lucky Bag frequency has been decommissioned.
+ * Features real-time participant selection, Battle setup, and Frequency Management.
  */
-export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId }: RoomPlayDialogProps) {
+export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId, room }: RoomPlayDialogProps) {
   const [view, setView] = useState<'grid' | 'battle' | 'selection' | 'rules'>('grid');
   const [battleMode, setBattleMode] = useState<'Votes' | 'Coins'>('Votes');
   const [selectionSide, setSelectionSide] = useState<'BLUE' | 'RED'>('BLUE');
+  const [isClearingChat, setIsClearingChat] = useState(false);
   
   const [blueTeam, setBlueTeam] = useState<string[]>([]);
   const [redTeam, setRedTeam] = useState<string[]>([]);
+
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const isOwner = user?.uid === room?.ownerId;
+  const isMod = room?.moderatorIds?.includes(user?.uid || '');
+  const canManage = isOwner || isMod;
+
+  const handleClearChat = async () => {
+    if (!firestore || !roomId) return;
+    setIsClearingChat(true);
+    
+    try {
+      const messagesRef = collection(firestore, 'chatRooms', roomId, 'messages');
+      const snap = await getDocs(messagesRef);
+      
+      if (snap.empty) {
+        toast({ title: 'Frequency Clean', description: 'No messages to clear.' });
+        setIsClearingChat(false);
+        return;
+      }
+
+      const batch = writeBatch(firestore);
+      snap.docs.forEach(d => batch.delete(d.ref));
+      
+      await batch.commit();
+      toast({ title: 'Frequency Purified', description: 'Chat history has been cleared.' });
+      onOpenChange(false);
+    } catch (e: any) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: `chatRooms/${roomId}/messages`,
+        operation: 'delete',
+      }));
+    } finally {
+      setIsClearingChat(false);
+    }
+  };
 
   const options = [
     { 
@@ -74,6 +117,24 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId }
       )
     }
   ];
+
+  // Add Clear Chat option only for authorities
+  if (canManage) {
+    options.push({
+      id: 'clear-chat',
+      label: 'Clear Chat',
+      onClick: handleClearChat,
+      icon: (
+        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 p-0.5 border-2 border-white/20 shadow-xl overflow-hidden group">
+           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+           <div className="w-full h-full flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-full">
+              {isClearingChat ? <Loader className="h-8 w-8 text-white animate-spin" /> : <Trash2 className="h-8 w-8 text-white drop-shadow-md" />}
+           </div>
+           <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-[-30deg] -translate-x-[200%] animate-shine" />
+        </div>
+      )
+    });
+  }
 
   const handleClose = (open: boolean) => {
     if (!open) {
@@ -179,10 +240,10 @@ export function RoomPlayDialog({ open, onOpenChange, participants = [], roomId }
 
             <main className="flex-1 px-8 pb-10 relative z-10 flex flex-col gap-8">
                <div className="flex flex-col items-center justify-center gap-6 py-4">
-                  <TeamSlot index={0} team={selectionSide === 'BLUE' ? blueTeam : redTeam} side={selectionSide} participants={participants} onRemove={(uid) => toggleSelection(uid)} />
+                  <TeamSlot index={0} team={selectionSide === 'BLUE' ? blueTeam : redTeam} side={selectionSide} participants={participants} onRemove={(uid: string) => toggleSelection(uid)} />
                   <div className="flex justify-center gap-4">
                      {[1, 2, 3, 4].map(idx => (
-                       <TeamSlot key={idx} index={idx} team={selectionSide === 'BLUE' ? blueTeam : redTeam} side={selectionSide} participants={participants} onRemove={(uid) => toggleSelection(uid)} />
+                       <TeamSlot key={idx} index={idx} team={selectionSide === 'BLUE' ? blueTeam : redTeam} side={selectionSide} participants={participants} onRemove={(uid: string) => toggleSelection(uid)} />
                      ))}
                   </div>
                </div>
