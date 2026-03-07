@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -400,7 +399,7 @@ export function RoomClient({ room }: { room: Room }) {
       <header className="relative z-50 flex items-center justify-between p-4 pt-4">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12 rounded-xl border-2 border-white/20">
-            <AvatarImage src={room.coverUrl || undefined} unoptimized />
+            <AvatarImage src={room.coverUrl || undefined} />
             <AvatarFallback>UM</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">

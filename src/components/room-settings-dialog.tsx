@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useMemo } from 'react';
@@ -219,7 +218,7 @@ export function RoomSettingsDialog({ room, trigger }: RoomSettingsDialogProps) {
                 <SettingItem label="Profile" onClick={() => !isUploadingProfile && fileInputRef.current?.click()} className="py-8">
                    <div className="relative">
                       <Avatar className="h-16 w-16 rounded-xl border-2 border-slate-100 shadow-sm overflow-hidden bg-slate-50">
-                         <AvatarImage key={room.coverUrl} src={room.coverUrl || undefined} className="object-cover" unoptimized />
+                         <AvatarImage key={room.coverUrl} src={room.coverUrl || undefined} className="object-cover" />
                          <AvatarFallback className="bg-slate-200">{(room.title || 'R').charAt(0)}</AvatarFallback>
                       </Avatar>
                       {isUploadingProfile && (
