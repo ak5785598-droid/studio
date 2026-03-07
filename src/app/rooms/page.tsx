@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
@@ -218,7 +219,39 @@ export default function RoomsPage() {
   const { data: bannerConfig } = useDoc(bannerRef);
 
   const displayRooms = useMemo(() => {
-    return roomsData || [];
+    if (!roomsData) return [];
+    
+    // SOVEREIGN PRIORITY PROTOCOL: Pin Help Center and Official Room to top
+    const helpRoomId = 'ummy-help-center';
+    
+    const helpRoomStub = {
+      id: helpRoomId,
+      roomNumber: '0000',
+      title: 'Ummy Official Help',
+      coverUrl: 'https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=1000',
+      participantCount: 0,
+      ownerId: CREATOR_ID,
+      category: 'Chat'
+    };
+
+    const list = [...roomsData];
+    const hasHelp = list.some(r => r.id === helpRoomId);
+    if (!hasHelp) list.push(helpRoomStub as any);
+
+    return list.sort((a, b) => {
+      // 1. Help Center always #1
+      if (a.id === helpRoomId) return -1;
+      if (b.id === helpRoomId) return 1;
+      
+      // 2. Creator Owned Room #2
+      const aIsOfficial = a.ownerId === CREATOR_ID;
+      const bIsOfficial = b.ownerId === CREATOR_ID;
+      if (aIsOfficial && !bIsOfficial) return -1;
+      if (bIsOfficial && !aIsOfficial) return 1;
+      
+      // 3. Others by participant count
+      return (b.participantCount || 0) - (a.participantCount || 0);
+    });
   }, [roomsData]);
 
   const CategoryCard = ({ title, label, gradient, onClick }: { title: string, label: string, gradient: string, onClick?: () => void }) => (
@@ -304,9 +337,7 @@ export default function RoomsPage() {
               )}
             </>
           ) : (
-            /* ME TAB DIMENSION */
             <div className="flex flex-col space-y-10 animate-in fade-in duration-500 pb-10">
-               {/* My Personal Frequency */}
                <section className="space-y-4">
                   <h3 className="text-xl font-black uppercase italic tracking-tighter px-2 flex items-center gap-2">
                      <Pin className="h-5 w-5 text-primary" /> My Frequency
@@ -331,7 +362,6 @@ export default function RoomsPage() {
                   )}
                </section>
 
-               {/* Followed Frequencies */}
                <section className="space-y-4">
                   <h3 className="text-xl font-black uppercase italic tracking-tighter px-2 flex items-center gap-2">
                      <Heart className="h-5 w-5 text-red-500 fill-current" /> Followed Tribes

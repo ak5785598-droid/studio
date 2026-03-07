@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -9,6 +10,7 @@ import { doc, getDoc, setDoc, serverTimestamp, runTransaction, collection, incre
  * GHOST IDENTITY RECOVERY: 
  * If a user returns and has a stale currentRoomId, we perform an immediate physical cleanup 
  * of the previous frequency participant record before allowing a new entry.
+ * REGISTRATION GUARD: Synchronized counter update allows unique sequence ID generation.
  */
 export function ProfileInitializer() {
   const { user } = useUser();
@@ -38,8 +40,7 @@ export function ProfileInitializer() {
               const participantRef = doc(firestore, 'chatRooms', staleRoomId, 'participants', profileId);
               const profileRef = doc(firestore, 'users', profileId, 'profile', profileId);
               
-              // Incrementally correct the global room count and delete the stale participant record
-              batch.update(roomRef, { 
+              batch.update(roomDocRef, { 
                 participantCount: increment(-1), 
                 updatedAt: serverTimestamp() 
               });
@@ -63,7 +64,6 @@ export function ProfileInitializer() {
               console.warn(`[Identity Sync] Cleanup handshake aborted:`, e);
             }
           } else {
-            // Standard re-entry pulse
             const pulseBatch = writeBatch(firestore);
             const profileRef = doc(firestore, 'users', profileId, 'profile', profileId);
             pulseBatch.update(userRef, { isOnline: true, lastSeen: serverTimestamp(), updatedAt: serverTimestamp() });
@@ -98,8 +98,8 @@ export function ProfileInitializer() {
             avatarUrl: user.photoURL || '', 
             email: user.email || '',
             bio: 'Synchronized with the Ummy frequency.',
-            gender: null, // One-time set in profile edit
-            country: null, // One-time set in profile edit
+            gender: null,
+            country: null,
             currentRoomId: null,
             isOnline: true,
             lastSeen: serverTimestamp(),

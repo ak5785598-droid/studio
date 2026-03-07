@@ -40,6 +40,11 @@ service cloud.firestore {
       );
     }
 
+    match /appConfig/counters {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
     match /appConfig/{configId} {
       allow read: if true;
       allow write: if isAdmin();
