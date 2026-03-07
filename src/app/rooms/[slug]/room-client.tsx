@@ -23,7 +23,8 @@ import {
   UserX,
   UserCheck,
   Ban,
-  Heart
+  Heart,
+  Plus
 } from 'lucide-react';
 import { GoldCoinIcon, GameControllerIcon } from '@/components/icons';
 import type { Room, RoomParticipant } from '@/lib/types';
@@ -408,11 +409,18 @@ export function RoomClient({ room }: { room: Room }) {
                 <button 
                   onClick={handleFollowRoom}
                   className={cn(
-                    "p-1 rounded-full transition-all active:scale-90 border",
-                    followData ? "bg-red-500 border-red-400 text-white" : "bg-white/10 border-white/10 text-white/60 hover:text-white"
+                    "h-6 w-6 rounded-full flex items-center justify-center transition-all active:scale-90 shadow-lg shrink-0",
+                    followData ? "bg-red-500" : "bg-[#00E676]"
                   )}
                 >
-                   <Heart className={cn("h-3 w-3", followData && "fill-current")} />
+                   {followData ? (
+                     <Heart className="h-3.5 w-3.5 text-white fill-current" />
+                   ) : (
+                     <div className="relative flex items-center justify-center">
+                        <Heart className="h-4 w-4 text-white" strokeWidth={3} />
+                        <Plus className="h-2 w-2 text-white absolute mt-0.5" strokeWidth={4} />
+                     </div>
+                   )}
                 </button>
              </div>
              <p className="text-[10px] font-bold text-white/60 uppercase">ID:{room.roomNumber}</p>
