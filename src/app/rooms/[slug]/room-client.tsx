@@ -89,6 +89,62 @@ function RemoteAudio({ stream }: { stream: MediaStream }) {
   return <audio ref={audioRef} autoPlay playsInline className="hidden" />;
 }
 
+/**
+ * Stable Seat Interaction Component.
+ */
+const Seat = ({ 
+  index, 
+  label, 
+  occupant, 
+  isLocked, 
+  theme, 
+  onClick 
+}: { 
+  index: number, 
+  label: string, 
+  occupant?: RoomParticipant, 
+  isLocked?: boolean, 
+  theme: any,
+  onClick: (index: number, occupant?: RoomParticipant) => void 
+}) => {
+  return (
+    <div className="flex flex-col items-center gap-1 w-[22%]">
+      <div className="relative">
+        {occupant && !occupant.isMuted && (
+          <div className="absolute -inset-1 rounded-full border-2 animate-voice-wave" style={{ color: theme.accentColor }} />
+        )}
+        <AvatarFrame frameId={occupant?.activeFrame} size="md">
+          <button 
+            onClick={() => onClick(index, occupant)} 
+            className={cn(
+              "h-14 w-14 rounded-full flex items-center justify-center border-2 backdrop-blur-sm active:scale-90 transition-transform relative z-10",
+              isLocked ? "border-red-500/40" : "border-white/10"
+            )}
+            style={{ backgroundColor: theme.seatColor }}
+          >
+            {occupant ? (
+              <Avatar className="h-full w-full p-0.5">
+                <AvatarImage src={occupant.avatarUrl || undefined} />
+                <AvatarFallback>{(occupant.name || 'U').charAt(0)}</AvatarFallback>
+              </Avatar>
+            ) : isLocked ? (
+              <Lock className="h-4 w-4 text-red-500/40" />
+            ) : (
+              <div className="bg-white/10 rounded-full h-8 w-8 flex items-center justify-center">
+                <Armchair className="text-white/40 h-4 w-4" />
+              </div>
+            )}
+          </button>
+        </AvatarFrame>
+        {occupant?.isMuted && <div className="absolute -bottom-0.5 -right-0.5 bg-red-500 rounded-full p-0.5 border border-black z-20"><MicOff className="h-2 w-2 text-white" /></div>}
+      </div>
+      <span className="text-[10px] font-bold text-white/60 uppercase truncate w-14 text-center">
+        {occupant ? occupant.name : label}
+      </span>
+    </div>
+  );
+};
+
 export function RoomClient({ room }: { room: Room }) {
   const [messageText, setMessageText] = useState('');
   const [showInput, setShowInput] = useState(false);
@@ -133,14 +189,16 @@ export function RoomClient({ room }: { room: Room }) {
 
   const { data: participantsData } = useCollection<RoomParticipant>(participantsQuery);
   
+  // ANTI-GHOST FILTER: Prune stale users, but ALWAYS keep yourself synchronized
   const participants = useMemo(() => {
     if (!participantsData) return [];
     return participantsData.filter(p => {
+      if (p.uid === currentUser?.uid) return true; // Self sovereignty
       const lastSeen = (p as any).lastSeen?.toDate?.()?.getTime?.() || 0;
       if (!lastSeen) return true;
       return (now - lastSeen) < 65000;
     });
-  }, [participantsData, now]);
+  }, [participantsData, now, currentUser?.uid]);
 
   const onlineCount = participants.length;
   const currentUserParticipant = participants.find(p => p.uid === currentUser?.uid);
@@ -186,45 +244,6 @@ export function RoomClient({ room }: { room: Room }) {
 
   const currentTheme = ROOM_THEMES.find(t => t.id === room.roomThemeId) || ROOM_THEMES[0];
   const bgUrl = room.backgroundUrl || currentTheme.url;
-
-  const Seat = ({ index, label }: { index: number, label: string }) => {
-    const occupant = participants.find(p => p.seatIndex === index);
-    const isLocked = room.lockedSeats?.includes(index);
-    return (
-      <div className="flex flex-col items-center gap-1 w-[22%]">
-        <div className="relative">
-          {occupant && !occupant.isMuted && (
-            <div className="absolute -inset-1 rounded-full border-2 animate-voice-wave" style={{ color: currentTheme.accentColor }} />
-          )}
-          <AvatarFrame frameId={occupant?.activeFrame} size="md">
-            <button 
-              onClick={() => handleSeatClick(index, occupant)} 
-              className={cn(
-                "h-14 w-14 rounded-full flex items-center justify-center border-2 backdrop-blur-sm active:scale-90 transition-transform relative z-10",
-                isLocked ? "border-red-500/40" : "border-white/10"
-              )}
-              style={{ backgroundColor: currentTheme.seatColor }}
-            >
-              {occupant ? (
-                <Avatar className="h-full w-full p-0.5">
-                  <AvatarImage src={occupant.avatarUrl || undefined} />
-                  <AvatarFallback>{(occupant.name || 'U').charAt(0)}</AvatarFallback>
-                </Avatar>
-              ) : isLocked ? (
-                <Lock className="h-4 w-4 text-red-500/40" />
-              ) : (
-                <div className="bg-white/10 rounded-full h-8 w-8 flex items-center justify-center">
-                  <Armchair className="text-white/40 h-4 w-4" />
-                </div>
-              )}
-            </button>
-          </AvatarFrame>
-          {occupant?.isMuted && <div className="absolute -bottom-0.5 -right-0.5 bg-red-500 rounded-full p-0.5 border border-black z-20"><MicOff className="h-2 w-2 text-white" /></div>}
-        </div>
-        <span className="text-[10px] font-bold text-white/60 uppercase truncate w-14 text-center">{occupant ? occupant.name : label}</span>
-      </div>
-    );
-  };
 
   const handleSeatClick = (index: number, occupant?: RoomParticipant) => {
     setSelectedSeatIdx(index);
@@ -300,11 +319,23 @@ export function RoomClient({ room }: { room: Room }) {
       </header>
 
       <main className="relative z-10 flex-1 flex flex-col pt-2 overflow-hidden">
-        <div className="flex-1 flex flex-col items-center justify-start gap-4 pt-2 pb-80 overflow-y-auto no-scrollbar">
-           <div className="w-full flex justify-center"><Seat index={1} label="No.1" /></div>
-           <div className="w-full flex justify-center gap-4 px-4"><Seat index={2} label="No.2" /><Seat index={3} label="No.3" /><Seat index={4} label="No.4" /><Seat index={5} label="No.5" /></div>
-           <div className="w-full flex justify-center gap-4 px-4"><Seat index={6} label="No.6" /><Seat index={7} label="No.7" /><Seat index={8} label="No.8" /><Seat index={9} label="No.9" /></div>
-           <div className="w-full flex justify-center gap-4 px-4"><Seat index={10} label="No.10" /><Seat index={11} label="No.11" /><Seat index={12} label="No.12" /><Seat index={13} label="No.13" /></div>
+        <div className="flex-1 flex flex-col items-center justify-start gap-4 pt-2 pb-40 overflow-y-auto no-scrollbar">
+           <div className="w-full flex justify-center"><Seat index={1} label="No.1" theme={currentTheme} occupant={participants.find(p => p.seatIndex === 1)} isLocked={room.lockedSeats?.includes(1)} onClick={handleSeatClick} /></div>
+           <div className="w-full flex justify-center gap-4 px-4">
+              {[2, 3, 4, 5].map(idx => (
+                <Seat key={idx} index={idx} label={`No.${idx}`} theme={currentTheme} occupant={participants.find(p => p.seatIndex === idx)} isLocked={room.lockedSeats?.includes(idx)} onClick={handleSeatClick} />
+              ))}
+           </div>
+           <div className="w-full flex justify-center gap-4 px-4">
+              {[6, 7, 8, 9].map(idx => (
+                <Seat key={idx} index={idx} label={`No.${idx}`} theme={currentTheme} occupant={participants.find(p => p.seatIndex === idx)} isLocked={room.lockedSeats?.includes(idx)} onClick={handleSeatClick} />
+              ))}
+           </div>
+           <div className="w-full flex justify-center gap-4 px-4">
+              {[10, 11, 12, 13].map(idx => (
+                <Seat key={idx} index={idx} label={`No.${idx}`} theme={currentTheme} occupant={participants.find(p => p.seatIndex === idx)} isLocked={room.lockedSeats?.includes(idx)} onClick={handleSeatClick} />
+              ))}
+           </div>
         </div>
 
         <div className="absolute bottom-0 left-0 w-full h-40 z-20 pointer-events-none p-4 pb-0">

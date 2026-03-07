@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Sovereign Deployment Signature: 2024-05-22T14:30:00Z
+    // Sovereign Deployment Signature: 2024-05-23T10:15:00Z
     
     function isSignedIn() {
       return request.auth != null;
@@ -60,7 +60,7 @@ service cloud.firestore {
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['tags', 'specialId'])
       ) || (
         isAdmin() && 
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wallet', 'updatedAt', 'isOnline', 'currentRoomId', 'stats'])
+        request.resource.data.diff(resource.data).affectedKeys().hasAny(['wallet', 'updatedAt', 'isOnline', 'currentRoomId', 'stats'])
       );
       allow delete: if isAdmin();
 
@@ -88,13 +88,8 @@ service cloud.firestore {
       allow create: if isSignedIn() && (request.resource.data.ownerId == request.auth.uid || chatRoomId == 'ummy-help-center');
       allow update: if isCreator() || (
         isSignedIn() && (
-          // Owner can update everything
           isOwner(resource.data.ownerId) || 
-          // Moderators can only update specific operational fields
-          ( (resource.data.get('moderatorIds', []) != null && request.auth.uid in resource.data.get('moderatorIds', [])) && 
-            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ownerId', 'moderatorIds', 'createdAt'])
-          ) ||
-          // Public count updates
+          (resource.data.get('moderatorIds', []) != null && request.auth.uid in resource.data.get('moderatorIds', [])) ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantCount', 'updatedAt']) ||
           chatRoomId == 'ummy-help-center' ||
           isAdmin()
@@ -128,7 +123,6 @@ service cloud.firestore {
       allow get, list, update: if isSignedIn() && (isCreator() || resource.data.participantIds.hasAny([request.auth.uid]));
 
       match /messages/{messageId} {
-        // ENFORCED PRIVACY: Only participants can read/write their private frequency
         allow read, write: if isSignedIn() && (
           isCreator() || 
           get(/databases/$(database)/documents/privateChats/$(chatId)).data.participantIds.hasAny([request.auth.uid])
