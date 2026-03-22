@@ -50,8 +50,8 @@ import {
 import type { Gift as GiftType } from '@/lib/types';
 
 const AVAILABLE_GIFTS: GiftType[] = [
-  { id: 'rose', name: 'Rose', emoji: '🌹', price: 10, animationType: 'pulse' },
-  { id: 'heart', name: 'Heart', emoji: '💖', price: 50, animationType: 'zoom' },
+  { id: 'rose', name: 'Rose', emoji: '🌹', price: 200, animationType: 'pulse' },
+  { id: 'heart', name: 'Heart', emoji: '💖', price: 500, animationType: 'zoom' },
   { id: 'ring', name: 'Ring', emoji: '💍', price: 500, animationType: 'bounce' },
   { id: 'car', name: 'Luxury Car', emoji: '🏎️', price: 2000, animationType: 'bounce' },
   { id: 'jet', name: 'Private Jet', emoji: '🛩️', price: 5000, animationType: 'bounce' },
